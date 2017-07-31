@@ -1,0 +1,76 @@
+{% extends 'base.html' %} {% block main %} {% if user.is_authenticated %}
+<div class="column is-12">
+    <section class="hero is-info is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    用户中心：
+                </h1>
+                <h2 class="subtitle">
+                    这里有你的出生证明....
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="column is-12">
+
+    <div class="tile is-ancestor">
+
+        <div class="tile is-5 is-vertical is-parent">
+            <div class="tile box is-child">
+                <p class="title">欢迎小主: {{ user.username }}</p>
+                <p class="subtitle">这里的功能还比较少： </p>
+                <button class="button"><a href="{% url 'shadowsocks:logout' %}">注销登录</a></button>
+                <button class="button"><a href="{% url 'password_change' %}">修改密码</a></button>
+                <hr>
+                {% if ss_user.get_check_in %} 
+                    <p>今天已经签到过了哟</p>
+                {% else %}
+                    <p> 今天还没有签到呢，点一下可以获得200m流量哟</p>
+                    <br>
+                    <button class="button"><a href="{% url 'shadowsocks:checkin' %}">签到</a></button>
+                {% endif %}
+            </div>
+
+            <div class="tile box is-child">
+                <article class="article notification is-light">
+                    <p class="subtitle">流量信息:</p>
+                    <hr>
+                    <li>使用流量: {{ ss_user.get_traffic }} MB </li>
+                    <li>总流量: {{ ss_user.get_transfer }} MB </li>
+                    <li>使用百分比: {{ ss_user.get_used_percentage }} % </li>
+                </article>
+            </div>
+        </div>
+
+        <div class="tile is-7 is-vertical is-parent">
+            <div class="tile box is-child">
+                <div class="notification is-light">
+                <h3 class="subtitle">连接信息：</h3>
+                <hr>
+                <li> 端口：<code>{{ ss_user.port }}</code></li>
+                <li> 密码：<code>{{ ss_user.password }}</code></li>
+                <li> 混淆：<code>{{ ss_user.obfs }}</code></li>
+                <li> 协议：<code>{{ ss_user.protocal }}</code></li>                
+                <li>上次使用: {{ ss_user.get_last_use_time|date:"m月d日G点" }}</li>
+                <br>
+                <a class="button is-link " href="{% url 'shadowsocks:nodeinfo' %}">详细节点信息请点击这里</a>
+                </div>
+
+                <div class="notification is-light">
+                <h3 class="subtitle">个人信息：</h3>
+                <hr>
+                <li> 余额：<code>{{ user.balance }} 元</code></li>
+                <li> 邮箱：<code>{{ user.email }} </code></li>
+                <li> 等级：<code>{{ user.level }} 级 </code></li>                
+                                
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<p>你还没有登录，请登录 </p>
+{% endif %} {% endblock main %}

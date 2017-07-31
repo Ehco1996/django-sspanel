@@ -1,0 +1,121 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="column is-12">
+<section class="hero is-info is-smaill">
+  <div class="hero-body">
+    <div class="container">
+      <h1 class="title">
+        节点列表：
+      </h1>
+      <h2 class="subtitle">
+        来呀伤害呀!
+      </h2>
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="column is-12">
+    <div class="box nodelist">
+        <ul>
+            {% for list in nodelists %}
+            {% if user.level >= list.level  %}
+            <div class="card">
+                <div class="card-header">
+                    <p class="card-header-title">{{ list.name }}</p>
+                </div>
+                <div class="card-content">
+                    <div class="content">
+                        {{ list.info }}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="card-footer-item">
+                        <div class="block">
+                            <a class="button is-primary is-outlined modal-button" data-target="modal-{{ list.name }}">二维码</a>
+
+                        </div>
+                    </div>
+                    <div class="card-footer-item">
+                        <div class="block">
+                            <a class="button is-primary is-outlined modal-button" data-target="modal-{{ list.pk }}">节点配置</a>
+                        </div>
+                    </div>
+                    <a class="card-footer-item">使用人数:「{{ list.count }}」</a>
+                </div>
+            </div>
+
+            <div class="modal nodeinfo" id="modal-{{ list.pk }}">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">节点配置信息:</p>
+                        <button class="delete"></button>
+                    </header>
+                    <section class="modal-card-body">
+                        <table class="table">
+                            <tr>
+                                <td class="notification">节点ip:</td>
+                                <br/>
+                                <td class="notification is-info">{{ list.server }}</td>
+                            </tr>
+                            <tr>
+                                <td class="notification">端口:</td>
+                                <br/>
+                                <td class="notification is-danger">{{ ss_user.port }}</td>
+                            </tr>
+                            <tr>
+                                <td class="notification">密码:</td>
+                                <br/>
+                                <td class="notification is-danger">{{ ss_user.password }}</td>
+                            </tr>
+                            <tr>
+                                <td class="notification">加密方式:</td>
+                                <td class="notification is-primary">{{ list.method }}</td>
+                            </tr>
+                            <tr>
+                                <td class="notification">协议:</td>
+                                <td class="notification is-primary">{{ list.protocol }}</td>
+                            </tr>
+                            <tr>
+                                <td class="notification">混淆:</td>
+                                <td class="notification is-primary">{{ list.obfs }}</td>
+                            </tr>
+                            <tr>
+                                <td class="notification">运行状态:</td>
+                                <td class="notification is-success">{{ list.status }}</td>
+                            </tr>
+                        </table>
+                    </section>
+                </div>
+            </div>
+
+            <div class="modal qrcode" id="modal-{{ list.name }}">
+                <div class="modal-background"></div>
+                <h2 class="title">{{ list.name }}</h2>
+                <div class="modal-content">
+                    <p class="image is-4by4">
+                        <img src="{% url 'shadowsocks:qrcode' list.node_id %}">
+                    </p>
+                </div>
+                <button class="modal-close is-large"></button>
+            </div><br/> 
+            {% endif %}
+            {% empty %}
+            <div class="column is-12">
+                <div class="notification is-info">
+
+                    <h2 class="title">木有节点</h2>
+
+                </div>
+            </div>
+            {% endfor %}
+
+    </div>
+    </ul>
+</div>
+</div>
+
+
+
+{% endblock main %}

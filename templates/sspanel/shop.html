@@ -1,0 +1,103 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="column is-12">
+    <section class="hero is-warning is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    商品列表：
+                </h1>
+                <h2 class="subtitle">
+                    嘿，土豪，快把我收到碗里去
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+
+<div class="column is-12">
+    <nav class="level box">
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">用户名:</p>
+                <p class="title">{{ ss_user }}</p>
+            </div>
+        </div>
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">余额：</p>
+                <p class="title">{{ ss_user.balance }}</p>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="box">
+        {% for good in goods %}
+
+        <div class="card">
+            <header class="card-header">
+                <p class="card-header-title">
+                    商品序号：{{ good.pk }}
+                </p>
+                <a class="modal-button card-header-icon" data-target="modal-{{ good.pk }}">
+                <span class="icon">
+                    <i class="fa fa-shopping-bag" aria-hidden="true"></i>
+                </span>
+                <span>购买</span>
+                </a>
+
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    {{ good.name }} <br>
+                    <strong>价格：</strong><code>{{ good.money }}元</code> <br>
+                    <strong>流量：</strong><code>{{ good.get_transfer_by_GB }} GB</code><br>
+                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code>                    
+                    
+                </div>
+            </div>
+        </div>
+
+
+        
+        <div class="modal" id="modal-{{ good.pk }}">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">订单确认:</p>
+                        <button class="delete"></button>
+                    </header>
+                    <section class="modal-card-body">
+                    <p class="subtitle">    {{ good.name }} </p>
+                    <strong>价格：</strong><code>{{ good.money }}元</code> <br>
+                    <strong>流量：</strong><code>{{ good.get_transfer_by_GB }} GB</code><br>
+                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code>                    
+                    <br><br>
+                    
+                    <a class="button is-danger is-outlined" href="{% url 'shadowsocks:purchase' good.pk %}">确认购买</a>
+                    
+                    </section>
+                </div>
+            </div>
+        
+        
+        
+        
+        
+        
+        <br> 
+        {% empty %}
+        <p class="subtitle">暂时没有商品上架哦</p>
+        {% endfor %}
+
+    </div>
+</div>
+
+
+
+
+{% endblock main %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %} {% block main %}
+<div class="column is-12">
+    <section class="hero is-info is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    用户资料改写处：
+                </h1>
+                <h2 class="subtitle">
+                    重头来过的机会....
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+
+<div class="column is-12">
+
+    <div class="tile is-ancestor">
+
+        <div class="tile is-5 is-vertical is-parent">
+
+            <div class="tile box is-child">
+                <p class="title">修改连接密码</p>
+                <p class="subtitle">密码要6位数以上才安全!</p>
+                <p class="subtitle">当前密码:<code>{{ ss_user.password }}</code></p>
+                <form class="form" action="{% url 'ssserver:changesspass' %}" method="post">
+                    {% csrf_token %}
+                    <input type="text" name="password" class="input is-danger" required="" id="password">
+                    <hr/>
+                    <div class="is-grouped">
+                        <button type="submit" class="button is-danger is-outlined ">确认修改</button>
+                    </div>
+                </form>
+            </div>
+            <div class="tile box is-child">
+
+            </div>
+        </div>
+
+        <div class="tile is-7 is-vertical is-parent">
+            <div class="tile box is-child">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock main %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %} {% block main %} {% load static %}
+
+<div class="column is-12">
+    <section class="hero is-info is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    捐赠榜：
+                </h1>
+                <h2 class="subtitle">
+                    有你们的支持,才让这里继续下去 谢谢！
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+
+<div class="column is-12">
+
+    <div class="tile is-ancestor">
+
+        <div class="tile is-5 is-vertical is-parent">
+
+            <div class="tile box is-child">
+                <p class="subtitle">个人网站不能接入支付宝和微信支付<br>请直接扫描下方二维码进行捐赠</p>
+                <p>捐赠请留下备注，我会直接将等额的充值码发给您，再次感谢!</p>
+                <hr>
+                <div class="content">
+                    <figure class="image">
+                        <img src="{% static '/img/alipay.png'%}">
+                    </figure>
+                </div>
+            </div>
+        </div>
+
+        <div class="tile is-7 is-vertical is-parent">
+            <div class="tile box is-child">
+                <div class="content">
+                    <p class="subtitle">在充值界面充值也等同于捐赠，记录会自动同步</p>
+                    <table class="table is-striped">
+                        <thead>
+                            <tr>
+                                <th>捐赠人:</th>
+                                <th>捐赠金额:</th>
+                                <th>捐赠时间:</th>   
+                            </tr>
+                        </thead>
+
+                        {% for donate in donatelist %}
+                        <tr>
+                            <td>{{ donate.user }}</td>
+                            <td>{{ donate.money }} 元</td>                                
+                            <td>{{ donate.time|date:"m月d日" }}：</td>
+                        </tr>
+                        {% empty %}
+                        <p class="subtitle">
+                            居然还没有人捐赠 要喝西北风了
+                        </p>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock main %}

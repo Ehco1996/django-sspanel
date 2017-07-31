@@ -1,0 +1,66 @@
+{% extends 'base.html' %} {% block main %}
+{% load static %}
+<div class="box">
+    <div class="container">
+      <h1 class="title">
+        客户端推荐：
+      </h1>
+      <h2 class="subtitle">
+        务必保重龙体!
+      </h2>
+    </div>
+</div>
+
+
+<div class="tile is-ancestor">
+    <div class="tile is-vertical is-8">
+        <div class="tile">
+            <div class="tile is-parent is-vertical">
+                <article class="tile is-child notification is-primary">
+                    <p class="title">Andriod:</p>
+                    <p class="subtitle">下载地址：</p>
+                    <a class="subtitle" href="https://github.com/shadowsocks/shadowsocks-android/releases"> Shadowsocks(影梭)</a>
+                </article>
+                <article class="tile is-child notification is-warning">
+                    <p class="title">IOS:</p>
+                    <p class="subtitle">Appstore搜索:</p>
+                    <a class="subtitle" href="https://itunes.apple.com/cn/app/shadowrocket/id932747118?mt=8">Shadowrocket(小火箭)</a>
+                </article>
+            </div>
+            <div class="tile is-parent">
+                <article class="tile is-child notification is-info">
+                    <p class="title">Mac os:</p>
+                    <p class="subtitle">下载地址：</p>
+                    <a class="subtitle" href="https://github.com/shadowsocks/ShadowsocksX-NG/releases">ShadowsockX-NG</a>
+                    <br>
+                    <br>
+                    <br>
+                    <p class="">不要怀疑自己的眼睛，这一段文字的确是在凑字数</p>
+                </article>
+            </div>
+        </div>
+        <div class="tile is-parent">
+            <article class="tile is-child notification is-danger">
+                <p class="title">Windows</p>
+                <p class="subtitle">请不要下载来路不明的软件：</p>
+                <div class="content">
+                    <p class="subtitle"><a href="https://github.com/shadowsocks/shadowsocks-windows/releases">ShadowsocksR(影梭) </a></p>
+                </div>
+            </article>
+        </div>
+    </div>
+    <div class="tile is-parent">
+        <article class="tile is-child notification is-success">
+            <div class="content">
+                <p class="title">碎碎念：</p>
+                <p class="subtitle">欢迎关注我的微信公众号：<br><em>findyourownway</em><br> 获取最新的客户端和优惠信息</p>
+                <div class="content">
+                    <figure class="image">
+                        <img src="{% static '/img/wechat.jpg'%}">
+                    </figure>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+{% endblock main %}

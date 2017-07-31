@@ -1,0 +1,49 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="column is-12">
+    <section class="hero is-info is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    邀请码列表：
+                </h1>
+                <h2 class="subtitle">
+                    邀请码随时更新，如果没有了请添加公众号：「findyourownway」获取
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="column is-12">
+    <div class="box">
+        <div class="content">
+
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>创建时间:</th>
+                        <th>邀请码:</th>
+                    </tr>
+                </thead>
+
+                {% for code in codelist %}
+                <tr>
+                    <td>{{ code.time_created|date:"m月d日" }}：</td>
+                    <td>
+                        <a href="{% url 'shadowsocks:passinvitecode' code.code %}" code.code }}>
+                            {{ code.code }}
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <h2 class="subtitle">
+                    哦哦哦，用完了！
+                </h2>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock main%}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %} {% block main %}
+<div class="column is-12">
+    <section class="hero is-warning is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    充值中心：
+                </h1>
+                <h2 class="subtitle">
+                    请在下方输方输入充值码....
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+
+<div class="column is-12">
+
+    <nav class="level box ">
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">用户名:</p>
+                <p class="title">{{ ss_user }}</p>
+            </div>
+        </div>
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">余额：</p>
+                <p class="title"><code>{{ ss_user.balance }}元</code></p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="box ">
+        <form class="form" action="{% url 'shadowsocks:charge' %}" method="post">
+            {% csrf_token %}
+            <input type="text" name="chargecode" class="input " required="" id="chargecode" placeholder="请输入充值码">
+            <hr/>
+            <div class="is-grouped">
+                <button type="submit" class="button is-danger is-outlined ">充值</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="box">
+        <div class="content">
+            <p class="subtitle">充值记录：</p>
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>时间:</th>
+                        <th>代码:</th>
+                        <th>金额:</th>
+                        
+                    </tr>
+                </thead>
+
+                {% for code in codelist %}
+                <tr>
+                    <td>{{ code.time|date:"m月d日" }}</td>
+                    <td>{{ code.code }}</td>
+                    <td>{{ code.number }}</td>                    
+                </tr>
+                {% empty %}
+                <h2 class="subtitle">
+                    还没有氪金过，大佬快来吧
+                </h2>
+                {% endfor %}
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+{% endblock main %}

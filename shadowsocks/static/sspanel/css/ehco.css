@@ -1,0 +1,6 @@
+/* 动态为footer添加类fixed-bottom */
+.fixed-bottom {position: fixed;bottom: 0;width:100%;}
+/* 注册错误消息提示 */
+ .errorlist {
+            color: red
+        }
