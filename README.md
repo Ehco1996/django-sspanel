@@ -8,7 +8,7 @@ Demo: [迷之屋](http://www.ehcozone.club/)
 * 前端CSS框架： BULMA(布玛)
 * 通知功能： SweetAlert
 * 后端： django 1.11
-* 第三方包：qrcode
+* 第三方包：qrcode,pillow
 * so on...
 
 ### 支援ss版本
