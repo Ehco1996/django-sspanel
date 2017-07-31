@@ -1,4 +1,9 @@
 
+# 域名设置 
+ALLOWED_HOSTS = [
+        'www.ehcozone.club',
+        'ehcozone.club',
+]
 
 # mysql 设置
 DATABASES = {
@@ -7,7 +12,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'sspanel',
         'USER': 'root',
-        'PASSWORD': '19960202',
+        'PASSWORD': 'pass',
         'HOST': '127.0.0.1',
         'PORT': '3306',
 
