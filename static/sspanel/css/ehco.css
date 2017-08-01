@@ -4,3 +4,11 @@
  .errorlist {
             color: red
         }
+
+/* Navbar免js自动响应 */
+#nav-toggle-state {
+  display: none;
+}
+#nav-toggle-state:checked ~ .nav-menu {
+  display: block;
+}

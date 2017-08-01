@@ -25,7 +25,6 @@
         </div>
     </div>
 </div>
-<hr/>
 <br/> 
 
 
@@ -41,13 +40,13 @@
 
 {% else %}
 <div class="column box ">
-    <h1 class="title is-2"> 注册注册！</h1>
+    <h1 class="title"> 注册注册！</h1>
     <h2 class="subtitle">没有账号？快去注册一个吧！</h2>
     <a class="button is-primary is-outlined" href="{% url 'shadowsocks:register' %}">注册</a>
 </div>
 <br/>
 <div class="column box ">
-    <h1 class="title is-2"> 登录登录！</h1>
+    <h1 class="title"> 登录登录！</h1>
     <h2 class="subtitle">有账号了？登录吧少年！</h2>
     <a class="button is-danger is-outlined" href="{% url 'shadowsocks:login' %}?next={{ request.path }}">登录</a>
 </div>

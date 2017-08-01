@@ -3,17 +3,16 @@
 
 <head>
     {% load staticfiles %}
-    <title>秘密の小屋</title>
+    <title>迷之屋</title>
     <!-- meta -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href=" {% static 'img/logo/logo.ico' %}" /> 
     <!-- css -->
     <link rel="stylesheet" href="{% static 'sspanel/css/bulma.css'%}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{% static 'sspanel/css/ehco.css'%}">
     <link rel="stylesheet" href="{% static 'sspanel/css/sweetalert.css'%}">
-
-
     <!-- js -->
     <script src="{% static 'sspanel/js/jquery-2.1.3.min.js' %}"></script>
     <script src="{% static 'sspanel/js/sweetalert.min.js' %}"></script>
@@ -24,22 +23,30 @@
 <body>
     <section class="hero is-small is-primary ">
         <!-- Hero header: will stick at the top -->
-        <div class="hero-head">
-            <header class="nav">
+        <header class="nav">
                 <div class="container">
                     <div class="nav-left">
                         <a class="nav-item" href="/">
-                            <strong class="title">秘密の小屋</strong>
+                            <strong class="title">迷之屋</strong>
                         </a>
                     </div>
+                    <!-- Using a <label /> here -->
+                    <label class="nav-toggle" for="nav-toggle-state">
+                    <span></span>           <!-- ^^^^^^^^^^^^^^^^ -->
+                    <span></span>
+                    <span></span>
+                    </label>
+                    <!-- This checkbox is hidden -->
+                    <input type="checkbox" id="nav-toggle-state" />
                     <div class="nav-right nav-menu">
                         <a class="nav-item is-active" href="/">首页</a>
                         <a class="nav-item" href="/sshelp">使用说明</a>
                         <a class="nav-item" href="/ssinvite">邀请码</a>
                         <a class="nav-item" href="/ssclient">客户端</a>
                     </div>
+                    
                     {% if user.is_authenticated %}
-                    <div class="navbar-item has-dropdown is-hoverable">
+                    <div class="navbar-item  is-hidden-mobile has-dropdown is-hoverable">
                         <span class="nav-item">
                         <a class="button is-primary is-inverted">
                         <span class="icon">
@@ -67,6 +74,7 @@
                 </div>
             </header>
         </div>
+
         <!-- Hero content: will be in the middle -->
         <div class="hero-body">
             <div class="container has-text-centered">
@@ -82,7 +90,7 @@
     <br/>
 
     <div class="container is-fluid">
-        <div class="columns is-mobile">
+        <div class="columns">
             <div class="column is-2">
                 <div class="box">
                     {% if user.is_authenticated %}
@@ -108,7 +116,7 @@
                             <li><a href="{% url 'shadowsocks:chargecenter' %}">充值界面</a></li>
                             <li><a href="{% url 'shadowsocks:shop' %}">商品界面</a></li>
                         </ul>
-                        
+
                         {% if perms.shadowsocks %}
                         <p class="menu-label">
                             管理面板
@@ -116,46 +124,45 @@
                         <ul class="menu-list">
                             <li><a href="/admin">默认后台管理</a></li>
                         </ul>
+                        {% endif %} {% else %}
+                        <article class="message is-primary">
+                            <div class="message-header">
+                                <p>幻想乡：</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                幻想中的:「地方」
+                            </div>
+                        </article>
+                        <article class="message is-info">
+                            <div class="message-header">
+                                <p>谜の屋：</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                他不存于:「地表」
+                            </div>
+                        </article>
+                        <article class="message is-success">
+                            <div class="message-header">
+                                <p>时之塔：</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                这囚禁着：「思想」
+                            </div>
+                        </article>
+                        <article class="message is-warning">
+                            <div class="message-header">
+                                <p>旧の桥</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                却连接着：「自由」
+                            </div>
+                        </article>
                         {% endif %}
                     </aside>
-                    {% else %}
-                    <article class="message is-primary">
-                        <div class="message-header">
-                            <p>幻想乡：</p>
-                            <button class="delete"></button>
-                        </div>
-                        <div class="message-body">
-                            幻想中的:「地方」
-                        </div>
-                    </article>
-                    <article class="message is-info">
-                        <div class="message-header">
-                            <p>谜の屋：</p>
-                            <button class="delete"></button>
-                        </div>
-                        <div class="message-body">
-                            他不存于:「地表」
-                        </div>
-                    </article>
-                    <article class="message is-success">
-                        <div class="message-header">
-                            <p>时之塔：</p>
-                            <button class="delete"></button>
-                        </div>
-                        <div class="message-body">
-                            这囚禁着：「思想」
-                        </div>
-                    </article>
-                    <article class="message is-warning">
-                        <div class="message-header">
-                            <p>旧の桥</p>
-                            <button class="delete"></button>
-                        </div>
-                        <div class="message-body">
-                            却连接着：「自由」
-                        </div>
-                    </article>
-                    {% endif %}
                 </div>
             </div>
 
@@ -166,7 +173,6 @@
             </div>
         </div>
     </div>
-
 
     <footer>
         <div class="container">

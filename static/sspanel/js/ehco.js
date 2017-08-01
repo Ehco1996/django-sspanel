@@ -118,13 +118,6 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
-
-  new Clipboard('.copy', {
-    target: function target(trigger) {
-      return trigger.previousSibling;
-    }
-  });
-
   // Functions
 
   function getAll(selector) {

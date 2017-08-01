@@ -77,7 +77,7 @@ def nodeinfo(request):
     context = {
         'nodelists': nodelists,
         'ss_user': ss_user,
-        'user':user,
+        'user': user,
     }
 
     return render(request, 'sspanel/nodeinfo.html', context=context)
@@ -193,7 +193,7 @@ def userinfo(request):
     ss_user = request.user.ss_user
     context = {
         'ss_user': ss_user,
-        'user':user,
+        'user': user,
     }
 
     return render(request, 'sspanel/userinfo.html', context=context)
@@ -235,17 +235,19 @@ def get_ss_qrcode(request, node_id):
 
     ss_code = '{}:{}@{}:{}'.format(
         node.method, ss_user.password, node.server, ss_user.port)
-    ssr_code = '{}:{}:{}:{}:{}:'.format(
-        node.server, ss_user.port, node.protocol, node.method, node.obfs)
+    
+    # 符合ssr qrcode schema最后需要特殊处理的密码部分
+    ssr_password = base64.b64encode(
+        bytes(ss_user.password, 'utf8')).decode('ascii')
+    ssr_code = '{}:{}:{}:{}:{}:{}'.format(
+        node.server, ss_user.port, node.protocol, node.method, node.obfs,ssr_password)
     # 将信息编码
     ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
     ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
-    # 符合ssr qrcode schema
-    ssr_pasw = base64.b64encode(
-        bytes(ss_user.password, 'utf8')).decode('ascii')
+        
     # 生成ss二维码
     ss_img = qrcode.make('ss://{}'.format(ss_pass))
-    ssr_img = qrcode.make('ssr://{}{}'.format(ssr_pass, ssr_pasw))
+    ssr_img = qrcode.make('ssr://{}'.format(ssr_pass))
     buf = BytesIO()
     ssr_img.save(buf)
     image_stream = buf.getvalue()
@@ -375,7 +377,7 @@ def charge(request):
                 user.save()
                 code.save()
                 # 将充值记录和捐赠绑定
-                donate =Donate.objects.create(user=user, money=code.number)                
+                donate = Donate.objects.create(user=user, money=code.number)
                 registerinfo = {
                     'title': '充值成功！',
                     'subtitle': '请去商店购买商品！',
