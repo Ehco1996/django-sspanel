@@ -1,4 +1,5 @@
-
+# DEBUG设置
+DEBUG = True
 
 # mysql 设置
 DATABASES = {

@@ -1,3 +1,5 @@
+# DEBUG设置
+DEBUG = False
 
 # 域名设置 
 ALLOWED_HOSTS = [
