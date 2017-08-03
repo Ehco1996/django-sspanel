@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse
 
 # 导入shadowsocks节点相关文件
 from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm, LoginForm, NodeForm
 
 # 导入ssservermodel
 from ssserver.models import SSUser
@@ -20,8 +20,6 @@ import base64
 import datetime
 from random import randint
 # Create your views here.
-
-
 
 
 # 网站用户界面：
@@ -239,16 +237,16 @@ def get_ss_qrcode(request, node_id):
 
     ss_code = '{}:{}@{}:{}'.format(
         node.method, ss_user.password, node.server, ss_user.port)
-    
+
     # 符合ssr qrcode schema最后需要特殊处理的密码部分
     ssr_password = base64.b64encode(
         bytes(ss_user.password, 'utf8')).decode('ascii')
     ssr_code = '{}:{}:{}:{}:{}:{}'.format(
-        node.server, ss_user.port, node.protocol, node.method, node.obfs,ssr_password)
+        node.server, ss_user.port, node.protocol, node.method, node.obfs, ssr_password)
     # 将信息编码
     ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
     ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
-        
+
     # 生成ss二维码
     ss_img = qrcode.make('ss://{}'.format(ss_pass))
     ssr_img = qrcode.make('ssr://{}'.format(ssr_pass))
@@ -394,12 +392,98 @@ def charge(request):
                 return render(request, 'sspanel/chargecenter.html', context=context)
 
 
-
 # 网站后台界面
 
 def backend_index(request):
     '''跳转到后台界面'''
 
+    User = SSUser.objects.all()
+    # 找到用户的总量
+    user_num = len(User)
+
+    # 循环遍历用户的签到人数
+    checkin_num = 0
+    for user in User:
+        if user.get_check_in() == True:
+            checkin_num += 1
+
+    # 节点信息状态
+    nodes = Node.objects.all()
+
+    # 用户在线情况
+    alive_user = Aliveip.objects.all()
+
+    # 收入情况
+    income = Donate.objects.all()
+    total_income = 0
+
+    for i in income:
+        total_income += i.money
+
+    context = {
+        'user_num': user_num,
+        'checkin_num': checkin_num,
+        'nodes': nodes,
+        'alive_user': len(alive_user),
+        'income_num': len(income),
+        'total_income': total_income,
+    }
+
+    return render(request, 'backend/index.html', context=context)
 
 
-    return render(request,'backend/index.html')    
+def backend_node_info(request):
+    '''节点编辑界面'''
+
+    nodes = Node.objects.all()
+    context = {
+        'nodes': nodes,
+    }
+    return render(request, 'backend/nodeinfo.html', context=context)
+
+
+def node_delete(request, node_id):
+    '''删除节点'''
+    node = Node.objects.filter(node_id=node_id)
+    node.delete()
+    nodes = Node.objects.all()
+
+    registerinfo = {
+        'title': '删除节点',
+        'subtitle': '成功啦',
+                    'status': 'success', }
+
+    context = {
+        'nodes': nodes,
+        'registerinfo': registerinfo
+    }
+    return render(request, 'backend/nodeinfo.html', context=registerinfo)
+
+
+def node_edit(request, node_id):
+    '''编辑节点'''
+    node = Node.objects.get(node_id=node_id)
+
+    if request.method == "POST":
+        form = NodeForm(request.POST, instance=node)
+
+        if form.is_valid():
+
+            form.save()
+            registerinfo = {
+                'title': '修改成功',
+                'subtitle': '数据更新成功',
+                'status': 'success', }
+            return render(request, 'backend/nodeinfo.html', context=registerinfo)
+        else:
+
+            return render(request, 'backend/nodeedit.html', context={'form': form})
+    else:
+
+        form = NodeForm(instance=node)
+
+        context = {
+            'form': form,
+        }
+
+        return render(request, 'backend/nodeedit.html', context=context)

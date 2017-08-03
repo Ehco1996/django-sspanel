@@ -31,4 +31,11 @@ urlpatterns = [
 
     # 网站后台面板
     url(r'^backend/$',views.backend_index,name='backend_index'),
+    url(r'^backend/nodeinfo$',views.backend_node_info,name='backend_node_info'),
+    url(r'^backend/node/delete/(?P<node_id>[0-9]+)$', views.node_delete, name='node_delete'),
+    url(r'^backend/node/edit/(?P<node_id>[0-9]+)$', views.node_edit, name='node_edit'),
+    
+    
+    
+    
 ]

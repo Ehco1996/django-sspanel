@@ -31,6 +31,8 @@
                         <button class="delete"></button>
                     </div>
                     <div class="message-body">
+                        <p> 用户总人数：{{ user_num }} 人 </p>                        
+                        <p> 今日签到人数：{{ checkin_num }} 人 </p>
                     </div>
                 </article>
             </div>
@@ -42,6 +44,8 @@
                         <button class="delete"></button>
                     </div>
                     <div class="message-body">
+                        <p> 用户总人数：{{ user_num }} 人 </p> 
+                        <p> 在线人数：{{ alive_user }} 人 </p>                                               
                     </div>
                 </article>
             </div>
@@ -55,6 +59,9 @@
                         <button class="delete"></button>
                     </div>
                     <div class="message-body">
+                        {% for node in nodes %}
+                            <p>节点名：<code>{{ node.name }} </code> 节点状态：<code>{{ node.status }}</code></p>
+                        {% endfor %}
                     </div>
                 </article>
             </div>
@@ -66,6 +73,8 @@
                         <button class="delete"></button>
                     </div>
                     <div class="message-body">
+                        <p> 交易总数：{{ income_num }} 笔 </p>
+                        <p> 交易总金额：{{ total_income }} 元 </p>
                     </div>
                 </article>
             </div>
