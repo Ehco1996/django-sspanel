@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    {% load staticfiles %}
+    <title>迷之屋</title>
+    <!-- meta -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href=" {% static 'img/logo/logo.ico' %}" />
+    <!-- css -->
+    <link rel="stylesheet" href="{% static 'sspanel/css/bulma.css'%}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'sspanel/css/ehco.css'%}">
+    <link rel="stylesheet" href="{% static 'sspanel/css/sweetalert.css'%}">
+    <!-- js -->
+    <script src="{% static 'sspanel/js/jquery-2.1.3.min.js' %}"></script>
+    <script src="{% static 'sspanel/js/sweetalert.min.js' %}"></script>
+    <script src="{% static 'sspanel/js/ehco.js' %}"></script>
+
+</head>
+
+<body>
+    <section class="hero is-small is-primary ">
+        <!-- Hero header: will stick at the top -->
+        <header class="nav">
+            <div class="container">
+                <div class="nav-left">
+                    <a class="nav-item" href="/">
+                            <strong class="title">迷之屋</strong>
+                        </a>
+                </div>
+                <!-- Using a <label /> here -->
+                <label class="nav-toggle" for="nav-toggle-state">
+                    <span></span>           <!-- ^^^^^^^^^^^^^^^^ -->
+                    <span></span>
+                    <span></span>
+                    </label>
+                <!-- This checkbox is hidden -->
+                <input type="checkbox" id="nav-toggle-state" />
+                <div class="nav-right nav-menu">
+                    <a class="nav-item is-active" href="/">首页</a>
+                    <a class="nav-item" href="/sshelp">使用说明</a>
+                    <a class="nav-item" href="/ssinvite">邀请码</a>
+                    <a class="nav-item" href="/ssclient">客户端</a>
+                </div>
+
+                {% if user.is_authenticated %}
+                <div class="navbar-item  is-hidden-mobile has-dropdown is-hoverable">
+                    <span class="nav-item">
+                        <a class="button is-primary is-inverted">
+                        <span class="icon">
+                        <i class="fa fa-user-circle"></i>
+                        </span>
+                    <span>{{ user.username }}</span>
+                    </a>
+                    </span>
+                    <div class="navbar-dropdown">
+                        <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">
+                             <strong>用户中心</strong>
+                             </a>
+                        <hr class="navbar-divider">
+                        <div class="navbar-item">
+                            <a class="is-primary is-inverted" href="{% url 'shadowsocks:logout' %}">
+                                <span class="icon">
+                                <i class="fa fa-sign-out"></i>
+                                </span>
+                                <span>注销登录</span>
+                                </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </header>
+        </div>
+
+        <!-- Hero content: will be in the middle -->
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <h1 class="title">
+                    <a href="/"><strong>秘密の小屋</strong></a>
+                </h1>
+                <h2 class="subtitle">
+                    你说会发现什么呢？
+                </h2>
+            </div>
+        </div>
+    </section>
+    <br/>
+
+    <div class="container is-fluid">
+        <div class="columns">
+            <div class="column is-2">
+                <div class="box">
+                    {% if user.is_authenticated %}
+                    <aside class="menu">
+                        <p class="menu-label">
+                            管理面板：
+                        </p>
+                        <ul class="menu-list">
+                            <li><a href="{% url 'shadowsocks:backend_index' %}">系统状态</a></li>
+                        </ul>
+                        <p class="menu-label">
+                            节点相关
+                        </p>
+                        <ul class="menu-list">
+                            <li><a href="">节点列表</a></li>
+                            <li><a href="">在线IP</a></li>
+
+                        </ul>
+                        <p class="menu-label">
+                            交易相关
+                        </p>
+                        <ul class="menu-list">
+                            <li><a href="">充值捐赠</a></li>
+                            <li><a href="{% url 'shadowsocks:shop' %}">商品列表</a></li>
+                            <li><a href="">购买记录</a></li>
+
+                        </ul>
+                        <p class="menu-label">
+                            用户相关
+                        </p>
+                        <ul class="menu-list">
+                            <li><a href="">用户列表</a></li>
+                        </ul>
+                        <p class="menu-label">
+                            面板跳转
+                        </p>
+                        <ul class="menu-list">
+                            <li><a href="/admin">Django后台</a></li>
+                        </ul>
+                        <ul class="menu-list">
+                            <li><a href="{% url 'shadowsocks:userinfo' %}">用户面板</a></li>
+                        </ul>
+                        {% endif %}
+                    </aside>
+                </div>
+            </div>
+
+            <div class="column is-10">
+
+                {% block main %} {% endblock main%}
+
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="content has-text-centered">
+                <p>
+                    <p class="copyright">&copy; 2017·公众号: findyourownway·<a href="https://github.com/ehco1996">GitHub</a>·
+                        <a href="https://www.zhihu.com/people/Ehcostuff/activities">知乎</a>
+                    </p>
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+<!--整站消息提醒功能 -->
+{% if registerinfo %}
+<script>
+    swal("{{ registerinfo.title }}", '{{ registerinfo.subtitle }}', '{{ registerinfo.status }}');
+
+</script>
+
+{% endif %}
+
+</html>

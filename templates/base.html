@@ -122,7 +122,10 @@
                             管理面板
                         </p>
                         <ul class="menu-list">
-                            <li><a href="/admin">默认后台管理</a></li>
+                            <li><a href="/admin">Django后台</a></li>
+                        </ul>
+                        <ul class="menu-list">
+                            <li><a href="{% url 'shadowsocks:backend_index' %}">网站后台</a></li>
                         </ul>
                         {% endif %} {% else %}
                         <article class="message is-primary">

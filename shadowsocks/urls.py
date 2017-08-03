@@ -4,6 +4,8 @@ from .import views
 
 app_name = "shadowsocks"
 urlpatterns = [
+
+    # 网站用户面板
     url(r'^$', views.index, name='index'),
     url(r'^nodeinfo/$', views.nodeinfo, name='nodeinfo'),
     url(r'^sshelp/$', views.sshelp, name='sshelp'),
@@ -26,5 +28,7 @@ urlpatterns = [
     url(r'purchase/(?P<goods_id>[0-9]+)$', views.purchase, name='purchase'),
     url(r'^chargecenter/$', views.chargecenter, name='chargecenter'),
     url(r'^charge/$', views.charge, name='charge'),
-    
-    ]
+
+    # 网站后台面板
+    url(r'^backend/$',views.backend_index,name='backend_index'),
+]

@@ -22,6 +22,10 @@ from random import randint
 # Create your views here.
 
 
+
+
+# 网站用户界面：
+
 def index(request):
     '''跳转到首页'''
     return render_to_response('sspanel/index.html')
@@ -39,7 +43,7 @@ def ssclient(request):
 
 def ssinvite(request):
     '''跳转到邀请码界面'''
-    codelist = InviteCode.objects.all()
+    codelist = InviteCode.objects.all()[:20]
 
     context = {'codelist': codelist, }
 
@@ -388,3 +392,14 @@ def charge(request):
                     'ss_user': user,
                 }
                 return render(request, 'sspanel/chargecenter.html', context=context)
+
+
+
+# 网站后台界面
+
+def backend_index(request):
+    '''跳转到后台界面'''
+
+
+
+    return render(request,'backend/index.html')    
