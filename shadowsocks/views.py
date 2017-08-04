@@ -457,33 +457,80 @@ def node_delete(request, node_id):
         'nodes': nodes,
         'registerinfo': registerinfo
     }
-    return render(request, 'backend/nodeinfo.html', context=registerinfo)
+    return render(request, 'backend/nodeinfo.html', context=context)
 
 
 def node_edit(request, node_id):
     '''编辑节点'''
     node = Node.objects.get(node_id=node_id)
-
+    nodes = Node.objects.all()
+    # 当为post请求时，修改数据
     if request.method == "POST":
         form = NodeForm(request.POST, instance=node)
-
         if form.is_valid():
-
             form.save()
             registerinfo = {
                 'title': '修改成功',
                 'subtitle': '数据更新成功',
                 'status': 'success', }
-            return render(request, 'backend/nodeinfo.html', context=registerinfo)
+
+            context = {
+                'nodes': nodes,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/nodeinfo.html', context=context)
         else:
+            registerinfo = {
+                'title': '错误',
+                'subtitle': '数据填写错误',
+                'status': 'error', }
 
-            return render(request, 'backend/nodeedit.html', context={'form': form})
+            context = {
+                'form': form,
+                'registerinfo': registerinfo,
+                'node': node,
+            }
+            return render(request, 'backend/nodeedit.html', context=context)
+    # 当请求不是post时，渲染form
     else:
-
         form = NodeForm(instance=node)
-
         context = {
             'form': form,
+            'node': node,
         }
-
         return render(request, 'backend/nodeedit.html', context=context)
+
+
+def node_create(request):
+    '''创建节点'''
+    if request.method == "POST":
+        form = NodeForm(request.POST)
+        if form.is_valid():
+            form.save()
+
+            nodes = Node.objects.all()
+            registerinfo = {
+                'title': '添加成功',
+                'subtitle': '数据更新成功！',
+                'status': 'success', }
+
+            context = {
+                'nodes': nodes,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/nodeinfo.html', context=context)
+        else:
+            registerinfo = {
+                'title': '错误',
+                'subtitle': '数据填写错误',
+                'status': 'error', }
+
+            context = {
+                'form': form,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/nodecreate.html', context=context)
+
+    else:
+        form = NodeForm()
+        return render(request, 'backend/nodecreate.html', context={'form': form, })

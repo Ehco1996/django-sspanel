@@ -101,7 +101,7 @@ class Node(models.Model):
     status = models.CharField(
         '状态', max_length=32, default='ok', choices=STATUS_CHOICES,)
 
-    node_id = models.IntegerField('节点id', primary_key=True,)
+    node_id = models.IntegerField('节点id', unique=True,)
 
     level = models.PositiveIntegerField(
         '节点等级',
