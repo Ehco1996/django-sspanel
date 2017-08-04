@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.six import BytesIO
 from django.utils import timezone
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # 导入shadowsocks节点相关文件
 from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode
@@ -19,8 +20,9 @@ import qrcode
 import base64
 import datetime
 from random import randint
-# Create your views here.
 
+
+# Create your views here.
 
 # 网站用户界面：
 
@@ -534,3 +536,29 @@ def node_create(request):
     else:
         form = NodeForm()
         return render(request, 'backend/nodecreate.html', context={'form': form, })
+
+
+def backend_alive_user(request):
+    '''用户在线列表'''
+
+    alive_user = Aliveip.objects.all()
+    # 每页显示10条记录
+    paginator = Paginator(alive_user, 10)
+    # 构造分页.获取页码数量
+    page = request.GET.get('page')
+
+    page_list = paginator.page_range
+
+    try:
+        contacts = paginator.page(page)
+    except PageNotAnInteger:
+        contacts = paginator.page(1)
+    except EmptyPage:
+        contacts = paginator.page(paginator.num_pages)
+
+    context = {
+        'contacts': contacts,
+        'page_list':page_list,
+    }
+
+    return render(request, 'backend/aliveuser.html', context=context)

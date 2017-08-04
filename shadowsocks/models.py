@@ -180,6 +180,11 @@ class Aliveip(models.Model):
 
     ip_address = models.GenericIPAddressField('在线ip')
 
+    local = models.CharField(
+        '归属地',
+        max_length=128,
+        blank=True, null=True
+    )
     time = models.DateTimeField(
         '时间',
         editable=False,
@@ -311,6 +316,7 @@ class Shop(models.Model):
             MinValueValidator(0),
         ]
     )
+
     def __str__(self):
         return self.name
 
