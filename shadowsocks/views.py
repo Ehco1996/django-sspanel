@@ -7,7 +7,8 @@ from django.utils.six import BytesIO
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from django.views.generic.list import ListView
+from django.db.models import Q
 # 导入shadowsocks节点相关文件
 from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode
 from .forms import RegisterForm, LoginForm, NodeForm
@@ -537,6 +538,8 @@ def node_create(request):
         form = NodeForm()
         return render(request, 'backend/nodecreate.html', context={'form': form, })
 
+# 弃用
+
 
 def backend_alive_user(request):
     '''用户在线列表'''
@@ -558,7 +561,91 @@ def backend_alive_user(request):
 
     context = {
         'contacts': contacts,
-        'page_list':page_list,
+        'page_list': page_list,
     }
 
     return render(request, 'backend/aliveuser.html', context=context)
+
+
+class Page_List_View(object):
+    '''拥有翻页功能的通用类'''
+
+    def __init__(self, request, obj, page_num):
+        self.request = request
+        self.obj = obj
+        self.page_num = page_num
+
+    def get_page_context(self):
+        '''返回分页context'''
+
+        objects = self.obj.objects.all()
+        # 每页显示10条记录
+        paginator = Paginator(objects, self.page_num)
+        # 构造分页.获取页码数量
+        page = self.request.GET.get('page')
+
+        page_list = paginator.page_range
+
+        try:
+            contacts = paginator.page(page)
+        except PageNotAnInteger:
+            contacts = paginator.page(1)
+        except EmptyPage:
+            contacts = paginator.page(paginator.num_pages)
+
+        context = {
+            'contacts': contacts,
+            'page_list': page_list,
+        }
+
+        return context
+
+
+def Backend_Aliveuser(request):
+    '''返回在线用户的ip的View'''
+
+    obj = Aliveip
+    page_num = 10
+    context = Page_List_View(request, obj, page_num).get_page_context()
+
+    return render(request, 'backend/aliveuser.html', context=context)
+
+
+def Backend_UserList(request):
+    '''返回所有用户的View'''
+
+    obj = User
+    page_num = 15
+    context = Page_List_View(request, obj, page_num).get_page_context()
+
+    return render(request, 'backend/userlist.html', context=context)
+
+
+def user_delete(request, pk):
+    '''删除user'''
+    user = User.objects.filter(pk=pk)
+    user.delete()
+
+    obj = User
+    page_num = 15
+    context = Page_List_View(request, obj, page_num).get_page_context()
+
+    registerinfo = {
+        'title': '删除用户',
+        'subtitle': '成功啦',
+                    'status': 'success', }
+
+    context['registerinfo'] = registerinfo
+    return render(request, 'backend/userlist.html', context=context)
+
+
+def user_search(request):
+    '''用户搜索结果'''
+    q = request.GET.get('q')
+    contacts = User.objects.filter(
+        Q(username__icontains=q) | Q(email__icontains=q))
+    context = {
+        'contacts': contacts,
+    }
+
+    return render(request, 'backend/userlist.html', context=context)

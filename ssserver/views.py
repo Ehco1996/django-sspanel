@@ -1,7 +1,8 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from .models import SSUser
-
-from .forms import ChangeSsPassForm
+from shadowsocks.models import User
+from .forms import ChangeSsPassForm, SSUserForm
+from django.conf import settings
 # Create your views here.
 
 
@@ -24,7 +25,7 @@ def ChangeSsPass(request):
             }
             context = {
                 'registerinfo': registerinfo,
-                'ss_user':ss_user,
+                'ss_user': ss_user,
             }
             return render(request, 'sspanel/userinfo.html', context=context)
         else:
@@ -32,3 +33,54 @@ def ChangeSsPass(request):
     else:
         form = ChangeSsPassForm()
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
+
+
+def User_edit(request, pk):
+    '''编辑ss_user的信息'''
+    ss_user = SSUser.objects.get(pk=pk)
+    contacts = User.objects.all()
+
+    # 当为post请求时，修改数据
+    if request.method == "POST":
+        # 对总流量部分进行修改，转换单GB
+        data = request.POST.copy()
+        data['transfer_enable'] = str(
+            int(data['transfer_enable']) * settings.GB)
+        form = SSUserForm(data, instance=ss_user)
+        if form.is_valid():
+            form.save()
+            registerinfo = {
+                'title': '修改成功',
+                'subtitle': '数据更新成功',
+                'status': 'success', }
+
+            context = {
+                'contacts': contacts,
+                'registerinfo': registerinfo,
+                'ss_user': ss_user,
+            }
+            return render(request, 'backend/userlist.html', context=context)
+        else:
+            registerinfo = {
+                'title': '错误',
+                'subtitle': '数据填写错误',
+                'status': 'error', }
+
+            context = {
+                'form': form,
+                'registerinfo': registerinfo,
+                'contacts': contacts,
+                'ss_user': ss_user,
+
+            }
+            return render(request, 'backend/useredit.html', context=context)
+    # 当请求不是post时，渲染form
+    else:
+        form = SSUserForm(instance=ss_user)
+        context = {
+            'form': form,
+            'contacts': contacts,
+            'ss_user': ss_user,
+
+        }
+        return render(request, 'backend/useredit.html', context=context)

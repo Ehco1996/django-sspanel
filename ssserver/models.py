@@ -115,8 +115,8 @@ class SSUser(models.Model):
         return '{:.2f}'.format((self.download_traffic + self.upload_traffic) / 1024 / 1024)
 
     def get_transfer(self):
-        '''返回用户的总流量'''
-        return '{:.2f}'.format(self.transfer_enable / 1024 / 1024)
+        '''返回用户的总流量 GB'''
+        return '{:.2f} '.format(self.transfer_enable / 1024 / 1024/1024)
 
     def get_unused_traffic(self):
         '''返回用户的剩余流量'''

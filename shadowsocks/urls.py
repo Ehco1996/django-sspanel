@@ -30,17 +30,28 @@ urlpatterns = [
     url(r'^charge/$', views.charge, name='charge'),
 
     # 网站后台面板
-    url(r'^backend/$',views.backend_index,name='backend_index'),
-    url(r'^backend/nodeinfo$',views.backend_node_info,name='backend_node_info'),
-    url(r'^backend/node/delete/(?P<node_id>[0-9]+)$', views.node_delete, name='node_delete'),
-    url(r'^backend/node/edit/(?P<node_id>[0-9]+)$', views.node_edit, name='node_edit'),
-    url(r'^backend/nodecreate/$',views.node_create,name='node_create'),
-    url(r'^backend/aliveuser/$',views.backend_alive_user,name='alive_user'),
+    url(r'^backend/$', views.backend_index, name='backend_index'),
+    # 节点相关
+    url(r'^backend/nodeinfo$', views.backend_node_info, name='backend_node_info'),
+    url(r'^backend/node/delete/(?P<node_id>[0-9]+)$',
+        views.node_delete, name='node_delete'),
+    url(r'^backend/node/edit/(?P<node_id>[0-9]+)$',
+        views.node_edit, name='node_edit'),
+    url(r'^backend/nodecreate/$', views.node_create, name='node_create'),
+    # 用户相关
+    url(r'^backend/aliveuser/$', views.Backend_Aliveuser, name='alive_user'),
+    url(r'^backend/userlist/$', views.Backend_UserList, name='user_list'),
+    url(r'^backend/user/delete/(?P<pk>[0-9]+)$',
+        views.user_delete, name='user_delete'),
+    url(r'^backend/user/search/$', views.user_search, name='user_search'),
     
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
 ]

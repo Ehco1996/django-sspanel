@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import ModelForm
 from .models import SSUser
 
 
@@ -22,3 +23,21 @@ class ChangeSsPassForm(forms.Form):
             raise forms.ValidationError('太短啦！')
         else:
             cleaned_data = super(ChangeSsPassForm, self).clean()
+
+
+class SSUserForm(ModelForm):
+    class Meta:
+        model = SSUser
+        fields = ['user', 'plan', 'port', 'password',
+                  'upload_traffic', 'download_traffic', 'transfer_enable','enable']
+        widgets = {
+            'enable': forms.CheckboxInput(attrs={'class': 'checkbox'}),
+            #'switch': forms.CheckboxInput(attrs={'class': 'checkbox'}),
+            'user': forms.Select(attrs={'class': 'input'}),
+            'plan': forms.Select(attrs={'class': 'input'}),
+            'port': forms.TextInput(attrs={'class': 'input'}),
+            'password': forms.TextInput(attrs={'class': 'input'}),
+            'upload_traffic': forms.TextInput(attrs={'class': 'input'}),
+            'download_traffic': forms.TextInput(attrs={'class': 'input'}),
+            'transfer_enable': forms.TextInput(attrs={'class': 'input'}),
+        }
