@@ -11,7 +11,7 @@ from django.views.generic.list import ListView
 from django.db.models import Q
 # 导入shadowsocks节点相关文件
 from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode
-from .forms import RegisterForm, LoginForm, NodeForm
+from .forms import RegisterForm, LoginForm, NodeForm,ShopForm
 
 # 导入ssservermodel
 from ssserver.models import SSUser
@@ -533,8 +533,6 @@ def node_create(request):
         return render(request, 'backend/nodecreate.html', context={'form': form, })
 
 # 弃用
-
-
 @permission_required('shadowsocks')
 def backend_alive_user(request):
     '''用户在线列表'''
@@ -701,3 +699,114 @@ def backend_charge(request):
         context = Page_List_View(request, obj, page_num).get_page_context()
 
     return render(request, 'backend/charge.html', context=context)
+
+
+###############################
+
+
+@permission_required('shadowsocks')
+def backend_shop(request):
+    '''商品管理界面'''
+
+    goods = Shop.objects.all()
+    context = {
+        'goods': goods,
+    }
+    return render(request, 'backend/shop.html', context=context)
+
+
+@permission_required('shadowsocks')
+def good_delete(request, pk):
+    '''删除商品'''
+    good = Shop.objects.filter(pk=pk)
+    good.delete()
+    goods = Shop.objects.all()
+
+    registerinfo = {
+        'title': '删除商品',
+        'subtitle': '成功啦',
+                    'status': 'success', }
+
+    context = {
+        'goods':goods,
+        'registerinfo': registerinfo
+    }
+    return render(request, 'backend/shop.html', context=context)
+
+
+@permission_required('shadowsocks')
+def good_edit(request, pk):
+  
+    good = Shop.objects.get(pk=pk)
+    goods = Shop.objects.all()
+    # 当为post请求时，修改数据
+    if request.method == "POST":
+        form = ShopForm(request.POST, instance=good)
+        if form.is_valid():
+            form.save()
+            registerinfo = {
+                'title': '修改成功',
+                'subtitle': '数据更新成功',
+                'status': 'success', }
+
+            context = {
+                'goods': goods,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/shop.html', context=context)
+        else:
+            registerinfo = {
+                'title': '错误',
+                'subtitle': '数据填写错误',
+                'status': 'error', }
+
+            context = {
+                'form': form,
+                'registerinfo': registerinfo,
+                'good': good,
+            }
+            return render(request, 'backend/goodedit.html', context=context)
+    # 当请求不是post时，渲染form
+    else:
+        form = ShopForm(instance=good)
+        context = {
+            'form': form,
+            'good': good,
+        }
+        return render(request, 'backend/goodedit.html', context=context)
+
+
+
+@permission_required('shadowsocks')
+def good_create(request):
+    if request.method == "POST":
+        form = ShopForm(request.POST)
+        if form.is_valid():
+            form.save()
+
+            goods = Shop.objects.all()
+            registerinfo = {
+                'title': '添加成功',
+                'subtitle': '数据更新成功！',
+                'status': 'success', }
+
+            context = {
+                'goods': goods,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/shop.html', context=context)
+        else:
+            registerinfo = {
+                'title': '错误',
+                'subtitle': '数据填写错误',
+                'status': 'error', }
+
+            context = {
+                'form': form,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/goodcreate.html', context=context)
+
+    else:
+        form = ShopForm()
+        return render(request, 'backend/goodcreate.html', context={'form': form, })

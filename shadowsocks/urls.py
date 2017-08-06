@@ -37,7 +37,7 @@ urlpatterns = [
         views.node_delete, name='node_delete'),
     url(r'^backend/node/edit/(?P<node_id>[0-9]+)$',
         views.node_edit, name='node_edit'),
-    url(r'^backend/nodecreate/$', views.node_create, name='node_create'),
+    url(r'^backend/node/create/$', views.node_create, name='node_create'),
     # 用户相关
     url(r'^backend/aliveuser/$', views.Backend_Aliveuser, name='alive_user'),
     url(r'^backend/userlist/$', views.Backend_UserList, name='user_list'),
@@ -46,7 +46,12 @@ urlpatterns = [
     url(r'^backend/user/search/$', views.user_search, name='user_search'),
     # 商品充值相关
     url(r'^backend/charge/$', views.backend_charge, name='backend_charge'),
-    
+    url(r'^backend/shop$', views.backend_shop, name='backend_shop'),
+    url(r'^backend/shop/delete/(?P<pk>[0-9]+)$',
+        views.good_delete, name='good_delete'),
+    url(r'^backend/good/create/$', views.good_create, name='good_create'),
+    url(r'^backend/good/edit/(?P<pk>[0-9]+)$',
+        views.good_edit, name='good_edit'),
     
 
 
