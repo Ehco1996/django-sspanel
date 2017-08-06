@@ -670,7 +670,34 @@ def gen_invite_code(request):
                     'status': 'success', }
 
     context = {
-            'registerinfo':registerinfo,
+        'registerinfo': registerinfo,
     }
-    
+
     return render(request, 'backend/invitecode.html', context=context)
+
+
+@permission_required('shadowsocks')
+def backend_charge(request):
+    '''后台充值码界面'''
+
+    # 获取所有充值码记录
+    obj = MoneyCode
+    page_num = 10
+    # 获取充值的金额和数量
+    Num = request.GET.get('num')
+    money = request.GET.get('money')
+    if Num and money:
+        for i in range(int(Num)):
+            code = MoneyCode(number=money)
+            code.save()
+        context = Page_List_View(request, obj, page_num).get_page_context()
+        registerinfo = {
+            'title': '成功',
+            'subtitle': '添加{}元充值码{}个'.format(money, Num),
+            'status': 'success'}
+        context['registerinfo'] = registerinfo
+
+    else:
+        context = Page_List_View(request, obj, page_num).get_page_context()
+
+    return render(request, 'backend/charge.html', context=context)
