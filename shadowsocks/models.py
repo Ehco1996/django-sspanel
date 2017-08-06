@@ -326,3 +326,28 @@ class Shop(models.Model):
 
     class Meta:
         verbose_name_plural = '商品'
+
+
+class PurchaseHistory(models.Model):
+    '''购买记录'''
+
+    info = models.ForeignKey(Shop)
+
+    user = models.CharField(
+        '购买者',
+        max_length=128,
+
+    )
+
+    purchtime=models.DateTimeField(
+        '购买时间',
+        editable=False,
+        auto_now_add=True
+    )
+    
+    def __str__(self):
+        return self.user
+    
+    class Meta:
+        verbose_name_plural = '购买记录'
+    

@@ -52,6 +52,8 @@ urlpatterns = [
     url(r'^backend/good/create/$', views.good_create, name='good_create'),
     url(r'^backend/good/edit/(?P<pk>[0-9]+)$',
         views.good_edit, name='good_edit'),
+    url(r'^backend/purchase/history/$', views.purchase_history, name='purchase_history'),
+    
     
 
 

@@ -21,3 +21,5 @@ admin.site.register(models.Node)
 admin.site.register(models.Donate)
 admin.site.register(models.MoneyCode,MoneyCodeAdmin)
 admin.site.register(models.Shop)
+admin.site.register(models.PurchaseHistory)
+

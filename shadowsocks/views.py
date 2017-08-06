@@ -10,8 +10,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.list import ListView
 from django.db.models import Q
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode
-from .forms import RegisterForm, LoginForm, NodeForm,ShopForm
+from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory
+from .forms import RegisterForm, LoginForm, NodeForm, ShopForm
 
 # 导入ssservermodel
 from ssserver.models import SSUser
@@ -309,6 +309,9 @@ def purchase(request, goods_id):
         user.level = good.level
         ss_user.save()
         user.save()
+        # 增加购买记录
+        record = PurchaseHistory(info=good, user=user,purchtime=timezone.now())
+        record.save()
         registerinfo = {
             'title': '够买成功',
             'subtitle': '即将跳转回用户中心',
@@ -533,6 +536,8 @@ def node_create(request):
         return render(request, 'backend/nodecreate.html', context={'form': form, })
 
 # 弃用
+
+
 @permission_required('shadowsocks')
 def backend_alive_user(request):
     '''用户在线列表'''
@@ -728,7 +733,7 @@ def good_delete(request, pk):
                     'status': 'success', }
 
     context = {
-        'goods':goods,
+        'goods': goods,
         'registerinfo': registerinfo
     }
     return render(request, 'backend/shop.html', context=context)
@@ -736,7 +741,7 @@ def good_delete(request, pk):
 
 @permission_required('shadowsocks')
 def good_edit(request, pk):
-  
+
     good = Shop.objects.get(pk=pk)
     goods = Shop.objects.all()
     # 当为post请求时，修改数据
@@ -776,7 +781,6 @@ def good_edit(request, pk):
         return render(request, 'backend/goodedit.html', context=context)
 
 
-
 @permission_required('shadowsocks')
 def good_create(request):
     if request.method == "POST":
@@ -810,3 +814,11 @@ def good_create(request):
     else:
         form = ShopForm()
         return render(request, 'backend/goodcreate.html', context={'form': form, })
+
+
+@permission_required('shadowsocks')
+def purchase_history(request):
+    obj = PurchaseHistory
+    page_num = 10
+    context = Page_List_View(request, obj, page_num).get_page_context()
+    return render(request, 'backend/purchasehistory.html', context=context)
