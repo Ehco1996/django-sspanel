@@ -11,9 +11,6 @@ urlpatterns = [
     url(r'^sshelp/$', views.sshelp, name='sshelp'),
     url(r'^ssclient/$', views.ssclient, name='ssclient'),
     url(r'^ssinvite/$', views.ssinvite, name='ssinvite'),
-    # 前期调试使用，后期会加入权限
-    url(r'^ssinvite_gen_code/(?P<Num>[0-9]{1,2})/$',
-        views.gen_invite_code, name='geninvitecode'),
     url(r'^passinvite/(?P<invitecode>[\S]+)/$',
         views.pass_invitecode, name='passinvitecode'),
     url(r'^register/$', views.register, name='register'),
@@ -31,6 +28,9 @@ urlpatterns = [
 
     # 网站后台面板
     url(r'^backend/$', views.backend_index, name='backend_index'),
+    # 邀请码相关
+    url(r'^backend/invite/$',views.backend_invite,name='backend_invite'),
+    url(r'^invite_gen_code/$',views.gen_invite_code, name='geninvitecode'),
     # 节点相关
     url(r'^backend/nodeinfo$', views.backend_node_info, name='backend_node_info'),
     url(r'^backend/node/delete/(?P<node_id>[0-9]+)$',

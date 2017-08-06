@@ -38,9 +38,9 @@
                 <article class="article notification is-light">
                     <p class="subtitle">流量信息:</p>
                     <hr>
-                    <li>使用流量: {{ ss_user.get_traffic }} MB </li>
-                    <li>总流量: {{ ss_user.get_transfer }} GB </li>
-                    <li>使用百分比: {{ ss_user.get_used_percentage }} % </li>
+                    <li>使用流量: {{ user.ss_user.get_traffic }} MB </li>
+                    <li>总流量: {{ user.ss_user.get_transfer }} GB </li>
+                    <li>使用百分比: {{ user.ss_user.get_used_percentage }} % </li>
                 </article>
             </div>
         </div>
@@ -50,11 +50,11 @@
                 <div class="notification is-light">
                 <h3 class="subtitle">连接信息：</h3>
                 <hr>
-                <li> 端口：<code>{{ ss_user.port }}</code></li>
-                <li> 密码：<code>{{ ss_user.password }}</code></li>
-                <li> 混淆：<code>{{ ss_user.obfs }}</code></li>
-                <li> 协议：<code>{{ ss_user.protocal }}</code></li>                
-                <li>上次使用: {{ ss_user.get_last_use_time|date:"m月d日G点" }}</li>
+                <li> 端口：<code>{{ user.ss_user.port }}</code></li>
+                <li> 密码：<code>{{ user.ss_user.password }}</code></li>
+                <li> 混淆：<code>{{ user.ss_user.obfs }}</code></li>
+                <li> 协议：<code>{{ user.ss_user.protocal }}</code></li>                
+                <li>上次使用: {{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</li>
                 <br>
                 <a class="button is-link " href="{% url 'shadowsocks:nodeinfo' %}">详细节点信息请点击这里</a>
                 </div>

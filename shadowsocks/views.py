@@ -2,7 +2,7 @@
 from django.shortcuts import render, render_to_response, redirect, HttpResponseRedirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.six import BytesIO
 from django.utils import timezone
 from django.core.urlresolvers import reverse
@@ -49,14 +49,6 @@ def ssinvite(request):
     context = {'codelist': codelist, }
 
     return render(request, 'sspanel/invite.html', context=context)
-
-
-def gen_invite_code(request, Num=10):
-    '''生成指定数量的邀请码，默认为十个'''
-    for i in range(int(Num)):
-        code = InviteCode()
-        code.save()
-    return HttpResponse('邀请码添加成功')
 
 
 def pass_invitecode(request, invitecode):
@@ -195,9 +187,7 @@ def Logout_view(request):
 def userinfo(request):
     '''用户中心'''
     user = request.user
-    ss_user = request.user.ss_user
     context = {
-        'ss_user': ss_user,
         'user': user,
     }
 
@@ -396,7 +386,7 @@ def charge(request):
 
 
 # 网站后台界面
-
+@permission_required('shadowsocks')
 def backend_index(request):
     '''跳转到后台界面'''
 
@@ -435,6 +425,7 @@ def backend_index(request):
     return render(request, 'backend/index.html', context=context)
 
 
+@permission_required('shadowsocks')
 def backend_node_info(request):
     '''节点编辑界面'''
 
@@ -445,6 +436,7 @@ def backend_node_info(request):
     return render(request, 'backend/nodeinfo.html', context=context)
 
 
+@permission_required('shadowsocks')
 def node_delete(request, node_id):
     '''删除节点'''
     node = Node.objects.filter(node_id=node_id)
@@ -463,6 +455,7 @@ def node_delete(request, node_id):
     return render(request, 'backend/nodeinfo.html', context=context)
 
 
+@permission_required('shadowsocks')
 def node_edit(request, node_id):
     '''编辑节点'''
     node = Node.objects.get(node_id=node_id)
@@ -504,6 +497,7 @@ def node_edit(request, node_id):
         return render(request, 'backend/nodeedit.html', context=context)
 
 
+@permission_required('shadowsocks')
 def node_create(request):
     '''创建节点'''
     if request.method == "POST":
@@ -541,6 +535,7 @@ def node_create(request):
 # 弃用
 
 
+@permission_required('shadowsocks')
 def backend_alive_user(request):
     '''用户在线列表'''
 
@@ -601,6 +596,7 @@ class Page_List_View(object):
         return context
 
 
+@permission_required('shadowsocks')
 def Backend_Aliveuser(request):
     '''返回在线用户的ip的View'''
 
@@ -611,6 +607,7 @@ def Backend_Aliveuser(request):
     return render(request, 'backend/aliveuser.html', context=context)
 
 
+@permission_required('shadowsocks')
 def Backend_UserList(request):
     '''返回所有用户的View'''
 
@@ -621,6 +618,7 @@ def Backend_UserList(request):
     return render(request, 'backend/userlist.html', context=context)
 
 
+@permission_required('shadowsocks')
 def user_delete(request, pk):
     '''删除user'''
     user = User.objects.filter(pk=pk)
@@ -639,6 +637,7 @@ def user_delete(request, pk):
     return render(request, 'backend/userlist.html', context=context)
 
 
+@permission_required('shadowsocks')
 def user_search(request):
     '''用户搜索结果'''
     q = request.GET.get('q')
@@ -649,3 +648,29 @@ def user_search(request):
     }
 
     return render(request, 'backend/userlist.html', context=context)
+
+
+@permission_required('shadowsocks')
+def backend_invite(request):
+    '''邀请码生成'''
+    return render(request, 'backend/invitecode.html')
+
+
+def gen_invite_code(request):
+
+    Num = request.GET.get('num')
+
+    for i in range(int(Num)):
+        code = InviteCode()
+        code.save()
+
+    registerinfo = {
+        'title': '成功',
+        'subtitle': '添加邀请码{}个'.format(Num),
+                    'status': 'success', }
+
+    context = {
+            'registerinfo':registerinfo,
+    }
+    
+    return render(request, 'backend/invitecode.html', context=context)

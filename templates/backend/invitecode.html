@@ -1,0 +1,37 @@
+{% extends 'backendbase.html' %} {% block main %}
+{% load ehcofilter %}
+
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    用户编辑：
+                </h1>
+                <h2 class="subtitle">
+                    编辑信息：{{ ss_user }}
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+<div class="column is-12">
+    <div class="box">
+        <form method="get" action="{% url 'shadowsocks:geninvitecode' %}">
+        <div class="field has-addons">
+            <div class="control">
+                <input name="num" class="input"  placeholder="键入邀请码数量" required>
+            </div>
+            <div class="control">
+                <button type="submit" class="button is-outlined is-info">添加</button>
+            </div>
+        </div>
+    </form>
+    </div>  
+
+</div>
+
+{% endblock main %}
