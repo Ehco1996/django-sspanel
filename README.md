@@ -3,24 +3,37 @@
 
 Demo: [迷之屋](http://www.ehcozone.club/)
 
-### 项目说明
+Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
-* 前端CSS框架： BULMA(布玛)
-* 通知功能： SweetAlert
-* 后端： django 1.11
-* 第三方包：qrcode,pillow
-* so on...
+## 项目说明
 
-### 支援ss版本
+Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络分享面板，其具有以下特点：
 
-* shadowsocksr
+* 轻量级css框架，加载速度有保证
+* 使用最新的版本的Django作为后端，方便升级管理
+* 后端支援（shadowsocksr/shadowsocks原版）
+* 注册采用邀请系统，告别不良用户
+* 完善的商品购买逻辑
+* 统一完善的后台管理界面
+* 更多特性等待开发和探索....
 
 
+## 项目组件
 
-### 使用方法
+#### 前端框架：
 
-* 安装 lnmp
-* 安装 git
-* 安装 pyenv
-* 安装 python-dev （sudo yum install python-devel mysql-devel ）
-* 待编辑...
+* BULMA(布玛) <http://bulma.io/>
+
+* SweetAlert(通知功能) <http://t4t5.github.io/sweetalert/>
+
+#### 后端框架：
+
+* Django 1.11 <https://www.djangoproject.com/>
+
+#### 第三方组件：
+
+* Qrcode <https://github.com/lincolnloop/python-qrcode>
+
+## 部署步骤：
+
+点这里: [部署教程](http://www.ehcozone.club/)
