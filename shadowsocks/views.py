@@ -136,9 +136,9 @@ def Login_view(request):
             # 获取表单用户名和密码
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            # 和数据库信息进行比较
-            # user = User.objects.filter(username=username,password=password)
-            user = authenticate(username=username, password=password)
+            
+            # 进行用户验证 
+            user = authenticate(username=username,password=password)
             if user is not None and user.is_active:
                 login(request, user)
                 registerinfo = {

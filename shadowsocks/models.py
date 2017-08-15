@@ -66,16 +66,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-
-    def set_password(self, raw_password):
-        '''使用md5加密算法'''
-        raw_password = make_password(raw_password, 'MD5PasswordHasher')
-        self.password = raw_password
-
-    def check_password(self, raw_password):
-
-        return check_password(raw_password, make_password(raw_password, 'MD5PasswordHasher'))
-
     class Meta(AbstractUser.Meta):
         verbose_name = '用户'
 
