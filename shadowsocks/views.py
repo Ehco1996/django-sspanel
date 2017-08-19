@@ -10,7 +10,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.list import ListView
 from django.db.models import Q
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory
+from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm
 
 # 导入ssservermodel
@@ -136,9 +136,9 @@ def Login_view(request):
             # 获取表单用户名和密码
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            
-            # 进行用户验证 
-            user = authenticate(username=username,password=password)
+
+            # 进行用户验证
+            user = authenticate(username=username, password=password)
             if user is not None and user.is_active:
                 login(request, user)
                 registerinfo = {
@@ -265,8 +265,21 @@ def userinfo_edit(request):
 def donate(request):
     '''跳转到捐赠界面'''
     donatelist = Donate.objects.all()[:15]
-
     context = {'donatelist': donatelist, }
+    # 尝试获取流水号
+    if request.method == 'POST':
+        info_code = request.POST.get('q')
+        try:
+            obj = AlipayRecord.objects.get(info_code=info_code)
+            context['moneycode'] = obj.money_code
+        except:
+            registerinfo = {
+                'title': '请确保流水号填写正确!',
+                'subtitle': '如果一直失败,请通过支付联系站长',
+                'status': 'error', }
+            context['registerinfo'] = registerinfo
+    else:
+        pass
 
     return render(request, 'sspanel/donate.html', context=context)
 
@@ -310,7 +323,8 @@ def purchase(request, goods_id):
         ss_user.save()
         user.save()
         # 增加购买记录
-        record = PurchaseHistory(info=good, user=user,purchtime=timezone.now())
+        record = PurchaseHistory(info=good, user=user,
+                                 purchtime=timezone.now())
         record.save()
         registerinfo = {
             'title': '够买成功',
@@ -704,9 +718,6 @@ def backend_charge(request):
         context = Page_List_View(request, obj, page_num).get_page_context()
 
     return render(request, 'backend/charge.html', context=context)
-
-
-###############################
 
 
 @permission_required('shadowsocks')

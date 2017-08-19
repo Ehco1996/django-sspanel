@@ -25,16 +25,34 @@
         <div class="tile is-5 is-vertical is-parent">
 
             <div class="tile box is-child">
-                <p class="subtitle">个人网站不能接入支付宝和微信支付<br>请直接扫描下方二维码进行捐赠</p>
-                <p>捐赠请留下备注，我会直接将等额的充值码发给您，再次感谢!</p>
+                <p class="subtitle">充值捐赠系统正在内测中<br>请直接扫描下方二维码进行捐赠</p>
+                <p>捐赠请留下备注!<br>在下方输入转帐的账单号<br>充值码会自动显示,再次感谢!</p>
                 <hr>
                 <div class="content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="field has-addons">
+                            <div class="control">
+                                <input name="q" class="input" placeholder="转账 流水/订单号" required>
+                            </div>
+                            <div class="control">
+                                <button type="submit" class="button is-outlined is-info">提交</button>
+                            </div>
+                        </div>
+                    </form>
+                    {% if moneycode %}
+                    <br>
+                    <p class="subtitle">充值码已经生成:</p>
+                    <code> {{ moneycode }}</code> {% endif %}
+                    <hr>
                     <figure class="image">
                         <img src="{% static '/img/alipay.png'%}">
                     </figure>
                 </div>
             </div>
         </div>
+
+
 
         <div class="tile is-7 is-vertical is-parent">
             <div class="tile box is-child">
@@ -45,14 +63,14 @@
                             <tr>
                                 <th>捐赠人:</th>
                                 <th>捐赠金额:</th>
-                                <th>捐赠时间:</th>   
+                                <th>捐赠时间:</th>
                             </tr>
                         </thead>
 
                         {% for donate in donatelist %}
                         <tr>
                             <td>{{ donate.user }}</td>
-                            <td>{{ donate.money }} 元</td>                                
+                            <td>{{ donate.money }} 元</td>
                             <td>{{ donate.time|date:"m月d日" }}：</td>
                         </tr>
                         {% empty %}
@@ -66,8 +84,4 @@
         </div>
     </div>
 </div>
-
-
-
-
 {% endblock main %}
