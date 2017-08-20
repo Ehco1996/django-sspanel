@@ -54,13 +54,12 @@ urlpatterns = [
         views.good_edit, name='good_edit'),
     url(r'^backend/purchase/history/$', views.purchase_history, name='purchase_history'),
     
+    # 支付宝当面付相关:
+    # 方面付二位差生成
+    url(r'facepay/url=(?P<url>https://qr.alipay.com/\w+)',views.gen_face_pay_qrcode,name='facepay_qrcode'),
+    # 购买处理逻辑
+    url(r'facepay/(?P<out_trade_no>[0-9]+)',views.Face_pay_view,name='facepay_view'),
     
-
-
-
-
-
-
 
 
 

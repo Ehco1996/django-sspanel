@@ -1,6 +1,7 @@
 # DEBUG设置
 DEBUG = True
 
+
 # mysql 设置
 DATABASES = {
 
@@ -14,16 +15,22 @@ DATABASES = {
 
     }
 }
-
-
 '''
+# remote debuge mysql 设置
 DATABASES = {
+
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'sspanel',
+        'USER': 'ss',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '3306',
+
     }
 }
 '''
+
 
 
 # 邮件服务设置：

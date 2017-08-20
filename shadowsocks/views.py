@@ -1,6 +1,7 @@
 # 导入django内置模块
 from django.shortcuts import render, render_to_response, redirect, HttpResponseRedirect
 from django.http import HttpResponse
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.six import BytesIO
@@ -20,7 +21,11 @@ from ssserver.models import SSUser
 import qrcode
 import base64
 import datetime
+import time
 from random import randint
+
+# 导入支付宝当面付插件
+from .payments import alipay
 
 
 # Create your views here.
@@ -248,7 +253,7 @@ def get_ss_qrcode(request, node_id):
     image_stream = buf.getvalue()
     # 构造图片reponse
     response = HttpResponse(image_stream, content_type="image/png")
-
+    print(response)
     return response
 
 
@@ -263,25 +268,77 @@ def userinfo_edit(request):
 
 
 def donate(request):
-    '''跳转到捐赠界面'''
+    '''捐赠界面和支付宝当面付功能'''
     donatelist = Donate.objects.all()[:15]
     context = {'donatelist': donatelist, }
     # 尝试获取流水号
     if request.method == 'POST':
-        info_code = request.POST.get('q')
+        number = request.POST.get('q')
+        out_trade_no = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S%s')
         try:
-            obj = AlipayRecord.objects.get(info_code=info_code)
-            context['moneycode'] = obj.money_code
+            # 获取金额数量 
+            amount = int(number)
+            # 生成订单号
+            trade = alipay.api_alipay_trade_precreate(
+                    subject="Ehco的{}元充值码".format(amount),
+                    out_trade_no  = out_trade_no,
+                    total_amount=amount,)
+            print(trade)
+            # 打印二维码链接
+            code_url = trade.get('qr_code','')
+            context['code_url'] = code_url
+            context['out_trade_no'] = out_trade_no
         except:
+            res = alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
+            print(res)
             registerinfo = {
-                'title': '请确保流水号填写正确!',
-                'subtitle': '如果一直失败,请通过支付联系站长',
+                'title': '糟糕，当面付插件可能出现问题了',
+                'subtitle': '如果一直失败,请后台联系站长',
                 'status': 'error', }
             context['registerinfo'] = registerinfo
     else:
         pass
-
     return render(request, 'sspanel/donate.html', context=context)
+
+
+def gen_face_pay_qrcode(request, url):
+    '''生成当面付的二维码'''
+
+    # 生成ss二维码
+    img = qrcode.make(url)
+    buf = BytesIO()
+    img.save(buf)
+    image_stream = buf.getvalue()
+    # 构造图片reponse
+    response = HttpResponse(image_stream, content_type="image/png")
+
+    return response
+
+def Face_pay_view(request, out_trade_no):
+    '''当面付处理逻辑'''
+    context = {}
+    paid = False
+    
+    for i in range(10):
+        time.sleep(3)
+        # 每隔三秒检测交易状态
+        res = alipay.api_alipay_trade_query(out_trade_no=out_trade_no)
+        if res.get("trade_status", "") == "TRADE_SUCCESS":
+            paid = True
+            amount = res.get("total_amount", 0)
+            # 生成对于数量的充值码
+            moneycode = MoneyCode.objects.create(number=amount)
+            # 后台数据库增加记录
+            record=AlipayRecord.objects.create(info_code=out_trade_no,amount=amount,money_code=moneycode)
+            #返回充值码到网页
+            messages.info(request,'充值吗生成成功，请尽快复制充值！')
+            messages.success(request,moneycode)
+            return HttpResponseRedirect('/donate')       
+    # 如果30秒内没有支付，则关闭订单：
+    if paid is False:
+        alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
+        messages.warning(request, "充值失败了!自动跳转回充值界面")
+        return HttpResponseRedirect('/donate')
 
 
 def shop(request):
@@ -548,35 +605,6 @@ def node_create(request):
     else:
         form = NodeForm()
         return render(request, 'backend/nodecreate.html', context={'form': form, })
-
-# 弃用
-
-
-@permission_required('shadowsocks')
-def backend_alive_user(request):
-    '''用户在线列表'''
-
-    alive_user = Aliveip.objects.all()
-    # 每页显示10条记录
-    paginator = Paginator(alive_user, 10)
-    # 构造分页.获取页码数量
-    page = request.GET.get('page')
-
-    page_list = paginator.page_range
-
-    try:
-        contacts = paginator.page(page)
-    except PageNotAnInteger:
-        contacts = paginator.page(1)
-    except EmptyPage:
-        contacts = paginator.page(paginator.num_pages)
-
-    context = {
-        'contacts': contacts,
-        'page_list': page_list,
-    }
-
-    return render(request, 'backend/aliveuser.html', context=context)
 
 
 class Page_List_View(object):
