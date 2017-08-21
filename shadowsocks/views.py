@@ -278,19 +278,19 @@ def donate(request):
         try:
             # 获取金额数量 
             amount = int(number)
-            # 生成订单号
+            # 生成订单
             trade = alipay.api_alipay_trade_precreate(
                     subject="Ehco的{}元充值码".format(amount),
                     out_trade_no  = out_trade_no,
                     total_amount=amount,)
-            print(trade)
-            # 打印二维码链接
+            
+            # 获取二维码链接
             code_url = trade.get('qr_code','')
-            context['code_url'] = code_url
+            request.session['code_url'] = code_url
+            # 将订单号传入模板
             context['out_trade_no'] = out_trade_no
         except:
             res = alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
-            print(res)
             registerinfo = {
                 'title': '糟糕，当面付插件可能出现问题了',
                 'subtitle': '如果一直失败,请后台联系站长',
@@ -301,9 +301,12 @@ def donate(request):
     return render(request, 'sspanel/donate.html', context=context)
 
 
-def gen_face_pay_qrcode(request, url):
+def gen_face_pay_qrcode(request):
     '''生成当面付的二维码'''
-
+    # 从seesion中获取订单的二维码
+    url = request.session.get('code_url','')
+    # 删除订单二维码
+    del request.session['code_url']
     # 生成ss二维码
     img = qrcode.make(url)
     buf = BytesIO()

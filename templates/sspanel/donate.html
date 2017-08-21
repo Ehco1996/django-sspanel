@@ -38,9 +38,9 @@
                     <br>
                     <p class="subtitle">充值码已经生成:</p>
                     <code> {{ moneycode }}</code> {% endif %}
-                    <hr> {% if code_url %}
+                    <hr> {% if out_trade_no %}
                     <figure class="image">
-                        <img src="{% url 'shadowsocks:facepay_qrcode' code_url %}">
+                        <img src="{% url 'shadowsocks:facepay_qrcode' %}">
                     </figure>
                     <p><strong>付费完成之后请点击确认！</strong></p>
                     <div class="control">
