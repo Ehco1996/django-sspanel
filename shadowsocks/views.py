@@ -282,7 +282,8 @@ def donate(request):
             trade = alipay.api_alipay_trade_precreate(
                     subject="Ehco的{}元充值码".format(amount),
                     out_trade_no  = out_trade_no,
-                    total_amount=amount,)
+                    total_amount=amount,
+                    timeout_express='60s',)
             
             # 获取二维码链接
             code_url = trade.get('qr_code','')

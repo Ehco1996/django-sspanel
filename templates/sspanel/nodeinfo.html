@@ -30,19 +30,10 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <div class="card-footer-item">
-                        <div class="block">
-                            <a class="button is-primary is-outlined modal-button" data-target="modal-{{ list.name }}">二维码</a>
-
-                        </div>
-                    </div>
-                    <div class="card-footer-item">
-                        <div class="block">
-                            <a class="button is-primary is-outlined modal-button" data-target="modal-{{ list.node_id }}">节点配置</a>
-                        </div>
-                    </div>
-                    <a class="card-footer-item">使用人数:「{{ list.count }}」</a>
-                    <a class="card-footer-item">节点状态: 「{{ list.status }}」 </a>                   
+                    <a class="card-footer-item modal-button" data-target="modal-{{ list.name }}">二维码</a>
+                    <a class="card-footer-item modal-button" data-target="modal-{{ list.node_id }}">节点配置</a>
+                    <a class="card-footer-item">人数:「{{ list.count }}」</a>
+                    <a class="card-footer-item">状态: 「{{ list.status }}」</a>                   
                 </div>
             </div>
 
@@ -84,7 +75,7 @@
                             </tr>
                             <tr>
                                 <td class="notification">运行状态:</td>
-                                <td class="notification is-success">{{ list.status }}</td>
+                                <td class="notification is-success">{{ list.get_status_display }}</td>
                             </tr>
                         </table>
                     </section>

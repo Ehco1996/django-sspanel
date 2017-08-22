@@ -25,10 +25,10 @@
                 <button class="button"><a href="{% url 'shadowsocks:logout' %}">注销登录</a></button>
                 <button class="button"><a href="{% url 'password_change' %}">修改密码</a></button>
                 <hr>
-                {% if ss_user.get_check_in %} 
+                {% if user.ss_user.get_check_in %} 
                     <p>今天已经签到过了哟</p>
                 {% else %}
-                    <p> 今天还没有签到呢，点一下可以获得200m流量哟</p>
+                    <p> 今天还没有签到呢，点一下可以获得10~200m流量哟</p>
                     <br>
                     <button class="button"><a href="{% url 'shadowsocks:checkin' %}">签到</a></button>
                 {% endif %}
@@ -52,8 +52,8 @@
                 <hr>
                 <li> 端口：<code>{{ user.ss_user.port }}</code></li>
                 <li> 密码：<code>{{ user.ss_user.password }}</code></li>
-                <li> 混淆：<code>{{ user.ss_user.obfs }}</code></li>
-                <li> 协议：<code>{{ user.ss_user.protocal }}</code></li>                
+                <li> 混淆：<code>...</code></li>
+                <li> 协议：<code>...</code></li>                
                 <li>上次使用: {{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</li>
                 <br>
                 <a class="button is-link " href="{% url 'shadowsocks:nodeinfo' %}">详细节点信息请点击这里</a>
@@ -65,7 +65,7 @@
                 <li> 余额：<code>{{ user.balance }} 元</code></li>
                 <li> 邮箱：<code>{{ user.email }} </code></li>
                 <li> 等级：<code>{{ user.level }} 级 </code></li>                
-                                
+                <li> 套餐：<code>{{ user.ss_user.get_plan_display }}  </code></li>              
             </div>
         </div>
     </div>
