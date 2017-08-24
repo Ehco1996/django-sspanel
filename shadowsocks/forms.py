@@ -4,7 +4,6 @@ from django import forms
 from django.forms import ModelForm
 from .models import User, Node,Shop
 
-
 class RegisterForm(UserCreationForm):
     '''注册时渲染的表单'''
 
@@ -33,9 +32,21 @@ class RegisterForm(UserCreationForm):
                                     attrs={'class': 'input is-danger', 'type': 'password'})
                                 )
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        t = User.objects.filter(email=email)
+        if len(t) != 0:
+            raise forms.ValidationError('该邮箱已经注册过了')
+        
+        
+
+
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'invitecode',)
+
+
+
 
 
 class LoginForm(forms.Form):

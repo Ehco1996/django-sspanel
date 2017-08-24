@@ -99,6 +99,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# 自定义用户验证
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'shadowsocks.backends.EmailBackend',
+)
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/

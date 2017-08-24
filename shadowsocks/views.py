@@ -705,6 +705,7 @@ def backend_invite(request):
     return render(request, 'backend/invitecode.html')
 
 
+@permission_required('shadowsocks')
 def gen_invite_code(request):
 
     Num = request.GET.get('num')
