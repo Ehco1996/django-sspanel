@@ -451,6 +451,8 @@ def charge(request):
                 code.save()
                 # 将充值记录和捐赠绑定
                 donate = Donate.objects.create(user=user, money=code.number)
+                # 检索充值记录
+                codelist = MoneyCode.objects.filter(user=user)
                 registerinfo = {
                     'title': '充值成功！',
                     'subtitle': '请去商店购买商品！',
@@ -459,6 +461,7 @@ def charge(request):
                 context = {
                     'registerinfo': registerinfo,
                     'ss_user': user,
+                    'codelist':codelist,
                 }
                 return render(request, 'sspanel/chargecenter.html', context=context)
 
