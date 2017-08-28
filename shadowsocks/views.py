@@ -10,9 +10,11 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.list import ListView
 from django.db.models import Q
+from django.conf import settings
 # 导入shadowsocks节点相关文件
 from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm
+
 
 # 导入ssservermodel
 from ssserver.models import SSUser
@@ -204,13 +206,14 @@ def checkin(request):
     '''用户签到'''
     ss_user = request.user.ss_user
     if timezone.now() - datetime.timedelta(days=1) > ss_user.last_check_in_time:
-        # 距离上次签到时间大于一天 增加200m流量
-        ss_user.transfer_enable += int(200 * 1024 * 1024)
+        # 距离上次签到时间大于一天 增加随机流量
+        ll = randint(settings.MIN_CHECKIN_TRAFFIC,settings.MAX_CHECKIN_TRAFFIC)
+        ss_user.transfer_enable += ll
         ss_user.last_check_in_time = timezone.now()
         ss_user.save()
         registerinfo = {
             'title': '签到成功！',
-            'subtitle': '获得200m流量',
+            'subtitle': '获得{}m流量！'.format(ll//settings.MB),
             'status': 'success', }
     else:
         registerinfo = {
@@ -240,7 +243,7 @@ def get_ss_qrcode(request, node_id):
     ssr_password = base64.b64encode(
         bytes(ss_user.password, 'utf8')).decode('ascii')
     ssr_code = '{}:{}:{}:{}:{}:{}'.format(
-        node.server, ss_user.port, node.protocol, node.method, node.obfs, ssr_password)
+        node.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
     # 将信息编码
     ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
     ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')

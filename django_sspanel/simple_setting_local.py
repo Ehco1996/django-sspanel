@@ -39,6 +39,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 # SS面板设置：
+MB = 1024 *1024
 GB = 1024 * 1024 * 1024
 DEFAULT_TRAFFIC = 5 * GB
 START_PORT = 10000
+# 签到流量设置
+MIN_CHECKIN_TRAFFIC = 10 * MB
+MAX_CHECKIN_TRAFFIC = 200 * MB

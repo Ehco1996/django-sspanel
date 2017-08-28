@@ -16,7 +16,7 @@ from shadowsocks.tools import get_short_random_string
 
 PLAN_CHOICES = (
     ('free', 'Free'),
-    ('pro','pro')
+    ('pro', 'pro')
 )
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
@@ -24,10 +24,20 @@ METHOD_CHOICES = (
     ('salsa20', 'salsa20'),
     ('aes-128-ctr', 'aes-128-ctr'),
 )
-STATUS_CHOICES = (
-    ('ok', '好用'),
-    ('slow', '不好用'),
-    ('fail', '坏了'),
+PROTOCOL_CHOICES = (
+    ('auth_sha1_v4', 'auth_sha1_v4'),
+    ('auth_aes128_md5', 'auth_aes128_md5'),
+    ('auth_aes128_sha1', 'auth_aes128_sha1'),
+    ('auth_chain_a', 'auth_chain_a'),
+    ('origin', 'origin'),
+)
+
+
+OBFS_CHOICES = (
+    ('plain', 'plain'),
+    ('http_simple', 'http_simple'),
+    ('http_post', 'http_post'),
+    ('tls1.2_ticket_auth', 'tls1.2_ticket_auth'),
 )
 
 # Create your models here.
@@ -103,6 +113,15 @@ class SSUser(models.Model):
         db_column='enable',
     )
 
+    method = models.CharField(
+        '加密类型', default='aes-256-cfb', max_length=32, choices=METHOD_CHOICES,)
+
+    protocol = models.CharField(
+        '协议', default='origin', max_length=32, choices=PROTOCOL_CHOICES,)
+
+    obfs = models.CharField(
+        '混淆', default='plain', max_length=32, choices=OBFS_CHOICES,)
+
     def __str__(self):
         return self.user.username
 
@@ -116,7 +135,7 @@ class SSUser(models.Model):
 
     def get_transfer(self):
         '''返回用户的总流量 GB'''
-        return '{:.2f} '.format(self.transfer_enable / 1024 / 1024/1024)
+        return '{:.2f} '.format(self.transfer_enable / 1024 / 1024 / 1024)
 
     def get_unused_traffic(self):
         '''返回用户的剩余流量'''

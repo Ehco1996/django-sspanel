@@ -41,6 +41,7 @@
                     <li>使用流量: {{ user.ss_user.get_traffic }} MB </li>
                     <li>总流量: {{ user.ss_user.get_transfer }} GB </li>
                     <li>使用百分比: {{ user.ss_user.get_used_percentage }} % </li>
+                    <li>上次使用: {{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</li>                            
                 </article>
             </div>
         </div>
@@ -52,9 +53,9 @@
                 <hr>
                 <li> 端口：<code>{{ user.ss_user.port }}</code></li>
                 <li> 密码：<code>{{ user.ss_user.password }}</code></li>
-                <li> 混淆：<code>...</code></li>
-                <li> 协议：<code>...</code></li>                
-                <li>上次使用: {{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</li>
+                <li> 加密：<code>{{ user.ss_user.method }}</code></li>                
+                <li> 混淆：<code>{{ user.ss_user.protocol }}</code></li>
+                <li> 协议：<code>{{ user.ss_user.obfs }}</code></li>                
                 <br>
                 <a class="button is-link " href="{% url 'shadowsocks:nodeinfo' %}">详细节点信息请点击这里</a>
                 </div>
@@ -65,7 +66,7 @@
                 <li> 余额：<code>{{ user.balance }} 元</code></li>
                 <li> 邮箱：<code>{{ user.email }} </code></li>
                 <li> 等级：<code>{{ user.level }} 级 </code></li>                
-                <li> 套餐：<code>{{ user.ss_user.get_plan_display }}  </code></li>              
+                <li> 套餐：<code>{{ user.ss_user.get_plan_display }}  </code></li> 
             </div>
         </div>
     </div>

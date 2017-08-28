@@ -84,3 +84,75 @@ def User_edit(request, pk):
 
         }
         return render(request, 'backend/useredit.html', context=context)
+
+
+def ChangeSsMethod(request):
+    '''改变用户ss加密'''
+    ss_user = request.user.ss_user
+
+    if request.method == 'POST':
+        ss_method = request.POST.get('method')
+        ss_user.method = ss_method
+        ss_user.save()
+        registerinfo = {
+                'title': '修改成功！',
+                'subtitle': '请及时更换客户端配置！',
+                'status': 'success',
+            }
+        context = {
+                'registerinfo': registerinfo,
+                'ss_user': ss_user,
+            }
+        return render(request, 'sspanel/userinfo.html', context=context)
+        
+    else:
+        form = ChangeSsPassForm()
+        return render(request, 'sspanel/sspasschanged.html', {'form': form})
+
+def ChangeSsProtocol(request):
+    '''改变用户ss协议'''
+    ss_user = request.user.ss_user
+
+    if request.method == 'POST':
+        ss_protocol = request.POST.get('protocol')
+        ss_user.protocol = ss_protocol
+        ss_user.save()
+        registerinfo = {
+                'title': '修改成功！',
+                'subtitle': '请及时更换客户端配置！',
+                'status': 'success',
+            }
+        context = {
+                'registerinfo': registerinfo,
+                'ss_user': ss_user,
+            }
+        return render(request, 'sspanel/userinfo.html', context=context)
+        
+    else:
+        form = ChangeSsPassForm()
+        return render(request, 'sspanel/sspasschanged.html', {'form': form})
+
+
+
+def ChangeSsObfs(request):
+    '''改变用户ss连接混淆'''
+    ss_user = request.user.ss_user
+
+    if request.method == 'POST':
+        ss_obfs = request.POST.get('obfs')
+        ss_user.obfs = ss_obfs
+        ss_user.save()
+        registerinfo = {
+                'title': '修改成功！',
+                'subtitle': '请及时更换客户端配置！',
+                'status': 'success',
+            }
+        context = {
+                'registerinfo': registerinfo,
+                'ss_user': ss_user,
+            }
+        return render(request, 'sspanel/userinfo.html', context=context)
+        
+    else:
+        form = ChangeSsPassForm()
+        return render(request, 'sspanel/sspasschanged.html', {'form': form})
