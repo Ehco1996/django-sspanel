@@ -18,3 +18,5 @@ class SSUserAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(models.SSUser, SSUserAdmin)
+admin.site.register(models.TrafficLog)
+

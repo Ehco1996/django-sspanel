@@ -170,3 +170,30 @@ class SSUser(models.Model):
         verbose_name_plural = 'SS账户'
         ordering = ('-last_check_in_time',)
         db_table = 'user'
+
+
+class TrafficLog(models.Model):
+    '''用户流量记录'''
+
+    user_id = models.IntegerField('节点id', blank=False, null=False)
+
+    upload_traffic = models.BigIntegerField(
+        '上传流量',
+        default=0,
+        db_column='u'
+    )
+    download_traffic = models.BigIntegerField(
+        '下载流量',
+        default=0,
+        db_column='d'
+    )
+    
+    node_id = models.IntegerField('节点id', blank=False, null=False)
+    rate = models.FloatField('流量比例', default=1.0,null=False)
+    traffic = models.CharField('流量记录', max_length=32, null=False)
+    log_time = models.IntegerField('日志时间', blank=False, null=False)
+
+    class Meta:
+        verbose_name_plural = '流量记录'
+        ordering = ('-log_time',)
+        db_table = 'user_traffic_log'

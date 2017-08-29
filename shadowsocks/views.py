@@ -12,9 +12,8 @@ from django.views.generic.list import ListView
 from django.db.models import Q
 from django.conf import settings
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord
+from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm
-
 
 # 导入ssservermodel
 from ssserver.models import SSUser
@@ -72,10 +71,13 @@ def nodeinfo(request):
     nodes = Node.objects.values()
     ss_user = request.user.ss_user
     user = request.user
-    Alive = Aliveip.objects.all()
-    # 循环遍历没一条线路的在线人数
+    # 循环遍历每一条线路的在线人数
     for node in nodes:
-        node['count'] = len(Alive.filter(node_id=node['node_id']))
+        try:
+            node['count'] = NodeOnlineLog.objects.filter(
+                node_id=node['node_id'])[::-1][0].online_user
+        except IndexError:
+            node['count'] = 0
         nodelists.append(node)
 
     context = {
@@ -207,13 +209,14 @@ def checkin(request):
     ss_user = request.user.ss_user
     if timezone.now() - datetime.timedelta(days=1) > ss_user.last_check_in_time:
         # 距离上次签到时间大于一天 增加随机流量
-        ll = randint(settings.MIN_CHECKIN_TRAFFIC,settings.MAX_CHECKIN_TRAFFIC)
+        ll = randint(settings.MIN_CHECKIN_TRAFFIC,
+                     settings.MAX_CHECKIN_TRAFFIC)
         ss_user.transfer_enable += ll
         ss_user.last_check_in_time = timezone.now()
         ss_user.save()
         registerinfo = {
             'title': '签到成功！',
-            'subtitle': '获得{}m流量！'.format(ll//settings.MB),
+            'subtitle': '获得{}m流量！'.format(ll // settings.MB),
             'status': 'success', }
     else:
         registerinfo = {
@@ -277,20 +280,23 @@ def donate(request):
     # 尝试获取流水号
     if request.method == 'POST':
         number = request.POST.get('q')
-        out_trade_no = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S%s')
+        out_trade_no = datetime.datetime.fromtimestamp(
+            time.time()).strftime('%Y%m%d%H%M%S%s')
         try:
-            # 获取金额数量 
+            # 获取金额数量
             amount = int(number)
             # 生成订单
             trade = alipay.api_alipay_trade_precreate(
-                    subject="Ehco的{}元充值码".format(amount),
-                    out_trade_no  = out_trade_no,
-                    total_amount=amount,
-                    timeout_express='60s',)
-            
+                subject="Ehco的{}元充值码".format(amount),
+                out_trade_no=out_trade_no,
+                total_amount=amount,
+                timeout_express='60s',)
+
             # 获取二维码链接
-            code_url = trade.get('qr_code','')
+            code_url = trade.get('qr_code', '')
             request.session['code_url'] = code_url
+            request.session['out_trade_no'] = out_trade_no
+            request.session['amount'] = amount
             # 将订单号传入模板
             context['out_trade_no'] = out_trade_no
         except:
@@ -308,9 +314,15 @@ def donate(request):
 def gen_face_pay_qrcode(request):
     '''生成当面付的二维码'''
     # 从seesion中获取订单的二维码
-    url = request.session.get('code_url','')
-    # 删除订单二维码
+    url = request.session.get('code_url', '')
+    # 生成支付宝申请记录
+    record = AlipayRequest.objects.create(username=request.user,
+                                          info_code=request.session['out_trade_no'],
+                                          amount=request.session['amount'],)
+    # 删除sessions信息
     del request.session['code_url']
+    del request.session['out_trade_no']
+    del request.session['amount']
     # 生成ss二维码
     img = qrcode.make(url)
     buf = BytesIO()
@@ -321,11 +333,12 @@ def gen_face_pay_qrcode(request):
 
     return response
 
+
 def Face_pay_view(request, out_trade_no):
     '''当面付处理逻辑'''
     context = {}
     paid = False
-    
+
     for i in range(10):
         time.sleep(3)
         # 每隔三秒检测交易状态
@@ -336,11 +349,12 @@ def Face_pay_view(request, out_trade_no):
             # 生成对于数量的充值码
             moneycode = MoneyCode.objects.create(number=amount)
             # 后台数据库增加记录
-            record=AlipayRecord.objects.create(info_code=out_trade_no,amount=amount,money_code=moneycode)
-            #返回充值码到网页
-            messages.info(request,'充值吗生成成功，请尽快复制充值！')
-            messages.success(request,moneycode)
-            return HttpResponseRedirect('/donate')       
+            record = AlipayRecord.objects.create(
+                info_code=out_trade_no, amount=amount, money_code=moneycode)
+            # 返回充值码到网页
+            messages.info(request, '充值吗生成成功，请尽快复制充值！')
+            messages.success(request, moneycode)
+            return HttpResponseRedirect('/donate')
     # 如果30秒内没有支付，则关闭订单：
     if paid is False:
         alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
@@ -384,6 +398,7 @@ def purchase(request, goods_id):
         ss_user.transfer_enable += good.transfer
         user.balance -= good.money
         user.level = good.level
+        user.level_expire_time = timezone.now() + datetime.timedelta(days=good.days)
         ss_user.save()
         user.save()
         # 增加购买记录
@@ -464,7 +479,7 @@ def charge(request):
                 context = {
                     'registerinfo': registerinfo,
                     'ss_user': user,
-                    'codelist':codelist,
+                    'codelist': codelist,
                 }
                 return render(request, 'sspanel/chargecenter.html', context=context)
 
@@ -488,7 +503,11 @@ def backend_index(request):
     nodes = Node.objects.all()
 
     # 用户在线情况
-    alive_user = Aliveip.objects.all()
+    online = 0
+    nodeid_list = set([node.node_id for node in NodeOnlineLog.objects.all()])
+    for nodeid in nodeid_list:
+        online += NodeOnlineLog.objects.filter(
+            node_id=nodeid)[::-1][0].online_user
 
     # 收入情况
     income = Donate.objects.all()
@@ -501,7 +520,7 @@ def backend_index(request):
         'user_num': user_num,
         'checkin_num': checkin_num,
         'nodes': nodes,
-        'alive_user': len(alive_user),
+        'alive_user': online,
         'income_num': len(income),
         'total_income': total_income,
     }

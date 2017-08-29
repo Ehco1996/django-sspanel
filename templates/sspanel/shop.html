@@ -54,9 +54,10 @@
             <div class="card-content">
                 <div class="content">
                     {{ good.name }} <br>
-                    <strong>价格：</strong><code>{{ good.money }}元</code> <br>
+                    <strong>价格：</strong><code>{{ good.money }}元</code><br>
                     <strong>流量：</strong><code>{{ good.get_transfer_by_GB }} GB</code><br>
-                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code>                    
+                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code><br>
+                    <strong>等级有效期：</strong><code>{{ good.days }} 天</code>                                        
                     
                 </div>
             </div>
@@ -75,7 +76,8 @@
                     <p class="subtitle">    {{ good.name }} </p>
                     <strong>价格：</strong><code>{{ good.money }}元</code> <br>
                     <strong>流量：</strong><code>{{ good.get_transfer_by_GB }} GB</code><br>
-                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code>                    
+                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code><br>
+                    <strong>等级有效期：</strong><code>{{ good.days }} 天</code>                
                     <br><br>
                     
                     <a class="button is-danger is-outlined" href="{% url 'shadowsocks:purchase' good.pk %}">确认购买</a>

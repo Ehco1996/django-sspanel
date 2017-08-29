@@ -1,9 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.validators import MaxValueValidator, MinValueValidator
 # 自己写的小脚本 用于生成邀请码
 from .tools import get_long_random_string, get_short_random_string
+from django.conf import settings
+
+import datetime
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
@@ -64,8 +68,19 @@ class User(AbstractUser):
         ]
     )
 
+    level_expire_time = models.DateTimeField(
+        '等级有效期',
+        default=datetime.datetime.fromtimestamp(0),
+        help_text='等级有效期',
+    )
+
     def __str__(self):
         return self.username
+
+    def get_expire_time(self):
+        '''返回等级到期时间'''
+        return self.level_expire_time
+
     class Meta(AbstractUser.Meta):
         verbose_name = '用户'
 
@@ -73,12 +88,26 @@ class User(AbstractUser):
 class Node(models.Model):
     '''线路节点'''
 
+    node_id = models.IntegerField('节点id', unique=True,)
+
     name = models.CharField('名字', max_length=32,)
 
     server = models.CharField('服务器IP', max_length=128,)
 
     method = models.CharField(
         '加密类型', default='aes-256-cfb', max_length=32, choices=METHOD_CHOICES,)
+
+    custom_method = models.SmallIntegerField(
+        '自定义加密',
+        choices=(
+            (0, 0),
+            (1, 1)),
+        default=0,
+    )
+    traffic_rate = models.FloatField(
+        '流量比例',
+        default=1.0
+    )
 
     protocol = models.CharField(
         '协议', default='origin', max_length=32, choices=PROTOCOL_CHOICES,)
@@ -90,8 +119,6 @@ class Node(models.Model):
 
     status = models.CharField(
         '状态', max_length=32, default='ok', choices=STATUS_CHOICES,)
-
-    node_id = models.IntegerField('节点id', unique=True,)
 
     level = models.PositiveIntegerField(
         '节点等级',
@@ -106,8 +133,45 @@ class Node(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['node_id']
+        ordering = ['id']
         verbose_name_plural = '节点'
+        db_table = 'ss_node'
+
+
+class NodeInfoLog(models.Model):
+    '''节点负载记录'''
+
+    node_id = models.IntegerField('节点id', blank=False, null=False)
+
+    uptime = models.FloatField('更新时间', blank=False, null=False)
+
+    load = models.CharField('负载', max_length=32, blank=False, null=False)
+
+    log_time = models.IntegerField('日志时间', blank=False, null=False)
+
+    def __str__(self):
+        return self.node_id
+
+    class Meta:
+        verbose_name_plural = '节点日志'
+        db_table = 'ss_node_info_log'
+
+
+class NodeOnlineLog(models.Model):
+    '''节点在线记录'''
+
+    node_id = models.IntegerField('节点id', blank=False, null=False)
+
+    online_user = models.IntegerField('在线人数', blank=False, null=False)
+
+    log_time = models.IntegerField('日志时间', blank=False, null=False)
+
+    def __str__(self):
+        return '节点：{}'.format(self.node_id)
+
+    class Meta:
+        verbose_name_plural = '节点在线记录'
+        db_table = 'ss_node_online_log'
 
 
 class InviteCode(models.Model):
@@ -286,7 +350,7 @@ class Shop(models.Model):
 
     transfer = models.BigIntegerField(
         '增加的流量',
-        default=1024 * 1024 * 1024
+        default=settings.GB
     )
 
     money = models.DecimalField(
@@ -307,12 +371,25 @@ class Shop(models.Model):
         ]
     )
 
+    days = models.PositiveIntegerField(
+        '设置等级时间(天)',
+        default=0,
+        validators=[
+            MaxValueValidator(365),
+            MinValueValidator(1),
+        ]
+    )
+
     def __str__(self):
         return self.name
 
     def get_transfer_by_GB(self):
         '''增加的流量以GB的形式返回'''
-        return '{}'.format(self.transfer / 1024 / 1024 / 1024)
+        return '{}'.format(self.transfer / settings.GB)
+
+    def get_days(self):
+        '''返回增加的天数'''
+        return '{}'.format(self.days)
 
     class Meta:
         verbose_name_plural = '商品'
@@ -329,15 +406,15 @@ class PurchaseHistory(models.Model):
 
     )
 
-    purchtime=models.DateTimeField(
+    purchtime = models.DateTimeField(
         '购买时间',
         editable=False,
         auto_now_add=True
     )
-    
+
     def __str__(self):
         return self.user
-    
+
     class Meta:
         verbose_name_plural = '购买记录'
 
@@ -376,4 +453,42 @@ class AlipayRecord(models.Model):
 
     class Meta:
         verbose_name_plural = '支付宝转账记录'
+        ordering = ('-time',)
+
+
+class AlipayRequest(models.Model):
+    '''支付宝申请记录'''
+
+    username = models.CharField(
+        '用户名',
+        max_length=64,
+        blank=False, 
+        null=False
+    )
+    
+    info_code = models.CharField(
+        '流水号',
+        max_length=64,
+        unique=True,
+    )
+
+    time = models.DateTimeField(
+        '时间',
+        auto_now_add=True
+    )
+
+    amount = models.DecimalField(
+        '金额',
+        decimal_places=2,
+        max_digits=10,
+        default=0,
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return self.username
+
+    class Meta:
+        verbose_name_plural = '支付宝申请记录'
         ordering = ('-time',)

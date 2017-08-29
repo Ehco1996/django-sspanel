@@ -65,8 +65,8 @@
                 <hr>
                 <li> 余额：<code>{{ user.balance }} 元</code></li>
                 <li> 邮箱：<code>{{ user.email }} </code></li>
-                <li> 等级：<code>{{ user.level }} 级 </code></li>                
-                <li> 套餐：<code>{{ user.ss_user.get_plan_display }}  </code></li> 
+                <li> 等级：<code>{{ user.level }} 级 </code></li>
+                <li> 到期时间：<code>{{ user.get_expire_time }} </code></li>                                
             </div>
         </div>
     </div>

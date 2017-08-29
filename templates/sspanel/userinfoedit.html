@@ -24,6 +24,7 @@
         <div class="tile is-6 is-vertical is-parent">
             <div class="tile box is-child">
                 <span class="tag is-danger is-large">修改连接密码:</span>
+                <hr />
                 <p class="subtitle">当前密码:<code>{{ ss_user.password }}</code></p>
                 <form class="form" action="{% url 'ssserver:changesspass' %}" method="post">
                     {% csrf_token %}
@@ -37,6 +38,7 @@
         
             <div class="tile box is-child">
                     <span class="tag is-warning is-large">自定义的加密:</span>
+                    <hr />
                     <p class="subtitle">当前加密方式:<code>{{ ss_user.method }}</code></p>
                     <form class="form" action="{% url 'ssserver:changessmethod' %}" method="post">
                         {% csrf_token %}
@@ -71,6 +73,7 @@
         <div class="tile is-6 is-vertical is-parent">
             <div class="tile box is-child">
                 <span class="tag is-success is-large">自定义协议:</span>
+                <hr />
                 <p class="subtitle">当前协议:<code>{{ ss_user.protocol }}</code></p>
                 <form class="form" action="{% url 'ssserver:changessprotocol' %}" method="post">
                     {% csrf_token %}
@@ -103,6 +106,7 @@
             
             <div class="tile box is-child">
                 <span class="tag is-success is-large">自定义混淆:</span>
+                <hr />
                 <p class="subtitle">当前混淆:<code>{{ ss_user.obfs }}</code></p>
                 <form class="form" action="{% url 'ssserver:changessobfs' %}" method="post">
                     {% csrf_token %}
@@ -131,8 +135,6 @@
                     </div>
                 </form>
             </div>
-
-
         </div>
     </div>
 
