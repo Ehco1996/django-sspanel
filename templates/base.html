@@ -7,7 +7,6 @@
     <!-- meta -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link rel="shortcut icon" href=" {% static 'img/logo/logo.ico' %}" /> 
     <!-- css -->
     <link rel="stylesheet" href="{% static 'sspanel/css/bulma.css'%}">
@@ -51,7 +50,8 @@
                         <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo_edit' %}">资料编辑</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
-                        <a class="nav-item is-active" href="/nodeinfo">节点信息</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:trafficlog' %}">流量记录</a>                        
                         <a class="nav-item is-active" href="{% url 'shadowsocks:chargecenter' %}">充值界面</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:shop' %}">商品界面</a>
                         {% if perms.shadowsocks %}
@@ -125,7 +125,8 @@
                             使用菜单
                         </p>
                         <ul class="menu-list">
-                            <li><a href="/nodeinfo">节点信息</a></li>
+                            <li><a href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a></li>
+                            <li><a href="{% url 'shadowsocks:trafficlog' %}">流量记录</a></li>                            
                         </ul>
                         <p class="menu-label">
                             交易系统

@@ -22,7 +22,11 @@
             {% if user.level >= list.level  %}
             <div class="card">
                 <div class="card-header">
-                    <p class="card-header-title">{{ list.name }}</p>
+                    {% if list.online == True %}
+                    <p class="card-header-title"><span class="tag is-success">在线</span>&nbsp&nbsp{{ list.name }}</p>
+                    {% else %}
+                    <p class="card-header-title"><span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
+                    {% endif %}                    
                 </div>
                 <div class="card-content">
                     <div class="content">

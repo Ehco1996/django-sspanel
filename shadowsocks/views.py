@@ -12,11 +12,11 @@ from django.views.generic.list import ListView
 from django.db.models import Q
 from django.conf import settings
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest
+from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm
 
 # 导入ssservermodel
-from ssserver.models import SSUser
+from ssserver.models import SSUser, TrafficLog
 
 # 导入第三方模块
 import qrcode
@@ -35,17 +35,17 @@ from .payments import alipay
 
 def index(request):
     '''跳转到首页'''
-    return render_to_response('sspanel/index.html')
+    return render(request, 'sspanel/index.html')
 
 
 def sshelp(request):
     '''跳转到帮助界面'''
-    return render_to_response('sspanel/help.html')
+    return render(request, 'sspanel/help.html')
 
 
 def ssclient(request):
     '''跳转到客户端界面'''
-    return render_to_response('sspanel/client.html')
+    return render(request, 'sspanel/client.html')
 
 
 def ssinvite(request):
@@ -61,32 +61,6 @@ def pass_invitecode(request, invitecode):
     '''提供点击邀请码连接之后自动填写邀请码'''
     form = RegisterForm(initial={'invitecode': invitecode})
     return render(request, 'sspanel/register.html', {'form': form})
-
-
-def nodeinfo(request):
-    '''跳转到节点信息的页面'''
-
-    nodelists = []
-    # 将节点信息查询结果保存dict中，方便增加在线人数字段
-    nodes = Node.objects.values()
-    ss_user = request.user.ss_user
-    user = request.user
-    # 循环遍历每一条线路的在线人数
-    for node in nodes:
-        try:
-            node['count'] = NodeOnlineLog.objects.filter(
-                node_id=node['node_id'])[::-1][0].online_user
-        except IndexError:
-            node['count'] = 0
-        nodelists.append(node)
-
-    context = {
-        'nodelists': nodelists,
-        'ss_user': ss_user,
-        'user': user,
-    }
-
-    return render(request, 'sspanel/nodeinfo.html', context=context)
 
 
 def register(request):
@@ -259,7 +233,6 @@ def get_ss_qrcode(request, node_id):
     image_stream = buf.getvalue()
     # 构造图片reponse
     response = HttpResponse(image_stream, content_type="image/png")
-    print(response)
     return response
 
 
@@ -273,6 +246,7 @@ def userinfo_edit(request):
     return render(request, 'sspanel/userinfoedit.html', context=context)
 
 
+@login_required
 def donate(request):
     '''捐赠界面和支付宝当面付功能'''
     donatelist = Donate.objects.all()[:15]
@@ -311,6 +285,7 @@ def donate(request):
     return render(request, 'sspanel/donate.html', context=context)
 
 
+@login_required
 def gen_face_pay_qrcode(request):
     '''生成当面付的二维码'''
     # 从seesion中获取订单的二维码
@@ -334,6 +309,7 @@ def gen_face_pay_qrcode(request):
     return response
 
 
+@login_required
 def Face_pay_view(request, out_trade_no):
     '''当面付处理逻辑'''
     context = {}
@@ -362,6 +338,56 @@ def Face_pay_view(request, out_trade_no):
         return HttpResponseRedirect('/donate')
 
 
+@login_required
+def nodeinfo(request):
+    '''跳转到节点信息的页面'''
+
+    nodelists = []
+    # 将节点信息查询结果保存dict中，方便增加在线人数字段
+    nodes = Node.objects.values()
+    ss_user = request.user.ss_user
+    user = request.user
+    # 循环遍历每一条线路的在线人数
+    for node in nodes:
+        try:
+            otime = NodeInfoLog.objects.filter(node_id=node['node_id'])[0].log_time
+            # 判断节点最后一次心跳时间
+            node['online'] = False if (time.time()-otime) > 90 else True
+            node['count'] = NodeOnlineLog.objects.filter(
+                node_id=node['node_id'])[::-1][0].online_user
+        except IndexError:
+            node['count'] = 0
+        nodelists.append(node)
+    context = {
+        'nodelists': nodelists,
+        'ss_user': ss_user,
+        'user': user,
+    }
+
+    return render(request, 'sspanel/nodeinfo.html', context=context)
+
+
+@login_required
+def trafficlog(request):
+    '''跳转到流量记录的页面'''
+    ss_user = request.user.ss_user
+    logs = TrafficLog.objects.filter(user_id=ss_user.pk)[:10]
+    log_dic = []
+    for log in logs:
+        rec = {
+            't': timezone.datetime.fromtimestamp(log.log_time),
+            'traffic': log.traffic,
+            'node_id': log.node_id
+        }
+        log_dic.append(rec)
+
+    context = {'ss_user': ss_user,
+               'log_dic': log_dic,
+               }
+    return render(request, 'sspanel/trafficlog.html', context=context)
+
+
+@login_required
 def shop(request):
     '''跳转到商品界面'''
     ss_user = request.user
@@ -374,6 +400,7 @@ def shop(request):
     return render(request, 'sspanel/shop.html', context=context)
 
 
+@login_required
 def purchase(request, goods_id):
     '''商品购买逻辑'''
 
@@ -417,6 +444,7 @@ def purchase(request, goods_id):
         return render(request, 'sspanel/userinfo.html', context=context)
 
 
+@login_required
 def chargecenter(request):
     '''充值界面的跳转'''
     user = request.user
@@ -428,6 +456,7 @@ def chargecenter(request):
     return render(request, 'sspanel/chargecenter.html', context=context)
 
 
+@login_required
 def charge(request):
     user = request.user
     if request.method == 'POST':
@@ -716,7 +745,7 @@ def user_search(request):
     '''用户搜索结果'''
     q = request.GET.get('q')
     contacts = User.objects.filter(
-        Q(username__icontains=q) | Q(email__icontains=q))
+        Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q))
     context = {
         'contacts': contacts,
     }

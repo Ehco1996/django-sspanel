@@ -8,6 +8,7 @@ urlpatterns = [
     # 网站用户面板
     url(r'^$', views.index, name='index'),
     url(r'^nodeinfo/$', views.nodeinfo, name='nodeinfo'),
+    url(r'^trafficlog/$', views.trafficlog, name='trafficlog'),    
     url(r'^sshelp/$', views.sshelp, name='sshelp'),
     url(r'^ssclient/$', views.ssclient, name='ssclient'),
     url(r'^ssinvite/$', views.ssinvite, name='ssinvite'),

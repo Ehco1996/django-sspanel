@@ -16,9 +16,9 @@ METHOD_CHOICES = (
     ('aes-128-ctr', 'aes-128-ctr'),
 )
 STATUS_CHOICES = (
-    ('ok', '好用'),
-    ('slow', '不好用'),
-    ('fail', '坏了'),
+    ('好用', '好用'),
+    ('维护', '维护'),
+    ('坏了', '坏了'),
 )
 
 PROTOCOL_CHOICES = (
@@ -150,11 +150,12 @@ class NodeInfoLog(models.Model):
     log_time = models.IntegerField('日志时间', blank=False, null=False)
 
     def __str__(self):
-        return self.node_id
+        return str(self.node_id)
 
     class Meta:
         verbose_name_plural = '节点日志'
         db_table = 'ss_node_info_log'
+        ordering = ('-log_time',)
 
 
 class NodeOnlineLog(models.Model):

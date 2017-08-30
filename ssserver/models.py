@@ -130,16 +130,16 @@ class SSUser(models.Model):
         return timezone.datetime.fromtimestamp(self.last_use_time)
 
     def get_traffic(self):
-        '''返回用户使用的总流量mb '''
-        return '{:.2f}'.format((self.download_traffic + self.upload_traffic) / 1024 / 1024)
+        '''返回用户使用的总流量GB '''
+        return '{:.2f}'.format((self.download_traffic + self.upload_traffic) /settings.GB)
 
     def get_transfer(self):
         '''返回用户的总流量 GB'''
-        return '{:.2f} '.format(self.transfer_enable / 1024 / 1024 / 1024)
+        return '{:.2f} '.format(self.transfer_enable /settings.GB)
 
     def get_unused_traffic(self):
         '''返回用户的剩余流量'''
-        return '{:.2f}'.format((self.enable - self.upload_traffic - self.download_traffic) / 1024 / 1024)
+        return '{:.2f}'.format((self.transfer_enable - self.upload_traffic - self.download_traffic) / settings.GB)
 
     def get_used_percentage(self):
         '''返回用户的为使用流量百分比'''
@@ -175,7 +175,7 @@ class SSUser(models.Model):
 class TrafficLog(models.Model):
     '''用户流量记录'''
 
-    user_id = models.IntegerField('节点id', blank=False, null=False)
+    user_id = models.IntegerField('用户id', blank=False, null=False)
 
     upload_traffic = models.BigIntegerField(
         '上传流量',
