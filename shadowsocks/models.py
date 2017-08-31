@@ -178,6 +178,12 @@ class NodeOnlineLog(models.Model):
 class InviteCode(models.Model):
     '''邀请码'''
 
+    type = models.IntegerField(
+        '类型',
+        choices=((1, '公开'), (0, '不公开')),
+        default=0,
+    )
+
     code = models.CharField(
         '邀请码',
         primary_key=True,
@@ -211,7 +217,7 @@ class InviteCode(models.Model):
         return super(InviteCode, self).save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return self.code
+        return str(self.code)
 
     class Meta:
         verbose_name_plural = '邀请码'
@@ -463,10 +469,10 @@ class AlipayRequest(models.Model):
     username = models.CharField(
         '用户名',
         max_length=64,
-        blank=False, 
+        blank=False,
         null=False
     )
-    
+
     info_code = models.CharField(
         '流水号',
         max_length=64,

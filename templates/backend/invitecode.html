@@ -1,5 +1,4 @@
-{% extends 'backendbase.html' %} {% block main %}
-{% load ehcofilter %}
+{% extends 'backendbase.html' %} {% block main %} {% load ehcofilter %}
 
 <div class="column is-12">
     <section class="hero is-light is-smaill">
@@ -21,16 +20,48 @@
 <div class="column is-12">
     <div class="box">
         <form method="get" action="{% url 'shadowsocks:geninvitecode' %}">
-        <div class="field has-addons">
-            <div class="control">
-                <input name="num" class="input"  placeholder="键入邀请码数量" required>
+            <div class="field has-addons">
+                <div class="control">
+                    <input name="num" class="input" placeholder="键入邀请码数量" required>
+                </div>
+                <div class="control">
+                    <div class="select">
+                        <select name="type">
+                      <option value=1>公开显示</option>
+                      <option value=0>不公开显示</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="control">
+                    <button type="submit" class="button is-outlined is-info">添加</button>
+                </div>
             </div>
-            <div class="control">
-                <button type="submit" class="button is-outlined is-info">添加</button>
-            </div>
-        </div>
-    </form>
-    </div>  
+        </form>
+    </div>
+
+    <div class="box">
+        <p class="subtitle">不公开显示的邀请码列表</p>
+        <br>
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th>类型:</th>
+                    <th>代码:</th>
+                    <th>创建时间</th>
+                </tr>
+            </thead>
+            {% for code in code_list %}
+            <tr>
+                <td>{{ code.get_type_display }}</td>
+                <td>{{ code.code }}</td>
+                <td>{{ code.time_created }}</td>
+            </tr>
+            {% empty %}
+            <p class="subtitle">没有私密的邀请码</p>
+            {% endfor %}
+        </table>
+    </div>
+</div>
 
 </div>
 

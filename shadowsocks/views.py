@@ -50,7 +50,8 @@ def ssclient(request):
 
 def ssinvite(request):
     '''跳转到邀请码界面'''
-    codelist = InviteCode.objects.all()[:20]
+
+    codelist = InviteCode.objects.filter(type='1')[:20]
 
     context = {'codelist': codelist, }
 
@@ -350,9 +351,10 @@ def nodeinfo(request):
     # 循环遍历每一条线路的在线人数
     for node in nodes:
         try:
-            otime = NodeInfoLog.objects.filter(node_id=node['node_id'])[0].log_time
+            otime = NodeInfoLog.objects.filter(
+                node_id=node['node_id'])[0].log_time
             # 判断节点最后一次心跳时间
-            node['online'] = False if (time.time()-otime) > 90 else True
+            node['online'] = False if (time.time() - otime) > 90 else True
             node['count'] = NodeOnlineLog.objects.filter(
                 node_id=node['node_id'])[::-1][0].online_user
         except IndexError:
@@ -756,18 +758,20 @@ def user_search(request):
 @permission_required('shadowsocks')
 def backend_invite(request):
     '''邀请码生成'''
-    return render(request, 'backend/invitecode.html')
+    code_list = InviteCode.objects.filter(type=0)
+    return render(request, 'backend/invitecode.html', {'code_list': code_list, })
 
 
 @permission_required('shadowsocks')
 def gen_invite_code(request):
 
     Num = request.GET.get('num')
-
+    type = request.GET.get('type')
     for i in range(int(Num)):
-        code = InviteCode()
+        code = InviteCode(type=type)
         code.save()
 
+    code_list = InviteCode.objects.filter(type=0)
     registerinfo = {
         'title': '成功',
         'subtitle': '添加邀请码{}个'.format(Num),
@@ -775,6 +779,7 @@ def gen_invite_code(request):
 
     context = {
         'registerinfo': registerinfo,
+        'code_list': code_list,
     }
 
     return render(request, 'backend/invitecode.html', context=context)
