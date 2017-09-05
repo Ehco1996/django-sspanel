@@ -70,7 +70,7 @@ class User(AbstractUser):
 
     level_expire_time = models.DateTimeField(
         '等级有效期',
-        default=datetime.datetime.fromtimestamp(0),
+        default=timezone.now,
         help_text='等级有效期',
     )
 

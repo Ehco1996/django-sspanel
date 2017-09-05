@@ -424,6 +424,7 @@ def purchase(request, goods_id):
 
     else:
         # 验证成功进行提权操作
+        ss_user.enable = True
         ss_user.transfer_enable += good.transfer
         user.balance -= good.money
         user.level = good.level

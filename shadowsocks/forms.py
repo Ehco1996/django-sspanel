@@ -2,7 +2,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm as auth_login_form
 from django import forms
 from django.forms import ModelForm
-from .models import User, Node,Shop
+from .models import User, Node, Shop
+
 
 class RegisterForm(UserCreationForm):
     '''注册时渲染的表单'''
@@ -12,10 +13,10 @@ class RegisterForm(UserCreationForm):
                                    attrs={'class': 'input is-info'})
                                )
 
-    email = forms.CharField(label='邮箱',
-                            widget=forms.TextInput(
-                                attrs={'class': 'input is-warning'})
-                            )
+    email = forms.EmailField(label='邮箱',
+                             widget=forms.TextInput(
+                                 attrs={'class': 'input is-warning'})
+                             )
     invitecode = forms.CharField(label='邀请码', help_text='邀请码必须填写',
                                  widget=forms.TextInput(
                                      attrs={'class': 'input is-success'})
@@ -37,16 +38,12 @@ class RegisterForm(UserCreationForm):
         t = User.objects.filter(email=email)
         if len(t) != 0:
             raise forms.ValidationError('该邮箱已经注册过了')
-        
-        
-
+        else:
+            return email
 
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'invitecode',)
-
-
-
 
 
 class LoginForm(forms.Form):
@@ -85,6 +82,7 @@ class NodeForm(ModelForm):
     class Meta:
         model = Node
         fields = '__all__'
+
 
 class ShopForm(ModelForm):
     class Meta:

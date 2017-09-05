@@ -1,6 +1,8 @@
 # django-sspanel
 用diango开发的全新的shadowsocks网络面板
 
+Telegram group : [invite link](https://t.me/joinchat/CeZqYgsFRkrYZlQXcmJl7w)
+
 Demo: [迷之屋](http://www.ehcozone.club/)
 
 Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)

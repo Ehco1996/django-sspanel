@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
-import os,platform
+import os
+import platform
 # 导入自定义设定文件
-if platform.node()=='EhcodeMBP.lan':
+if platform.node() == 'EhcodeMBP.lan':
     from .simple_setting_local import *
 else:
     from.simple_setting_product import *
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',  # 定时任务相关
     'shadowsocks',  # 前端网站
     'ssserver',
 ]
@@ -55,7 +57,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'django_sspanel.urls'
+ROOT_URLCONF = 'django-sspanel.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'django_sspanel.wsgi.application'
+WSGI_APPLICATION = 'django-sspanel.wsgi.application'
 
 
 # Database
@@ -133,3 +135,8 @@ MEDIA_URL = '/media/'
 # 用户模型设置：
 AUTH_USER_MODEL = 'shadowsocks.User'
 
+# 定时任务相关
+CRONJOBS = [
+    ('59 23 * * *', 'ssserver.views.check_user_state',
+     '>>'+BASE_DIR + '/logs/userstate.log'),  # 每天23.59分检测用户等级是否到期，日志写入logs
+]

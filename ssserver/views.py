@@ -1,8 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from .models import SSUser
 from shadowsocks.models import User
 from .forms import ChangeSsPassForm, SSUserForm
 from django.conf import settings
+from django.utils import timezone
+
 # Create your views here.
 
 
@@ -95,19 +97,20 @@ def ChangeSsMethod(request):
         ss_user.method = ss_method
         ss_user.save()
         registerinfo = {
-                'title': '修改成功！',
-                'subtitle': '请及时更换客户端配置！',
-                'status': 'success',
-            }
+            'title': '修改成功！',
+            'subtitle': '请及时更换客户端配置！',
+            'status': 'success',
+        }
         context = {
-                'registerinfo': registerinfo,
-                'ss_user': ss_user,
-            }
+            'registerinfo': registerinfo,
+            'ss_user': ss_user,
+        }
         return render(request, 'sspanel/userinfo.html', context=context)
-        
+
     else:
         form = ChangeSsPassForm()
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
+
 
 def ChangeSsProtocol(request):
     '''改变用户ss协议'''
@@ -118,20 +121,19 @@ def ChangeSsProtocol(request):
         ss_user.protocol = ss_protocol
         ss_user.save()
         registerinfo = {
-                'title': '修改成功！',
-                'subtitle': '请及时更换客户端配置！',
-                'status': 'success',
-            }
+            'title': '修改成功！',
+            'subtitle': '请及时更换客户端配置！',
+            'status': 'success',
+        }
         context = {
-                'registerinfo': registerinfo,
-                'ss_user': ss_user,
-            }
+            'registerinfo': registerinfo,
+            'ss_user': ss_user,
+        }
         return render(request, 'sspanel/userinfo.html', context=context)
-        
+
     else:
         form = ChangeSsPassForm()
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
-
 
 
 def ChangeSsObfs(request):
@@ -143,16 +145,38 @@ def ChangeSsObfs(request):
         ss_user.obfs = ss_obfs
         ss_user.save()
         registerinfo = {
-                'title': '修改成功！',
-                'subtitle': '请及时更换客户端配置！',
-                'status': 'success',
-            }
+            'title': '修改成功！',
+            'subtitle': '请及时更换客户端配置！',
+            'status': 'success',
+        }
         context = {
-                'registerinfo': registerinfo,
-                'ss_user': ss_user,
-            }
+            'registerinfo': registerinfo,
+            'ss_user': ss_user,
+        }
         return render(request, 'sspanel/userinfo.html', context=context)
-        
+
     else:
         form = ChangeSsPassForm()
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
+
+
+def testcheck(request):
+    '''test url '''
+
+    # do some test page
+
+    return HttpResponse('ok')
+
+
+def check_user_state():
+    '''检测用户状态，将所有账号到期的用户状态重置'''
+    users = User.objects.all()
+    # time.sleep(3)
+    for user in users:
+        # 判断用户过期时间是否大于一天
+        if user.level > 0 and timezone.now() - timezone.timedelta(days=1) > user.level_expire_time and user.ss_user.enable == True:
+            user.ss_user.enable = False
+            user.ss_user.save()
+            logs = 'user {} level timeout '.format(
+                user.username).encode('utf8')
+            print(logs)

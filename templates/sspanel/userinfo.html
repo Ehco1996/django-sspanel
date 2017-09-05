@@ -66,6 +66,11 @@
                 <li> 余额：<code>{{ user.balance }} 元</code></li>
                 <li> 邮箱：<code>{{ user.email }} </code></li>
                 <li> 等级：<code>{{ user.level }} 级 </code></li>
+                {% if user.ss_user.enable == True %}
+                <li> 状态：<code>正常使用</code></li>
+                {% else %}                
+                <li> 状态：<code>失效</code></li>
+                {% endif %}
                 <li> 到期时间：<code>{{ user.get_expire_time }} </code></li>                                
             </div>
         </div>
