@@ -325,12 +325,21 @@ def Face_pay_view(request, out_trade_no):
             amount = res.get("total_amount", 0)
             # 生成对于数量的充值码
             moneycode = MoneyCode.objects.create(number=amount)
+            code = MoneyCode.objects.filter(code=moneycode)[0]
+            # 充值操作
+            user = request.user
+            user.balance += code.number
+            code.user = user.username
+            code.isused = True
+            code.save()
+            user.save()
+            # 将充值记录和捐赠绑定
+            donate = Donate.objects.create(user=user, money=code.number)
             # 后台数据库增加记录
             record = AlipayRecord.objects.create(
                 info_code=out_trade_no, amount=amount, money_code=moneycode)
             # 返回充值码到网页
-            messages.info(request, '充值吗生成成功，请尽快复制充值！')
-            messages.success(request, moneycode)
+            messages.info(request, '充值成功{}元，请去商品界面购买'.format(amount))
             return HttpResponseRedirect('/donate')
     # 如果30秒内没有支付，则关闭订单：
     if paid is False:
