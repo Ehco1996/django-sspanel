@@ -164,19 +164,31 @@ def testcheck(request):
     '''test url '''
 
     # do some test page
-
     return HttpResponse('ok')
 
 
 def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''
-    users = User.objects.all()
+    users = User.objects.filter(level__gt=0)
     # time.sleep(3)
     for user in users:
         # 判断用户过期时间是否大于一天
-        if user.level > 0 and timezone.now() - timezone.timedelta(days=1) > user.level_expire_time and user.ss_user.enable == True:
+        if timezone.now() - timezone.timedelta(days=1) > user.level_expire_time:
             user.ss_user.enable = False
             user.ss_user.save()
             logs = 'user {} level timeout '.format(
                 user.username).encode('utf8')
             print(logs)
+
+
+def auto_reset_traffic():
+    '''月初重置所有免费用户流量'''
+    users = User.objects.filter(level=0)
+
+    for user in users:
+        user.ss_user.download_traffic = 0
+        user.ss_user.upload_traffic = 0
+        user.ss_user.save()
+        logs = 'user {}  traffic reset! '.format(
+            user.username).encode('utf8')
+        print(logs)

@@ -138,5 +138,8 @@ AUTH_USER_MODEL = 'shadowsocks.User'
 # 定时任务相关
 CRONJOBS = [
     ('59 23 * * *', 'ssserver.views.check_user_state',
-     '>>'+BASE_DIR + '/logs/userstate.log'),  # 每天23.59分检测用户等级是否到期，日志写入logs
+     '>>' + BASE_DIR + '/logs/userstate.log'),  # 每天23.59分检测用户等级是否到期，日志写入logs
+    ('0 0 1 * *', 'ssserver.views.auto_reset_traffic',
+     '>>' + BASE_DIR + '/logs/trafficrest.log'),  # 每天23.59分检测用户等级是否到期，日志写入logs
+
 ]
