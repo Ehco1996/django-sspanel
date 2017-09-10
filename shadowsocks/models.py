@@ -412,7 +412,15 @@ class PurchaseHistory(models.Model):
         max_length=128,
 
     )
-
+    money = models.DecimalField(
+        '金额',
+        decimal_places=2,
+        max_digits=10,
+        default=0,
+        null=True,
+        blank=True,
+    )
+    
     purchtime = models.DateTimeField(
         '购买时间',
         editable=False,
@@ -424,6 +432,7 @@ class PurchaseHistory(models.Model):
 
     class Meta:
         verbose_name_plural = '购买记录'
+        ordering = ('-purchtime',)
 
 
 class AlipayRecord(models.Model):

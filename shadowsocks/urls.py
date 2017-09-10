@@ -8,7 +8,7 @@ urlpatterns = [
     # 网站用户面板
     url(r'^$', views.index, name='index'),
     url(r'^nodeinfo/$', views.nodeinfo, name='nodeinfo'),
-    url(r'^trafficlog/$', views.trafficlog, name='trafficlog'),    
+    url(r'^trafficlog/$', views.trafficlog, name='trafficlog'),
     url(r'^sshelp/$', views.sshelp, name='sshelp'),
     url(r'^ssclient/$', views.ssclient, name='ssclient'),
     url(r'^ssinvite/$', views.ssinvite, name='ssinvite'),
@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'qrcode/(?P<node_id>[0-9]+)$', views.get_ss_qrcode, name='qrcode'),
     url(r'^donate/$', views.donate, name='donate'),
     url(r'^shop/$', views.shop, name='shop'),
+    url(r'^purchaselog/$', views.purchaselog, name='purchaselog'),
     url(r'purchase/(?P<goods_id>[0-9]+)$', views.purchase, name='purchase'),
     url(r'^chargecenter/$', views.chargecenter, name='chargecenter'),
     url(r'^charge/$', views.charge, name='charge'),
@@ -30,8 +31,8 @@ urlpatterns = [
     # 网站后台面板
     url(r'^backend/$', views.backend_index, name='backend_index'),
     # 邀请码相关
-    url(r'^backend/invite/$',views.backend_invite,name='backend_invite'),
-    url(r'^invite_gen_code/$',views.gen_invite_code, name='geninvitecode'),
+    url(r'^backend/invite/$', views.backend_invite, name='backend_invite'),
+    url(r'^invite_gen_code/$', views.gen_invite_code, name='geninvitecode'),
     # 节点相关
     url(r'^backend/nodeinfo$', views.backend_node_info, name='backend_node_info'),
     url(r'^backend/node/delete/(?P<node_id>[0-9]+)$',
@@ -53,11 +54,13 @@ urlpatterns = [
     url(r'^backend/good/create/$', views.good_create, name='good_create'),
     url(r'^backend/good/edit/(?P<pk>[0-9]+)$',
         views.good_edit, name='good_edit'),
-    url(r'^backend/purchase/history/$', views.purchase_history, name='purchase_history'),
-    
+    url(r'^backend/purchase/history/$',
+        views.purchase_history, name='purchase_history'),
+
     # 支付宝当面付相关:
-    url(r'facepay/qrcode/$',views.gen_face_pay_qrcode,name='facepay_qrcode'),
+    url(r'facepay/qrcode/$', views.gen_face_pay_qrcode, name='facepay_qrcode'),
     # 购买处理逻辑
-    url(r'facepay/(?P<out_trade_no>[0-9]+)',views.Face_pay_view,name='facepay_view'),
-    
-    ]
+    url(r'facepay/(?P<out_trade_no>[0-9]+)',
+        views.Face_pay_view, name='facepay_view'),
+
+]

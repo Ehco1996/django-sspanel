@@ -441,7 +441,7 @@ def purchase(request, goods_id):
         ss_user.save()
         user.save()
         # 增加购买记录
-        record = PurchaseHistory(info=good, user=user,
+        record = PurchaseHistory(info=good, user=user,money=good.money,
                                  purchtime=timezone.now())
         record.save()
         registerinfo = {
@@ -454,6 +454,17 @@ def purchase(request, goods_id):
             'registerinfo': registerinfo,
         }
         return render(request, 'sspanel/userinfo.html', context=context)
+
+
+@login_required
+def purchaselog(request):
+    '''用户购买记录页面'''
+
+    records = PurchaseHistory.objects.filter(user=request.user)[:10]
+    context = {
+        'records': records,
+    }
+    return render(request, 'sspanel/purchaselog.html', context=context)
 
 
 @login_required
@@ -854,6 +865,7 @@ def good_delete(request, pk):
 
 @permission_required('shadowsocks')
 def good_edit(request, pk):
+    '''商品编辑'''
 
     good = Shop.objects.get(pk=pk)
     goods = Shop.objects.all()
@@ -896,6 +908,7 @@ def good_edit(request, pk):
 
 @permission_required('shadowsocks')
 def good_create(request):
+    '''商品创建'''
     if request.method == "POST":
         form = ShopForm(request.POST)
         if form.is_valid():
@@ -931,6 +944,7 @@ def good_create(request):
 
 @permission_required('shadowsocks')
 def purchase_history(request):
+    '''购买历史'''
     obj = PurchaseHistory
     page_num = 10
     context = Page_List_View(request, obj, page_num).get_page_context()

@@ -54,6 +54,7 @@
                         <a class="nav-item is-active" href="{% url 'shadowsocks:trafficlog' %}">流量记录</a>                        
                         <a class="nav-item is-active" href="{% url 'shadowsocks:chargecenter' %}">充值界面</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:shop' %}">商品界面</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:purchaselog' %}">购买记录</a>                        
                         {% if perms.shadowsocks %}
                         <a class="nav-item is-active" href="/admin">Django后台</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:backend_index' %}">网站后台</a>
@@ -134,6 +135,7 @@
                         <ul class="menu-list">
                             <li><a href="{% url 'shadowsocks:chargecenter' %}">充值界面</a></li>
                             <li><a href="{% url 'shadowsocks:shop' %}">商品界面</a></li>
+                            <li><a href="{% url 'shadowsocks:purchaselog' %}">购买记录</a></li>                            
                         </ul>
 
                         {% if perms.shadowsocks %}
