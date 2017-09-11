@@ -126,7 +126,10 @@ def Login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None and user.is_active:
                 login(request, user)
-                annoucement = Announcement.objects.all()[0]
+                try:
+                    anno = Announcement.objects.all()[0]
+                except:
+                    anno = None
                 registerinfo = {
                     'title': '登录成功！',
                     'subtitle': '自动跳转到用户中心',
@@ -134,7 +137,7 @@ def Login_view(request):
                 }
                 context = {
                     'registerinfo': registerinfo,
-                    'annoucement': annoucement,
+                    'anno': anno,
 
                 }
                 return render(request, 'sspanel/userinfo.html', context=context)
@@ -177,14 +180,17 @@ def userinfo(request):
     user = request.user
 
     # 获取公告
-    annoucement = Announcement.objects.all()[0]
-
+    try:
+        anno = Announcement.objects.all()[0]
+    except:
+        anno = None
+    
     min_traffic = '{}m'.format(int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
     max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
 
     context = {
         'user': user,
-        'annoucement': annoucement,
+        'anno': anno,
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
     }
@@ -196,7 +202,10 @@ def userinfo(request):
 def checkin(request):
     '''用户签到'''
     ss_user = request.user.ss_user
-    annoucement = Announcement.objects.all()[0]
+    try:
+        anno = Announcement.objects.all()[0]
+    except:
+        anno = None
 
     if timezone.now() - datetime.timedelta(days=1) > ss_user.last_check_in_time:
         # 距离上次签到时间大于一天 增加随机流量
@@ -218,7 +227,7 @@ def checkin(request):
     context = {
         'registerinfo': registerinfo,
         'ss_user': ss_user,
-        'annoucement': annoucement,
+        'anno': anno,
     }
     return render(request, 'sspanel/userinfo.html', context=context)
 

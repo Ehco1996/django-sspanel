@@ -41,7 +41,11 @@
                         <p>最新公告</p>
                     </div>
                     <div class="message-body">
-                        {{ annoucement.body | safe }}
+                        {% if anno %}
+                        {{ anno.body | safe }}
+                        {% else %}
+                        <p>暂无公告</p>
+                        {% endif %}
                     </div>
                 </article>
             </div>
