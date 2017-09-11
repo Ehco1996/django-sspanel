@@ -1,7 +1,7 @@
 # django-sspanel
 用diango开发的全新的shadowsocks网络面板
 
-Telegram group : [invite link](https://t.me/joinchat/CeZqYgsFRkrYZlQXcmJl7w)
+Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
 Demo: [迷之屋](http://www.ehcozone.club/)
 
@@ -11,12 +11,13 @@ Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
 Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络分享面板，其具有以下特点：
 
-* 轻量级css框架，加载速度有保证
-* 使用最新版本的Django作为后端，方便升级管理
+* 轻量级css框架
+* 最新版本的Django作为后端
 * 后端支援（shadowsocksr/shadowsocks原版）
 * 注册采用邀请系统，告别不良用户
 * 完善的商品购买逻辑
 * 统一完善的后台管理界面
+* 支付宝当面付模块
 * 更多特性等待开发和探索....
 
 ## 预览图
@@ -41,6 +42,7 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 #### 第三方组件：
 
 * Qrcode <https://github.com/lincolnloop/python-qrcode>
+* Markdown <https://pypi.python.org/pypi/Markdown>
 
 ## 部署步骤：
 
