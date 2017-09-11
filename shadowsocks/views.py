@@ -12,8 +12,8 @@ from django.views.generic.list import ListView
 from django.db.models import Q
 from django.conf import settings
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog
-from .forms import RegisterForm, LoginForm, NodeForm, ShopForm
+from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement
+from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 
 # 导入ssservermodel
 from ssserver.models import SSUser, TrafficLog
@@ -23,6 +23,7 @@ import qrcode
 import base64
 import datetime
 import time
+import tomd
 from random import randint
 
 # 导入支付宝当面付插件
@@ -125,6 +126,7 @@ def Login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None and user.is_active:
                 login(request, user)
+                annoucement = Announcement.objects.all()[0]
                 registerinfo = {
                     'title': '登录成功！',
                     'subtitle': '自动跳转到用户中心',
@@ -132,6 +134,8 @@ def Login_view(request):
                 }
                 context = {
                     'registerinfo': registerinfo,
+                    'annoucement': annoucement,
+
                 }
                 return render(request, 'sspanel/userinfo.html', context=context)
             else:
@@ -171,8 +175,18 @@ def Logout_view(request):
 def userinfo(request):
     '''用户中心'''
     user = request.user
+
+    # 获取公告
+    annoucement = Announcement.objects.all()[0]
+
+    min_traffic = '{}m'.format(int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
+    max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
+
     context = {
         'user': user,
+        'annoucement': annoucement,
+        'min_traffic': min_traffic,
+        'max_traffic': max_traffic,
     }
 
     return render(request, 'sspanel/userinfo.html', context=context)
@@ -182,6 +196,8 @@ def userinfo(request):
 def checkin(request):
     '''用户签到'''
     ss_user = request.user.ss_user
+    annoucement = Announcement.objects.all()[0]
+
     if timezone.now() - datetime.timedelta(days=1) > ss_user.last_check_in_time:
         # 距离上次签到时间大于一天 增加随机流量
         ll = randint(settings.MIN_CHECKIN_TRAFFIC,
@@ -202,6 +218,7 @@ def checkin(request):
     context = {
         'registerinfo': registerinfo,
         'ss_user': ss_user,
+        'annoucement': annoucement,
     }
     return render(request, 'sspanel/userinfo.html', context=context)
 
@@ -441,7 +458,7 @@ def purchase(request, goods_id):
         ss_user.save()
         user.save()
         # 增加购买记录
-        record = PurchaseHistory(info=good, user=user,money=good.money,
+        record = PurchaseHistory(info=good, user=user, money=good.money,
                                  purchtime=timezone.now())
         record.save()
         registerinfo = {
@@ -536,7 +553,16 @@ def charge(request):
                 return render(request, 'sspanel/chargecenter.html', context=context)
 
 
+@permission_required('shadowsocks')
+def announcement(request):
+    '''网站公告列表'''
+    anno = Announcement.objects.all()
+
+    return render(request, 'sspanel/announcement.html', {'anno': anno})
+
 # 网站后台界面
+
+
 @permission_required('shadowsocks')
 def backend_index(request):
     '''跳转到后台界面'''
@@ -949,3 +975,111 @@ def purchase_history(request):
     page_num = 10
     context = Page_List_View(request, obj, page_num).get_page_context()
     return render(request, 'backend/purchasehistory.html', context=context)
+
+
+@permission_required('shadowsocks')
+def backend_anno(request):
+    '''公告管理界面'''
+
+    anno = Announcement.objects.all()
+    context = {
+        'anno': anno,
+    }
+    return render(request, 'backend/annolist.html', context=context)
+
+
+@permission_required('shadowsocks')
+def anno_delete(request, pk):
+    '''删除公告'''
+    anno = Announcement.objects.filter(pk=pk)
+    anno.delete()
+    anno = Announcement.objects.all()
+
+    registerinfo = {
+        'title': '删除公告',
+        'subtitle': '成功啦',
+                    'status': 'success', }
+
+    context = {
+        'anno': anno,
+        'registerinfo': registerinfo
+    }
+    return render(request, 'backend/annolist.html', context=context)
+
+
+@permission_required('shadowsocks')
+def anno_create(request):
+    '''公告创建'''
+    if request.method == "POST":
+        form = AnnoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            anno = Announcement.objects.all()
+            registerinfo = {
+                'title': '添加成功',
+                'subtitle': '数据更新成功！',
+                'status': 'success', }
+
+            context = {
+                'anno': anno,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/annolist.html', context=context)
+        else:
+            registerinfo = {
+                'title': '错误',
+                'subtitle': '数据填写错误',
+                'status': 'error', }
+
+            context = {
+                'form': form,
+                'registerinfo': registerinfo,
+            }
+            return render(request, 'backend/annocreate.html', context=context)
+
+    else:
+        form = AnnoForm()
+        return render(request, 'backend/annocreate.html', context={'form': form, })
+
+
+@permission_required('shadowsocks')
+def anno_edit(request, pk):
+    '''公告编辑'''
+
+    anno = Announcement.objects.get(pk=pk)
+
+    # 当为post请求时，修改数据
+    if request.method == "POST":
+        form = AnnoForm(request.POST, instance=anno)
+        if form.is_valid():
+            form.save()
+            registerinfo = {
+                'title': '修改成功',
+                'subtitle': '数据更新成功',
+                'status': 'success', }
+
+            context = {
+                'registerinfo': registerinfo,
+                'anno': Announcement.objects.all(),
+            }
+            return render(request, 'backend/annolist.html', context=context)
+        else:
+            registerinfo = {
+                'title': '错误',
+                'subtitle': '数据填写错误',
+                'status': 'error', }
+
+            context = {
+                'form': form,
+                'registerinfo': registerinfo,
+                'anno': anno,
+            }
+            return render(request, 'backend/annoedit.html', context=context)
+    # 当请求不是post时，渲染form
+    else:
+        anno.body = tomd.convert(anno.body)
+
+        context = {
+            'anno': anno,
+        }
+        return render(request, 'backend/annoedit.html', context=context)

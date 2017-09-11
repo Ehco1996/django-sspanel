@@ -2,7 +2,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm as auth_login_form
 from django import forms
 from django.forms import ModelForm
-from .models import User, Node, Shop
+from .models import User, Node, Shop,Announcement
 
 
 class RegisterForm(UserCreationForm):
@@ -87,4 +87,11 @@ class NodeForm(ModelForm):
 class ShopForm(ModelForm):
     class Meta:
         model = Shop
+        fields = '__all__'
+
+
+
+class AnnoForm(ModelForm):
+    class Meta:
+        model = Announcement
         fields = '__all__'

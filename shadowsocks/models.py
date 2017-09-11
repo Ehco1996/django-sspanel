@@ -7,6 +7,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from .tools import get_long_random_string, get_short_random_string
 from django.conf import settings
 
+import markdown
 import datetime
 
 METHOD_CHOICES = (
@@ -420,7 +421,7 @@ class PurchaseHistory(models.Model):
         null=True,
         blank=True,
     )
-    
+
     purchtime = models.DateTimeField(
         '购买时间',
         editable=False,
@@ -507,4 +508,35 @@ class AlipayRequest(models.Model):
 
     class Meta:
         verbose_name_plural = '支付宝申请记录'
+        ordering = ('-time',)
+
+
+class Announcement(models.Model):
+    '''公告界面'''
+    time = models.DateTimeField(
+        '时间',
+        auto_now_add=True
+    )
+
+    body = models.TextField(
+        '主体'
+    )
+
+    def __str__(self):
+        return '日期:{}'.format(str(self.time)[:9])
+
+    # 重写save函数，将文本渲染成markdown格式存入数据库
+    def save(self, *args, **kwargs):
+
+        # 首先实例化一个MarkDown类，来渲染一下body的文本 成为html文本
+        md = markdown.Markdown(extensions=[
+            'markdown.extensions.extra',
+        ])
+        # 让摘要默认为body字段的前54个字符 并且去掉html的标签
+        self.body = md.convert(self.body)
+        # 调动父类save 将数据保存到数据库中
+        super(Announcement, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name_plural = '系统公告'
         ordering = ('-time',)

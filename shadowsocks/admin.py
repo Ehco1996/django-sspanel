@@ -39,4 +39,6 @@ admin.site.register(models.AlipayRecord, AlipayAdmin)
 admin.site.register(models.AlipayRequest,AlipayRequestAdmin)
 admin.site.register(models.NodeInfoLog)
 admin.site.register(models.NodeOnlineLog)
+admin.site.register(models.Announcement)
+
 

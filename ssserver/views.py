@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, HttpResponse
+from django.shortcuts import render, redirect, HttpResponse,HttpResponseRedirect
 from .models import SSUser
 from shadowsocks.models import User
 from .forms import ChangeSsPassForm, SSUserForm
@@ -6,35 +6,6 @@ from django.conf import settings
 from django.utils import timezone
 
 # Create your views here.
-
-
-def ChangeSsPass(request):
-    '''改变用户ss连接密码'''
-    ss_user = request.user.ss_user
-
-    if request.method == 'POST':
-        form = ChangeSsPassForm(request.POST)
-
-        if form.is_valid():
-            # 获取用户提交的password
-            ss_pass = request.POST.get('password')
-            ss_user.password = ss_pass
-            ss_user.save()
-            registerinfo = {
-                'title': '修改成功！',
-                'subtitle': '请及时更换客户端密码！',
-                'status': 'success',
-            }
-            context = {
-                'registerinfo': registerinfo,
-                'ss_user': ss_user,
-            }
-            return render(request, 'sspanel/userinfo.html', context=context)
-        else:
-            return redirect('/')
-    else:
-        form = ChangeSsPassForm()
-        return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
 def User_edit(request, pk):
@@ -88,6 +59,36 @@ def User_edit(request, pk):
         return render(request, 'backend/useredit.html', context=context)
 
 
+def ChangeSsPass(request):
+    '''改变用户ss连接密码'''
+    ss_user = request.user.ss_user
+
+    if request.method == 'POST':
+        form = ChangeSsPassForm(request.POST)
+
+        if form.is_valid():
+            # 获取用户提交的password
+            ss_pass = request.POST.get('password')
+            ss_user.password = ss_pass
+            ss_user.save()
+            registerinfo = {
+                'title': '修改成功！',
+                'subtitle': '请及时更换客户端密码！',
+                'status': 'success',
+            }
+            context = {
+                'registerinfo': registerinfo,
+                'ss_user': ss_user,
+            }
+            return render(request, 'sspanel/userinfoedit.html', context=context)
+        else:
+            return redirect('/')
+    else:
+        form = ChangeSsPassForm()
+        return render(request, 'sspanel/sspasschanged.html', {'form': form})
+
+
+
 def ChangeSsMethod(request):
     '''改变用户ss加密'''
     ss_user = request.user.ss_user
@@ -105,7 +106,7 @@ def ChangeSsMethod(request):
             'registerinfo': registerinfo,
             'ss_user': ss_user,
         }
-        return render(request, 'sspanel/userinfo.html', context=context)
+        return render(request, 'sspanel/userinfoedit.html', context=context)
 
     else:
         form = ChangeSsPassForm()
@@ -129,7 +130,7 @@ def ChangeSsProtocol(request):
             'registerinfo': registerinfo,
             'ss_user': ss_user,
         }
-        return render(request, 'sspanel/userinfo.html', context=context)
+        return render(request, 'sspanel/userinfoedit.html', context=context)
 
     else:
         form = ChangeSsPassForm()
@@ -153,7 +154,7 @@ def ChangeSsObfs(request):
             'registerinfo': registerinfo,
             'ss_user': ss_user,
         }
-        return render(request, 'sspanel/userinfo.html', context=context)
+        return render(request, 'sspanel/userinfoedit.html', context=context)
 
     else:
         form = ChangeSsPassForm()

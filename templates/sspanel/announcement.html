@@ -1,0 +1,47 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="column is-12">
+    <section class="hero is-info is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    公告列表：
+                </h1>
+                <h2 class="subtitle">
+                    站长的小心思全在这了!
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="column is-12">
+
+    <div class="box">
+        <div class="content">
+            <p class="subtitle">公告记录:</p>
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>ID:</th>
+                        <th>时间:</th>
+                        <th>内容:</th>                        
+                    </tr>
+                </thead>
+
+                {% for record in anno %}
+                <tr>
+                    <td>#{{ record.pk }}</td>
+                    <td>{{ record.time }}</td>
+                    <td>{{ record.body |safe }}</td>
+                </tr>
+                {% empty %}
+                <h2 class="subtitle">
+                    暂时还没发出公告
+                </h2>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock main %}

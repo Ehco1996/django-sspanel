@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'purchase/(?P<goods_id>[0-9]+)$', views.purchase, name='purchase'),
     url(r'^chargecenter/$', views.chargecenter, name='chargecenter'),
     url(r'^charge/$', views.charge, name='charge'),
+    url(r'^announcement/$', views.announcement, name='announcement'),
 
     # 网站后台面板
     url(r'^backend/$', views.backend_index, name='backend_index'),
@@ -62,5 +63,14 @@ urlpatterns = [
     # 购买处理逻辑
     url(r'facepay/(?P<out_trade_no>[0-9]+)',
         views.Face_pay_view, name='facepay_view'),
-
+    # 公告管理相关
+    url(r'^backend/anno/$', views.backend_anno, name='backend_anno'),
+    url(r'^backend/anno/delete/(?P<pk>[0-9]+)$', views.anno_delete, name='anno_delete'),
+    url(r'^backend/anno/create/$', views.anno_create, name='anno_create'),
+    url(r'^backend/anno/edit/(?P<pk>[0-9]+)$', views.anno_edit, name='anno_edit'),
+    
+    
+    
+    
+    
 ]
