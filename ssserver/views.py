@@ -17,8 +17,8 @@ def User_edit(request, pk):
     if request.method == "POST":
         # 对总流量部分进行修改，转换单GB
         data = request.POST.copy()
-        data['transfer_enable'] = str(
-            int(data['transfer_enable']) * settings.GB)
+        data['transfer_enable'] = int(eval(
+            data['transfer_enable']) * settings.GB)
         form = SSUserForm(data, instance=ss_user)
         if form.is_valid():
             form.save()
@@ -49,7 +49,9 @@ def User_edit(request, pk):
             return render(request, 'backend/useredit.html', context=context)
     # 当请求不是post时，渲染form
     else:
-        form = SSUserForm(instance=ss_user)
+        # 特别初始化总流量字段
+        data = {'transfer_enable': ss_user.transfer_enable / settings.GB}
+        form = SSUserForm(initial=data, instance=ss_user)
         context = {
             'form': form,
             'contacts': contacts,
@@ -200,10 +202,8 @@ def auto_register(num, level=0):
         ss_user = SSUser.objects.create(user=user, port=port)
 
 
-
-
 def testcheck(request):
     '''test url '''
-    #auto_register(300)
+    # auto_register(300)
     # do some test page
     return HttpResponse('ok')
