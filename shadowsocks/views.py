@@ -565,7 +565,7 @@ def charge(request):
                 return render(request, 'sspanel/chargecenter.html', context=context)
 
 
-@permission_required('shadowsocks')
+@login_required
 def announcement(request):
     '''网站公告列表'''
     anno = Announcement.objects.all()
