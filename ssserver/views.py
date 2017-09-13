@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, HttpResponse,HttpResponseRedirect
+from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect
 from .models import SSUser
 from shadowsocks.models import User
 from .forms import ChangeSsPassForm, SSUserForm
@@ -88,7 +88,6 @@ def ChangeSsPass(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
-
 def ChangeSsMethod(request):
     '''改变用户ss加密'''
     ss_user = request.user.ss_user
@@ -161,13 +160,6 @@ def ChangeSsObfs(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
-def testcheck(request):
-    '''test url '''
-
-    # do some test page
-    return HttpResponse('ok')
-
-
 def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''
     users = User.objects.filter(level__gt=0)
@@ -193,3 +185,25 @@ def auto_reset_traffic():
         logs = 'user {}  traffic reset! '.format(
             user.username).encode('utf8')
         print(logs)
+
+
+def auto_register(num, level=0):
+    '''自动注册num个用户'''
+    from random import randint
+    for i in range(num):
+        username = 'test' + str(i)
+        code = 'testcode' + str(i)
+        User.objects.create_user(
+            username=username, email=None, password=None, level=level, invitecode=code)
+        user = User.objects.get(username=username)
+        port = randint(9999, 99991111)
+        ss_user = SSUser.objects.create(user=user, port=port)
+
+
+
+
+def testcheck(request):
+    '''test url '''
+    #auto_register(300)
+    # do some test page
+    return HttpResponse('ok')
