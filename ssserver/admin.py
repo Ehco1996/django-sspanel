@@ -13,7 +13,7 @@ class SSUserAdmin(admin.ModelAdmin):
         return '{} MB'.format(obj.get_traffic())
     traffic.short_description = '使用流量'
 
-    search_fields = ['user__username']
+    search_fields = ['user__username','user__email']
 
 
 # Register your models here.

@@ -238,11 +238,15 @@ def checkin(request):
 @login_required
 def get_ss_qrcode(request, node_id):
     '''返回节点配置信息的二维码'''
+    
     # 获取用户对象
     ss_user = request.user.ss_user
+    user = request.user
     # 获取节点对象
     node = Node.objects.get(node_id=node_id)
-
+    # 加入节点信息等级判断
+    if user.level < node.level:
+        return HttpResponse('哟小伙子，可以啊！但是投机取巧是不对的哦！')
     ss_code = '{}:{}@{}:{}'.format(
         node.method, ss_user.password, node.server, ss_user.port)
 
@@ -382,17 +386,20 @@ def nodeinfo(request):
     '''跳转到节点信息的页面'''
 
     nodelists = []
-    # 将节点信息查询结果保存dict中，方便增加在线人数字段
-    nodes = Node.objects.values()
     ss_user = request.user.ss_user
     user = request.user
+    # 将节点信息查询结果保存dict中，方便增加在线人数字段
+    # 加入等级的判断
+    nodes = Node.objects.filter(level__lte=user.level).values()
     # 循环遍历每一条线路的在线人数
     for node in nodes:
         try:
             otime = NodeInfoLog.objects.filter(
                 node_id=node['node_id'])[0].log_time
             # 判断节点最后一次心跳时间
-            node['online'] = False if (time.time() - otime) > 90 else True
+            # 判断节点是否在线
+            node['online'] = False if (time.time() - otime) > 60 else True
+            # 检索节点的在线人数
             node['count'] = NodeOnlineLog.objects.filter(
                 node_id=node['node_id'])[::-1][0].online_user
         except IndexError:

@@ -19,7 +19,6 @@
     <div class="box nodelist">
         <ul>
             {% for list in nodelists %}
-            {% if user.level >= list.level  %}
             <div class="card">
                 <div class="card-header">
                     {% if list.online == True %}
@@ -92,7 +91,6 @@
                 </div>
                 <button class="modal-close is-large"></button>
             </div><br/> 
-            {% endif %}
             {% empty %}
             <div class="column is-12">
                 <div class="notification is-info">

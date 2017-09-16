@@ -165,14 +165,15 @@ def ChangeSsObfs(request):
 def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''
     users = User.objects.filter(level__gt=0)
-    # time.sleep(3)
     for user in users:
         # 判断用户过期时间是否大于一天
         if timezone.now() - timezone.timedelta(days=1) > user.level_expire_time:
             user.ss_user.enable = False
             user.ss_user.save()
-            logs = 'user {} level timeout '.format(
-                user.username).encode('utf8')
+            user.level = 0
+            user.save()
+            logs = 'time: {} use: {} level timeout '.format(timezone.now().strftime('%Y-%m-%d'),
+                                                            user.username).encode('utf8')
             print(logs)
 
 
@@ -206,4 +207,5 @@ def testcheck(request):
     '''test url '''
     # auto_register(300)
     # do some test page
+    check_user_state()
     return HttpResponse('ok')
