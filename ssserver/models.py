@@ -36,6 +36,7 @@ PROTOCOL_CHOICES = (
 OBFS_CHOICES = (
     ('plain', 'plain'),
     ('http_simple', 'http_simple'),
+    ('http_simple_compatible', 'http_simple_compatible'),
     ('http_post', 'http_post'),
     ('tls1.2_ticket_auth', 'tls1.2_ticket_auth'),
 )
@@ -131,11 +132,11 @@ class SSUser(models.Model):
 
     def get_traffic(self):
         '''返回用户使用的总流量GB '''
-        return '{:.2f}'.format((self.download_traffic + self.upload_traffic) /settings.GB)
+        return '{:.2f}'.format((self.download_traffic + self.upload_traffic) / settings.GB)
 
     def get_transfer(self):
         '''返回用户的总流量 GB'''
-        return '{:.2f} '.format(self.transfer_enable /settings.GB)
+        return '{:.2f} '.format(self.transfer_enable / settings.GB)
 
     def get_unused_traffic(self):
         '''返回用户的剩余流量'''
@@ -187,9 +188,9 @@ class TrafficLog(models.Model):
         default=0,
         db_column='d'
     )
-    
+
     node_id = models.IntegerField('节点id', blank=False, null=False)
-    rate = models.FloatField('流量比例', default=1.0,null=False)
+    rate = models.FloatField('流量比例', default=1.0, null=False)
     traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
 

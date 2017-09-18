@@ -1,5 +1,5 @@
 {% extends 'base.html' %} {% block main %} {% load static %}
-
+{% load ehcofilter %}
 <div class="column is-12">
     <section class="hero is-info is-smaill">
         <div class="hero-body">
@@ -71,7 +71,7 @@
 
                         {% for donate in donatelist %}
                         <tr>
-                            <td>{{ donate.user }}</td>
+                            <td>{{ donate.user|mix_name:donate.user }}</td>
                             <td>{{ donate.money }} 元</td>
                             <td>{{ donate.time|date:"m月d日" }}：</td>
                         </tr>

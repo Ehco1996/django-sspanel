@@ -1,18 +1,18 @@
 {% extends 'base.html' %} {% block main %}
 
 <div class="column is-12">
-<section class="hero is-success is-smaill">
-  <div class="hero-body">
-    <div class="container">
-      <h1 class="title">
-        节点列表：
-      </h1>
-      <h2 class="subtitle">
-        来呀伤害呀!
-      </h2>
-    </div>
-  </div>
-</section>
+    <section class="hero is-success is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    节点列表：
+                </h1>
+                <h2 class="subtitle">
+                    来呀伤害呀!
+                </h2>
+            </div>
+        </div>
+    </section>
 </div>
 
 <div class="column is-12">
@@ -25,7 +25,7 @@
                     <p class="card-header-title"><span class="tag is-success">在线</span>&nbsp&nbsp{{ list.name }}</p>
                     {% else %}
                     <p class="card-header-title"><span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
-                    {% endif %}                    
+                    {% endif %}
                 </div>
                 <div class="card-content">
                     <div class="content">
@@ -36,7 +36,7 @@
                     <a class="card-footer-item modal-button" data-target="modal-{{ list.name }}">二维码</a>
                     <a class="card-footer-item modal-button" data-target="modal-{{ list.node_id }}">节点配置</a>
                     <a class="card-footer-item">人数:「{{ list.count }}」</a>
-                    <a class="card-footer-item">状态: 「{{ list.status }}」</a>                   
+                    <a class="card-footer-item">状态: 「{{ list.status }}」</a>
                 </div>
             </div>
 
@@ -48,33 +48,30 @@
                         <button class="delete"></button>
                     </header>
                     <section class="modal-card-body">
-                        <table class="table">
+                        <table class="table is-fullwidth is-bordered is-striped ">
                             <tr>
                                 <td class="notification">节点ip:</td>
-                                <br/>
-                                <td class="notification is-info">{{ list.server }}</td>
+                                <td class="notification">{{ list.server }}</td>
                             </tr>
                             <tr>
                                 <td class="notification">端口:</td>
-                                <br/>
-                                <td class="notification is-danger">{{ ss_user.port }}</td>
+                                <td class="notification">{{ ss_user.port }}</td>
                             </tr>
                             <tr>
                                 <td class="notification">密码:</td>
-                                <br/>
-                                <td class="notification is-danger">{{ ss_user.password }}</td>
+                                <td class="notification">{{ ss_user.password }}</td>
                             </tr>
                             <tr>
                                 <td class="notification">加密方式:</td>
-                                <td class="notification is-primary">{{  ss_user.method }}</td>
+                                <td class="notification">{{ ss_user.method }}</td>
                             </tr>
                             <tr>
-                                <td class="notification">协议:</td>
-                                <td class="notification is-primary">{{ ss_user.protocol }}</td>
+                                <td class="notification">协议(ss版客户端可不填写):</td>
+                                <td class="notification">{{ ss_user.protocol }}</td>
                             </tr>
                             <tr>
-                                <td class="notification">混淆:</td>
-                                <td class="notification is-primary">{{ ss_user.obfs }}</td>
+                                <td class="notification">混淆(ss版客户端可不填写):</td>
+                                <td class="notification">{{ ss_user.obfs }}</td>
                             </tr>
                         </table>
                     </section>
@@ -83,28 +80,37 @@
 
             <div class="modal qrcode" id="modal-{{ list.name }}">
                 <div class="modal-background"></div>
-                <h2 class="title">{{ list.name }}</h2>
-                <div class="modal-content">
-                    <p class="image is-4by4">
-                        <img src="{% url 'shadowsocks:qrcode' list.node_id %}">
-                    </p>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">节点:<strong>{{ list.name }}</strong> 配置二维码</p>
+                        <button class="delete" aria-label="close"></button>
+                    </header>
+                    <section class="modal-card-body">
+                        <p class="subtitle">使用原版SS需要将混淆改成<code>http_simple_compatible</code></p>
+                        <div class="box">
+                            <!-- SSR配置 ... -->
+                            <p class="subtitle">SSR版本(推荐使用)：</p>
+                            <img src="{% url 'shadowsocks:ssrqrcode' list.node_id %}" width="256" height="256">
+                        </div>
+                        <div class="box">
+                            <!-- SS配置 ... -->
+                            <p class="subtitle">SS原版：</p>
+                            <img src="{% url 'shadowsocks:ssqrcode' list.node_id %}" width="256" height="256">
+                        </div>
+                    </section>
                 </div>
-                <button class="modal-close is-large"></button>
-            </div><br/> 
-            {% empty %}
+            </div>
+
+            <br/> {% empty %}
             <div class="column is-12">
                 <div class="notification is-info">
-
                     <h2 class="title">木有节点</h2>
-
                 </div>
             </div>
             {% endfor %}
-
     </div>
-    </ul>
 </div>
-</div>
+
 
 
 

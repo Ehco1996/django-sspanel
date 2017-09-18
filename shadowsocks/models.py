@@ -34,6 +34,7 @@ PROTOCOL_CHOICES = (
 OBFS_CHOICES = (
     ('plain', 'plain'),
     ('http_simple', 'http_simple'),
+    ('http_simple_compatible', 'http_simple_compatible'),
     ('http_post', 'http_post'),
     ('tls1.2_ticket_auth', 'tls1.2_ticket_auth'),
 )

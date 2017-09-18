@@ -236,9 +236,39 @@ def checkin(request):
 
 
 @login_required
+def get_ssr_qrcode(request, node_id):
+    '''返回节点配置信息的ssr二维码'''
+
+    # 获取用户对象
+    ss_user = request.user.ss_user
+    user = request.user
+    # 获取节点对象
+    node = Node.objects.get(node_id=node_id)
+    # 加入节点信息等级判断
+    if user.level < node.level:
+        return HttpResponse('哟小伙子，可以啊！但是投机取巧是不对的哦！')
+
+    # 符合ssr qrcode schema最后需要特殊处理的密码部分
+    ssr_password = base64.b64encode(
+        bytes(ss_user.password, 'utf8')).decode('ascii')
+    ssr_code = '{}:{}:{}:{}:{}:{}'.format(
+        node.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
+    # 将信息编码
+    ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
+    # 生成ss二维码
+    ssr_img = qrcode.make('ssr://{}'.format(ssr_pass))
+    buf = BytesIO()
+    ssr_img.save(buf)
+    image_stream = buf.getvalue()
+    # 构造图片reponse
+    response = HttpResponse(image_stream, content_type="image/png")
+    return response
+
+
+@login_required
 def get_ss_qrcode(request, node_id):
-    '''返回节点配置信息的二维码'''
-    
+    '''返回节点配置信息的ss二维码'''
+
     # 获取用户对象
     ss_user = request.user.ss_user
     user = request.user
@@ -249,21 +279,12 @@ def get_ss_qrcode(request, node_id):
         return HttpResponse('哟小伙子，可以啊！但是投机取巧是不对的哦！')
     ss_code = '{}:{}@{}:{}'.format(
         node.method, ss_user.password, node.server, ss_user.port)
-
-    # 符合ssr qrcode schema最后需要特殊处理的密码部分
-    ssr_password = base64.b64encode(
-        bytes(ss_user.password, 'utf8')).decode('ascii')
-    ssr_code = '{}:{}:{}:{}:{}:{}'.format(
-        node.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
     # 将信息编码
     ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
-    ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
-
     # 生成ss二维码
     ss_img = qrcode.make('ss://{}'.format(ss_pass))
-    ssr_img = qrcode.make('ssr://{}'.format(ssr_pass))
     buf = BytesIO()
-    ssr_img.save(buf)
+    ss_img.save(buf)
     image_stream = buf.getvalue()
     # 构造图片reponse
     response = HttpResponse(image_stream, content_type="image/png")
