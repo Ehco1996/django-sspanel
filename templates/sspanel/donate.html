@@ -18,6 +18,9 @@
 <div class="column is-12">
     <div class="tile is-ancestor">
          <div class="tile is-5 is-vertical is-parent">
+            
+            
+            {% if alipay == True %}
             <div class="tile box is-child">
                 <p class="subtitle">充值捐赠系统正在内测中...<br>请在下方输入充值/捐赠金额</p>
                 <p>点击提交会弹出支付二维码<br>扫描二维码确认付款之后<br>账户里会增加对应的金额</p>
@@ -43,7 +46,8 @@
                     <div class="control">
                         <a class="button is-outlined is-danger" href="{% url 'shadowsocks:facepay_view' out_trade_no %}">确认</a>
                     </div>
-                    {% endif %} {% if messages %}
+                    {% endif %} 
+                    {% if messages %}
                     <ul class="messages">
                         {% for message in messages %}
                         <p class="errorlist">{{ message }}</p>
@@ -52,6 +56,21 @@
                     {% endif %}
                 </div>
             </div>
+            
+            {% else %}
+            
+
+            <div class="tile box is-child">
+                <p class="subtitle">本站通过充值码进行充值:</p>
+                <hr>
+                <p class="subtitle">扫描站长支付宝PY获得充值码：</p>                
+                <figure class="image">
+                    <img src="{% static '/img/alipay.png'%}">
+                </figure>           
+            </div>
+
+            {% endif %}
+        
         </div>
 
 

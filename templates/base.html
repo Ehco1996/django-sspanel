@@ -1,9 +1,10 @@
+{% load ehcofilter %}
 <!DOCTYPE html>
 <html lang="zh">
-
+    
 <head>
     {% load staticfiles %}
-    <title>迷之屋</title>
+    <title>{% settings_value "TITLE" %}</title>
     <!-- meta -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,7 +28,7 @@
                 <div class="container">
                     <div class="nav-left">
                         <a class="nav-item" href="/">
-                            <strong class="title">迷之屋</strong>
+                            <strong class="title">{% settings_value "TITLE" %}</strong>
                         </a>
                     </div>
                     <!-- Using a <label /> here -->
@@ -99,7 +100,7 @@
         <div class="hero-body">
             <div class="container has-text-centered">
                 <h1 class="title">
-                    <a href="/"><strong>秘密の小屋</strong></a>
+                    <a href="/"><strong>{% settings_value "SUBTITLE" %}</strong></a>
                 </h1>
                 <h2 class="subtitle">
                     你说会发现什么呢？

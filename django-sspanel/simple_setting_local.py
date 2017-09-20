@@ -32,17 +32,21 @@ DATABASES = {
 '''
 
 
-
 # 邮件服务设置：
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-
-
 # SS面板设置：
-MB = 1024 *1024
+MB = 1024 * 1024
 GB = 1024 * 1024 * 1024
 DEFAULT_TRAFFIC = 5 * GB
 START_PORT = 10000
 # 签到流量设置
 MIN_CHECKIN_TRAFFIC = 10 * MB
 MAX_CHECKIN_TRAFFIC = 200 * MB
+
+# 是否启用支付宝系统
+USE_ALIPAY = False
+
+# 网站title
+TITLE = '谜之屋111'
+SUBTITLE = '秘密的小屋111'

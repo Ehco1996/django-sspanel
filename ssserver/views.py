@@ -199,7 +199,8 @@ def auto_register(num, level=0):
         User.objects.create_user(
             username=username, email=None, password=None, level=level, invitecode=code)
         user = User.objects.get(username=username)
-        port = randint(9999, 99991111)
+        max_port_user = SSUser.objects.order_by('-port').first()
+        port = max_port_user.port + randint(2, 3)
         ss_user = SSUser.objects.create(user=user, port=port)
 
 
@@ -207,5 +208,8 @@ def testcheck(request):
     '''test url '''
     # auto_register(300)
     # do some test page
-    check_user_state()
+    # check_user_state()
     return HttpResponse('ok')
+
+
+

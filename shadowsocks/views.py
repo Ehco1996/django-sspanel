@@ -306,37 +306,40 @@ def donate(request):
     '''捐赠界面和支付宝当面付功能'''
     donatelist = Donate.objects.all()[:8]
     context = {'donatelist': donatelist, }
-    # 尝试获取流水号
-    if request.method == 'POST':
-        number = request.POST.get('q')
-        out_trade_no = datetime.datetime.fromtimestamp(
-            time.time()).strftime('%Y%m%d%H%M%S%s')
-        try:
-            # 获取金额数量
-            amount = int(number)
-            # 生成订单
-            trade = alipay.api_alipay_trade_precreate(
-                subject="Ehco的{}元充值码".format(amount),
-                out_trade_no=out_trade_no,
-                total_amount=amount,
-                timeout_express='60s',)
+    if settings.USE_ALIPAY == True:
+        context['alipay'] = True
+        # 尝试获取流水号
+        if request.method == 'POST':
+            number = request.POST.get('q')
+            out_trade_no = datetime.datetime.fromtimestamp(
+                time.time()).strftime('%Y%m%d%H%M%S%s')
+            try:
+                # 获取金额数量
+                amount = int(number)
+                # 生成订单
+                trade = alipay.api_alipay_trade_precreate(
+                    subject="Ehco的{}元充值码".format(amount),
+                    out_trade_no=out_trade_no,
+                    total_amount=amount,
+                    timeout_express='60s',)
 
-            # 获取二维码链接
-            code_url = trade.get('qr_code', '')
-            request.session['code_url'] = code_url
-            request.session['out_trade_no'] = out_trade_no
-            request.session['amount'] = amount
-            # 将订单号传入模板
-            context['out_trade_no'] = out_trade_no
-        except:
-            res = alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
-            registerinfo = {
-                'title': '糟糕，当面付插件可能出现问题了',
-                'subtitle': '如果一直失败,请后台联系站长',
-                'status': 'error', }
-            context['registerinfo'] = registerinfo
+                # 获取二维码链接
+                code_url = trade.get('qr_code', '')
+                request.session['code_url'] = code_url
+                request.session['out_trade_no'] = out_trade_no
+                request.session['amount'] = amount
+                # 将订单号传入模板
+                context['out_trade_no'] = out_trade_no
+            except:
+                res = alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
+                registerinfo = {
+                    'title': '糟糕，当面付插件可能出现问题了',
+                    'subtitle': '如果一直失败,请后台联系站长',
+                    'status': 'error', }
+                context['registerinfo'] = registerinfo
     else:
-        pass
+        # 关闭支付宝支付
+        context['alipay'] = False
     return render(request, 'sspanel/donate.html', context=context)
 
 

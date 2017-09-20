@@ -1,10 +1,10 @@
 # DEBUG设置
 DEBUG = False
 
-# 域名设置 
+# 域名设置
 ALLOWED_HOSTS = [
-        'www.ehcozone.club',
-        'ehcozone.club',
+    'www.ehcozone.club',
+    'ehcozone.club',
 ]
 
 # mysql 设置
@@ -22,12 +22,6 @@ DATABASES = {
 }
 
 
-# 是否启用邮件系统
-USE_EMAIL = True
-# 是否启用支付宝系统
-USE_ALIPAY = True
-
-
 # 邮件服务设置：
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # 我使用163邮箱作为smtp服务器
@@ -39,10 +33,17 @@ EMAIL_HOST_PASSWORD = 'PASS'
 DEFAULT_FROM_EMAIL = 'Ehco<ADDRESS>'
 
 # SS面板设置：
-MB = 1024 *1024
+MB = 1024 * 1024
 GB = 1024 * 1024 * 1024
 DEFAULT_TRAFFIC = 5 * GB
 START_PORT = 10000
 # 签到流量设置
 MIN_CHECKIN_TRAFFIC = 10 * MB
 MAX_CHECKIN_TRAFFIC = 200 * MB
+
+# 是否启用支付宝系统
+USE_ALIPAY = True
+
+# 网站title
+TITLE = '谜之屋'
+SUBTITLE = '秘密的小屋'
