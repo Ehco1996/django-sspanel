@@ -46,22 +46,23 @@
                     <a class="nav-item" href="/ssinvite">邀请码</a>
                     <a class="nav-item" href="/ssclient">客户端</a>
                     <div class="is-hidden-tablet">
-                    <br>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:backend_index' %}">系统状态</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:backend_anno' %}">公告管理</a>                    
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:alive_user' %}">在线IP</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:user_list' %}">用户列表</a>
-                    <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
-                    <a class="nav-item is-active" href="/admin">Django后台</a>
+                        <br>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_index' %}">系统状态</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_anno' %}">公告管理</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:alive_user' %}">在线IP</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:user_list' %}">用户列表</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
+                        <a class="nav-item is-active" href="/admin">Django后台</a>
                     </div>
 
                 </div>
-                
+
                 <div class="navbar-item  is-hidden-touch has-dropdown is-hoverable">
                     <span class="nav-item">
                         <a class="button is-primary is-inverted">
@@ -117,7 +118,8 @@
                         <ul class="menu-list">
                             <li><a href="{% url 'shadowsocks:backend_index' %}">系统状态</a></li>
                             <li><a href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a></li>
-                            <li><a href="{% url 'shadowsocks:backend_anno' %}">公告管理</a></li>                            
+                            <li><a href="{% url 'shadowsocks:backend_anno' %}">公告管理</a></li>
+                            <li><a href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a></li>
                         </ul>
                         <p class="menu-label">
                             节点相关

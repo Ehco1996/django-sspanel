@@ -1,14 +1,14 @@
 {% load ehcofilter %}
 <!DOCTYPE html>
 <html lang="zh">
-    
+
 <head>
     {% load staticfiles %}
     <title>{% settings_value "TITLE" %}</title>
     <!-- meta -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href=" {% static 'img/logo/logo.ico' %}" /> 
+    <link rel="shortcut icon" href=" {% static 'img/logo/logo.ico' %}" />
     <!-- css -->
     <link rel="stylesheet" href="{% static 'sspanel/css/bulma.css'%}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -25,75 +25,73 @@
     <section class="hero is-small is-primary ">
         <!-- Hero header: will stick at the top -->
         <header class="nav">
-                <div class="container">
-                    <div class="nav-left">
-                        <a class="nav-item" href="/">
+            <div class="container">
+                <div class="nav-left">
+                    <a class="nav-item" href="/">
                             <strong class="title">{% settings_value "TITLE" %}</strong>
                         </a>
-                    </div>
-                    <!-- Using a <label /> here -->
-                    <label class="nav-toggle" for="nav-toggle-state">
+                </div>
+                <!-- Using a <label /> here -->
+                <label class="nav-toggle" for="nav-toggle-state">
                     <span></span>           <!-- ^^^^^^^^^^^^^^^^ -->
                     <span></span>
                     <span></span>                   
                     </label>
-                    <!-- This checkbox is hidden -->
-                    <input type="checkbox" id="nav-toggle-state" />
-                    <div class="nav-right nav-menu">
-                        <a class="nav-item is-active" href="/">首页</a>
-                        <a class="nav-item" href="/sshelp">使用说明</a>
-                        <a class="nav-item" href="/ssinvite">邀请码</a>
-                        <a class="nav-item" href="/ssclient">客户端</a>
-                        
-                    {% if user.is_authenticated %}
+                <!-- This checkbox is hidden -->
+                <input type="checkbox" id="nav-toggle-state" />
+                <div class="nav-right nav-menu">
+                    <a class="nav-item is-active" href="/">首页</a>
+                    <a class="nav-item" href="/sshelp">使用说明</a>
+                    <a class="nav-item" href="/ssinvite">邀请码</a>
+                    <a class="nav-item" href="/ssclient">客户端</a> {% if user.is_authenticated %}
                     <br>
                     <div class="is-hidden-tablet">
                         <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo_edit' %}">资料编辑</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:announcement' %}">公告栏</a>                        
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:announcement' %}">公告栏</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:trafficlog' %}">流量记录</a>                        
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:trafficlog' %}">流量记录</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:ticket' %}">工单系统</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:chargecenter' %}">充值界面</a>
                         <a class="nav-item is-active" href="{% url 'shadowsocks:shop' %}">商品界面</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:purchaselog' %}">购买记录</a>                        
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:purchaselog' %}">购买记录</a> 
                         {% if perms.shadowsocks %}
                         <a class="nav-item is-active" href="/admin">Django后台</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_index' %}">网站后台</a>
+                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_index' %}">网站后台</a> {% endif %} 
                         {% endif %}
-                    {% endif %}
-                    </div>                 
-                    
                     </div>
-                    
-                    {% if user.is_authenticated %}
-                    <div class="navbar-item  is-hidden-touch has-dropdown is-hoverable">
-                        <span class="nav-item">
+
+                </div>
+
+                {% if user.is_authenticated %}
+                <div class="navbar-item  is-hidden-touch has-dropdown is-hoverable">
+                    <span class="nav-item">
                         <a class="button is-primary is-inverted">
                         <span class="icon">
                         <i class="fa fa-user-circle"></i>
                         </span>
-                        <span>{{ user.username }}</span>
-                        </a>
-                        </span>
-                        <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">
+                    <span>{{ user.username }}</span>
+                    </a>
+                    </span>
+                    <div class="navbar-dropdown">
+                        <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">
                              <strong>用户中心</strong>
                              </a>
-                            <hr class="navbar-divider">
-                            <div class="navbar-item">
-                                <a class="is-primary is-inverted" href="{% url 'shadowsocks:logout' %}">
+                        <hr class="navbar-divider">
+                        <div class="navbar-item">
+                            <a class="is-primary is-inverted" href="{% url 'shadowsocks:logout' %}">
                                 <span class="icon">
                                 <i class="fa fa-sign-out"></i>
                                 </span>
                                 <span>注销登录</span>
                                 </a>
-                            </div>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
-            </header>
+                {% endif %}
+            </div>
+        </header>
         </div>
 
         <!-- Hero content: will be in the middle -->
@@ -123,14 +121,15 @@
                             <li><a href="{% url 'shadowsocks:userinfo' %}">账户信息</a></li>
                             <li><a href="{% url 'shadowsocks:userinfo_edit' %}">资料编辑</a></li>
                             <li><a href="{% url 'shadowsocks:donate' %}">捐赠付费</a></li>
-                            <li><a href="{% url 'shadowsocks:announcement' %}">查看公告</a></li>                            
+                            <li><a href="{% url 'shadowsocks:announcement' %}">查看公告</a></li>
                         </ul>
                         <p class="menu-label">
                             使用菜单
                         </p>
                         <ul class="menu-list">
                             <li><a href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a></li>
-                            <li><a href="{% url 'shadowsocks:trafficlog' %}">流量记录</a></li>                            
+                            <li><a href="{% url 'shadowsocks:trafficlog' %}">流量记录</a></li>
+                            <li><a href="{% url 'shadowsocks:ticket' %}">工单系统</a></li>
                         </ul>
                         <p class="menu-label">
                             交易系统
@@ -138,7 +137,7 @@
                         <ul class="menu-list">
                             <li><a href="{% url 'shadowsocks:chargecenter' %}">充值界面</a></li>
                             <li><a href="{% url 'shadowsocks:shop' %}">商品界面</a></li>
-                            <li><a href="{% url 'shadowsocks:purchaselog' %}">购买记录</a></li>                            
+                            <li><a href="{% url 'shadowsocks:purchaselog' %}">购买记录</a></li>
                         </ul>
 
                         {% if perms.shadowsocks %}

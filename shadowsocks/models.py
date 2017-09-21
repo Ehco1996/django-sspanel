@@ -541,3 +541,41 @@ class Announcement(models.Model):
     class Meta:
         verbose_name_plural = '系统公告'
         ordering = ('-time',)
+
+
+class Ticket(models.Model):
+    '''工单'''
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+
+    time = models.DateTimeField(
+        '时间',
+        editable=False,
+        auto_now_add=True
+    )
+
+    title = models.CharField(
+        '标题',
+        max_length=128,
+    )
+
+    body = models.TextField(
+        '内容主体'
+    )
+
+    status = models.CharField(
+        '状态',
+        max_length=10,
+        choices=(('开启', '开启'), ('关闭', '关闭')),
+        default='开启',
+    )
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name_plural = '工单'
+        ordering = ('-time',)

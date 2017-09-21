@@ -12,7 +12,7 @@ from django.views.generic.list import ListView
 from django.db.models import Q
 from django.conf import settings
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement
+from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 
 # 导入ssservermodel
@@ -187,9 +187,7 @@ def userinfo(request):
 
     min_traffic = '{}m'.format(int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
     max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
-
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
-    print(remain_traffic)
     context = {
         'user': user,
         'anno': anno,
@@ -603,9 +601,69 @@ def announcement(request):
 
     return render(request, 'sspanel/announcement.html', {'anno': anno})
 
+
+@login_required
+def ticket(request):
+    '''工单系统'''
+    ticket = Ticket.objects.filter(user=request.user)
+    context = {'ticket': ticket}
+
+    return render(request, 'sspanel/ticket.html', context=context)
+
+
+@login_required
+def ticket_create(request):
+    '''工单提交'''
+    if request.method == "POST":
+        title = request.POST.get('title', '')
+        body = request.POST.get('body', '')
+        Ticket.objects.create(user=request.user, title=title, body=body)
+        ticket = Ticket.objects.filter(user=request.user)
+        registerinfo = {
+            'title': '添加成功',
+            'subtitle': '数据更新成功！',
+            'status': 'success', }
+
+        context = {
+            'ticket': ticket,
+            'registerinfo': registerinfo,
+        }
+        return render(request, 'sspanel/ticket.html', context=context)
+
+    else:
+        return render(request, 'sspanel/ticketcreate.html')
+
+
+@login_required
+def ticket_edit(request, pk):
+    '''工单编辑'''
+    ticket = Ticket.objects.get(pk=pk)
+    # 当为post请求时，修改数据
+    if request.method == "POST":
+        title = request.POST.get('title', '')
+        body = request.POST.get('body', '')
+        ticket.title = title
+        ticket.body = body
+        ticket.save()
+        registerinfo = {
+            'title': '修改成功',
+            'subtitle': '数据更新成功',
+            'status': 'success', }
+
+        context = {
+            'registerinfo': registerinfo,
+            'ticket': Ticket.objects.filter(user=request.user)
+        }
+        return render(request, 'sspanel/ticket.html', context=context)
+    # 当请求不是post时，渲染
+    else:
+        context = {
+            'ticket': ticket,
+        }
+        return render(request, 'sspanel/ticketedit.html', context=context)
+
+
 # 网站后台界面
-
-
 @permission_required('shadowsocks')
 def backend_index(request):
     '''跳转到后台界面'''
@@ -1181,3 +1239,42 @@ def anno_edit(request, pk):
             'anno': anno,
         }
         return render(request, 'backend/annoedit.html', context=context)
+
+
+@permission_required('shadowsocks')
+def backend_ticket(request):
+    '''工单系统'''
+    ticket = Ticket.objects.filter(status='开启')
+    context = {'ticket': ticket}
+
+    return render(request, 'backend/ticket.html', context=context)
+
+
+@permission_required('shadowsocks')
+def backend_ticketedit(request, pk):
+    '''后台工单编辑'''
+    ticket = Ticket.objects.get(pk=pk)
+    # 当为post请求时，修改数据
+    if request.method == "POST":
+        title = request.POST.get('title', '')
+        body = request.POST.get('body', '')
+        ticket.title = title
+        ticket.body = body
+        ticket.status = '关闭'
+        ticket.save()
+        registerinfo = {
+            'title': '修改成功',
+            'subtitle': '数据更新成功',
+            'status': 'success', }
+
+        context = {
+            'registerinfo': registerinfo,
+            'ticket': Ticket.objects.filter(status='开启')
+        }
+        return render(request, 'backend/ticket.html', context=context)
+    # 当请求不是post时，渲染
+    else:
+        context = {
+            'ticket': ticket,
+        }
+        return render(request, 'backend/ticketedit.html', context=context)

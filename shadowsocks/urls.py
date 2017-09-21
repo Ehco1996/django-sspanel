@@ -20,8 +20,10 @@ urlpatterns = [
     url(r'^users/userinfo/$', views.userinfo, name='userinfo'),
     url(r'^users/userinfo_edit/$', views.userinfo_edit, name='userinfo_edit'),
     url(r'^checkin/$', views.checkin, name='checkin'),
-    url(r'qrcode/ssr/(?P<node_id>[0-9]+)$', views.get_ssr_qrcode, name='ssrqrcode'),
-    url(r'qrcode/ss/(?P<node_id>[0-9]+)$', views.get_ss_qrcode, name='ssqrcode'),    
+    url(r'qrcode/ssr/(?P<node_id>[0-9]+)$',
+        views.get_ssr_qrcode, name='ssrqrcode'),
+    url(r'qrcode/ss/(?P<node_id>[0-9]+)$',
+        views.get_ss_qrcode, name='ssqrcode'),
 
     url(r'^donate/$', views.donate, name='donate'),
     url(r'^shop/$', views.shop, name='shop'),
@@ -30,6 +32,12 @@ urlpatterns = [
     url(r'^chargecenter/$', views.chargecenter, name='chargecenter'),
     url(r'^charge/$', views.charge, name='charge'),
     url(r'^announcement/$', views.announcement, name='announcement'),
+    url(r'^ticket/$', views.ticket, name='ticket'),
+    url(r'^ticket/create/$', views.ticket_create, name='ticket_create'),
+    url(r'^ticket/edit/(?P<pk>[0-9]+)$',
+        views.ticket_edit, name='ticket_edit'),
+
+
 
     # 网站后台面板
     url(r'^backend/$', views.backend_index, name='backend_index'),
@@ -67,12 +75,16 @@ urlpatterns = [
         views.Face_pay_view, name='facepay_view'),
     # 公告管理相关
     url(r'^backend/anno/$', views.backend_anno, name='backend_anno'),
-    url(r'^backend/anno/delete/(?P<pk>[0-9]+)$', views.anno_delete, name='anno_delete'),
+    url(r'^backend/anno/delete/(?P<pk>[0-9]+)$',
+        views.anno_delete, name='anno_delete'),
     url(r'^backend/anno/create/$', views.anno_create, name='anno_create'),
-    url(r'^backend/anno/edit/(?P<pk>[0-9]+)$', views.anno_edit, name='anno_edit'),
-    
-    
-    
-    
-    
+    url(r'^backend/anno/edit/(?P<pk>[0-9]+)$',
+        views.anno_edit, name='anno_edit'),
+    url(r'^backend/ticket/$', views.backend_ticket, name='backend_ticket'),
+    url(r'^backend/ticket/edit/(?P<pk>[0-9]+)$',
+        views.backend_ticketedit, name='backend_ticketedit'),
+
+
+
+
 ]

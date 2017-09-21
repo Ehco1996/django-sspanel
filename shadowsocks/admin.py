@@ -4,7 +4,7 @@ from . import models
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ['username', 'level', 'balance', ]
-    search_fields = ['username','email']
+    search_fields = ['username', 'email']
 
 
 class InviteCodeAdmin(admin.ModelAdmin):
@@ -42,3 +42,4 @@ admin.site.register(models.AlipayRequest, AlipayRequestAdmin)
 admin.site.register(models.NodeInfoLog)
 admin.site.register(models.NodeOnlineLog)
 admin.site.register(models.Announcement)
+admin.site.register(models.Ticket)

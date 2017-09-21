@@ -1,0 +1,56 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="column is-12">
+    <section class="hero is-success">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    工单系统：
+                </h1>
+                <h2 class="subtitle">
+                    有什么问题尽管提！什么时候解决就不知道了！
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="column is-12">
+    <div class="box">
+        <div class="content">
+            <p class="subtitle">我的工单:</p>
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>操作:</th>
+                        <th>ID:</th>
+                        <th>时间:</th>
+                        <th>标题:</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+
+                {% for record in ticket %}
+                <tr>
+                    <td><a class="button is-info" href="{% url 'shadowsocks:ticket_edit' record.pk %}">查看</a></td>
+                    <td>#{{ record.pk }}</td>
+                    <td>{{ record.time }}</td>
+                    <td>{{ record.title }}</td>
+                    <td>{{ record.status }}</td>
+                </tr>
+                {% empty %}
+                <h2 class="subtitle">
+                    暂时还没提过工单呢
+                </h2>
+                {% endfor %}
+            </table>
+            <p align="right"><a class="button is-danger is-outlined" href="{% url 'shadowsocks:ticket_create' %}">发起工单</a></p>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+{% endblock main %}
