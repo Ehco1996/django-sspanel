@@ -195,7 +195,6 @@ def userinfo(request):
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
     }
-
     return render(request, 'sspanel/userinfo.html', context=context)
 
 
@@ -208,7 +207,7 @@ def checkin(request):
     except:
         anno = None
 
-    if timezone.now() - datetime.timedelta(days=1) > ss_user.last_check_in_time:
+    if not ss_user.get_check_in():
         # 距离上次签到时间大于一天 增加随机流量
         ll = randint(settings.MIN_CHECKIN_TRAFFIC,
                      settings.MAX_CHECKIN_TRAFFIC)
@@ -671,33 +670,38 @@ def backend_index(request):
     User = SSUser.objects.all()
     # 找到用户的总量
     user_num = len(User)
-
     # 循环遍历用户的签到人数
     checkin_num = 0
+    # 遍历没有使用过得人数
+    nouse_num = 0
+    # 遍历从未签到过得人数
+    nocheck_num = 0
     for user in User:
         if user.get_check_in() == True:
             checkin_num += 1
-
+        if user.last_use_time == 0:
+            nouse_num += 1
+        if user.last_check_in_time.year == 1970:
+            nocheck_num += 1
     # 节点信息状态
     nodes = Node.objects.all()
-
     # 用户在线情况
     online = 0
     nodeid_list = set([node.node_id for node in NodeOnlineLog.objects.all()])
     for nodeid in nodeid_list:
         online += NodeOnlineLog.objects.filter(
             node_id=nodeid)[::-1][0].online_user
-
     # 收入情况
     income = Donate.objects.all()
     total_income = 0
-
     for i in income:
         total_income += i.money
 
     context = {
         'user_num': user_num,
         'checkin_num': checkin_num,
+        'nocheck_num': nocheck_num,
+        'nouse_num': nouse_num,
         'nodes': nodes,
         'alive_user': online,
         'income_num': len(income),
@@ -1258,9 +1262,10 @@ def backend_ticketedit(request, pk):
     if request.method == "POST":
         title = request.POST.get('title', '')
         body = request.POST.get('body', '')
+        status = request.POST.get('status', '开启')
         ticket.title = title
         ticket.body = body
-        ticket.status = '关闭'
+        ticket.status = status
         ticket.save()
         registerinfo = {
             'title': '修改成功',

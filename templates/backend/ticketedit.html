@@ -28,6 +28,17 @@
                 <br>
                 <span class="tag is-info">内容:</span>
                 <textarea class="textarea" name="body" type="text" placeholder="正文" rows="10">{{ ticket.body }}</textarea>
+                <span class="tag is-info">状态:</span>
+                <div class="control">
+                    <label class="radio">
+                      <input type="radio" name="status" value="开启">
+                      开启
+                    </label>
+                    <label class="radio">
+                      <input type="radio" name="status" value="关闭">
+                      关闭
+                    </label>
+                </div>
             </div>
             <hr/>
             <div class="is-grouped">

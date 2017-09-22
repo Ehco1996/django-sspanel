@@ -148,7 +148,10 @@ class SSUser(models.Model):
 
     def get_check_in(self):
         '''返回当天是否签到'''
-        return timezone.now() - datetime.timedelta(days=1) < self.last_check_in_time
+        # 获取当天日期
+        check_day = self.last_check_in_time.day
+        now_day = datetime.datetime.now().day
+        return timezone.now() > self.last_check_in_time and check_day == now_day
 
     @classmethod
     def get_absolute_url(cls):

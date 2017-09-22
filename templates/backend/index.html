@@ -27,12 +27,13 @@
             <div class="tile is-child box">
                 <article class="message is-primary">
                     <div class="message-header">
-                        <p>用户签到情况</p>
+                        <p>签到情况</p>
                         <button class="delete"></button>
                     </div>
                     <div class="message-body">
-                        <p> 用户总人数：{{ user_num }} 人 </p>                        
+                        <p> 用户总人数：{{ user_num }} 人 </p>
                         <p> 今日签到人数：{{ checkin_num }} 人 </p>
+                        <p> 从未签到人数：{{ nocheck_num }} 人 </p>
                     </div>
                 </article>
             </div>
@@ -40,12 +41,14 @@
             <div class="tile is-child box">
                 <article class="message is-info">
                     <div class="message-header">
-                        <p>用户在线情况</p>
+                        <p>用户情况</p>
                         <button class="delete"></button>
                     </div>
                     <div class="message-body">
-                        <p> 用户总人数：{{ user_num }} 人 </p> 
-                        <p> 在线人数：{{ alive_user }} 人 </p>                                               
+                        <p> 用户总人数：{{ user_num }} 人 </p>
+                        <p> 从未使用人数：{{ nouse_num }} 人 </p>
+                        <p> 在线人数：{{ alive_user }} 人 </p>
+                        <p align="right"><a class="button is-danger is-outlined" href="{% url 'ssserver:clean_zombie_user' %}">删除僵尸用户</a></p>
                     </div>
                 </article>
             </div>
@@ -60,7 +63,7 @@
                     </div>
                     <div class="message-body">
                         {% for node in nodes %}
-                            <p>节点名：<code>{{ node.name }} </code> 节点状态：<code>{{ node.get_status_display }}</code></p>
+                        <p>节点名：<code>{{ node.name }} </code> 节点状态：<code>{{ node.get_status_display }}</code></p>
                         {% endfor %}
                     </div>
                 </article>

@@ -204,12 +204,30 @@ def auto_register(num, level=0):
         ss_user = SSUser.objects.create(user=user, port=port)
 
 
+def clean_zombie_user(request):
+    '''从未使用过的用户且从未签到过得用户'''
+    import datetime
+    users = User.objects.all()
+    count = 0
+    # 遍历所有没有签到和和没有使用过得用户
+    for user in users:
+        if user.ss_user.last_use_time == 0 and user.ss_user.last_check_in_time.year == 1970:
+            user.delete()
+            count += 1
+    registerinfo = {
+        'title': '删除僵尸用户',
+        'subtitle': '成功删除{}个僵尸用户'.format(count),
+                    'status': 'success', }
+
+    context = {
+        'registerinfo': registerinfo
+    }
+    return render(request, 'backend/index.html', context=context)
+
+
 def testcheck(request):
     '''test url '''
-    # auto_register(300)
+    # auto_register(10)
     # do some test page
     # check_user_state()
     return HttpResponse('ok')
-
-
-

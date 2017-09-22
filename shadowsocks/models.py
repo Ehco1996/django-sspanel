@@ -50,7 +50,7 @@ class User(AbstractUser):
         decimal_places=2,
         max_digits=10,
         default=0,
-        editable=False,
+        editable=True,
         null=True,
         blank=True,
     )
