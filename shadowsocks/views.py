@@ -11,6 +11,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.list import ListView
 from django.db.models import Q
 from django.conf import settings
+from decimal import Decimal
 # 导入shadowsocks节点相关文件
 from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
@@ -368,30 +369,28 @@ def gen_face_pay_qrcode(request):
 def Face_pay_view(request, out_trade_no):
     '''当面付处理逻辑'''
     context = {}
+    user = request.user
     paid = False
-
-    for i in range(10):
+    for i in range(5):
         time.sleep(3)
         # 每隔三秒检测交易状态
         res = alipay.api_alipay_trade_query(out_trade_no=out_trade_no)
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             paid = True
-            amount = res.get("total_amount", 0)
+            amount = Decimal(res.get("total_amount", 0))
             # 生成对于数量的充值码
-            moneycode = MoneyCode.objects.create(number=amount)
-            code = MoneyCode.objects.filter(code=moneycode)[0]
+            code = MoneyCode.objects.create(number=amount)
             # 充值操作
-            user = request.user
             user.balance += code.number
+            user.save()
             code.user = user.username
             code.isused = True
             code.save()
-            user.save()
             # 将充值记录和捐赠绑定
-            donate = Donate.objects.create(user=user, money=code.number)
+            donate = Donate.objects.create(user=user, money=amount)
             # 后台数据库增加记录
             record = AlipayRecord.objects.create(
-                info_code=out_trade_no, amount=amount, money_code=moneycode)
+                info_code=out_trade_no, amount=amount, money_code=code)
             # 返回充值码到网页
             messages.info(request, '充值成功{}元，请去商品界面购买'.format(amount))
             return HttpResponseRedirect('/donate')

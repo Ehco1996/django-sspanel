@@ -54,6 +54,7 @@
                         <th>时间:</th>
                         <th>代码:</th>
                         <th>金额:</th>
+                        <th>使用:</th>                        
                         
                     </tr>
                 </thead>
@@ -62,7 +63,8 @@
                 <tr>
                     <td>{{ code.time|date:"m月d日" }}</td>
                     <td>{{ code.code }}</td>
-                    <td>{{ code.number }}</td>                    
+                    <td>{{ code.number }}</td>
+                    <td>{{ code.isused }}</td>                                        
                 </tr>
                 {% empty %}
                 <h2 class="subtitle">
