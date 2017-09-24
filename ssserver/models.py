@@ -151,7 +151,7 @@ class SSUser(models.Model):
         # 获取当天日期
         check_day = self.last_check_in_time.day
         now_day = datetime.datetime.now().day
-        return timezone.now() > self.last_check_in_time and check_day == now_day
+        return check_day == now_day
 
     @classmethod
     def get_absolute_url(cls):

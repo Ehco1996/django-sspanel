@@ -47,5 +47,3 @@ USE_ALIPAY = True
 # 网站title
 TITLE = '谜之屋'
 SUBTITLE = '秘密的小屋'
-# 网站邀请界面提示语
-INVITEINFo = '邀请码实时更新，如果用完了进进telegram群问bot要 群链接：https://t.me/Ehcobreakwa11'
