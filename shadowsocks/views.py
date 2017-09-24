@@ -313,7 +313,7 @@ def donate(request):
                 time.time()).strftime('%Y%m%d%H%M%S%s')
             try:
                 # 获取金额数量
-                amount = int(number)
+                amount = number
                 # 生成订单
                 trade = alipay.api_alipay_trade_precreate(
                     subject="Ehco的{}元充值码".format(amount),
@@ -371,29 +371,28 @@ def Face_pay_view(request, out_trade_no):
     context = {}
     user = request.user
     paid = False
-    for i in range(5):
-        time.sleep(3)
-        # 每隔三秒检测交易状态
-        res = alipay.api_alipay_trade_query(out_trade_no=out_trade_no)
-        if res.get("trade_status", "") == "TRADE_SUCCESS":
-            paid = True
-            amount = Decimal(res.get("total_amount", 0))
-            # 生成对于数量的充值码
-            code = MoneyCode.objects.create(number=amount)
-            # 充值操作
-            user.balance += code.number
-            user.save()
-            code.user = user.username
-            code.isused = True
-            code.save()
-            # 将充值记录和捐赠绑定
-            donate = Donate.objects.create(user=user, money=amount)
-            # 后台数据库增加记录
-            record = AlipayRecord.objects.create(
-                info_code=out_trade_no, amount=amount, money_code=code)
-            # 返回充值码到网页
-            messages.info(request, '充值成功{}元，请去商品界面购买'.format(amount))
-            return HttpResponseRedirect('/donate')
+    # 等待3秒后再查询支付结果
+    time.sleep(3)
+    res = alipay.api_alipay_trade_query(out_trade_no=out_trade_no)
+    if res.get("trade_status", "") == "TRADE_SUCCESS":
+        paid = True
+        amount = Decimal(res.get("total_amount", 0))
+        # 生成对于数量的充值码
+        code = MoneyCode.objects.create(number=amount)
+        # 充值操作
+        user.balance += code.number
+        user.save()
+        code.user = user.username
+        code.isused = True
+        code.save()
+        # 将充值记录和捐赠绑定
+        donate = Donate.objects.create(user=user, money=amount)
+        # 后台数据库增加记录
+        record = AlipayRecord.objects.create(username=user,
+                                             info_code=out_trade_no, amount=amount, money_code=code)
+        # 返回充值码到网页
+        messages.info(request, '充值成功{}元，请去商品界面购买'.format(amount))
+        return HttpResponseRedirect('/donate')
     # 如果30秒内没有支付，则关闭订单：
     if paid is False:
         alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)

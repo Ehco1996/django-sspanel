@@ -1,5 +1,5 @@
 {% extends 'base.html' %} {% block main %}
-
+{% load ehcofilter %}
 <div class="column is-12">
     <section class="hero is-info is-smaill">
         <div class="hero-body">
@@ -8,7 +8,7 @@
                     邀请码列表：
                 </h1>
                 <h2 class="subtitle">
-                    邀请码随时更新，如果没有了请添加公众号：「findyourownway」获取
+                    {% settings_value "INVITEINFO" %}
                 </h2>
             </div>
         </div>

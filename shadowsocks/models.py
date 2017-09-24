@@ -440,6 +440,13 @@ class PurchaseHistory(models.Model):
 class AlipayRecord(models.Model):
     '''充值流水单号记录'''
 
+    username = models.CharField(
+        '用户名',
+        max_length=64,
+        blank=False,
+        null=False
+    )
+
     info_code = models.CharField(
         '流水号',
         max_length=64,
