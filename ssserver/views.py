@@ -3,11 +3,12 @@ from .models import SSUser
 from shadowsocks.models import User
 from .forms import ChangeSsPassForm, SSUserForm
 from django.conf import settings
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import timezone
 
 # Create your views here.
 
-
+@permission_required('ssesrver')
 def User_edit(request, pk):
     '''编辑ss_user的信息'''
     ss_user = SSUser.objects.get(pk=pk)
