@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect
-from .models import SSUser
+from .models import SSUser, TrafficLog
 from shadowsocks.models import User
 from .forms import ChangeSsPassForm, SSUserForm
 from django.conf import settings
@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import timezone
 
 # Create your views here.
+
 
 @permission_required('ssesrver')
 def User_edit(request, pk):
@@ -62,6 +63,7 @@ def User_edit(request, pk):
         return render(request, 'backend/useredit.html', context=context)
 
 
+@permission_required('ssesrver')
 def ChangeSsPass(request):
     '''改变用户ss连接密码'''
     ss_user = request.user.ss_user
@@ -91,6 +93,7 @@ def ChangeSsPass(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
+@permission_required('ssesrver')
 def ChangeSsMethod(request):
     '''改变用户ss加密'''
     ss_user = request.user.ss_user
@@ -115,6 +118,7 @@ def ChangeSsMethod(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
+@permission_required('ssesrver')
 def ChangeSsProtocol(request):
     '''改变用户ss协议'''
     ss_user = request.user.ss_user
@@ -139,6 +143,7 @@ def ChangeSsProtocol(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
+@permission_required('ssesrver')
 def ChangeSsObfs(request):
     '''改变用户ss连接混淆'''
     ss_user = request.user.ss_user
@@ -205,6 +210,7 @@ def auto_register(num, level=0):
         ss_user = SSUser.objects.create(user=user, port=port)
 
 
+@permission_required('ssesrver')
 def clean_zombie_user(request):
     '''从未使用过的用户且从未签到过得用户'''
     import datetime
@@ -212,7 +218,7 @@ def clean_zombie_user(request):
     count = 0
     # 遍历所有没有签到和和没有使用过得用户
     for user in users:
-        if user.ss_user.last_use_time == 0 and user.ss_user.last_check_in_time.year == 1970:
+        if user.ss_user.last_use_time == 0 and user.ss_user.last_check_in_time.year == 1970 and user.balance == 0:
             user.delete()
             count += 1
     registerinfo = {

@@ -18,10 +18,8 @@
 
 
 <div class="column is-12">
-
     <div class="tile is-ancestor">
-
-        <div class="tile is-6 is-vertical is-parent">
+         <div class="tile is-6 is-vertical is-parent">
             <div class="tile box is-child">
                 <span class="tag is-danger is-large">修改连接密码:</span>
                 <hr />
@@ -51,9 +49,9 @@
                                     <div class="control">
                                         <div class="select">
                                             <select name="method">
-                                                <option>aes-256-cfb</option>
                                                 <option>rc4-md5</option>
                                                 <option>salsa20</option>
+                                                <option>aes-256-cfb</option>
                                                 <option>aes-128-ctr</option>
                                             </select>
                                         </div>
@@ -120,9 +118,9 @@
                                     <div class="select">
                                         <select name="obfs">
                                             <option>plain</option>
+                                            <option>http_post</option>                                            
                                             <option>http_simple</option>
                                             <option>http_simple_compatible</option>                                            
-                                            <option>http_post</option>
                                             <option>tls1.2_ticket_auth</option>                                                  
                                         </select>
                                     </div>

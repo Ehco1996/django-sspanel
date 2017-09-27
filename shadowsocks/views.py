@@ -437,18 +437,30 @@ def nodeinfo(request):
 def trafficlog(request):
     '''跳转到流量记录的页面'''
     ss_user = request.user.ss_user
-    logs = TrafficLog.objects.filter(user_id=ss_user.pk)[:10]
+    nodes = Node.objects.all()
+    node_id = request.GET.get('nodes', nodes[0].pk)
+    # 检索符合要求得记录
+    traffic = TrafficLog.objects.filter(user_id=ss_user.pk, node_id=node_id)
+    # 记录的前10条
+    logs = traffic[:10]
     log_dic = []
     for log in logs:
+        # 循环加入流量记录得时间
         rec = {
             't': timezone.datetime.fromtimestamp(log.log_time),
             'traffic': log.traffic,
             'node_id': log.node_id
         }
         log_dic.append(rec)
-
+    # 记录该节点所消耗的所有流量
+    total = 0
+    for ll in traffic:
+        total += ll.upload_traffic + ll.download_traffic
+    total = total / settings.GB
     context = {'ss_user': ss_user,
                'log_dic': log_dic,
+               'nodes': nodes,
+               'total': '{:.2f} GB'.format(total)
                }
     return render(request, 'sspanel/trafficlog.html', context=context)
 

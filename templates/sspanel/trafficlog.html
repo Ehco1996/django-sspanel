@@ -34,10 +34,29 @@
         </div>
     </nav>
 
+
     <div class="box">
+        <p class="subtitle">选择节点(最新的10条记录)：</p>
+        <form method="get" action="{% url 'shadowsocks:trafficlog' %}">
+            <div class="field has-addons">
+                <div class="control">
+                    <div class="select">
+                        <select name="nodes">
+                            {% for node in nodes %}
+                                <option value={{ node.pk }}>{{ node }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="control">
+                    <button type="submit" class="button is-outlined is-info">提交</button>
+                </div>
+            </div>
+        </form>
+        <br>
         <div class="content">
-            <p class="subtitle">流量记录(最新的10条记录)：</p>
             <table class="table is-striped">
+                <p>该节点共消耗流量：<code>{{ total }}</code></p>
                 <thead>
                     <tr>
                         <th>时间:</th>
@@ -50,7 +69,7 @@
                 <tr>
                     <td>{{ log.t }}</td>
                     <td>{{ log.node_id }}</td>
-                    <td>{{ log.traffic }}</td>                    
+                    <td>{{ log.traffic }}</td>
                 </tr>
                 {% empty %}
                 <h2 class="subtitle">

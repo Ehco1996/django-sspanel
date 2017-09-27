@@ -20,7 +20,7 @@ class MoneyCodeAdmin(admin.ModelAdmin):
 
 
 class AlipayAdmin(admin.ModelAdmin):
-    list_display = ['info_code', 'amount', 'money_code', 'time', ]
+    list_display = ['username','info_code', 'amount', 'money_code', 'time', ]
     search_fields = ['info_code', ]
 
 
