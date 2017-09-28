@@ -63,7 +63,7 @@ def User_edit(request, pk):
         return render(request, 'backend/useredit.html', context=context)
 
 
-@permission_required('ssesrver')
+@login_required
 def ChangeSsPass(request):
     '''改变用户ss连接密码'''
     ss_user = request.user.ss_user
@@ -93,7 +93,7 @@ def ChangeSsPass(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
-@permission_required('ssesrver')
+@login_required
 def ChangeSsMethod(request):
     '''改变用户ss加密'''
     ss_user = request.user.ss_user
@@ -118,7 +118,7 @@ def ChangeSsMethod(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
-@permission_required('ssesrver')
+@login_required
 def ChangeSsProtocol(request):
     '''改变用户ss协议'''
     ss_user = request.user.ss_user
@@ -143,7 +143,7 @@ def ChangeSsProtocol(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
-@permission_required('ssesrver')
+@login_required
 def ChangeSsObfs(request):
     '''改变用户ss连接混淆'''
     ss_user = request.user.ss_user
@@ -175,6 +175,7 @@ def check_user_state():
         # 判断用户过期时间是否大于一天
         if timezone.now() - timezone.timedelta(days=1) > user.level_expire_time:
             user.ss_user.enable = False
+            user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
             user.ss_user.save()
             user.level = 0
             user.save()
