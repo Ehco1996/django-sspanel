@@ -45,15 +45,15 @@ urlpatterns = [
     url(r'^backend/invite/$', views.backend_invite, name='backend_invite'),
     url(r'^invite_gen_code/$', views.gen_invite_code, name='geninvitecode'),
     # 节点相关
-    url(r'^backend/nodeinfo$', views.backend_node_info, name='backend_node_info'),
+    url(r'^backend/nodeinfo$', views.backend_node_info, name='backend_node_info'),  
     url(r'^backend/node/delete/(?P<node_id>[0-9]+)$',
         views.node_delete, name='node_delete'),
     url(r'^backend/node/edit/(?P<node_id>[0-9]+)$',
         views.node_edit, name='node_edit'),
     url(r'^backend/node/create/$', views.node_create, name='node_create'),
     # 用户相关
-    url(r'^backend/aliveuser/$', views.Backend_Aliveuser, name='alive_user'),
-    url(r'^backend/userlist/$', views.Backend_UserList, name='user_list'),
+    url(r'^backend/aliveuser/$', views.backend_Aliveuser, name='alive_user'),
+    url(r'^backend/userlist/$', views.backend_UserList, name='user_list'),
     url(r'^backend/user/delete/(?P<pk>[0-9]+)$',
         views.user_delete, name='user_delete'),
     url(r'^backend/user/search/$', views.user_search, name='user_search'),

@@ -196,6 +196,12 @@ def auto_reset_traffic():
         print(logs)
 
 
+def clean_traffic_log():
+    '''月初清空所有流量记录'''
+    TrafficLog.objects.all().delete()
+    print('all record removed!')
+
+
 def auto_register(num, level=0):
     '''自动注册num个用户'''
     from random import randint
@@ -237,4 +243,5 @@ def testcheck(request):
     # auto_register(10)
     # do some test page
     # check_user_state()
+    # clean_traffic_log()
     return HttpResponse('ok')

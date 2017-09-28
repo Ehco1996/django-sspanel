@@ -63,7 +63,7 @@
                     </div>
                     <div class="message-body">
                         {% for node in nodes %}
-                        <p>节点名：<code>{{ node.name }} </code> 节点状态：<code>{{ node.get_status_display }}</code></p>
+                        <p>节点：<code>{{ node.name }} </code> 状态：<code>{{ node.status }}</code> 流量:<code>{{ node.total_traffic }}GB</code></p>
                         {% endfor %}
                     </div>
                 </article>

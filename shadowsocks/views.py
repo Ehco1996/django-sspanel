@@ -441,6 +441,7 @@ def trafficlog(request):
     node_id = request.GET.get('nodes', nodes[0].pk)
     # 检索符合要求得记录
     traffic = TrafficLog.objects.filter(user_id=ss_user.pk, node_id=node_id)
+    node_name = Node.objects.get(pk=node_id)
     # 记录的前10条
     logs = traffic[:10]
     log_dic = []
@@ -460,7 +461,9 @@ def trafficlog(request):
     context = {'ss_user': ss_user,
                'log_dic': log_dic,
                'nodes': nodes,
-               'total': '{:.2f} GB'.format(total)
+               'total': '{:.2f} GB'.format(total),
+               'node_name': node_name,
+
                }
     return render(request, 'sspanel/trafficlog.html', context=context)
 
@@ -694,13 +697,20 @@ def backend_index(request):
         if user.last_check_in_time.year == 1970:
             nocheck_num += 1
     # 节点信息状态
-    nodes = Node.objects.all()
+    nodes = Node.objects.values()
     # 用户在线情况
     online = 0
-    nodeid_list = set([node.node_id for node in NodeOnlineLog.objects.all()])
-    for nodeid in nodeid_list:
+    for node in nodes:
+        # 遍历在线人数
         online += NodeOnlineLog.objects.filter(
-            node_id=nodeid)[::-1][0].online_user
+            node_id=node['id'])[::-1][0].online_user
+        traffic = TrafficLog.objects.filter(node_id=node['id'])
+        # 获取指定节点所有流量
+        total_tratffic = 0
+        for ll in traffic:
+            total_tratffic += ll.upload_traffic + ll.download_traffic
+        total_tratffic = round(total_tratffic / settings.GB, 2)
+        node['total_traffic'] = total_tratffic
     # 收入情况
     income = Donate.objects.all()
     total_income = 0
@@ -919,7 +929,7 @@ class Page_List_View(object):
 
 
 @permission_required('shadowsocks')
-def Backend_Aliveuser(request):
+def backend_Aliveuser(request):
     '''返回在线用户的ip的View'''
 
     obj = Aliveip
@@ -930,7 +940,7 @@ def Backend_Aliveuser(request):
 
 
 @permission_required('shadowsocks')
-def Backend_UserList(request):
+def backend_UserList(request):
     '''返回所有用户的View'''
 
     obj = User
