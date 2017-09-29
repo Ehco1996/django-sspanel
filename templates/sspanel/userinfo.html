@@ -27,6 +27,7 @@
                 <p class="subtitle is-5">这里的功能还比较少...</p>
                 <button class="button"><a href="{% url 'shadowsocks:logout' %}">注销登录</a></button>
                 <button class="button"><a href="{% url 'password_change' %}">修改密码</a></button>
+                <button class="button"><a href="{% url 'ssserver:changessport' %}">重置端口</a></button>
                 <hr> {% if user.ss_user.get_check_in %}
                 <p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>
                 {% else %}
@@ -116,7 +117,7 @@
                         {% endif %}
                         <li> 等级到期时间：<code>{{ user.get_expire_time }} </code></li>
                         <li>上次使用时间: <code>{{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</code></li>
-                        
+
                     </div>
                 </article>
 

@@ -5,6 +5,7 @@ from .forms import ChangeSsPassForm, SSUserForm
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import timezone
+from random import randint
 
 # Create your views here.
 
@@ -168,6 +169,23 @@ def ChangeSsObfs(request):
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
+@login_required
+def ChangeSsPort(request):
+    '''随机重置用户用端口'''
+    user = request.user.ss_user
+    # 找到端口池中最大的端口
+    max_port_user = SSUser.objects.order_by('-port').first()
+    port = max_port_user.port + randint(1, 3)
+    user.port = port
+    user.save()
+    registerinfo = {
+        'title': '修改成功！',
+        'subtitle': '端口修改为：{}！'.format(port),
+        'status': 'success',
+    }
+    return render(request,'sspanel/userinfo.html', {'registerinfo': registerinfo, })
+
+
 def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''
     users = User.objects.filter(level__gt=0)
@@ -205,7 +223,6 @@ def clean_traffic_log():
 
 def auto_register(num, level=0):
     '''自动注册num个用户'''
-    from random import randint
     for i in range(num):
         username = 'test' + str(i)
         code = 'testcode' + str(i)
