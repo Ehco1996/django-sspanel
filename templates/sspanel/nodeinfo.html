@@ -34,7 +34,7 @@
                 </div>
                 <div class="card-footer">
                     <a class="card-footer-item modal-button" data-target="modal-{{ list.name }}">二维码</a>
-                    <a class="card-footer-item modal-button" data-target="modal-{{ list.node_id }}">节点配置</a>
+                    <a class="card-footer-item modal-button" data-target="modal-{{ list.node_id }}">配置</a>
                     <a class="card-footer-item">人数:「{{ list.count }}」</a>
                     <a class="card-footer-item">状态: 「{{ list.status }}」</a>
                 </div>
@@ -74,6 +74,10 @@
                                 <td class="notification">{{ ss_user.obfs }}</td>
                             </tr>
                         </table>
+                        <p class="subtitle">配置链接：</p>
+                        <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
+                        <br>
+                        <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>                               
                     </section>
                 </div>
             </div>

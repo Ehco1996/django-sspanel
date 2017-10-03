@@ -131,6 +131,15 @@ class Node(models.Model):
         ]
     )
 
+    show = models.CharField(
+        '是否显示',
+        max_length=32,
+        choices=(
+            ('显示', '显示'),
+            ('不显示', '不显示')),
+        default='显示',
+    )
+
     def __str__(self):
         return self.name
 

@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'^ticket/create/$', views.ticket_create, name='ticket_create'),
     url(r'^ticket/edit/(?P<pk>[0-9]+)$',
         views.ticket_edit, name='ticket_edit'),
+    url(r'^ticket/delete/(?P<pk>[0-9]+)$',
+        views.ticket_delete, name='ticket_delete'),
 
 
 
@@ -45,7 +47,7 @@ urlpatterns = [
     url(r'^backend/invite/$', views.backend_invite, name='backend_invite'),
     url(r'^invite_gen_code/$', views.gen_invite_code, name='geninvitecode'),
     # 节点相关
-    url(r'^backend/nodeinfo$', views.backend_node_info, name='backend_node_info'),  
+    url(r'^backend/nodeinfo$', views.backend_node_info, name='backend_node_info'),
     url(r'^backend/node/delete/(?P<node_id>[0-9]+)$',
         views.node_delete, name='node_delete'),
     url(r'^backend/node/edit/(?P<node_id>[0-9]+)$',

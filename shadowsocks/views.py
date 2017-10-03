@@ -44,7 +44,7 @@ def sshelp(request):
     '''跳转到帮助界面'''
     return render(request, 'sspanel/help.html')
 
-
+@login_required
 def ssclient(request):
     '''跳转到客户端界面'''
     return render(request, 'sspanel/client.html')
@@ -409,9 +409,19 @@ def nodeinfo(request):
     user = request.user
     # 将节点信息查询结果保存dict中，方便增加在线人数字段
     # 加入等级的判断
-    nodes = Node.objects.filter(level__lte=user.level).values()
+    nodes = Node.objects.filter(level__lte=user.level,show='显示').values()
     # 循环遍历每一条线路的在线人数
     for node in nodes:
+        # 生成SSR和SS的链接
+        ssr_password = base64.b64encode(bytes(ss_user.password, 'utf8')).decode('ascii')
+        ssr_code = '{}:{}:{}:{}:{}:{}'.format(node['server'], ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
+        ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
+        ssr_link = 'ssr://{}'.format(ssr_pass)
+        ss_code = '{}:{}@{}:{}'.format(node['method'], ss_user.password, node['server'], ss_user.port)
+        ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
+        ss_link = 'ss://{}'.format(ss_pass)
+        node['ssrlink'] = ssr_link
+        node['sslink'] = ss_link
         try:
             otime = NodeInfoLog.objects.filter(
                 node_id=node['node_id'])[0].log_time
@@ -647,6 +657,23 @@ def ticket_create(request):
 
 
 @login_required
+def ticket_delete(request, pk):
+    '''删除指定'''
+    ticket = Ticket.objects.get(pk=pk)
+    ticket.delete()
+    registerinfo = {
+        'title': '删除成功',
+        'subtitle': '该工单已经删除',
+        'status': 'success', }
+
+    context = {
+        'registerinfo': registerinfo,
+        'ticket': Ticket.objects.filter(user=request.user)
+    }
+    return render(request, 'sspanel/ticket.html', context=context)
+
+
+@login_required
 def ticket_edit(request, pk):
     '''工单编辑'''
     ticket = Ticket.objects.get(pk=pk)
@@ -707,9 +734,12 @@ def backend_index(request):
         traffic = TrafficLog.objects.filter(node_id=node['id'])
         # 获取指定节点所有流量
         total_tratffic = 0
-        for ll in traffic:
-            total_tratffic += ll.upload_traffic + ll.download_traffic
-        total_tratffic = round(total_tratffic / settings.GB, 2)
+        try:
+            for ll in traffic:
+                total_tratffic += ll.upload_traffic + ll.download_traffic
+            total_tratffic = round(total_tratffic / settings.GB, 2)
+        except:
+            total_tratffic = 0
         node['total_traffic'] = total_tratffic
     # 收入情况
     income = Donate.objects.all()
@@ -1268,9 +1298,8 @@ def anno_edit(request, pk):
 @permission_required('shadowsocks')
 def backend_ticket(request):
     '''工单系统'''
-    ticket = Ticket.objects.filter(status='开启')
+    ticket = Ticket.objects.all()
     context = {'ticket': ticket}
-
     return render(request, 'backend/ticket.html', context=context)
 
 
