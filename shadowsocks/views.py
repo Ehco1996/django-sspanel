@@ -728,9 +728,11 @@ def backend_index(request):
     # 用户在线情况
     online = 0
     for node in nodes:
+        try:
         # 遍历在线人数
-        online += NodeOnlineLog.objects.filter(
-            node_id=node['id'])[::-1][0].online_user
+            online += NodeOnlineLog.objects.filter(node_id=node['id'])[::-1][0].online_user
+        except:
+            online = 0
         traffic = TrafficLog.objects.filter(node_id=node['id'])
         # 获取指定节点所有流量
         total_tratffic = 0
