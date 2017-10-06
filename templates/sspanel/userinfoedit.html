@@ -49,10 +49,9 @@
                                     <div class="control">
                                         <div class="select">
                                             <select name="method">
-                                                <option>rc4-md5</option>
-                                                <option>salsa20</option>
-                                                <option>aes-256-cfb</option>
-                                                <option>aes-128-ctr</option>
+                                                {% for m in methods %}
+                                                <option>{{ m }}</option>
+                                                {% endfor %}
                                             </select>
                                         </div>
                                     </div>
@@ -84,11 +83,9 @@
                                 <div class="control">
                                     <div class="select">
                                         <select name="protocol">
-                                            <option>origin</option>
-                                            <option>auth_sha1_v4</option>
-                                            <option>auth_chain_a</option>
-                                            <option>auth_aes128_md5</option>
-                                            <option>auth_aes128_sha1</option>
+                                            {% for p in protocols %}
+                                            <option>{{ p }}</option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                 </div>
@@ -117,11 +114,9 @@
                                 <div class="control">
                                     <div class="select">
                                         <select name="obfs">
-                                            <option>plain</option>
-                                            <option>http_post</option>                                            
-                                            <option>http_simple</option>
-                                            <option>http_simple_compatible</option>                                            
-                                            <option>tls1.2_ticket_auth</option>                                                  
+                                            {% for o in obfss %}                                           
+                                            <option>{{ o }}</option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                 </div>

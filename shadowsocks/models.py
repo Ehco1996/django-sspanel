@@ -12,10 +12,13 @@ import datetime
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
+    ('aes-128-ctr', 'aes-128-ctr'),   
     ('rc4-md5', 'rc4-md5'),
     ('salsa20', 'salsa20'),
-    ('aes-128-ctr', 'aes-128-ctr'),
+    ('chacha20', 'chacha20'),
+    ('none', 'none'),            
 )
+
 STATUS_CHOICES = (
     ('好用', '好用'),
     ('维护', '维护'),
@@ -97,7 +100,7 @@ class Node(models.Model):
     server = models.CharField('服务器IP', max_length=128,)
 
     method = models.CharField(
-        '加密类型', default='aes-256-cfb', max_length=32, choices=METHOD_CHOICES,)
+        '加密类型', default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES,)
 
     custom_method = models.SmallIntegerField(
         '自定义加密',
@@ -112,10 +115,10 @@ class Node(models.Model):
     )
 
     protocol = models.CharField(
-        '协议', default='origin', max_length=32, choices=PROTOCOL_CHOICES,)
+        '协议', default=settings.DEFAULT_PROTOCOL, max_length=32, choices=PROTOCOL_CHOICES,)
 
     obfs = models.CharField(
-        '混淆', default='plain', max_length=32, choices=OBFS_CHOICES,)
+        '混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES,)
 
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True,)
 

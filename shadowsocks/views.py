@@ -16,6 +16,9 @@ from decimal import Decimal
 from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 
+# 导入加密混淆协议选项
+from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
+
 # 导入ssservermodel
 from ssserver.models import SSUser, TrafficLog
 
@@ -43,6 +46,7 @@ def index(request):
 def sshelp(request):
     '''跳转到帮助界面'''
     return render(request, 'sspanel/help.html')
+
 
 @login_required
 def ssclient(request):
@@ -293,8 +297,15 @@ def get_ss_qrcode(request, node_id):
 def userinfo_edit(request):
     '''跳转到资料编辑界面'''
     ss_user = request.user.ss_user
+    methods = [m[0] for m in METHOD_CHOICES]
+    protocols = [p[0] for p in PROTOCOL_CHOICES]
+    obfss = [o[0] for o in OBFS_CHOICES]
+
     context = {
         'ss_user': ss_user,
+        'methods': methods,
+        'protocols': protocols,
+        'obfss': obfss,
     }
     return render(request, 'sspanel/userinfoedit.html', context=context)
 
@@ -409,15 +420,18 @@ def nodeinfo(request):
     user = request.user
     # 将节点信息查询结果保存dict中，方便增加在线人数字段
     # 加入等级的判断
-    nodes = Node.objects.filter(level__lte=user.level,show='显示').values()
+    nodes = Node.objects.filter(level__lte=user.level, show='显示').values()
     # 循环遍历每一条线路的在线人数
     for node in nodes:
         # 生成SSR和SS的链接
-        ssr_password = base64.b64encode(bytes(ss_user.password, 'utf8')).decode('ascii')
-        ssr_code = '{}:{}:{}:{}:{}:{}'.format(node['server'], ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
+        ssr_password = base64.b64encode(
+            bytes(ss_user.password, 'utf8')).decode('ascii')
+        ssr_code = '{}:{}:{}:{}:{}:{}'.format(
+            node['server'], ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
         ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
         ssr_link = 'ssr://{}'.format(ssr_pass)
-        ss_code = '{}:{}@{}:{}'.format(node['method'], ss_user.password, node['server'], ss_user.port)
+        ss_code = '{}:{}@{}:{}'.format(
+            node['method'], ss_user.password, node['server'], ss_user.port)
         ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
         ss_link = 'ss://{}'.format(ss_pass)
         node['ssrlink'] = ssr_link
@@ -729,8 +743,9 @@ def backend_index(request):
     online = 0
     for node in nodes:
         try:
-        # 遍历在线人数
-            online += NodeOnlineLog.objects.filter(node_id=node['id'])[::-1][0].online_user
+            # 遍历在线人数
+            online += NodeOnlineLog.objects.filter(node_id=node['id'])[
+                ::-1][0].online_user
         except:
             online = 0
         traffic = TrafficLog.objects.filter(node_id=node['id'])

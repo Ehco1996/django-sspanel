@@ -1,11 +1,18 @@
-from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect
-from .models import SSUser, TrafficLog
-from shadowsocks.models import User
-from .forms import ChangeSsPassForm, SSUserForm
+from random import randint
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
+from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, render
 from django.utils import timezone
-from random import randint
+
+from shadowsocks.models import User
+
+from .forms import ChangeSsPassForm, SSUserForm
+from .models import SSUser, TrafficLog
+
+# 导入加密混淆协议选项
+from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
+
 
 # Create your views here.
 
@@ -108,15 +115,17 @@ def ChangeSsMethod(request):
             'subtitle': '请及时更换客户端配置！',
             'status': 'success',
         }
+        methods = [m[0] for m in METHOD_CHOICES]
+        protocols = [p[0] for p in PROTOCOL_CHOICES]
+        obfss = [o[0] for o in OBFS_CHOICES]
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,
+            'methods': methods,
+            'protocols': protocols,
+            'obfss': obfss,
         }
         return render(request, 'sspanel/userinfoedit.html', context=context)
-
-    else:
-        form = ChangeSsPassForm()
-        return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
 @login_required
@@ -133,15 +142,17 @@ def ChangeSsProtocol(request):
             'subtitle': '请及时更换客户端配置！',
             'status': 'success',
         }
+        methods = [m[0] for m in METHOD_CHOICES]
+        protocols = [p[0] for p in PROTOCOL_CHOICES]
+        obfss = [o[0] for o in OBFS_CHOICES]
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,
+            'methods': methods,
+            'protocols': protocols,
+            'obfss': obfss,
         }
         return render(request, 'sspanel/userinfoedit.html', context=context)
-
-    else:
-        form = ChangeSsPassForm()
-        return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
 @login_required
@@ -158,15 +169,17 @@ def ChangeSsObfs(request):
             'subtitle': '请及时更换客户端配置！',
             'status': 'success',
         }
+        methods = [m[0] for m in METHOD_CHOICES]
+        protocols = [p[0] for p in PROTOCOL_CHOICES]
+        obfss = [o[0] for o in OBFS_CHOICES]
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,
+            'methods': methods,
+            'protocols': protocols,
+            'obfss': obfss,
         }
         return render(request, 'sspanel/userinfoedit.html', context=context)
-
-    else:
-        form = ChangeSsPassForm()
-        return render(request, 'sspanel/sspasschanged.html', {'form': form})
 
 
 @login_required
@@ -183,7 +196,7 @@ def ChangeSsPort(request):
         'subtitle': '端口修改为：{}！'.format(port),
         'status': 'success',
     }
-    return render(request,'sspanel/userinfo.html', {'registerinfo': registerinfo, })
+    return render(request, 'sspanel/userinfo.html', {'registerinfo': registerinfo, })
 
 
 def check_user_state():

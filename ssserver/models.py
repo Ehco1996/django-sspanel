@@ -18,12 +18,16 @@ PLAN_CHOICES = (
     ('free', 'Free'),
     ('pro', 'pro')
 )
+
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
+    ('aes-128-ctr', 'aes-128-ctr'),   
     ('rc4-md5', 'rc4-md5'),
     ('salsa20', 'salsa20'),
-    ('aes-128-ctr', 'aes-128-ctr'),
+    ('chacha20', 'chacha20'),
+    ('none', 'none'),            
 )
+
 PROTOCOL_CHOICES = (
     ('auth_sha1_v4', 'auth_sha1_v4'),
     ('auth_aes128_md5', 'auth_aes128_md5'),
@@ -115,13 +119,13 @@ class SSUser(models.Model):
     )
 
     method = models.CharField(
-        '加密类型', default='aes-256-cfb', max_length=32, choices=METHOD_CHOICES,)
+        '加密类型', default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES,)
 
     protocol = models.CharField(
-        '协议', default='origin', max_length=32, choices=PROTOCOL_CHOICES,)
+        '协议', default=settings.DEFAULT_PROTOCOL, max_length=32, choices=PROTOCOL_CHOICES,)
 
     obfs = models.CharField(
-        '混淆', default='plain', max_length=32, choices=OBFS_CHOICES,)
+        '混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES,)
 
     def __str__(self):
         return self.user.username

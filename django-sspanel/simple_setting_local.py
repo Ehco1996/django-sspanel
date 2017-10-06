@@ -39,6 +39,12 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 MB = 1024 * 1024
 GB = 1024 * 1024 * 1024
 DEFAULT_TRAFFIC = 5 * GB
+
+# 默认加密混淆协议
+DEFAULT_METHOD = 'aes-128-ctr'
+DEFAULT_PROTOCOL = 'auth_chain_a'
+DEFAULT_OBFS = 'http_simple'
+
 # 签到流量设置
 MIN_CHECKIN_TRAFFIC = 10 * MB
 MAX_CHECKIN_TRAFFIC = 200 * MB
@@ -49,5 +55,6 @@ USE_ALIPAY = False
 # 网站title
 TITLE = '谜之屋111'
 SUBTITLE = '秘密的小屋111'
+
 # 网站邀请界面提示语
 INVITEINFO = '邀请码实时更新，如果用完了请关注公众号findyourownway获取'
