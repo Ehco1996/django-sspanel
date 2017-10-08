@@ -44,7 +44,6 @@
                     <a class="nav-item is-active" href="/sshelp">使用说明</a>
                     <a class="nav-item is-active" href="/ssinvite">邀请码</a>
                     {% if user.is_authenticated %}
-                    <br>
                     <a class="nav-item is-active" href="/ssclient">客户端</a>                    
                     <div class="is-hidden-tablet">
                         <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>

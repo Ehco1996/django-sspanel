@@ -29,6 +29,7 @@ import datetime
 import time
 import tomd
 from random import randint
+import json
 
 # 导入支付宝当面付插件
 from .payments import alipay
@@ -228,13 +229,10 @@ def checkin(request):
             'title': '签到失败！',
             'subtitle': '距离上次签到不足一天',
             'status': 'error', }
-
-    context = {
-        'registerinfo': registerinfo,
-        'ss_user': ss_user,
-        'anno': anno,
-    }
-    return render(request, 'sspanel/userinfo.html', context=context)
+    
+    result = json.dumps(registerinfo,ensure_ascii=False)
+    return HttpResponse(result,content_type='application/json')
+   
 
 
 @login_required
@@ -664,8 +662,7 @@ def ticket_create(request):
             'ticket': ticket,
             'registerinfo': registerinfo,
         }
-        return render(request, 'sspanel/ticket.html', context=context)
-
+        return redirect('/ticket')
     else:
         return render(request, 'sspanel/ticketcreate.html')
 
