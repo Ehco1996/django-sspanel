@@ -1,6 +1,6 @@
 {% extends 'base.html' %} {% block main %} {% if user.is_authenticated %}
 <div class="column is-12">
-    <section class="hero is-info is-smaill">
+    <section class="hero is-primary is-smaill">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
@@ -27,16 +27,19 @@
                 <p class="subtitle is-5">这里的功能还比较少...</p>
                 <button class="button"><a href="{% url 'shadowsocks:logout' %}">注销登录</a></button>
                 <button class="button"><a href="{% url 'password_change' %}">修改密码</a></button>
-                <button class="button"><a href="{% url 'ssserver:changessport' %}">重置端口</a></button>
-                <hr> {% if user.ss_user.get_check_in %}
-                <p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>
-                {% else %}
-                <p class="subtitle is-5 is-spaced"> 今天还没有签到，点一下可以获得{{ min_traffic }}~{{ max_traffic }}流量</p>
-                <br>
-                <button class="button"><a href="{% url 'shadowsocks:checkin' %}">签到</a></button> {% endif %}
+                <button class="button"><a><span id="id-change-port">重置端口</span></a></button>
+                <hr> 
+                <div id="id-checkin-box">
+                    {% if user.ss_user.get_check_in %}
+                    <p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>
+                    {% else %}
+                    <p class="subtitle is-5 is-spaced"> 今天还没有签到，点一下可以获得{{ min_traffic }}~{{ max_traffic }}流量</p>
+                    <br>
+                    <button class="button"><a><span id="id-checkin">签到</span></a></button> 
+                    {% endif %}
+                </div>
             </div>
             <div class="tile box is-child">
-
                 <article class="message">
                     <div class="message-header">
                         <p>最新公告</p>
@@ -58,7 +61,7 @@
                         <p>连接信息</p>
                     </div>
                     <div class="message-body">
-                        <li> 端口：<code>{{ user.ss_user.port }}</code></li>
+                        <li> 端口：<code><span id="port">{{ user.ss_user.port }}</span></code></li>
                         <li> 密码：<code>{{ user.ss_user.password }}</code></li>
                         <li> 加密：<code>{{ user.ss_user.method }}</code></li>
                         <li> 混淆：<code>{{ user.ss_user.protocol }}</code></li>
@@ -125,6 +128,31 @@
         </div>
     </div>
 </div>
+
+<script>
+    // 端口重置Ajax部分
+    var ProtButton = $("#id-change-port")
+    var changeport = function(){
+        url = "{% url 'ssserver:changessport' %}"
+        $.getJSON(url,function(results){
+            swal(results.title,results.subtitle,results.status)
+            port.textContent= results.subtitle.slice(6,-1)
+        })
+    }
+    ProtButton.click(changeport)
+    // 签到AJAX部分
+    var CheckButton = $("#id-checkin")
+    var Checkin = function(){
+        url = "{% url 'shadowsocks:checkin' %}"
+        $.getJSON(url,function(results){
+            swal(results.title,results.subtitle,results.status)
+            var box = $("#id-checkin-box")
+            box.empty()
+            box.append('今天已经签到过了ಠ౪ಠ')
+        })
+    }
+    CheckButton.click(Checkin)
+</script>
 
 {% else %}
 <p>你还没有登录，请登录 </p>

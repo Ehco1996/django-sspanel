@@ -3,8 +3,7 @@ DEBUG = False
 
 # 域名设置
 ALLOWED_HOSTS = [
-    'www.ehcozone.club',
-    'ehcozone.club',
+    'your.domain.com'
 ]
 
 # mysql 设置
@@ -48,10 +47,12 @@ MAX_CHECKIN_TRAFFIC = 200 * MB
 
 # 是否启用支付宝系统
 USE_ALIPAY = True
+# 支付订单提示信息 修改请保留 {} 用于动态生成金额
+ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 
 # 网站title
 TITLE = '谜之屋'
 SUBTITLE = '秘密的小屋'
 
 # 网站邀请界面提示语
-INVITEINFO = '邀请码实时更新，如果用完了进telegram群问bot要 群链接：https://t.me/Ehcobreakwa11'
+INVITEINFO = '邀请码实时更新，如果用完了进telegram群 群链接：https://t.me/Ehcobreakwa11'
