@@ -1,6 +1,5 @@
-{% extends 'base.html' %} {% block main %}
-
-
+{% extends 'base.html' %} 
+{% block main %}
 <div class="columns">
     <div class="column is-one-third">
         <div class="notification is-danger">
@@ -18,7 +17,7 @@
         </div>
     </div>
     <div class="column is-one-third">
-        <div class="notification is-info">
+        <div class="notification is-link">
             <button class="delete"></button>
             <p class="title is-4">
                 当然要去！<br/><br/>魔王总要救公主！</p>
@@ -26,8 +25,6 @@
     </div>
 </div>
 <br/> 
-
-
 {% if user.is_authenticated %}
 <div class="box">
     <p class="title">欢迎小主: {{ user.username }}</p>
@@ -35,9 +32,6 @@
     <button class="button"><a href="{% url 'shadowsocks:userinfo' %}">进入</a></button>
     
 </div>
-
-
-
 {% else %}
 <div class="column box ">
     <h1 class="title"> 注册注册！</h1>

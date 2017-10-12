@@ -22,79 +22,74 @@
 </head>
 
 <body>
-    <section class="hero is-small is-primary ">
-        <!-- Hero header: will stick at the top -->
-        <header class="nav">
-            <div class="container">
-                <div class="nav-left">
-                    <a class="nav-item" href="/">
-                            <strong class="title">{% settings_value "TITLE" %}</strong>
+    <nav class="navbar is-primary">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                <img src="{% static 'img/logo/logo.png' %}" alt="谜之屋logo">
+            </a>
+            <div class="navbar-burger burger" data-target="navMenuColorprimary-example">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div id="navMenuColorprimary-example" class="navbar-menu">
+            <div class="navbar-end">
+                <a class="navbar-item is-hidden-mobile" href="/">首页</a>
+                <a class="navbar-item is-hidden-mobile" href="/sshelp">使用说明</a>
+                <a class="navbar-item is-hidden-mobile" href="/ssinvite">邀请码</a>
+                <a class="navbar-item is-hidden-mobile" href="/ssclient">客户端</a>
+                <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
+                    <span class="navbar-item">
+                        <a class="button is-info is-inverted" href="{% url 'shadowsocks:userinfo' %}">
+                            <span class="icon">
+                                <i class="fa fa-user-circle"></i>
+                            </span>
+                            <span>{{ user.username }}</span>
                         </a>
-                </div>
-                <!-- Using a <label /> here -->
-                <label class="nav-toggle" for="nav-toggle-state">
-                    <span></span>           <!-- ^^^^^^^^^^^^^^^^ -->
-                    <span></span>
-                    <span></span>
-                    </label>
-                <!-- This checkbox is hidden -->
-                <input type="checkbox" id="nav-toggle-state" />
-                <div class="nav-right nav-menu">
-                    <a class="nav-item is-active" href="/">首页</a>
-                    <a class="nav-item is-active" href="/sshelp">使用说明</a>
-                    <a class="nav-item is-active" href="/ssinvite">邀请码</a>
-                    <a class="nav-item is-active" href="/ssclient">客户端</a>
-                    <div class="is-hidden-tablet">                           
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_index' %}">系统状态</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_anno' %}">公告管理</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:alive_user' %}">在线IP</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:user_list' %}">用户列表</a>
-                        <a class="nav-item is-active" href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
-                        <a class="nav-item is-active" href="/admin">Django后台</a>
-                    </div>
-
-                </div>
-
-                <div class="navbar-item  is-hidden-touch has-dropdown is-hoverable">
-                    <span class="nav-item">
-                        <a class="button is-primary is-inverted">
-                        <span class="icon">
-                        <i class="fa fa-user-circle"></i>
-                        </span>
-                    <span>{{ user.username }}</span>
-                    </a>
                     </span>
                     <div class="navbar-dropdown">
                         <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">
-                             <strong>用户中心</strong>
-                             </a>
+                            <span class="icon">
+                                <i class="fa fa-users"></i>
+                            </span>
+                            <span>用户中心</span>
+                        </a>
                         <hr class="navbar-divider">
-                        <div class="navbar-item">
-                            <a class="is-primary is-inverted" href="{% url 'shadowsocks:logout' %}">
-                                <span class="icon">
+                        <a class="navbar-item" href="{% url 'shadowsocks:logout' %}">
+                            <span class="icon">
                                 <i class="fa fa-sign-out"></i>
-                                </span>
-                                <span>注销登录</span>
-                                </a>
-                        </div>
+                            </span>
+                            <span>注销登录</span>
+                        </a>
                     </div>
                 </div>
-
+                <!-- 手机界面菜单-->
+                <div class="is-hidden-tablet">
+                    <a class="navbar-item is-active" href="{% url 'shadowsocks:backend_index' %}">系统状态</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:backend_anno' %}">公告管理</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a>
+                    <a class="navbar-item is-active" href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:alive_user' %}">在线IP</a>
+                    <a class="navbar-item is-active" href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:user_list' %}">用户列表</a>
+                    <a class="navbar-item is-active" href="/admin">数据后台</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
+                </div>
             </div>
-        </header>
         </div>
-
+    </nav>
+    <section class="hero is-small is-primary ">
         <!-- Hero content: will be in the middle -->
         <div class="hero-body">
             <div class="container has-text-centered">
                 <h1 class="title">
-                    <a href="/"><strong>{% settings_value "SUBTITLE" %}</strong></a>
+                    <a href="/">
+                        <strong>{% settings_value "SUBTITLE" %}</strong>
+                    </a>
                 </h1>
                 <h2 class="subtitle">
                     你说会发现什么呢？
@@ -103,7 +98,6 @@
         </div>
     </section>
     <br/>
-
     <div class="container is-fluid">
         <div class="columns">
             <div class="column is-2 is-hidden-mobile">
@@ -114,41 +108,65 @@
                             管理面板：
                         </p>
                         <ul class="menu-list">
-                            <li><a href="{% url 'shadowsocks:backend_index' %}">系统状态</a></li>
-                            <li><a href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a></li>
-                            <li><a href="{% url 'shadowsocks:backend_anno' %}">公告管理</a></li>
-                            <li><a href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a></li>
+                            <li>
+                                <a href="{% url 'shadowsocks:backend_index' %}">系统状态</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:backend_anno' %}">公告管理</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a>
+                            </li>
                         </ul>
                         <p class="menu-label">
                             节点相关
                         </p>
                         <ul class="menu-list">
-                            <li><a href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a></li>
-                            <li><a href="{% url 'shadowsocks:alive_user' %}">在线IP</a></li>
+                            <li>
+                                <a href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:alive_user' %}">在线IP</a>
+                            </li>
 
                         </ul>
                         <p class="menu-label">
                             交易相关
                         </p>
                         <ul class="menu-list">
-                            <li><a href="{% url 'shadowsocks:backend_charge' %}">充值管理</a></li>
-                            <li><a href="{% url 'shadowsocks:backend_shop' %}">商品管理</a></li>
-                            <li><a href="{% url 'shadowsocks:purchase_history' %}">购买记录</a></li>
+                            <li>
+                                <a href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
+                            </li>
                         </ul>
                         <p class="menu-label">
                             用户相关
                         </p>
                         <ul class="menu-list">
-                            <li><a href="{% url 'shadowsocks:user_list' %}">用户列表</a></li>
+                            <li>
+                                <a href="{% url 'shadowsocks:user_list' %}">用户列表</a>
+                            </li>
                         </ul>
                         <p class="menu-label">
                             面板跳转
                         </p>
                         <ul class="menu-list">
-                            <li><a href="/admin">Django后台</a></li>
+                            <li>
+                                <a href="/admin">Django后台</a>
+                            </li>
                         </ul>
                         <ul class="menu-list">
-                            <li><a href="{% url 'shadowsocks:userinfo' %}">用户面板</a></li>
+                            <li>
+                                <a href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
+                            </li>
                         </ul>
                         {% endif %}
                     </aside>
@@ -167,7 +185,8 @@
         <div class="container">
             <div class="content has-text-centered">
                 <p>
-                    <p class="copyright">&copy; 2017·公众号: findyourownway·<a href="https://github.com/ehco1996">GitHub</a>·
+                    <p class="copyright">&copy; 2017·公众号: findyourownway·
+                        <a href="https://github.com/ehco1996">GitHub</a>·
                         <a href="https://www.zhihu.com/people/Ehcostuff/activities">知乎</a>
                     </p>
                 </p>
@@ -181,8 +200,6 @@
 <script>
     swal("{{ registerinfo.title }}", '{{ registerinfo.subtitle }}', '{{ registerinfo.status }}');
 
-</script>
-
-{% endif %}
+</script> {% endif %}
 
 </html>

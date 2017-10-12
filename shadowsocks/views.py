@@ -229,10 +229,9 @@ def checkin(request):
             'title': '签到失败！',
             'subtitle': '距离上次签到不足一天',
             'status': 'error', }
-    
-    result = json.dumps(registerinfo,ensure_ascii=False)
-    return HttpResponse(result,content_type='application/json')
-   
+
+    result = json.dumps(registerinfo, ensure_ascii=False)
+    return HttpResponse(result, content_type='application/json')
 
 
 @login_required
@@ -324,8 +323,9 @@ def donate(request):
                 # 获取金额数量
                 amount = number
                 # 生成订单
+
                 trade = alipay.api_alipay_trade_precreate(
-                    subject="Ehco的{}元充值码".format(amount),
+                    subject=settings.ALIPAY_TRADE_INFO.format(amount),
                     out_trade_no=out_trade_no,
                     total_amount=amount,
                     timeout_express='60s',)
@@ -439,7 +439,7 @@ def nodeinfo(request):
                 node_id=node['node_id'])[0].log_time
             # 判断节点最后一次心跳时间
             # 判断节点是否在线
-            node['online'] = False if (time.time() - otime) > 60 else True
+            node['online'] = False if (time.time() - otime) > 75 else True
             # 检索节点的在线人数
             node['count'] = NodeOnlineLog.objects.filter(
                 node_id=node['node_id'])[::-1][0].online_user

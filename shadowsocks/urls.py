@@ -18,7 +18,7 @@ urlpatterns = [
     url(r'^login/$', views.Login_view, name='login'),
     url(r'^logout/$', views.Logout_view, name='logout'),
     url(r'^users/userinfo/$', views.userinfo, name='userinfo'),
-    url(r'^users/userinfo_edit/$', views.userinfo_edit, name='userinfo_edit'),
+    url(r'^users/userinfoedit/$', views.userinfo_edit, name='userinfo_edit'),
     url(r'^checkin/$', views.checkin, name='checkin'),
     url(r'qrcode/ssr/(?P<node_id>[0-9]+)$',
         views.get_ssr_qrcode, name='ssrqrcode'),
