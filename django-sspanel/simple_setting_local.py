@@ -39,6 +39,7 @@ USE_ALIPAY = False
 ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 
 # 网站title
+TITLE = '谜之屋'
 SUBTITLE = '秘密的小屋111'
 
 # 网站邀请界面提示语
