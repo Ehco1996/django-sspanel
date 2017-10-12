@@ -1,4 +1,5 @@
 from random import randint
+import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
@@ -196,8 +197,11 @@ def ChangeSsPort(request):
         'subtitle': '端口修改为：{}！'.format(port),
         'status': 'success',
     }
-    return render(request, 'sspanel/userinfo.html', {'registerinfo': registerinfo, })
-
+    result = json.dumps(registerinfo,ensure_ascii=False)
+    
+    # AJAX 返回json数据
+    return HttpResponse(result,content_type='application/json')
+    
 
 def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''

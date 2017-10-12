@@ -16,15 +16,17 @@
 </div>
 
 <div class="column is-12">
-    <div class="box nodelist">
-        <ul>
-            {% for list in nodelists %}
+    <div class="box nodelist" id="id-nodelist">
+        {% for list in nodelists %}
+        <div class="node-cell" data-id="{{ list.node_id }}">
             <div class="card">
                 <div class="card-header">
                     {% if list.online == True %}
-                    <p class="card-header-title"><span class="tag is-success">在线</span>&nbsp&nbsp{{ list.name }}</p>
+                    <p class="card-header-title">
+                        <span class="tag is-success">在线</span>&nbsp&nbsp{{ list.name }}</p>
                     {% else %}
-                    <p class="card-header-title"><span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
+                    <p class="card-header-title">
+                        <span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
                     {% endif %}
                 </div>
                 <div class="card-content">
@@ -33,7 +35,7 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a class="card-footer-item modal-button" data-target="modal-{{ list.name }}">二维码</a>
+                    <a class="card-footer-item modal-button" id="id-button-qrcode" data-target="modal-{{ list.name }}">二维码</a>
                     <a class="card-footer-item modal-button" data-target="modal-{{ list.node_id }}">配置</a>
                     <a class="card-footer-item">人数:「{{ list.count }}」</a>
                     <a class="card-footer-item">状态: 「{{ list.status }}」</a>
@@ -77,45 +79,60 @@
                         <p class="subtitle">配置链接：</p>
                         <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
                         <br>
-                        <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>                               
+                        <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
                     </section>
                 </div>
             </div>
 
-            <div class="modal qrcode" id="modal-{{ list.name }}">
+            <!--二维码部分 -->
+            <div class="modal" id="modal-{{ list.name }}">
                 <div class="modal-background"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
-                        <p class="modal-card-title">节点:<strong>{{ list.name }}</strong> 配置二维码</p>
+                        <p class="modal-card-title">节点:
+                            <strong>{{ list.name }}</strong> 配置二维码</p>
                         <button class="delete" aria-label="close"></button>
                     </header>
                     <section class="modal-card-body">
-                        <p class="subtitle">使用原版SS需要将混淆改成<code>http_simple_compatible</code></p>
+                        <p class="subtitle">使用原版SS需要将混淆改成
+                            <code>http_simple_compatible</code>
+                        </p>
                         <div class="box">
                             <!-- SSR配置 ... -->
                             <p class="subtitle">SSR版本(推荐使用)：</p>
-                            <img src="{% url 'shadowsocks:ssrqrcode' list.node_id %}" width="256" height="256">
+                            <img src="" id="id-ssr-{{ list.node_id }}" width="256" height="256">
                         </div>
                         <div class="box">
                             <!-- SS配置 ... -->
                             <p class="subtitle">SS原版：</p>
-                            <img src="{% url 'shadowsocks:ssqrcode' list.node_id %}" width="256" height="256">
+                            <img src="" id="id-ss-{{ list.node_id }}" width="256" height="256">
                         </div>
                     </section>
                 </div>
             </div>
-
-            <br/> {% empty %}
-            <div class="column is-12">
-                <div class="notification is-info">
-                    <h2 class="title">木有节点</h2>
-                </div>
-            </div>
-            {% endfor %}
+            <br>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
-
-
-
+<script>
+    var nodeList = $("#id-nodelist")
+    // 事件委托绑定按钮
+    nodeList.on('click', '#id-button-qrcode', function (event) {
+        var button = $(event.target)
+        var node = button.closest('.node-cell')
+        // 找到节点id
+        var nodeId = node.data('id')
+        // 找到节点二维码img标签
+        var ssr = node.find(`#id-ssr-${nodeId}`)
+        var ss = node.find(`#id-ss-${nodeId}`)
+        // 获取当前域名
+        var host = window.location.host
+        var protocol = window.location.protocol
+        // 追加节点二维码
+        ssr.attr("src", `${protocol}://${host}/qrcode/ssr/${nodeId}`)
+        ss.attr("src", `${protocol}://${host}/qrcode/ss/${nodeId}`)
+    })
+</script> 
 {% endblock main %}

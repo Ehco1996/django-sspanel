@@ -9,28 +9,12 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'sspanel',
         'USER': 'root',
-        'PASSWORD': '19960202',
+        'PASSWORD': 'pass',
         'HOST': '127.0.0.1',
         'PORT': '3306',
 
     }
 }
-'''
-# remote debuge mysql 设置
-DATABASES = {
-
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sspanel',
-        'USER': 'ss',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '3306',
-
-    }
-}
-'''
-
 
 # 邮件服务设置：
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -51,9 +35,11 @@ MAX_CHECKIN_TRAFFIC = 200 * MB
 
 # 是否启用支付宝系统
 USE_ALIPAY = False
+# 支付订单提示信息 修改请保留 {} 用于动态生成金额
+ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 
 # 网站title
-TITLE = '谜之屋111'
+TITLE = '谜之屋'
 SUBTITLE = '秘密的小屋111'
 
 # 网站邀请界面提示语
