@@ -1,8 +1,9 @@
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.forms import AuthenticationForm as auth_login_form
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm as auth_login_form
+from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
-from .models import User, Node, Shop,Announcement
+
+from .models import Announcement, Node, Shop, User
 
 
 class RegisterForm(UserCreationForm):
@@ -90,8 +91,19 @@ class ShopForm(ModelForm):
         fields = '__all__'
 
 
-
 class AnnoForm(ModelForm):
     class Meta:
         model = Announcement
         fields = '__all__'
+
+
+class UserForm(ModelForm):
+    class Meta:
+        model = User
+        fields = ['balance', 'level', 'level_expire_time',]
+        widgets = {
+            'balance': forms.NumberInput(attrs={'class': 'input'}),
+            'level': forms.NumberInput(attrs={'class': 'input'}),
+            'level_expire_time': forms.DateTimeInput(attrs={'class': 'input'}),
+        }
+

@@ -17,15 +17,12 @@
     </section>
 </div>
 
-
-
 <div class="column is-12">
     <div class="box">
-        
         <form class="form"  method="post">
             {% csrf_token %} 
-            {{ form.non_field_errors }} 
-            {% for field in form %} 
+            {{ ssform.non_field_errors }} 
+            {% for field in ssform %} 
                 {{ field.label_tag }} 
                 {{ field}} 
                 {{ field.errors }}
@@ -33,7 +30,18 @@
             <p class="help is-danger">{{ field.help_text|safe }}</p>
             {% endif %} 
             {% endfor %}
-            
+            <br>
+            {{ userform.non_field_errors }}
+            {% for field in userform %} 
+                {{ field.label_tag }} 
+                {{ field}} 
+                {{ field.errors }}
+            {% if field.help_text %}
+            <p class="help is-danger">{{ field.help_text|safe }}</p>
+            {% endif %} 
+            {% endfor %}
+            <label>用户密码:</label>
+            <input type="text" name="resetpass" class="input" maxlength="32" placeholder="不修改请留空">
             <hr/>
             <div class="is-grouped">
             <button type="submit" class="button is-danger is-outlined ">确认修改</button>                

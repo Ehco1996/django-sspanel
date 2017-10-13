@@ -7,7 +7,7 @@ from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, rende
 from django.utils import timezone
 
 from shadowsocks.models import User
-
+from shadowsocks.forms import UserForm
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import SSUser, TrafficLog
 
@@ -22,22 +22,28 @@ from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 def User_edit(request, pk):
     '''编辑ss_user的信息'''
     ss_user = SSUser.objects.get(pk=pk)
-    contacts = User.objects.all()
-
     # 当为post请求时，修改数据
     if request.method == "POST":
         # 对总流量部分进行修改，转换单GB
         data = request.POST.copy()
         data['transfer_enable'] = int(eval(
             data['transfer_enable']) * settings.GB)
-        form = SSUserForm(data, instance=ss_user)
-        if form.is_valid():
-            form.save()
+        ssform = SSUserForm(data, instance=ss_user)
+        userform = UserForm(data,instance=ss_user.user)
+        if ssform.is_valid() and userform.is_valid():
+            ssform.save()
+            userform.save()
+            # 修改账户密码
+            passwd = request.POST.get('resetpass')
+            if len(passwd)>0:
+                ss_user.user.set_password(passwd)
+                ss_user.user.save()               
+            # 返回所有用户列表
+            contacts = User.objects.all()
             registerinfo = {
                 'title': '修改成功',
                 'subtitle': '数据更新成功',
                 'status': 'success', }
-
             context = {
                 'contacts': contacts,
                 'registerinfo': registerinfo,
@@ -49,11 +55,10 @@ def User_edit(request, pk):
                 'title': '错误',
                 'subtitle': '数据填写错误',
                 'status': 'error', }
-
             context = {
-                'form': form,
+                'ssform': ssform,
+                'userform':userform,                
                 'registerinfo': registerinfo,
-                'contacts': contacts,
                 'ss_user': ss_user,
 
             }
@@ -62,12 +67,13 @@ def User_edit(request, pk):
     else:
         # 特别初始化总流量字段
         data = {'transfer_enable': ss_user.transfer_enable / settings.GB}
-        form = SSUserForm(initial=data, instance=ss_user)
+        passdata = {'password':''}
+        ssform = SSUserForm(initial=data, instance=ss_user)
+        userform = UserForm(instance=ss_user.user)        
         context = {
-            'form': form,
-            'contacts': contacts,
+            'ssform': ssform,
+            'userform':userform,
             'ss_user': ss_user,
-
         }
         return render(request, 'backend/useredit.html', context=context)
 

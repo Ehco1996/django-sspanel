@@ -127,7 +127,6 @@ def Login_view(request):
             # 获取表单用户名和密码
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-
             # 进行用户验证
             user = authenticate(username=username, password=password)
             if user is not None and user.is_active:

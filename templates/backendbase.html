@@ -1,7 +1,6 @@
 {% load ehcofilter %}
 <!DOCTYPE html>
 <html lang="zh">
-
 <head>
     {% load staticfiles %}
     <title>{% settings_value "TITLE" %}</title>
@@ -10,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href=" {% static 'img/logo/logo.ico' %}" />
     <!-- css -->
-    <link rel="stylesheet" href="{% static 'sspanel/css/bulma-6.css'%}">
+    <link rel="stylesheet" href="{% static 'sspanel/css/bulma.css'%}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{% static 'sspanel/css/ehco.css'%}">
     <link rel="stylesheet" href="{% static 'sspanel/css/sweetalert.css'%}">
@@ -160,7 +159,7 @@
                         </p>
                         <ul class="menu-list">
                             <li>
-                                <a href="/admin">Django后台</a>
+                                <a href="/admin">数据后台</a>
                             </li>
                         </ul>
                         <ul class="menu-list">
