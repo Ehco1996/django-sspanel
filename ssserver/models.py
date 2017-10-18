@@ -5,6 +5,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.shortcuts import resolve_url
+from django.conf import settings
 
 # python标准库
 import datetime
@@ -21,11 +22,11 @@ PLAN_CHOICES = (
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
-    ('aes-128-ctr', 'aes-128-ctr'),   
+    ('aes-128-ctr', 'aes-128-ctr'),
     ('rc4-md5', 'rc4-md5'),
     ('salsa20', 'salsa20'),
     ('chacha20', 'chacha20'),
-    ('none', 'none'),            
+    ('none', 'none'),
 )
 
 PROTOCOL_CHOICES = (
@@ -49,6 +50,21 @@ OBFS_CHOICES = (
 
 
 class SSUser(models.Model):
+
+    @classmethod
+    def userTodyChecked(cls):
+        '''返回今日签到人数'''
+        return len([o for o in cls.objects.all() if o.get_check_in()])
+
+    @classmethod
+    def userNeverChecked(cls):
+        '''返回从未签到过人数'''
+        return len([o for o in cls.objects.all() if o.last_check_in_time.year == 1970])
+
+    @classmethod
+    def userNeverUsed(cls):
+        '''返回从未使用过的人数'''
+        return len([o for o in cls.objects.all() if o.last_use_time == 0])
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -157,11 +173,6 @@ class SSUser(models.Model):
         now_day = datetime.datetime.now().day
         return check_day == now_day
 
-    @classmethod
-    def get_absolute_url(cls):
-        '''返回url链接'''
-        return resolve_url('shadowsocks:index')
-
     def clean(self):
         '''保证端口在1024<50000之间'''
         if self.port:
@@ -183,6 +194,14 @@ class SSUser(models.Model):
 class TrafficLog(models.Model):
     '''用户流量记录'''
 
+    @classmethod
+    def totalTraffic(cls, node_id):
+        '''返回该节点使用总流量 单位GB'''
+        traffics = cls.objects.filter(node_id=node_id)
+        total_traffic = sum(
+            [u.upload_traffic + u.download_traffic for u in traffics])
+        return round(total_traffic / settings.GB, 2)
+
     user_id = models.IntegerField('用户id', blank=False, null=False)
 
     upload_traffic = models.BigIntegerField(
@@ -200,6 +219,9 @@ class TrafficLog(models.Model):
     rate = models.FloatField('流量比例', default=1.0, null=False)
     traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
+
+    def __str__(self):
+        return self.traffic
 
     class Meta:
         verbose_name_plural = '流量记录'

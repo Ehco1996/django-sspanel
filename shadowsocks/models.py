@@ -9,14 +9,16 @@ from django.conf import settings
 
 import markdown
 import datetime
+import base64
+import time
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
-    ('aes-128-ctr', 'aes-128-ctr'),   
+    ('aes-128-ctr', 'aes-128-ctr'),
     ('rc4-md5', 'rc4-md5'),
     ('salsa20', 'salsa20'),
     ('chacha20', 'chacha20'),
-    ('none', 'none'),            
+    ('none', 'none'),
 )
 
 STATUS_CHOICES = (
@@ -47,6 +49,16 @@ OBFS_CHOICES = (
 
 class User(AbstractUser):
     '''SS账户模型'''
+
+    @classmethod
+    def proUser(cls):
+        '''付费用户数量'''
+        return len(cls.objects.filter(level__gt=0))
+
+    @classmethod
+    def userNum(cls):
+        '''返回用户总数'''
+        return len(cls.objects.all())
 
     balance = models.DecimalField(
         '余额',
@@ -146,6 +158,24 @@ class Node(models.Model):
     def __str__(self):
         return self.name
 
+    def get_ssr_link(self, ss_user):
+        '''返回ssr链接'''
+        ssr_password = base64.b64encode(
+            bytes(ss_user.password, 'utf8')).decode('ascii')
+        ssr_code = '{}:{}:{}:{}:{}:{}'.format(
+            self.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
+        ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
+        ssr_link = 'ssr://{}'.format(ssr_pass)
+        return ssr_link
+
+    def get_ss_link(self, ss_user):
+        '''返回ss链接'''
+        ss_code = '{}:{}@{}:{}'.format(
+            ss_user.method, ss_user.password, self.server, ss_user.port)
+        ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
+        ss_link = 'ss://{}'.format(ss_pass)
+        return ss_link
+
     class Meta:
         ordering = ['id']
         verbose_name_plural = '节点'
@@ -175,6 +205,11 @@ class NodeInfoLog(models.Model):
 class NodeOnlineLog(models.Model):
     '''节点在线记录'''
 
+    @classmethod
+    def totalOnlineUser(cls):
+        '''返回所有节点的在线人数总和'''
+        return sum([o.get_online_user() for o in cls.objects.all()])
+
     node_id = models.IntegerField('节点id', blank=False, null=False)
 
     online_user = models.IntegerField('在线人数', blank=False, null=False)
@@ -183,6 +218,20 @@ class NodeOnlineLog(models.Model):
 
     def __str__(self):
         return '节点：{}'.format(self.node_id)
+
+    def get_oneline_status(self):
+        '''检测是否在线'''
+        if int(time.time()) - self.log_time > 75:
+            return False
+        else:
+            return True
+
+    def get_online_user(self):
+        '''返回在线人数'''
+        if self.get_oneline_status() == True:
+            return self.online_user
+        else:
+            return 0
 
     class Meta:
         verbose_name_plural = '节点在线记录'
@@ -275,6 +324,17 @@ class Aliveip(models.Model):
 
 
 class Donate(models.Model):
+
+    @classmethod
+    def totalDonateMoney(cls):
+        '''返回捐赠总金额'''
+        return sum([d.money for d in cls.objects.all()])
+
+    @classmethod
+    def totalDonateNums(cls):
+        '''返回捐赠总数量'''
+        return len(cls.objects.all())
+
     '''捐赠记录'''
     user = models.ForeignKey(
         User,

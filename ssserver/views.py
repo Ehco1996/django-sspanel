@@ -232,6 +232,7 @@ def auto_reset_traffic():
     for user in users:
         user.ss_user.download_traffic = 0
         user.ss_user.upload_traffic = 0
+        user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC        
         user.ss_user.save()
         logs = 'user {}  traffic reset! '.format(
             user.username).encode('utf8')

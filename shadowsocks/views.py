@@ -6,9 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.six import BytesIO
 from django.utils import timezone
-from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic.list import ListView
 from django.db.models import Q
 from django.conf import settings
 from decimal import Decimal
@@ -379,8 +377,8 @@ def Face_pay_view(request, out_trade_no):
     context = {}
     user = request.user
     paid = False
-    # 等待3秒后再查询支付结果
-    time.sleep(3)
+    # 等待1秒后再查询支付结果
+    time.sleep(1)
     res = alipay.api_alipay_trade_query(out_trade_no=out_trade_no)
     if res.get("trade_status", "") == "TRADE_SUCCESS":
         paid = True
@@ -415,36 +413,25 @@ def nodeinfo(request):
     nodelists = []
     ss_user = request.user.ss_user
     user = request.user
-    # 将节点信息查询结果保存dict中，方便增加在线人数字段
     # 加入等级的判断
     nodes = Node.objects.filter(level__lte=user.level, show='显示').values()
     # 循环遍历每一条线路的在线人数
     for node in nodes:
         # 生成SSR和SS的链接
-        ssr_password = base64.b64encode(
-            bytes(ss_user.password, 'utf8')).decode('ascii')
-        ssr_code = '{}:{}:{}:{}:{}:{}'.format(
-            node['server'], ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
-        ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
-        ssr_link = 'ssr://{}'.format(ssr_pass)
-        ss_code = '{}:{}@{}:{}'.format(
-            node['method'], ss_user.password, node['server'], ss_user.port)
-        ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
-        ss_link = 'ss://{}'.format(ss_pass)
-        node['ssrlink'] = ssr_link
-        node['sslink'] = ss_link
+        obj = Node.objects.get(node_id=node['node_id'])
+        node['ssrlink'] = obj.get_ssr_link(ss_user)
+        node['sslink'] = obj.get_ss_link(ss_user)
+        # 得到在线人数
         try:
-            otime = NodeInfoLog.objects.filter(
-                node_id=node['node_id'])[0].log_time
-            # 判断节点最后一次心跳时间
-            # 判断节点是否在线
-            node['online'] = False if (time.time() - otime) > 75 else True
-            # 检索节点的在线人数
-            node['count'] = NodeOnlineLog.objects.filter(
-                node_id=node['node_id'])[::-1][0].online_user
-        except IndexError:
+            log = NodeOnlineLog.objects.filter(
+                node_id=node['node_id']).order_by('-id')[0]
+            node['online'] = log.get_oneline_status()
+            node['count'] = log.get_online_user()
+        except:
+            node['online'] = False
             node['count'] = 0
         nodelists.append(node)
+
     context = {
         'nodelists': nodelists,
         'ss_user': ss_user,
@@ -716,59 +703,23 @@ def ticket_edit(request, pk):
 @permission_required('shadowsocks')
 def backend_index(request):
     '''跳转到后台界面'''
-
-    User = SSUser.objects.all()
-    # 找到用户的总量
-    user_num = len(User)
-    # 循环遍历用户的签到人数
-    checkin_num = 0
-    # 遍历没有使用过得人数
-    nouse_num = 0
-    # 遍历从未签到过得人数
-    nocheck_num = 0
-    for user in User:
-        if user.get_check_in() == True:
-            checkin_num += 1
-        if user.last_use_time == 0:
-            nouse_num += 1
-        if user.last_check_in_time.year == 1970:
-            nocheck_num += 1
-    # 节点信息状态
-    nodes = Node.objects.values()
-    # 用户在线情况
-    online = 0
-    for node in nodes:
+    # 遍历节点流量和在线人数
+    nodes = []
+    for node in Node.objects.values():
         try:
-            # 遍历在线人数
-            online += NodeOnlineLog.objects.filter(node_id=node['id'])[
-                ::-1][0].online_user
+            node['total_traffic'] = TrafficLog.totalTraffic(node['node_id'])
         except:
-            online = 0
-        traffic = TrafficLog.objects.filter(node_id=node['id'])
-        # 获取指定节点所有流量
-        total_tratffic = 0
-        try:
-            for ll in traffic:
-                total_tratffic += ll.upload_traffic + ll.download_traffic
-            total_tratffic = round(total_tratffic / settings.GB, 2)
-        except:
-            total_tratffic = 0
-        node['total_traffic'] = total_tratffic
-    # 收入情况
-    income = Donate.objects.all()
-    total_income = 0
-    for i in income:
-        total_income += i.money
-
+            node['total_traffic'] = 0
+        nodes.append(node)
     context = {
-        'user_num': user_num,
-        'checkin_num': checkin_num,
-        'nocheck_num': nocheck_num,
-        'nouse_num': nouse_num,
+        'user_num': User.userNum(),
+        'checkin_num': SSUser.userTodyChecked(),
+        'nocheck_num': SSUser.userNeverChecked(),
+        'nouse_num': SSUser.userNeverUsed(),
         'nodes': nodes,
-        'alive_user': online,
-        'income_num': len(income),
-        'total_income': total_income,
+        'alive_user': NodeOnlineLog.totalOnlineUser(),
+        'income_num': Donate.totalDonateNums(),
+        'total_income': Donate.totalDonateMoney(),
     }
 
     return render(request, 'backend/index.html', context=context)
@@ -1311,7 +1262,7 @@ def anno_edit(request, pk):
 @permission_required('shadowsocks')
 def backend_ticket(request):
     '''工单系统'''
-    ticket = Ticket.objects.all()
+    ticket = Ticket.objects.filter(status='开启')
     context = {'ticket': ticket}
     return render(request, 'backend/ticket.html', context=context)
 
