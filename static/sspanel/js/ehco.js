@@ -1,15 +1,15 @@
-$(function(){
-    function footerPosition(){
-        $("index-footer").removeClass("fixed-bottom");
-        var contentHeight = document.body.scrollHeight,//网页正文全文高度
-            winHeight = window.innerHeight;//可视窗口高度，不包括浏览器顶部工具栏
-        if(!(contentHeight > winHeight)){
-            //当网页正文高度小于可视窗口高度时，为footer添加类fixed-bottom
-            $("footer").addClass("fixed-bottom");
-        }
+$(function () {
+  function footerPosition() {
+    $("index-footer").removeClass("fixed-bottom");
+    var contentHeight = document.body.scrollHeight,//网页正文全文高度
+      winHeight = window.innerHeight;//可视窗口高度，不包括浏览器顶部工具栏
+    if (contentHeight < winHeight) {
+      //当网页正文高度小于可视窗口高度时，为footer添加类fixed-bottom
+      $("footer").addClass("fixed-bottom");
     }
-    footerPosition();
-    $(window).resize(footerPosition);
+  }
+  footerPosition();
+  $(window).resize(footerPosition);
 });
 
 
@@ -124,3 +124,53 @@ document.addEventListener('DOMContentLoaded', function () {
     return Array.prototype.slice.call(document.querySelectorAll(selector), 0);
   }
 });
+
+
+
+
+var getRandomColor = function () {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+var getRandomColorSets = function (num) {
+  colorData = []
+  for (var i = 0; i < num; i++) {
+    colorData.push(getRandomColor())
+  }
+  return colorData
+}
+
+var genDoughnutChart = function (chartId, title, labels, data) {
+  var ctx = $('#' + chartId)
+  var myChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: getRandomColorSets(data.length),
+      }]
+    },
+    options: {
+      title: {
+        display: true,
+        positon: 'top',
+        text: title,
+      },
+      legend: {
+        display: true,
+        position: 'bottom',
+      },
+      tooltip: {
+        enabled: false,
+      },
+      scaleOverlay: true,
+    }
+  });
+}
+

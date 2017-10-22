@@ -65,7 +65,7 @@
                 <!-- 手机界面菜单-->
                 <div class="is-hidden-tablet">                        
                     <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
-                    <a class="navbar-item" href="{% url 'shadowsocks:userinfo_edit' %}">资料编辑</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:userinfo_edit' %}">节点编辑</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:announcement' %}">公告栏</a>
                     <a class="navbar-item is-active" href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a>
@@ -83,7 +83,7 @@
             </div>
         </div>
     </nav>
-    <section class="hero is-info is-small">
+    <section class="hero is-small is-info">
         <div class="hero-body">
             <div class="container has-text-centered">
                 <h1 class="title">
@@ -112,7 +112,7 @@
                                 <a class="" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
                             </li>
                             <li>
-                                <a href="{% url 'shadowsocks:userinfo_edit' %}">资料编辑</a>
+                                <a href="{% url 'shadowsocks:userinfo_edit' %}">节点编辑</a>
                             </li>
                             <li>
                                 <a href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
@@ -231,7 +231,6 @@
 {% if registerinfo %}
 <script>
     swal("{{ registerinfo.title }}", '{{ registerinfo.subtitle }}', '{{ registerinfo.status }}');
-
 </script> {% endif %}
 
 </html>

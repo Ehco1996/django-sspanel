@@ -19,7 +19,7 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'', include('shadowsocks.urls', namespace='shadowsocks')),
+    url(r'', include('django.contrib.auth.urls')),    
     url(r'^server/', include('ssserver.urls', namespace='ssserver')),
-    url(r'',include('django.contrib.auth.urls')),
-
+    url(r'^api/', include('api.urls', namespace='api')),
 ]

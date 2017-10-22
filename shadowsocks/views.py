@@ -205,11 +205,6 @@ def userinfo(request):
 def checkin(request):
     '''用户签到'''
     ss_user = request.user.ss_user
-    try:
-        anno = Announcement.objects.all()[0]
-    except:
-        anno = None
-
     if not ss_user.get_check_in():
         # 距离上次签到时间大于一天 增加随机流量
         ll = randint(settings.MIN_CHECKIN_TRAFFIC,
@@ -703,23 +698,9 @@ def ticket_edit(request, pk):
 @permission_required('shadowsocks')
 def backend_index(request):
     '''跳转到后台界面'''
-    # 遍历节点流量和在线人数
-    nodes = []
-    for node in Node.objects.values():
-        try:
-            node['total_traffic'] = TrafficLog.totalTraffic(node['node_id'])
-        except:
-            node['total_traffic'] = 0
-        nodes.append(node)
+
     context = {
-        'user_num': User.userNum(),
-        'checkin_num': SSUser.userTodyChecked(),
-        'nocheck_num': SSUser.userNeverChecked(),
-        'nouse_num': SSUser.userNeverUsed(),
-        'nodes': nodes,
-        'alive_user': NodeOnlineLog.totalOnlineUser(),
-        'income_num': Donate.totalDonateNums(),
-        'total_income': Donate.totalDonateMoney(),
+        'userNum': User.userNum(),
     }
 
     return render(request, 'backend/index.html', context=context)

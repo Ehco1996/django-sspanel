@@ -16,75 +16,38 @@
     </section>
 </div>
 
-
-
-
 <div class="column is-12">
-
     <div class="tile is-ancestor">
-
         <div class="tile is-6 is-vertical is-parent">
             <div class="tile is-child box">
-                <article class="message is-primary">
-                    <div class="message-header">
-                        <p>签到情况</p>
-                        <button class="delete"></button>
-                    </div>
-                    <div class="message-body">
-                        <p> 用户总人数：{{ user_num }} 人 </p>
-                        <p> 今日签到人数：{{ checkin_num }} 人 </p>
-                        <p> 从未签到人数：{{ nocheck_num }} 人 </p>
-                    </div>
-                </article>
-            </div>
-
-            <div class="tile is-child box">
-                <article class="message is-info">
-                    <div class="message-header">
-                        <p>用户情况</p>
-                        <button class="delete"></button>
-                    </div>
-                    <div class="message-body">
-                        <p> 用户总人数：{{ user_num }} 人 </p>
-                        <p> 从未使用人数：{{ nouse_num }} 人 </p>
-                        <p> 在线人数：{{ alive_user }} 人 </p>
-                        <p align="right"><a class="button is-danger is-outlined" href="{% url 'ssserver:clean_zombie_user' %}">删除僵尸用户</a></p>
-                    </div>
-                </article>
+                <canvas id="userState" width="auto" height="300"></canvas>
             </div>
         </div>
-
         <div class="tile is-6 is-vertical is-parent">
             <div class="tile is-child box">
-                <article class="message is-success">
-                    <div class="message-header">
-                        <p>节点在线情况</p>
-                        <button class="delete"></button>
-                    </div>
-                    <div class="message-body">
-                        {% for node in nodes %}
-                        <p>节点：<code>{{ node.name }} </code> 状态：<code>{{ node.status }}</code> 流量:<code>{{ node.total_traffic }}GB</code></p>
-                        {% endfor %}
-                    </div>
-                </article>
+                <canvas id="nodeState"></canvas>
             </div>
-
             <div class="tile is-child box">
-                <article class="message is-warning">
-                    <div class="message-header">
-                        <p>商品收入情况</p>
-                        <button class="delete"></button>
-                    </div>
-                    <div class="message-body">
-                        <p> 交易总数：{{ income_num }} 笔 </p>
-                        <p> 交易总金额：{{ total_income }} 元 </p>
-                    </div>
-                </article>
+                <canvas id="donateState"></canvas>
             </div>
         </div>
     </div>
 </div>
 
+<script>
+    // 获取后台首页状态
+    var getSystemStatus = function () {
+        $.getJSON("{% url 'api:userdata' %}", function (results) {
+            genDoughnutChart('userState', '总用户:{{ userNum }} ', ['在线人数', '今日签到', '从未签到', '从未使用'], results)
+        })
 
+        $.getJSON("{% url 'api:nodedata' %}", function (results) {
+            genDoughnutChart('nodeState', '节点流量 单位：GB', results.nodeName, results.nodeTraffic)
+        })
 
-{% endblock main %}
+        $.getJSON("{% url 'api:donatedata' %}", function (results) {
+            genDoughnutChart('donateState', '收入分析', ['成交数 (笔)', '成交金额 (元)'], results)
+        })
+    }
+    getSystemStatus()
+</script> {% endblock main %}
