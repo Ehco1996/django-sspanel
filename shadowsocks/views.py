@@ -141,7 +141,6 @@ def Login_view(request):
                 context = {
                     'registerinfo': registerinfo,
                     'anno': anno,
-
                 }
                 return render(request, 'sspanel/userinfo.html', context=context)
             else:
@@ -158,8 +157,10 @@ def Login_view(request):
                 }
                 return render(request, 'sspanel/login.html', context=context)
     else:
-        form = LoginForm()
-        return render(request, 'sspanel/login.html', {'form': form})
+        context = {'form': LoginForm(),
+                   'USE_SMTP': settings.USE_SMTP, }
+
+        return render(request, 'sspanel/login.html', context=context)
 
 
 def Logout_view(request):
@@ -308,34 +309,41 @@ def donate(request):
         context['alipay'] = True
         # 尝试获取流水号
         if request.method == 'POST':
-            number = request.POST.get('q')
-            out_trade_no = datetime.datetime.fromtimestamp(
-                time.time()).strftime('%Y%m%d%H%M%S%s')
-            try:
-                # 获取金额数量
-                amount = number
-                # 生成订单
-
-                trade = alipay.api_alipay_trade_precreate(
-                    subject=settings.ALIPAY_TRADE_INFO.format(amount),
-                    out_trade_no=out_trade_no,
-                    total_amount=amount,
-                    timeout_express='60s',)
-
-                # 获取二维码链接
-                code_url = trade.get('qr_code', '')
-                request.session['code_url'] = code_url
-                request.session['out_trade_no'] = out_trade_no
-                request.session['amount'] = amount
-                # 将订单号传入模板
-                context['out_trade_no'] = out_trade_no
-            except:
-                res = alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
+            number = eval(request.POST.get('q'))
+            if number < 10:
                 registerinfo = {
-                    'title': '糟糕，当面付插件可能出现问题了',
-                    'subtitle': '如果一直失败,请后台联系站长',
+                    'title': '失败',
+                    'subtitle': '请保证金额大于10元',
                     'status': 'error', }
                 context['registerinfo'] = registerinfo
+                return render(request, 'sspanel/donate.html', context=context)
+            else:
+                out_trade_no = datetime.datetime.fromtimestamp(
+                    time.time()).strftime('%Y%m%d%H%M%S%s')
+                try:
+                    # 获取金额数量
+                    amount = number
+                    # 生成订单
+                    trade = alipay.api_alipay_trade_precreate(
+                        subject=settings.ALIPAY_TRADE_INFO.format(amount),
+                        out_trade_no=out_trade_no,
+                        total_amount=amount,
+                        timeout_express='60s',)
+                    # 获取二维码链接
+                    code_url = trade.get('qr_code', '')
+                    request.session['code_url'] = code_url
+                    request.session['out_trade_no'] = out_trade_no
+                    request.session['amount'] = amount
+                    # 将订单号传入模板
+                    context['out_trade_no'] = out_trade_no
+                except:
+                    res = alipay.api_alipay_trade_cancel(
+                        out_trade_no=out_trade_no)
+                    registerinfo = {
+                        'title': '糟糕，当面付插件可能出现问题了',
+                        'subtitle': '如果一直失败,请后台联系站长',
+                        'status': 'error', }
+                    context['registerinfo'] = registerinfo
     else:
         # 关闭支付宝支付
         context['alipay'] = False
@@ -955,6 +963,28 @@ def user_search(request):
     }
 
     return render(request, 'backend/userlist.html', context=context)
+
+
+@permission_required('shadowsocks')
+def user_status(request):
+    '''站内用户分析'''
+    # 查询今日注册的用户
+    todayRegistered = User.todayRegister()
+    todayRegisteredNum = len(todayRegistered)
+    # 查询消费水平前十的用户
+    richUser = Donate.richPeople()
+    # 查询流量用的最多的用户
+    coreUser = SSUser.coreUser()
+    context = {
+        'userNum': User.userNum(),
+        'todayChecked': SSUser.userTodyChecked(),
+        'aliveUser': NodeOnlineLog.totalOnlineUser(),
+        'todayRegistered': todayRegistered[:10],
+        'todayRegisteredNum': todayRegisteredNum,
+        'richUser': richUser,
+        'coreUser': coreUser,
+    }
+    return render(request, 'backend/userstatus.html', context=context)
 
 
 @permission_required('shadowsocks')

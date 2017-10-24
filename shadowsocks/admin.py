@@ -7,6 +7,11 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ['username', 'email']
 
 
+class PurchaseHistoryAdmin(admin.ModelAdmin):
+    list_display = ['user', 'money', 'purchtime', ]
+    search_fields = ['user', ]
+
+
 class InviteCodeAdmin(admin.ModelAdmin):
     list_display = ['code', 'time_created']
 
@@ -44,10 +49,10 @@ admin.site.register(models.Node)
 admin.site.register(models.Donate, DonateAdmin)
 admin.site.register(models.MoneyCode, MoneyCodeAdmin)
 admin.site.register(models.Shop)
-admin.site.register(models.PurchaseHistory)
+admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.AlipayRecord, AlipayAdmin)
 admin.site.register(models.AlipayRequest, AlipayRequestAdmin)
-admin.site.register(models.NodeOnlineLog,NodeOnlineAdmin)
+admin.site.register(models.NodeOnlineLog, NodeOnlineAdmin)
 admin.site.register(models.NodeInfoLog)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)

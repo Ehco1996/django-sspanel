@@ -76,6 +76,7 @@
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:user_list' %}">用户列表</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:user_status' %}">用户分析</a>                    
                     <a class="navbar-item is-active" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
                 </div>
@@ -149,6 +150,9 @@
                         <ul class="menu-list">
                             <li>
                                 <a href="{% url 'shadowsocks:user_list' %}">用户列表</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:user_status' %}">用户分析</a>
                             </li>
                         </ul>
                         <p class="menu-label">

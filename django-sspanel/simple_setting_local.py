@@ -1,7 +1,10 @@
 # DEBUG设置
 DEBUG = True
 
-
+# 域名设置
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+]
 # mysql 设置
 DATABASES = {
 
@@ -19,6 +22,10 @@ DATABASES = {
 # 邮件服务设置：
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# 是否开启邮件功能
+USE_SMTP = False
+
+
 # SS面板设置：
 MB = 1024 * 1024
 GB = 1024 * 1024 * 1024
@@ -34,7 +41,7 @@ MIN_CHECKIN_TRAFFIC = 10 * MB
 MAX_CHECKIN_TRAFFIC = 200 * MB
 
 # 是否启用支付宝系统
-USE_ALIPAY = False
+USE_ALIPAY = True
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 

@@ -66,6 +66,16 @@ class SSUser(models.Model):
         '''返回从未使用过的人数'''
         return len([o for o in cls.objects.all() if o.last_use_time == 0])
 
+    @classmethod
+    def coreUser(cls):
+        '''返回流量用的最多的前十名用户'''
+        rec = {}
+        for u in cls.objects.filter(download_traffic__gt=0):
+            rec[u] = u.upload_traffic + u.download_traffic
+        # 按照流量倒序排序，切片取出前十名
+        rec = sorted(rec.items(), key=lambda rec: rec[1], reverse=True)[:10]
+        return [(r[0],r[0].get_traffic()) for r in rec]
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

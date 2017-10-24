@@ -8,6 +8,7 @@ from ssserver.models import SSUser, TrafficLog
 
 # Create your views here.
 
+
 @permission_required('shadowsocks')
 def test(request):
     '''测试api'''
@@ -26,7 +27,7 @@ def userData(request):
     在线人数、今日签到、从未签到、从未使用
     '''
 
-    data = [NodeOnlineLog.totalOnlineUser(),
+    data = [NodeOnlineLog.totalOnlineUser(), len(User.todayRegister()),
             SSUser.userTodyChecked(), SSUser.userNeverChecked(), SSUser.userNeverUsed(), ]
 
     result = json.dumps(data, ensure_ascii=False)
@@ -40,7 +41,6 @@ def nodeData(request):
     所有节点名
     各自消耗的流量
     '''
-
     nodeName = [node.name for node in Node.objects.all()]
     nodeTraffic = [TrafficLog.totalTraffic(
         node.node_id) for node in Node.objects.all()]

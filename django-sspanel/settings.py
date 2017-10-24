@@ -121,6 +121,10 @@ USE_L10N = True
 
 USE_TZ = False
 
+# session 设置
+SESSION_COOKIE_AGE = 60 * 60 # 60分钟
+SESSION_SAVE_EVERY_REQUEST = True
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/

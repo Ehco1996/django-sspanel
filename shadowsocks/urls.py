@@ -62,6 +62,7 @@ urlpatterns = [
     url(r'^backend/user/delete/(?P<pk>[0-9]+)$',
         views.user_delete, name='user_delete'),
     url(r'^backend/user/search/$', views.user_search, name='user_search'),
+    url(r'^backend/user/status/$', views.user_status, name='user_status'),
     # 商品充值相关
     url(r'^backend/charge/$', views.backend_charge, name='backend_charge'),
     url(r'^backend/shop$', views.backend_shop, name='backend_shop'),

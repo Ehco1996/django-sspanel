@@ -1,5 +1,4 @@
-{% extends 'base.html' %} {% block main %} {% load static %}
-{% load ehcofilter %}
+{% extends 'base.html' %} {% block main %} {% load static %} {% load ehcofilter %}
 <div class="column is-12">
     <section class="hero is-primary is-smaill">
         <div class="hero-body">
@@ -14,16 +13,19 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
     <div class="tile is-ancestor">
-         <div class="tile is-5 is-vertical is-parent">
-            
-            
+        <div class="tile is-5 is-vertical is-parent">
             {% if alipay == True %}
             <div class="tile box is-child">
-                <p class="subtitle">充值捐赠系统正在内测中...<br>请在下方输入充值/捐赠金额</p>
-                <p>点击提交会弹出<strong>支付宝二维码</strong><br>扫描二维码确认付款之后<br>账户里会增加对应的金额</p>
+                <p class="subtitle">充值捐赠系统正在内测中...
+                    <br>请在下方输入
+                    <strong>充值/捐赠金额</strong>
+                </p>
+                <p>点击提交会弹出
+                    <strong>支付宝二维码</strong>
+                    <br>扫描二维码确认付款之后
+                    <br>账户里会增加对应的金额</p>
                 <strong>付完款之后要按红色的确认按钮！</strong>
                 <hr>
                 <div class="content">
@@ -38,17 +40,17 @@
                             </div>
                         </div>
                     </form>
-                    <hr> 
-                    {% if out_trade_no %}
+                    <hr> {% if out_trade_no %}
                     <figure class="image">
                         <img src="{% url 'shadowsocks:facepay_qrcode' %}">
                     </figure>
-                    <p><strong>付费完成之后请点击确认！</strong></p>
+                    <p>
+                        <strong>付费完成之后请点击确认！</strong>
+                    </p>
                     <div class="control">
                         <a class="button is-outlined is-danger" href="{% url 'shadowsocks:facepay_view' out_trade_no %}">确认</a>
                     </div>
-                    {% endif %} 
-                    {% if messages %}
+                    {% endif %} {% if messages %}
                     <ul class="messages">
                         {% for message in messages %}
                         <p class="errorlist">{{ message }}</p>
@@ -57,25 +59,17 @@
                     {% endif %}
                 </div>
             </div>
-            
             {% else %}
-            
-
             <div class="tile box is-child">
                 <p class="subtitle">本站通过充值码进行充值:</p>
                 <hr>
-                <p class="subtitle">扫描站长支付宝PY获得充值码：</p>                
+                <p class="subtitle">扫描站长支付宝PY获得充值码：</p>
                 <figure class="image">
                     <img src="{% static '/img/alipay.png'%}">
-                </figure>           
+                </figure>
             </div>
-
             {% endif %}
-        
         </div>
-
-
-
         <div class="tile is-7 is-vertical is-parent">
             <div class="tile box is-child">
                 <div class="content">
@@ -88,7 +82,6 @@
                                 <th>捐赠时间:</th>
                             </tr>
                         </thead>
-
                         {% for donate in donatelist %}
                         <tr>
                             <td>{{ donate.user|mix_name:donate.user }}</td>

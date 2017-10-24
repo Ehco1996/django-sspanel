@@ -60,6 +60,12 @@ class User(AbstractUser):
         '''返回用户总数'''
         return len(cls.objects.all())
 
+    @classmethod
+    def todayRegister(cls):
+        '''返回今日注册的用户'''
+        today = datetime.datetime.now() - datetime.timedelta(days=1)
+        return cls.objects.filter(date_joined__gt=today)
+
     balance = models.DecimalField(
         '余额',
         decimal_places=2,
@@ -334,6 +340,17 @@ class Donate(models.Model):
     def totalDonateNums(cls):
         '''返回捐赠总数量'''
         return len(cls.objects.all())
+
+    @classmethod
+    def richPeople(cls):
+        '''返回捐赠金额最多的前10名'''
+        rec = {}
+        for d in cls.objects.all():
+            if d.user not in rec.keys():
+                rec[d.user] = d.money
+            else:
+                rec[d.user] += d.money
+        return sorted(rec.items(), key=lambda rec: rec[1], reverse=True)[:10]
 
     '''捐赠记录'''
     user = models.ForeignKey(
