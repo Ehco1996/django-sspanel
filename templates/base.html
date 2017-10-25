@@ -1,6 +1,7 @@
 {% load ehcofilter %}
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
     {% load staticfiles %}
     <title>{% settings_value "TITLE" %}</title>
@@ -18,6 +19,7 @@
     <script src="{% static 'sspanel/js/sweetalert.min.js' %}"></script>
     <script src="{% static 'sspanel/js/ehco.js' %}"></script>
 </head>
+
 <body>
     <nav class="navbar is-info">
         <div class="navbar-brand">
@@ -63,8 +65,8 @@
                     </div>
                 </div>
                 <!-- 手机界面菜单-->
-                <div class="is-hidden-tablet">                        
-                    <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
+                <div class="is-hidden-tablet">
+                    <a class="navbar-item is-active" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:userinfo_edit' %}">节点编辑</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:announcement' %}">公告栏</a>
@@ -74,6 +76,8 @@
                     <a class="navbar-item is-active" href="{% url 'shadowsocks:chargecenter' %}">充值界面</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:shop' %}">商品界面</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:purchaselog' %}">购买记录</a>
+                    <a class="navbar-item is-active" href="{% url 'shadowsocks:affiliate' %}">邀请管理</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:rebate' %}">返利记录</a>
                     {% if perms.shadowsocks %}
                     <a class="navbar-item is-active" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_index' %}">网站后台</a>
@@ -147,6 +151,17 @@
                             </li>
                             <li>
                                 <a href="{% url 'shadowsocks:purchaselog' %}">购买记录</a>
+                            </li>
+                        </ul>
+                        <p class="menu-label">
+                            邀请系统
+                        </p>
+                        <ul class="menu-list">
+                            <li>
+                                <a href="{% url 'shadowsocks:affiliate' %}">邀请管理</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:rebate' %}">返利记录</a>
                             </li>
                         </ul>
 

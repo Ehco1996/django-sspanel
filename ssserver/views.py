@@ -29,15 +29,15 @@ def User_edit(request, pk):
         data['transfer_enable'] = int(eval(
             data['transfer_enable']) * settings.GB)
         ssform = SSUserForm(data, instance=ss_user)
-        userform = UserForm(data,instance=ss_user.user)
+        userform = UserForm(data, instance=ss_user.user)
         if ssform.is_valid() and userform.is_valid():
             ssform.save()
             userform.save()
             # 修改账户密码
             passwd = request.POST.get('resetpass')
-            if len(passwd)>0:
+            if len(passwd) > 0:
                 ss_user.user.set_password(passwd)
-                ss_user.user.save()               
+                ss_user.user.save()
             # 返回所有用户列表
             contacts = User.objects.all()
             registerinfo = {
@@ -57,7 +57,7 @@ def User_edit(request, pk):
                 'status': 'error', }
             context = {
                 'ssform': ssform,
-                'userform':userform,                
+                'userform': userform,
                 'registerinfo': registerinfo,
                 'ss_user': ss_user,
 
@@ -67,12 +67,12 @@ def User_edit(request, pk):
     else:
         # 特别初始化总流量字段
         data = {'transfer_enable': ss_user.transfer_enable / settings.GB}
-        passdata = {'password':''}
+        passdata = {'password': ''}
         ssform = SSUserForm(initial=data, instance=ss_user)
-        userform = UserForm(instance=ss_user.user)        
+        userform = UserForm(instance=ss_user.user)
         context = {
             'ssform': ssform,
-            'userform':userform,
+            'userform': userform,
             'ss_user': ss_user,
         }
         return render(request, 'backend/useredit.html', context=context)
@@ -189,26 +189,6 @@ def ChangeSsObfs(request):
         return render(request, 'sspanel/userinfoedit.html', context=context)
 
 
-@login_required
-def ChangeSsPort(request):
-    '''随机重置用户用端口'''
-    user = request.user.ss_user
-    # 找到端口池中最大的端口
-    max_port_user = SSUser.objects.order_by('-port').first()
-    port = max_port_user.port + randint(1, 3)
-    user.port = port
-    user.save()
-    registerinfo = {
-        'title': '修改成功！',
-        'subtitle': '端口修改为：{}！'.format(port),
-        'status': 'success',
-    }
-    result = json.dumps(registerinfo,ensure_ascii=False)
-    
-    # AJAX 返回json数据
-    return HttpResponse(result,content_type='application/json')
-    
-
 def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''
     users = User.objects.filter(level__gt=0)
@@ -223,6 +203,7 @@ def check_user_state():
             logs = 'time: {} use: {} level timeout '.format(timezone.now().strftime('%Y-%m-%d'),
                                                             user.username).encode('utf8')
             print(logs)
+    print('Time:{} CHECKED'.format(timezone.now()))
 
 
 def auto_reset_traffic():
@@ -232,7 +213,7 @@ def auto_reset_traffic():
     for user in users:
         user.ss_user.download_traffic = 0
         user.ss_user.upload_traffic = 0
-        user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC        
+        user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
         user.ss_user.save()
         logs = 'user {}  traffic reset! '.format(
             user.username).encode('utf8')

@@ -82,7 +82,7 @@
                     <thead>
                         <tr>
                             <th>用户名</th>
-                            <th>流量</th>
+                            <th>金额</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -114,8 +114,8 @@
                     <tbody>
                         {% for u in todayRegistered %}
                         <tr>
-                            <td>{{ u }}</td>
-                            <td>ehco</td>
+                            <td>{{ u.username }}</td>
+                            <td>{{ u.inviter }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

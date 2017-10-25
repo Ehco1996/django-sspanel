@@ -9,7 +9,6 @@ urlpatterns = [
     url(r'^changessmethod/$', views.ChangeSsMethod, name='changessmethod'),
     url(r'^changessprotocol/$', views.ChangeSsProtocol, name='changessprotocol'),
     url(r'^changessobfs/$', views.ChangeSsObfs, name='changessobfs'),
-    url(r'^changessport/$', views.ChangeSsPort, name='changessport'),
     url(r'^test/$', views.testcheck, name='test'),
     url(r'^clean/zombie/user$', views.clean_zombie_user, name='clean_zombie_user'),
 ]

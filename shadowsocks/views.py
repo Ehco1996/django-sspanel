@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.conf import settings
 from decimal import Decimal
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket
+from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket, RebateRecord
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 
 # 导入加密混淆协议选项
@@ -78,7 +78,7 @@ def register(request):
             # 获取用户填写的邀请码
             code = request.POST.get('invitecode')
             # 数据库查询邀请码
-            code_query = InviteCode.objects.filter(code=code)
+            code_query = InviteCode.objects.filter(code=code, isused=False)
             # 判断邀请码是否存在并返回信息
             if len(code_query) == 0:
                 registerinfo = {
@@ -102,10 +102,15 @@ def register(request):
                     'registerinfo': registerinfo
                 }
                 form.save()
-                # 删除使用过的邀请码
-                code_query.delete()
+                # 改变表邀请码状态
+                code = code_query[0]
+                code.isused = True
+                code.save()
                 # 将user和ssuser关联
                 user = User.objects.get(username=request.POST.get('username'))
+                # 绑定邀请人
+                user.invited_by = code.code_id
+                user.save()
                 max_port_user = SSUser.objects.order_by('-port').first()
                 port = max_port_user.port + randint(2, 3)
                 ss_user = SSUser.objects.create(user=user, port=port)
@@ -525,11 +530,17 @@ def purchase(request, goods_id):
         record = PurchaseHistory(info=good, user=user, money=good.money,
                                  purchtime=timezone.now())
         record.save()
+        # 增加返利记录
+        inviter = User.objects.get(pk=user.invited_by)
+        rebaterecord = RebateRecord(
+            user_id=inviter.pk, money=good.money * Decimal(settings.INVITE_PERCENT))
+        inviter.balance += rebaterecord.money
+        inviter.save()
+        rebaterecord.save()
         registerinfo = {
             'title': '够买成功',
             'subtitle': '即将跳转回用户中心',
             'status': 'success', }
-
         context = {
             'ss_user': ss_user,
             'registerinfo': registerinfo,
@@ -554,7 +565,7 @@ def chargecenter(request):
     user = request.user
     codelist = MoneyCode.objects.filter(user=user)
 
-    context = {'ss_user': user,
+    context = {'user': user,
                'codelist': codelist}
 
     return render(request, 'sspanel/chargecenter.html', context=context)
@@ -700,6 +711,30 @@ def ticket_edit(request, pk):
             'ticket': ticket,
         }
         return render(request, 'sspanel/ticketedit.html', context=context)
+
+
+@login_required
+def affiliate(request):
+    '''推广页面'''
+    invidecodes = InviteCode.objects.filter(code_id=request.user.pk, type=0)
+    context = {
+        'invitecodes': invidecodes,
+        'invitePercent': settings.INVITE_PERCENT * 100,
+        'inviteNumn': request.user.invitecode_num - len(invidecodes)
+    }
+    return render(request, 'sspanel/affiliate.html', context=context)
+
+
+@login_required
+def rebate_record(request):
+    '''返利记录'''
+    u = request.user
+    records = RebateRecord.objects.filter(user_id=u.pk)
+    context = {
+        'records': records,
+        'user': request.user,
+    }
+    return render(request, 'sspanel/rebaterecord.html', context=context)
 
 
 # 网站后台界面
@@ -969,7 +1004,12 @@ def user_search(request):
 def user_status(request):
     '''站内用户分析'''
     # 查询今日注册的用户
-    todayRegistered = User.todayRegister()
+    todayRegistered = User.todayRegister().values()
+    for t in todayRegistered:
+        try:
+            t['inviter'] = User.objects.get(pk=t['invited_by'])
+        except:
+            t['inviter'] = 'ehco'
     todayRegisteredNum = len(todayRegistered)
     # 查询消费水平前十的用户
     richUser = Donate.richPeople()
@@ -990,7 +1030,7 @@ def user_status(request):
 @permission_required('shadowsocks')
 def backend_invite(request):
     '''邀请码生成'''
-    code_list = InviteCode.objects.filter(type=0)
+    code_list = InviteCode.objects.filter(type=0, isused=False, code_id=1)
     return render(request, 'backend/invitecode.html', {'code_list': code_list, })
 
 

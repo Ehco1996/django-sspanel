@@ -3,7 +3,7 @@
 
 Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
-Demo: [迷之屋](http://www.ehcozone.club/)
+Demo: [迷之屋](https://www.ehcozone.ml/)
 
 Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
@@ -18,6 +18,7 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 * 完善的商品购买逻辑
 * 统一完善的后台管理界面
 * 支付宝当面付模块
+* 邀请返利系统
 * 更多特性等待开发和探索....
 
 ## 预览图
@@ -33,12 +34,15 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 * 充值捐增（支持支付宝):
 ![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/86274004.jpg)
 
+* 推广界面
+![](http://opj9lh0x4.bkt.clouddn.com/17-10-25/14059898.jpg)
+
 更多内容请访问:  [迷之屋](http://www.ehcozone.club/)
 
 **后台界面:**
 
 * 后台首页：
-![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/14908316.jpg)
+![](http://opj9lh0x4.bkt.clouddn.com/17-10-25/23766206.jpg)
 
 * 商品管理：
 ![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/76575609.jpg)

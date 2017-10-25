@@ -63,7 +63,9 @@ class User(AbstractUser):
     @classmethod
     def todayRegister(cls):
         '''返回今日注册的用户'''
-        today = datetime.datetime.now() - datetime.timedelta(days=1)
+        # 获取今天凌晨的时间
+        today = datetime.datetime.combine(
+            datetime.date.today(), datetime.time.min)
         return cls.objects.filter(date_joined__gt=today)
 
     balance = models.DecimalField(
@@ -79,6 +81,16 @@ class User(AbstractUser):
     invitecode = models.CharField(
         '邀请码',
         max_length=40,
+    )
+
+    invitecode_num = models.PositiveIntegerField(
+        '可生成的邀请码数量',
+        default=settings.INVITE_NUM
+    )
+
+    invited_by = models.PositiveIntegerField(
+        '邀请人id',
+        default=1,
     )
 
     # 最高等级限制为9级，和节点等级绑定
@@ -253,6 +265,11 @@ class InviteCode(models.Model):
         default=0,
     )
 
+    code_id = models.PositiveIntegerField(
+        '邀请人ID',
+        default=1,
+    )
+
     code = models.CharField(
         '邀请码',
         primary_key=True,
@@ -267,30 +284,41 @@ class InviteCode(models.Model):
         auto_now_add=True
     )
 
-    def clean(self):
-        # 保证邀请码不会重复
-        code_length = len(self.code or '')
-        if 0 < code_length < 16:
-            self.code = '{}{}'.format(
-                self.code,
-                get_long_random_string()
-            )
-        else:
-            self.code = None
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-
-        # 重写save方法，在包存前执行我们写的clean方法
-        self.clean()
-        return super(InviteCode, self).save(force_insert, force_update, using, update_fields)
+    isused = models.BooleanField(
+        '是否使用',
+        default=False,
+    )
 
     def __str__(self):
         return str(self.code)
 
     class Meta:
         verbose_name_plural = '邀请码'
-        ordering = ('-time_created',)
+        ordering = ('isused', '-time_created',)
+
+
+class RebateRecord(models.Model):
+    '''返利记录'''
+
+    user_id = models.PositiveIntegerField(
+        '返利人ID',
+        default=1,
+    )
+
+    money = models.DecimalField(
+        '金额',
+        decimal_places=2,
+        max_digits=10,
+        default=0,
+        null=True,
+        blank=True,
+    )
+
+    rebatetime = models.DateTimeField(
+        '返利时间',
+        editable=False,
+        auto_now_add=True
+    )
 
 
 class Aliveip(models.Model):

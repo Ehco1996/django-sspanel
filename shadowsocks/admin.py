@@ -13,7 +13,7 @@ class PurchaseHistoryAdmin(admin.ModelAdmin):
 
 
 class InviteCodeAdmin(admin.ModelAdmin):
-    list_display = ['code', 'time_created']
+    list_display = ['code', 'time_created','isused']
 
 
 class AliveipAdmin(admin.ModelAdmin):

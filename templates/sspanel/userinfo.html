@@ -133,7 +133,7 @@
     // 端口重置Ajax部分
     var ProtButton = $("#id-change-port")
     var changeport = function(){
-        url = "{% url 'ssserver:changessport' %}"
+        url = "{% url 'api:changessport' %}"
         $.getJSON(url,function(results){
             swal(results.title,results.subtitle,results.status)
             port.textContent= results.subtitle.slice(6,-1)

@@ -8,4 +8,6 @@ urlpatterns = [
     url(r'^user/data/$', views.userData, name='userdata'),
     url(r'^node/data/$', views.nodeData, name='nodedata'),
     url(r'^donate/data/$', views.donateData, name='donatedata'),
+    url(r'^random/port/$', views.change_ss_port, name='changessport'),
+    url(r'^gen/invitecode/$', views.gen_invite_code, name='geninvitecode'),
 ]

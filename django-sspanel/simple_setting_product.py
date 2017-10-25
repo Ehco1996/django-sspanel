@@ -58,5 +58,10 @@ ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 TITLE = '谜之屋'
 SUBTITLE = '秘密的小屋'
 
+# 用户邀请返利比例
+INVITE_PERCENT = 0.2
+# 用户能生成的邀请码数量
+INVITE_NUM = 5
+
 # 网站邀请界面提示语
 INVITEINFO = '邀请码实时更新，如果用完了进telegram群 群链接：https://t.me/Ehcobreakwa11'

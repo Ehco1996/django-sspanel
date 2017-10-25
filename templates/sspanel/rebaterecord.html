@@ -1,13 +1,14 @@
 {% extends 'base.html' %} {% block main %}
+
 <div class="column is-12">
     <section class="hero is-warning is-smaill">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
-                    充值中心：
+                    返利记录：
                 </h1>
                 <h2 class="subtitle">
-                    请在下方输方输入充值码....
+                    存钱罐....
                 </h2>
             </div>
         </div>
@@ -31,43 +32,26 @@
             </div>
         </div>
     </nav>
-    <div class="box ">
-        <form class="form" action="{% url 'shadowsocks:charge' %}" method="post">
-            {% csrf_token %}
-            <input type="text" name="chargecode" class="input " required="" id="chargecode" placeholder="请输入充值码">
-            <hr/>
-            <div class="is-grouped">
-                <button type="submit" class="button is-danger is-outlined ">充值</button>
-            </div>
-        </form>
-    </div>
     <div class="box">
         <div class="content">
-            <p class="subtitle">充值记录：</p>
+            <p class="subtitle">我的返利记录</p>
             <table class="table is-striped">
                 <thead>
                     <tr>
-                        <th>时间:</th>
-                        <th>代码:</th>
-                        <th>金额:</th>
-                        <th>使用:</th>
+                        <th>用户ID</th>
+                        <th>时间</th>
+                        <th>金额</th>
                     </tr>
                 </thead>
-                {% for code in codelist %}
+                {% for r in records %}
                 <tr>
-                    <td>{{ code.time|date:"m月d日" }}</td>
-                    <td>{{ code.code }}</td>
-                    <td>{{ code.number }}</td>
-                    <td>{{ code.isused }}</td>
+                    <td>#{{ r.user_id }}</td>
+                    <td>{{ r.rebatetime }}</td>
+                    <td>{{ r.money }}元</td>
                 </tr>
-                {% empty %}
-                <h2 class="subtitle">
-                    还没有氪金过，大佬快来吧
-                </h2>
                 {% endfor %}
             </table>
         </div>
     </div>
 </div>
-
 {% endblock main %}
