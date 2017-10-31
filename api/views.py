@@ -97,7 +97,11 @@ def gen_invite_code(request):
     返回是否成功
     '''
     u = request.user
-    num = u.invitecode_num - len(InviteCode.objects.filter(code_id=u.pk))
+    if u.pk == 1:
+        # 针对管理员特出处理，每次生成5个邀请码
+        num = 5
+    else:
+        num = u.invitecode_num - len(InviteCode.objects.filter(code_id=u.pk))
     if num > 0:
         for i in range(num):
             code = InviteCode(type=0, code_id=u.pk)
@@ -116,14 +120,3 @@ def gen_invite_code(request):
     result = json.dumps(registerinfo, ensure_ascii=False)
 
     return HttpResponse(result, content_type='application/json')
-
-'''
-a9Gz6g5Q9bF49qfD7wxkB4Qq
-
-40uFF28yVfhF3i1QwSGs06m5
-
-
-bl5OcyrsGLzQ6lhWOBWBsFV5
-
-FAgiQjHuDA37ViabtBjgdsm5
-'''

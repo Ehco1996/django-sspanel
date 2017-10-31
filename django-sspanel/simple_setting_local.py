@@ -12,7 +12,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'sspanel',
         'USER': 'root',
-        'PASSWORD': '19960202',
+        'PASSWORD': 'xxx',
         'HOST': '127.0.0.1',
         'PORT': '3306',
 

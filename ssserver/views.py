@@ -196,6 +196,8 @@ def check_user_state():
         # 判断用户过期时间是否大于一天
         if timezone.now() - timezone.timedelta(days=1) > user.level_expire_time:
             user.ss_user.enable = False
+            user.ss_user.upload_traffic = 0
+            user.ss_user.download_traffic = 0
             user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
             user.ss_user.save()
             user.level = 0

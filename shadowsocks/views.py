@@ -716,12 +716,21 @@ def ticket_edit(request, pk):
 @login_required
 def affiliate(request):
     '''推广页面'''
-    invidecodes = InviteCode.objects.filter(code_id=request.user.pk, type=0)
+
+    if request.user.pk != 1:
+        invidecodes = InviteCode.objects.filter(
+            code_id=request.user.pk, type=0)
+        inviteNum = request.user.invitecode_num - len(invidecodes)
+    else:
+        # 如果是管理员，特殊处理
+        # 写死，每次呢个生成5额邀请码
+        invidecodes = InviteCode.objects.filter(
+            code_id=request.user.pk, type=0,isused=False)
+        inviteNum = 5
     context = {
         'invitecodes': invidecodes,
         'invitePercent': settings.INVITE_PERCENT * 100,
-        'inviteNumn': request.user.invitecode_num - len(invidecodes)
-    }
+        'inviteNumn': inviteNum}
     return render(request, 'sspanel/affiliate.html', context=context)
 
 
@@ -1043,7 +1052,7 @@ def gen_invite_code(request):
         code = InviteCode(type=type)
         code.save()
 
-    code_list = InviteCode.objects.filter(type=0)
+    code_list = InviteCode.objects.filter(type=0,isused=False)
     registerinfo = {
         'title': '成功',
         'subtitle': '添加邀请码{}个'.format(Num),
