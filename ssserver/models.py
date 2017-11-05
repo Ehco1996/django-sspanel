@@ -74,7 +74,20 @@ class SSUser(models.Model):
             rec[u] = u.upload_traffic + u.download_traffic
         # 按照流量倒序排序，切片取出前十名
         rec = sorted(rec.items(), key=lambda rec: rec[1], reverse=True)[:10]
-        return [(r[0],r[0].get_traffic()) for r in rec]
+        return [(r[0], r[0].get_traffic()) for r in rec]
+
+    @classmethod
+    def randomPord(cls):
+        '''从其实端口~最大端口随机找出一个没有用过的端口'''
+        users = cls.objects.all()
+        port_list = []
+        for user in users:
+            '''将所有端口都加入列表'''
+            port_list.append(int(user.port))
+        # 生成从最小到最大的断口池
+        all_ports = [i for i in range(1025, port_list[-1])]
+        # 随机返回一个没有没占用的端口（取差集）
+        return choice(list(set(all_ports).difference(set(port_list))))
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,

@@ -75,8 +75,7 @@ def change_ss_port(request):
     '''
     user = request.user.ss_user
     # 找到端口池中最大的端口
-    max_port_user = SSUser.objects.order_by('-port').first()
-    port = max_port_user.port + randint(1, 3)
+    port = SSUser.randomPord()
     user.port = port
     user.save()
     registerinfo = {
