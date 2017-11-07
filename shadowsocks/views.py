@@ -275,7 +275,7 @@ def get_ss_qrcode(request, node_id):
     if user.level < node.level:
         return HttpResponse('哟小伙子，可以啊！但是投机取巧是不对的哦！')
     ss_code = '{}:{}@{}:{}'.format(
-        node.method, ss_user.password, node.server, ss_user.port)
+        ss_user.method, ss_user.password, node.server, ss_user.port)
     # 将信息编码
     ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
     # 生成ss二维码
