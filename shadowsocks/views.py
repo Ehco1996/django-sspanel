@@ -738,7 +738,7 @@ def affiliate(request):
 def rebate_record(request):
     '''返利记录'''
     u = request.user
-    records = RebateRecord.objects.filter(user_id=u.pk)
+    records = RebateRecord.objects.filter(user_id=u.pk)[:10]
     context = {
         'records': records,
         'user': request.user,
