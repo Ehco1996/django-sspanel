@@ -1,10 +1,14 @@
+import datetime
 import json
+from decimal import Decimal
 from random import randint
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import HttpResponse, render
 
-from shadowsocks.models import User, NodeOnlineLog, Node, Donate, InviteCode
+from shadowsocks.models import (Donate, InviteCode, Node, NodeOnlineLog,
+                                PurchaseHistory, RebateRecord, Shop, User)
 from ssserver.models import SSUser, TrafficLog
 
 # Create your views here.
@@ -118,4 +122,48 @@ def gen_invite_code(request):
 
     result = json.dumps(registerinfo, ensure_ascii=False)
 
+    return HttpResponse(result, content_type='application/json')
+
+
+@login_required
+def purchase(request):
+    '''
+    购买商品的逻辑
+    返回是否成功
+    '''
+    user = request.user
+    ss_user = user.ss_user
+    goodId = request.POST.get('goodId')
+    good = Shop.objects.get(pk=goodId)
+    if user.balance < good.money:
+        registerinfo = {
+            'title': '金额不足！',
+            'subtitle': '请去捐赠界面/联系站长充值',
+            'status': 'error', }
+    else:
+        # 验证成功进行提权操作
+        ss_user.enable = True
+        ss_user.transfer_enable += good.transfer
+        user.balance -= good.money
+        user.level = good.level
+        user.level_expire_time += datetime.timedelta(days=good.days)
+        ss_user.save()
+        user.save()
+        # 增加购买记录
+        record = PurchaseHistory(info=good, user=user, money=good.money,
+                                 purchtime=timezone.now())
+        record.save()
+        # 增加返利记录
+        inviter = User.objects.get(pk=user.invited_by)
+        rebaterecord = RebateRecord(
+            user_id=inviter.pk, money=good.money * Decimal(settings.INVITE_PERCENT))
+        inviter.balance += rebaterecord.money
+        inviter.save()
+        rebaterecord.save()
+        registerinfo = {
+            'title': '够买成功',
+            'subtitle': '请在用户中心检查最新信息',
+            'status': 'success', }
+
+    result = json.dumps(registerinfo, ensure_ascii=False)
     return HttpResponse(result, content_type='application/json')

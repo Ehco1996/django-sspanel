@@ -320,6 +320,10 @@ class RebateRecord(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        ordering = ('-rebatetime',)
+        
+
 
 class Aliveip(models.Model):
     '''节点在线ip'''

@@ -38,14 +38,14 @@
             <table class="table is-striped">
                 <thead>
                     <tr>
-                        <th>用户ID</th>
+                        <th>ID</th>
                         <th>时间</th>
                         <th>金额</th>
                     </tr>
                 </thead>
                 {% for r in records %}
                 <tr>
-                    <td>#{{ r.user_id }}</td>
+                    <td>#{{ r.pk }}</td>
                     <td>{{ r.rebatetime }}</td>
                     <td>{{ r.money }}元</td>
                 </tr>
