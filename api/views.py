@@ -132,7 +132,7 @@ def purchase(request):
     购买商品的逻辑
     返回是否成功
     '''
-    if request.method  == "POST":
+    if request.method == "POST":
         user = request.user
         ss_user = user.ss_user
         goodId = request.POST.get('goodId')
@@ -148,12 +148,12 @@ def purchase(request):
             ss_user.transfer_enable += good.transfer
             user.balance -= good.money
             user.level = good.level
-            user.level_expire_time += datetime.timedelta(days=good.days)
+            user.level_expire_time = timezone.now() + datetime.timedelta(days=good.days)
             ss_user.save()
             user.save()
             # 增加购买记录
             record = PurchaseHistory(info=good, user=user, money=good.money,
-                                    purchtime=timezone.now())
+                                     purchtime=timezone.now())
             record.save()
             # 增加返利记录
             inviter = User.objects.get(pk=user.invited_by)
