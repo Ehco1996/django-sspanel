@@ -193,7 +193,6 @@ def userinfo(request):
         anno = Announcement.objects.all()[0]
     except:
         anno = None
-
     min_traffic = '{}m'.format(int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
     max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
@@ -244,16 +243,8 @@ def get_ssr_qrcode(request, node_id):
     # 加入节点信息等级判断
     if user.level < node.level:
         return HttpResponse('哟小伙子，可以啊！但是投机取巧是不对的哦！')
-
-    # 符合ssr qrcode schema最后需要特殊处理的密码部分
-    ssr_password = base64.b64encode(
-        bytes(ss_user.password, 'utf8')).decode('ascii')
-    ssr_code = '{}:{}:{}:{}:{}:{}'.format(
-        node.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
-    # 将信息编码
-    ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
-    # 生成ss二维码
-    ssr_img = qrcode.make('ssr://{}'.format(ssr_pass))
+    ssr_link = node.get_ssr_link(ss_user)
+    ssr_img = qrcode.make(ssr_link)
     buf = BytesIO()
     ssr_img.save(buf)
     image_stream = buf.getvalue()
@@ -274,12 +265,8 @@ def get_ss_qrcode(request, node_id):
     # 加入节点信息等级判断
     if user.level < node.level:
         return HttpResponse('哟小伙子，可以啊！但是投机取巧是不对的哦！')
-    ss_code = '{}:{}@{}:{}'.format(
-        ss_user.method, ss_user.password, node.server, ss_user.port)
-    # 将信息编码
-    ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
-    # 生成ss二维码
-    ss_img = qrcode.make('ss://{}'.format(ss_pass))
+    ss_link = node.get_ss_link(ss_user)
+    ss_img = qrcode.make(ss_link)
     buf = BytesIO()
     ss_img.save(buf)
     image_stream = buf.getvalue()
@@ -439,13 +426,16 @@ def nodeinfo(request):
             node['online'] = False
             node['count'] = 0
         nodelists.append(node)
-
+    # 订阅地址
+    token = base64.b64encode(
+        bytes(user.username + user.password, 'utf-8')).decode('ascii')
+    sub_link = settings.HOST + 'server/subscribe/' + token
     context = {
         'nodelists': nodelists,
         'ss_user': ss_user,
         'user': user,
+        'sub_link': sub_link,
     }
-
     return render(request, 'sspanel/nodeinfo.html', context=context)
 
 
@@ -725,7 +715,7 @@ def affiliate(request):
         # 如果是管理员，特殊处理
         # 写死，每次呢个生成5额邀请码
         invidecodes = InviteCode.objects.filter(
-            code_id=request.user.pk, type=0,isused=False)
+            code_id=request.user.pk, type=0, isused=False)
         inviteNum = 5
     context = {
         'invitecodes': invidecodes,
@@ -1052,7 +1042,7 @@ def gen_invite_code(request):
         code = InviteCode(type=type)
         code.save()
 
-    code_list = InviteCode.objects.filter(type=0,isused=False)
+    code_list = InviteCode.objects.filter(type=0, isused=False)
     registerinfo = {
         'title': '成功',
         'subtitle': '添加邀请码{}个'.format(Num),

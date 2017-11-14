@@ -65,3 +65,6 @@ INVITE_NUM = 5
 
 # 网站邀请界面提示语
 INVITEINFO = '邀请码实时更新，如果用完了进telegram群 群链接：https://t.me/Ehcobreakwa11'
+
+# 网站域名设置（请正确填写，不然订阅功能会失效：
+HOST = 'https://www.ehcozone.ml/'

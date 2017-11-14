@@ -173,6 +173,8 @@ class Node(models.Model):
         default='显示',
     )
 
+    group = models.CharField('分组', max_length=32, default='1')
+
     def __str__(self):
         return self.name
 
@@ -180,8 +182,12 @@ class Node(models.Model):
         '''返回ssr链接'''
         ssr_password = base64.b64encode(
             bytes(ss_user.password, 'utf8')).decode('ascii')
-        ssr_code = '{}:{}:{}:{}:{}:{}'.format(
-            self.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password)
+        ssr_remarks = base64.b64encode(
+            bytes(self.name, 'utf8')).decode('ascii')
+        ssr_group = base64.b64encode(
+            bytes(self.group, 'utf8')).decode('ascii')
+        ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
+            self.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password,ssr_remarks,ssr_group)
         ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
         ssr_link = 'ssr://{}'.format(ssr_pass)
         return ssr_link
@@ -322,7 +328,6 @@ class RebateRecord(models.Model):
 
     class Meta:
         ordering = ('-rebatetime',)
-        
 
 
 class Aliveip(models.Model):

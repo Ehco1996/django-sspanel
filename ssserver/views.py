@@ -1,12 +1,14 @@
 from random import randint
 import json
+import base64
+
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, render
 from django.utils import timezone
 
-from shadowsocks.models import User
+from shadowsocks.models import User, Node
 from shadowsocks.forms import UserForm
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import SSUser, TrafficLog
@@ -270,3 +272,26 @@ def testcheck(request):
     # check_user_state()
     # clean_traffic_log()
     return HttpResponse('ok')
+
+
+@login_required
+def Subscribe(request, token):
+    '''
+    返回ssr订阅链接
+    '''
+    user = request.user
+    ss_user = request.user.ss_user
+    # 验证token
+    keys = base64.b64encode(
+        bytes(user.username + user.password, 'utf-8')).decode('ascii')
+    if token == keys:
+        # 生成订阅链接部分
+        sub_code = ''
+        # 遍历该用户所有的节点
+        node_list = Node.objects.filter(level__lte=user.level)
+        for node in node_list:
+            sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
+        sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
+        return HttpResponse(sub_code)
+    else:
+        return HttpResponse('ERROR')

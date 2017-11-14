@@ -12,7 +12,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'sspanel',
         'USER': 'root',
-        'PASSWORD': 'xxx',
+        'PASSWORD': 'xx',
         'HOST': '127.0.0.1',
         'PORT': '3306',
 
@@ -56,3 +56,6 @@ INVITE_NUM = 5
 
 # 网站邀请界面提示语
 INVITEINFO = '邀请码实时更新，如果用完了请关注公众号findyourownway获取'
+
+# 网站域名设置（请正确填写，不然订阅功能会失效：
+HOST = 'http://127.0.0.1:8000/'
