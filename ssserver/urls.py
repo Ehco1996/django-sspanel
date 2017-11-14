@@ -11,5 +11,5 @@ urlpatterns = [
     url(r'^changessobfs/$', views.ChangeSsObfs, name='changessobfs'),
     url(r'^test/$', views.testcheck, name='test'),
     url(r'^clean/zombie/user$', views.clean_zombie_user, name='clean_zombie_user'),
-    url(r'subscribe/(?P<token>[\w]+)/$', views.Subscribe, name='subscribe')
+    url(r'subscribe/(?P<token>.+)/$', views.Subscribe, name='subscribe')
 ]

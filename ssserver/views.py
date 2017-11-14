@@ -274,16 +274,19 @@ def testcheck(request):
     return HttpResponse('ok')
 
 
-@login_required
 def Subscribe(request, token):
     '''
     返回ssr订阅链接
     '''
-    user = request.user
-    ss_user = request.user.ss_user
+    username = token.split('&&')[0]
+    user = base64.b64decode(username)
+    try:
+        user = User.objects.get(username=user)
+        ss_user = user.ss_user
+    except:
+        return HttpResponse('ERROR')
     # 验证token
-    keys = base64.b64encode(
-        bytes(user.username + user.password, 'utf-8')).decode('ascii')
+    keys = base64.b64encode(bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
     if token == keys:
         # 生成订阅链接部分
         sub_code = ''

@@ -428,7 +428,7 @@ def nodeinfo(request):
         nodelists.append(node)
     # 订阅地址
     token = base64.b64encode(
-        bytes(user.username + user.password, 'utf-8')).decode('ascii')
+        bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
     sub_link = settings.HOST + 'server/subscribe/' + token
     context = {
         'nodelists': nodelists,
