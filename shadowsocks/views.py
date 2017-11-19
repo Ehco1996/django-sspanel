@@ -55,9 +55,8 @@ def ssclient(request):
 
 def ssinvite(request):
     '''跳转到邀请码界面'''
-
-    codelist = InviteCode.objects.filter(type='1')[:20]
-
+    codelist = InviteCode.objects.filter(type=1, isused=False, code_id=1)[:20]
+    
     context = {'codelist': codelist, }
 
     return render(request, 'sspanel/invite.html', context=context)
