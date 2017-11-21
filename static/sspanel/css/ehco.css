@@ -23,3 +23,8 @@
 #nav-toggle-state:checked~.nav-menu {
     display: block;
 }
+
+body {
+    /* On modern browsers, prevent the whole page to bounce */
+    overflow: hidden;
+}
