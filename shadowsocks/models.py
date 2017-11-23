@@ -480,12 +480,12 @@ class Shop(models.Model):
     name = models.CharField(
         '商品描述',
         max_length=128,
-
+        default = '待编辑'
     )
 
     transfer = models.BigIntegerField(
-        '增加的流量',
-        default=settings.GB
+        '增加的流量(GB)',
+        default=1
     )
 
     money = models.DecimalField(
@@ -508,7 +508,7 @@ class Shop(models.Model):
 
     days = models.PositiveIntegerField(
         '设置等级时间(天)',
-        default=0,
+        default=1,
         validators=[
             MaxValueValidator(365),
             MinValueValidator(1),

@@ -56,7 +56,7 @@ def ssclient(request):
 def ssinvite(request):
     '''跳转到邀请码界面'''
     codelist = InviteCode.objects.filter(type=1, isused=False, code_id=1)[:20]
-    
+
     context = {'codelist': codelist, }
 
     return render(request, 'sspanel/invite.html', context=context)
@@ -826,7 +826,6 @@ def node_create(request):
         form = NodeForm(request.POST)
         if form.is_valid():
             form.save()
-
             nodes = Node.objects.all()
             registerinfo = {
                 'title': '添加成功',
@@ -1120,14 +1119,16 @@ def good_edit(request, pk):
     goods = Shop.objects.all()
     # 当为post请求时，修改数据
     if request.method == "POST":
-        form = ShopForm(request.POST, instance=good)
+        # 转换为GB
+        data = request.POST.copy()
+        data['transfer'] = eval(data['transfer']) * settings.GB
+        form = ShopForm(data, instance=good)
         if form.is_valid():
             form.save()
             registerinfo = {
                 'title': '修改成功',
                 'subtitle': '数据更新成功',
                 'status': 'success', }
-
             context = {
                 'goods': goods,
                 'registerinfo': registerinfo,
@@ -1138,7 +1139,6 @@ def good_edit(request, pk):
                 'title': '错误',
                 'subtitle': '数据填写错误',
                 'status': 'error', }
-
             context = {
                 'form': form,
                 'registerinfo': registerinfo,
@@ -1147,7 +1147,8 @@ def good_edit(request, pk):
             return render(request, 'backend/goodedit.html', context=context)
     # 当请求不是post时，渲染form
     else:
-        form = ShopForm(instance=good)
+        data = {'transfer': round(good.transfer / settings.GB)}
+        form = ShopForm(initial=data, instance=good)
         context = {
             'form': form,
             'good': good,
@@ -1159,16 +1160,17 @@ def good_edit(request, pk):
 def good_create(request):
     '''商品创建'''
     if request.method == "POST":
-        form = ShopForm(request.POST)
+        # 转换为GB
+        data = request.POST.copy()
+        data['transfer'] = eval(data['transfer']) * settings.GB
+        form = ShopForm(data)
         if form.is_valid():
             form.save()
-
             goods = Shop.objects.all()
             registerinfo = {
                 'title': '添加成功',
                 'subtitle': '数据更新成功！',
                 'status': 'success', }
-
             context = {
                 'goods': goods,
                 'registerinfo': registerinfo,
@@ -1179,13 +1181,11 @@ def good_create(request):
                 'title': '错误',
                 'subtitle': '数据填写错误',
                 'status': 'error', }
-
             context = {
                 'form': form,
                 'registerinfo': registerinfo,
             }
             return render(request, 'backend/goodcreate.html', context=context)
-
     else:
         form = ShopForm()
         return render(request, 'backend/goodcreate.html', context={'form': form, })

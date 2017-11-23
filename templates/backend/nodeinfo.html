@@ -30,6 +30,7 @@
                     <th>显示:</th>                                        
                     <th>IP:</th>
                     <th>加密:</th>
+                    <th>等级:</th>                    
                     <th>描述:</th>
                 </tr>
             </thead>
@@ -44,16 +45,14 @@
                         <a class="button is-danger modal-button" data-target="modal-{{ node.node_id }}">删除</a>
                     </p>
                 </td>
-
                 <td>#{{ node.pk }}</td>
                 <td>{{ node.name }}</td>
                 <td>{{ node.show }}</td>                                
                 <td>{{ node.server }}</td>
                 <td>{{ node.method }}</td>
+                <td>{{ node.level }}</td>                
                 <td>{{ node.info }}</td>
             </tr>
-
-
             <div class="modal node_delete" id="modal-{{ node.node_id }}">
                 <div class="modal-background"></div>
                 <div class="modal-card">
@@ -69,7 +68,6 @@
                     </section>
                 </div>
             </div>
-
             {% empty %}
             <h2 class="subtitle">
                 暂时没有节点，点击下方按钮添加节点
@@ -77,11 +75,6 @@
             {% endfor %}
         </table>
         <p align="right"><a class="button is-danger is-outlined" href="{% url 'shadowsocks:node_create' %}">增加节点</a></p>
-
     </div>
-
 </div>
-
-
-
 {% endblock main %}

@@ -19,7 +19,6 @@ from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 
 # Create your views here.
 
-
 @permission_required('ssesrver')
 def User_edit(request, pk):
     '''编辑ss_user的信息'''
@@ -62,13 +61,12 @@ def User_edit(request, pk):
                 'userform': userform,
                 'registerinfo': registerinfo,
                 'ss_user': ss_user,
-
             }
             return render(request, 'backend/useredit.html', context=context)
     # 当请求不是post时，渲染form
     else:
         # 特别初始化总流量字段
-        data = {'transfer_enable': ss_user.transfer_enable / settings.GB}
+        data = {'transfer_enable': ss_user.transfer_enable // settings.GB}
         passdata = {'password': ''}
         ssform = SSUserForm(initial=data, instance=ss_user)
         userform = UserForm(instance=ss_user.user)
@@ -245,20 +243,18 @@ def auto_register(num, level=0):
 
 @permission_required('ssesrver')
 def clean_zombie_user(request):
-    '''从未使用过的用户且从未签到过得用户'''
+    '''清楚从未使用过的用户'''
     import datetime
     users = User.objects.all()
     count = 0
-    # 遍历所有没有签到和和没有使用过得用户
     for user in users:
-        if user.ss_user.last_use_time == 0 and user.ss_user.last_check_in_time.year == 1970 and user.balance == 0:
+        if user.ss_user.last_use_time == 0:
             user.delete()
             count += 1
     registerinfo = {
         'title': '删除僵尸用户',
         'subtitle': '成功删除{}个僵尸用户'.format(count),
                     'status': 'success', }
-
     context = {
         'registerinfo': registerinfo
     }
@@ -286,7 +282,8 @@ def Subscribe(request, token):
     except:
         return HttpResponse('ERROR')
     # 验证token
-    keys = base64.b64encode(bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
+    keys = base64.b64encode(bytes(user.username, 'utf-8')).decode('ascii') + \
+        '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
     if token == keys:
         # 生成订阅链接部分
         sub_code = ''

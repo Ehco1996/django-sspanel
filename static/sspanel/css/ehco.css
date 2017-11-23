@@ -24,7 +24,10 @@
     display: block;
 }
 
-body {
-    /* On modern browsers, prevent the whole page to bounce */
-    overflow: hidden;
+
+@media all and (max-width: 768px) {
+    body {
+        /* On modern browsers, prevent the whole page to bounce */
+        overflow: hidden;
+    }
 }
