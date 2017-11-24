@@ -2,21 +2,17 @@ from random import randint
 import json
 import base64
 
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, render
 from django.utils import timezone
-
 from shadowsocks.models import User, Node
 from shadowsocks.forms import UserForm
-from shadowsocks.views import Page_List_View
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import SSUser, TrafficLog
 
 # 导入加密混淆协议选项
 from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-
 
 # Create your views here.
 
@@ -40,18 +36,12 @@ def User_edit(request, pk):
             if len(passwd) > 0:
                 ss_user.user.set_password(passwd)
                 ss_user.user.save()
-            # 返回所有用户列表
-            page_context = Page_List_View(request, User, 15).get_page_context()
             registerinfo = {
                 'title': '修改成功',
                 'subtitle': '数据更新成功',
                 'status': 'success', }
-            context = {
-                'registerinfo': registerinfo,
-                'ss_user': ss_user,
-            }
-            context.update(page_context)
-            return render(request, 'backend/userlist.html', context=context)
+            request.session['registerinfo'] = registerinfo
+            return redirect('/backend/userlist/')
         else:
             registerinfo = {
                 'title': '错误',

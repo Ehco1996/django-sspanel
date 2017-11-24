@@ -957,11 +957,15 @@ def backend_Aliveuser(request):
 @permission_required('shadowsocks')
 def backend_UserList(request):
     '''返回所有用户的View'''
-
     obj = User
     page_num = 15
     context = Page_List_View(request, obj, page_num).get_page_context()
-
+    try:
+        registerinfo = request.session['registerinfo']
+        del request.session['registerinfo']
+        context.update({'registerinfo': registerinfo})
+    except:
+        pass
     return render(request, 'backend/userlist.html', context=context)
 
 
