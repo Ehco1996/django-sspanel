@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from shadowsocks.models import User, Node
 from shadowsocks.forms import UserForm
+from shadowsocks.views import Page_List_View
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import SSUser, TrafficLog
 
@@ -40,16 +41,16 @@ def User_edit(request, pk):
                 ss_user.user.set_password(passwd)
                 ss_user.user.save()
             # 返回所有用户列表
-            contacts = User.objects.all()
+            page_context = Page_List_View(request, User, 15).get_page_context()
             registerinfo = {
                 'title': '修改成功',
                 'subtitle': '数据更新成功',
                 'status': 'success', }
             context = {
-                'contacts': contacts,
                 'registerinfo': registerinfo,
                 'ss_user': ss_user,
             }
+            context.update(page_context)
             return render(request, 'backend/userlist.html', context=context)
         else:
             registerinfo = {
