@@ -279,7 +279,7 @@ def Subscribe(request, token):
         # 生成订阅链接部分
         sub_code = ''
         # 遍历该用户所有的节点
-        node_list = Node.objects.filter(level__lte=user.level)
+        node_list = Node.objects.filter(level__lte=user.level,show='显示')
         for node in node_list:
             sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
