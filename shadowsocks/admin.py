@@ -4,7 +4,7 @@ from . import models
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ['username', 'level', 'balance', ]
-    search_fields = ['username', 'email']
+    search_fields = ['username', 'email','pk']
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
