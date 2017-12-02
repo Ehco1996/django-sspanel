@@ -215,8 +215,9 @@ def auto_reset_traffic():
 
 def clean_traffic_log():
     '''月初清空所有流量记录'''
-    TrafficLog.objects.all().delete()
-    print('all record removed!')
+    res = TrafficLog.objects.all().delete()
+    log = str(log)
+    print('all record removed!:{}'.format(log))
 
 
 def auto_register(num, level=0):
