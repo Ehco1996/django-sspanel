@@ -445,7 +445,8 @@ def trafficlog(request):
     nodes = Node.objects.all()
     node_id = request.GET.get('nodes', nodes[0].pk)
     # 检索符合要求得记录
-    traffic = TrafficLog.objects.filter(user_id=ss_user.user_id, node_id=node_id)
+    traffic = TrafficLog.objects.filter(
+        user_id=ss_user.user_id, node_id=node_id)
     node_name = Node.objects.get(pk=node_id)
     # 记录的前10条
     logs = traffic[:10]

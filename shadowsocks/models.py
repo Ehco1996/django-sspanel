@@ -186,16 +186,24 @@ class Node(models.Model):
             bytes(self.name, 'utf8')).decode('ascii')
         ssr_group = base64.b64encode(
             bytes(self.group, 'utf8')).decode('ascii')
-        ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
-            self.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password,ssr_remarks,ssr_group)
+        if self.custom_method == 1:
+            ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
+                self.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password, ssr_remarks, ssr_group)
+        else:
+            ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
+                self.server, ss_user.port, self.protocol, self.method, self.obfs, ssr_password, ssr_remarks, ssr_group)
         ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
         ssr_link = 'ssr://{}'.format(ssr_pass)
         return ssr_link
 
     def get_ss_link(self, ss_user):
         '''返回ss链接'''
-        ss_code = '{}:{}@{}:{}'.format(
-            ss_user.method, ss_user.password, self.server, ss_user.port)
+        if self.custom_method == 1:
+            ss_code = '{}:{}@{}:{}'.format(
+                ss_user.method, ss_user.password, self.server, ss_user.port)
+        else:
+            ss_code = '{}:{}@{}:{}'.format(
+                self.method, ss_user.password, self.server, ss_user.port)
         ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
         ss_link = 'ss://{}'.format(ss_pass)
         return ss_link
@@ -480,7 +488,7 @@ class Shop(models.Model):
     name = models.CharField(
         '商品描述',
         max_length=128,
-        default = '待编辑'
+        default='待编辑'
     )
 
     transfer = models.BigIntegerField(
