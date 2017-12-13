@@ -4,7 +4,7 @@ from . import models
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ['username', 'level', 'balance', ]
-    search_fields = ['username', 'email','pk']
+    search_fields = ['username', 'email', 'pk']
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
@@ -38,6 +38,14 @@ class DonateAdmin(admin.ModelAdmin):
     list_display = ['user', 'money', 'time', ]
 
 
+class NodeAdmin(admin.ModelAdmin):
+    list_display = ['node_id', 'name', 'level', 'show', ]
+
+
+class ShopAdmin(admin.ModelAdmin):
+    list_display = ['name', 'transfer', 'money', 'level', ]
+
+
 class NodeOnlineAdmin(admin.ModelAdmin):
     list_display = ['node_id', 'online_user']
 
@@ -45,11 +53,10 @@ class NodeOnlineAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)
-admin.site.register(models.Aliveip, AliveipAdmin)
-admin.site.register(models.Node)
+admin.site.register(models.Node, NodeAdmin)
 admin.site.register(models.Donate, DonateAdmin)
 admin.site.register(models.MoneyCode, MoneyCodeAdmin)
-admin.site.register(models.Shop)
+admin.site.register(models.Shop, ShopAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.AlipayRecord, AlipayAdmin)
 admin.site.register(models.AlipayRequest, AlipayRequestAdmin)
