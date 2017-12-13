@@ -78,9 +78,6 @@ urlpatterns = [
         views.purchase_history, name='purchase_history'),
     # 支付宝当面付相关:
     url(r'^facepay/qrcode/$', views.gen_face_pay_qrcode, name='facepay_qrcode'),
-    # 购买处理逻辑
-    url(r'^facepay/(?P<out_trade_no>[0-9]+)',
-        views.Face_pay_view, name='facepay_view'),
     # 公告管理相关
     url(r'^backend/anno/$', views.backend_anno, name='backend_anno'),
     url(r'^backend/anno/delete/(?P<pk>[0-9]+)$',

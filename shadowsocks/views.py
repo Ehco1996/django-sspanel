@@ -137,6 +137,11 @@ def Login_view(request):
                     anno = Announcement.objects.all()[0]
                 except:
                     anno = None
+                min_traffic = '{}m'.format(
+                    int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
+                max_traffic = '{}m'.format(
+                    int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
+                remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
                 registerinfo = {
                     'title': '登录成功！',
                     'subtitle': '自动跳转到用户中心',
@@ -145,6 +150,9 @@ def Login_view(request):
                 context = {
                     'registerinfo': registerinfo,
                     'anno': anno,
+                    'remain_traffic': remain_traffic,
+                    'min_traffic': min_traffic,
+                    'max_traffic': max_traffic,
                 }
                 return render(request, 'sspanel/userinfo.html', context=context)
             else:
@@ -157,7 +165,6 @@ def Login_view(request):
                 context = {
                     'registerinfo': registerinfo,
                     'form': form,
-
                 }
                 return render(request, 'sspanel/login.html', context=context)
     else:
@@ -298,43 +305,6 @@ def donate(request):
     context = {'donatelist': donatelist, }
     if settings.USE_ALIPAY == True:
         context['alipay'] = True
-        # 尝试获取流水号
-        if request.method == 'POST':
-            number = eval(request.POST.get('q'))
-            if number < 10:
-                registerinfo = {
-                    'title': '失败',
-                    'subtitle': '请保证金额大于10元',
-                    'status': 'error', }
-                context['registerinfo'] = registerinfo
-                return render(request, 'sspanel/donate.html', context=context)
-            else:
-                out_trade_no = datetime.datetime.fromtimestamp(
-                    time.time()).strftime('%Y%m%d%H%M%S%s')
-                try:
-                    # 获取金额数量
-                    amount = number
-                    # 生成订单
-                    trade = alipay.api_alipay_trade_precreate(
-                        subject=settings.ALIPAY_TRADE_INFO.format(amount),
-                        out_trade_no=out_trade_no,
-                        total_amount=amount,
-                        timeout_express='60s',)
-                    # 获取二维码链接
-                    code_url = trade.get('qr_code', '')
-                    request.session['code_url'] = code_url
-                    request.session['out_trade_no'] = out_trade_no
-                    request.session['amount'] = amount
-                    # 将订单号传入模板
-                    context['out_trade_no'] = out_trade_no
-                except:
-                    res = alipay.api_alipay_trade_cancel(
-                        out_trade_no=out_trade_no)
-                    registerinfo = {
-                        'title': '糟糕，当面付插件可能出现问题了',
-                        'subtitle': '如果一直失败,请后台联系站长',
-                        'status': 'error', }
-                    context['registerinfo'] = registerinfo
     else:
         # 关闭支付宝支付
         context['alipay'] = False
@@ -344,60 +314,26 @@ def donate(request):
 @login_required
 def gen_face_pay_qrcode(request):
     '''生成当面付的二维码'''
-    # 从seesion中获取订单的二维码
-    url = request.session.get('code_url', '')
-    # 生成支付宝申请记录
-    record = AlipayRequest.objects.create(username=request.user,
-                                          info_code=request.session['out_trade_no'],
-                                          amount=request.session['amount'],)
-    # 删除sessions信息
-    del request.session['code_url']
-    del request.session['out_trade_no']
-    del request.session['amount']
-    # 生成ss二维码
-    img = qrcode.make(url)
-    buf = BytesIO()
-    img.save(buf)
-    image_stream = buf.getvalue()
-    # 构造图片reponse
-    response = HttpResponse(image_stream, content_type="image/png")
-
-    return response
-
-
-@login_required
-def Face_pay_view(request, out_trade_no):
-    '''当面付处理逻辑'''
-    context = {}
-    user = request.user
-    paid = False
-    # 等待1秒后再查询支付结果
-    time.sleep(1)
-    res = alipay.api_alipay_trade_query(out_trade_no=out_trade_no)
-    if res.get("trade_status", "") == "TRADE_SUCCESS":
-        paid = True
-        amount = Decimal(res.get("total_amount", 0))
-        # 生成对于数量的充值码
-        code = MoneyCode.objects.create(number=amount)
-        # 充值操作
-        user.balance += code.number
-        user.save()
-        code.user = user.username
-        code.isused = True
-        code.save()
-        # 将充值记录和捐赠绑定
-        donate = Donate.objects.create(user=user, money=amount)
-        # 后台数据库增加记录
-        record = AlipayRecord.objects.create(username=user,
-                                             info_code=out_trade_no, amount=amount, money_code=code)
-        # 返回充值码到网页
-        messages.info(request, '充值成功{}元，请去商品界面购买'.format(amount))
-        return HttpResponseRedirect('/donate')
-    # 如果30秒内没有支付，则关闭订单：
-    if paid is False:
-        alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
-        messages.warning(request, "充值失败了!自动跳转回充值界面")
-        return HttpResponseRedirect('/donate')
+    try:
+        # 从seesion中获取订单的二维码
+        url = request.session.get('code_url', '')
+        # 生成支付宝申请记录
+        record = AlipayRequest.objects.create(username=request.user,
+                                              info_code=request.session['out_trade_no'],
+                                              amount=request.session['amount'],)
+        # 删除sessions信息
+        del request.session['code_url']
+        del request.session['amount']
+        # 生成ss二维码
+        img = qrcode.make(url)
+        buf = BytesIO()
+        img.save(buf)
+        image_stream = buf.getvalue()
+        # 构造图片reponse
+        response = HttpResponse(image_stream, content_type="image/png")
+        return response
+    except:
+        return HttpResponse('wrong request')
 
 
 @login_required

@@ -29,34 +29,26 @@
                 <strong>付完款之后要按红色的确认按钮！</strong>
                 <hr>
                 <div class="content">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="field has-addons">
-                            <div class="control">
-                                <input name="q" class="input" type="number" placeholder="最低不得小于10元: " required>
-                            </div>
-                            <div class="control">
-                                <button type="submit" class="button is-outlined is-info">提交</button>
-                            </div>
+                    <div class="field has-addons">
+                        <div class="control">
+                            <input id="id-input-payinput" class="input" type="number" placeholder="最低不得小于1元: " required>
                         </div>
-                    </form>
-                    <hr> {% if out_trade_no %}
-                    <figure class="image">
-                        <img src="{% url 'shadowsocks:facepay_qrcode' %}">
-                    </figure>
-                    <p>
-                        <strong>付费完成之后请点击确认！</strong>
-                    </p>
-                    <div class="control">
-                        <a class="button is-outlined is-danger" href="{% url 'shadowsocks:facepay_view' out_trade_no %}">确认</a>
+                        <div class="control">
+                            <button class="button is-outlined is-info" id="id-button-payrequest">提交</button>
+                        </div>
                     </div>
-                    {% endif %} {% if messages %}
-                    <ul class="messages">
-                        {% for message in messages %}
-                        <p class="errorlist">{{ message }}</p>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
+                    <div id="id-qrcode-box" class="is-hidden">
+                        <hr>
+                        <figure class="image">
+                            <img id="id-img-qrcode" src="">
+                        </figure>
+                        <p>
+                            <strong>付费完成之后请点击确认！</strong>
+                        </p>
+                        <div class="control">
+                            <button id="id-button-query" class="button is-outlined is-danger" href="#">确认</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% else %}
@@ -99,4 +91,47 @@
         </div>
     </div>
 </div>
+
+<script>
+    // 支付请求 部分
+    var requestButton = $("#id-button-payrequest")
+    var payinput = $("#id-input-payinput")
+    var codeBox = $("#id-qrcode-box")
+    var payrequest = function () {
+        url = "{% url 'api:pay_request' %}"
+        paynum = payinput.val()
+        if (paynum >= 1) {
+            data = {
+                num: paynum,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
+            $.post(url, data, function (results) {
+                qrcode_url = "{% url 'shadowsocks:facepay_qrcode' %}"
+                codeBox.attr('class', '')
+                // 获取当前域名
+                var host = window.location.host
+                var protocol = window.location.protocol
+                // 追加二维码图片
+                $("#id-img-qrcode").attr("src", `${protocol}//${host}/facepay/qrcode/`)
+                info = results.info
+                swal(info.title, info.subtitle, info.status)
+            })
+        } else {
+            swal('错误！', '金额最少为一元', 'error')
+        }
+    }
+    requestButton.click(payrequest)
+    // 支付查询部分
+    queryButton = $("#id-button-query")
+    var payquery = function () {
+        codeBox.empty()
+        codeBox.append('后台飞速查询结果中 请稍候....')
+        url = "{% url 'api:pay_query' %}"
+        $.getJSON(url, function (results) {
+            info = results.info
+            swal(info.title, info.subtitle, info.status)
+        })
+    }
+    queryButton.click(payquery)
+</script>
 {% endblock main %}

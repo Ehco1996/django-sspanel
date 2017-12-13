@@ -1,4 +1,5 @@
 import datetime
+import time
 import json
 from decimal import Decimal
 from random import randint
@@ -9,8 +10,11 @@ from django.shortcuts import HttpResponse, render
 from django.utils import timezone
 
 from shadowsocks.models import (Donate, InviteCode, Node, NodeOnlineLog,
-                                PurchaseHistory, RebateRecord, Shop, User)
+                                PurchaseHistory, RebateRecord, Shop, User, MoneyCode, Donate, AlipayRequest, AlipayRecord)
+
 from ssserver.models import SSUser, TrafficLog
+
+from shadowsocks.payments import alipay
 
 # Create your views here.
 
@@ -171,3 +175,101 @@ def purchase(request):
         return HttpResponse(result, content_type='application/json')
     else:
         return HttpResponse('errors')
+
+
+@login_required
+def pay_request(request):
+    '''
+    当面付请求逻辑
+    '''
+    num = int(request.POST.get('num', ''))
+    context = {}
+    if num < 1:
+        info = {
+            'title': '失败',
+            'subtitle': '请保证金额大于1元',
+            'status': 'error', }
+        context['info'] = info
+    else:
+        out_trade_no = datetime.datetime.fromtimestamp(
+            time.time()).strftime('%Y%m%d%H%M%S%s')
+        try:
+            # 获取金额数量
+            amount = num
+            # 生成订单
+            trade = alipay.api_alipay_trade_precreate(
+                subject=settings.ALIPAY_TRADE_INFO.format(amount),
+                out_trade_no=out_trade_no,
+                total_amount=amount,
+                timeout_express='60s',)
+            # 获取二维码链接
+            code_url = trade.get('qr_code', '')
+            request.session['code_url'] = code_url
+            request.session['out_trade_no'] = out_trade_no
+            request.session['amount'] = amount
+            info = {
+                'title': '请求成功！',
+                'subtitle': '支付宝扫描下方二维码付款，付款完成记得按确认哟！',
+                'status': 'success', }
+            context['info'] = info
+        except:
+            res = alipay.api_alipay_trade_cancel(
+                out_trade_no=out_trade_no)
+            info = {
+                'title': '糟糕，当面付插件可能出现问题了',
+                'subtitle': '如果一直失败,请后台联系站长',
+                'status': 'error', }
+            context['info'] = info
+
+    result = json.dumps(context, ensure_ascii=False)
+    return HttpResponse(result, content_type='application/json')
+
+
+@login_required
+def pay_query(request):
+    '''
+    当面付结果查询逻辑
+    rtype:
+        json
+    '''
+    context = {}
+    user = request.user
+    trade_num = request.session['out_trade_no']
+    paid = False
+    # 等待1秒后再查询支付结果
+    time.sleep(1)
+    res = alipay.api_alipay_trade_query(out_trade_no=trade_num)
+    if res.get("trade_status", "") == "TRADE_SUCCESS":
+        paid = True
+        amount = Decimal(res.get("total_amount", 0))
+        # 生成对于数量的充值码
+        code = MoneyCode.objects.create(number=amount)
+        # 充值操作
+        user.balance += code.number
+        user.save()
+        code.user = user.username
+        code.isused = True
+        code.save()
+        # 将充值记录和捐赠绑定
+        donate = Donate.objects.create(user=user, money=amount)
+        # 后台数据库增加记录
+        record = AlipayRecord.objects.create(username=user,
+                                                info_code=trade_num, amount=amount, money_code=code)
+        del request.session['out_trade_no']
+        # 返回充值信息
+        info = {
+            'title': '充值成功！',
+            'subtitle': '请去商品界面购买商品！',
+            'status': 'success', }
+        context['info'] = info
+
+    # 如果三次还没成功择关闭订单
+    if paid is False:
+        alipay.api_alipay_trade_cancel(out_trade_no=trade_num)
+        info = {
+            'title': '支付查询失败！',
+            'subtitle': '亲，确认支付了么？',
+            'status': 'error', }
+        context['info'] = info
+    result = json.dumps(context, ensure_ascii=False)
+    return HttpResponse(result, content_type='application/json')
