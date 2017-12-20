@@ -7,6 +7,10 @@ Demo: [迷之屋](https://www.ehcozone.ml/)
 
 Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
+**欢迎老板捐赠**
+
+![](http://opj9lh0x4.bkt.clouddn.com/17-12-20/62343859.jpg)
+
 ## 项目说明
 
 Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络分享面板，其具有以下特点：
