@@ -8,7 +8,7 @@ class UserAdmin(admin.ModelAdmin):
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
-    list_display = ['user', 'money', 'purchtime', ]
+    list_display = ['info','user', 'money', 'purchtime', ]
     search_fields = ['user', ]
 
 
