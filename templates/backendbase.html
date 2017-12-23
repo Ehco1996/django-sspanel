@@ -5,21 +5,7 @@
 <head>
     {% load staticfiles %}
     <title>{% settings_value "TITLE" %}</title>
-    <!-- meta -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href=" {% static 'img/logo/logo.ico' %}" />
-    <!-- css -->
-    <link rel="stylesheet" href="{% static 'sspanel/css/bulma.css'%}">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{% static 'sspanel/css/ehco.css'%}">
-    <link rel="stylesheet" href="{% static 'sspanel/css/sweetalert.css'%}">
-    <!-- js -->
-    <script src="{% static 'sspanel/js/jquery-2.1.3.min.js' %}"></script>
-    <script src="{% static 'sspanel/js/sweetalert.min.js' %}"></script>
-    <script src="{% static 'sspanel/js/ehco.js' %}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js"></script>
-
+    {% include "basehead.html" %}
 </head>
 
 <body>
@@ -76,7 +62,7 @@
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:user_list' %}">用户列表</a>
-                    <a class="navbar-item" href="{% url 'shadowsocks:user_status' %}">用户分析</a>                    
+                    <a class="navbar-item" href="{% url 'shadowsocks:user_status' %}">用户分析</a>
                     <a class="navbar-item is-active" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
                 </div>
@@ -172,15 +158,11 @@
                     </aside>
                 </div>
             </div>
-
             <div class="column is-10">
-
                 {% block main %} {% endblock main%}
-
             </div>
         </div>
     </div>
-
     <footer>
         <div class="container">
             <div class="content has-text-centered">
@@ -194,7 +176,6 @@
         </div>
     </footer>
 </body>
-
 <!--整站消息提醒功能 -->
 {% if registerinfo %}
 <script>
