@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, render
 from django.utils import timezone
-from shadowsocks.models import User, Node
+from shadowsocks.models import User, Node, NodeInfoLog, NodeOnlineLog
 from shadowsocks.forms import UserForm
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import SSUser, TrafficLog
@@ -15,6 +15,7 @@ from .models import SSUser, TrafficLog
 from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 
 # Create your views here.
+
 
 @permission_required('ssesrver')
 def User_edit(request, pk):
@@ -216,8 +217,22 @@ def auto_reset_traffic():
 def clean_traffic_log():
     '''月初清空所有流量记录'''
     res = TrafficLog.objects.all().delete()
-    log = str(log)
-    print('all record removed!:{}'.format(log))
+    log = str(res)
+    print('all traffic record removed!:{}'.format(log))
+
+
+def clean_online_log():
+    '''月初清空所有在线记录'''
+    res = NodeOnlineLog.objects.all().delete()
+    log = str(res)
+    print('all online record removed!:{}'.format(log))
+
+
+def clean_node_log():
+    '''月初清空所有节点负载记录'''
+    res = NodeInfoLog.objects.all().delete()
+    log = str(res)
+    print('all node info record removed!:{}'.format(log))
 
 
 def auto_register(num, level=0):
@@ -280,7 +295,7 @@ def Subscribe(request, token):
         # 生成订阅链接部分
         sub_code = ''
         # 遍历该用户所有的节点
-        node_list = Node.objects.filter(level__lte=user.level,show='显示')
+        node_list = Node.objects.filter(level__lte=user.level, show='显示')
         for node in node_list:
             sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
