@@ -12,5 +12,6 @@ urlpatterns = [
     url(r'^gen/invitecode/$', views.gen_invite_code, name='geninvitecode'),
     url(r'^shop/$', views.purchase, name='purchase'),
     url(r'^pay/request/$', views.pay_request, name='pay_request'),
-    url(r'^pay/query/$', views.pay_query, name='pay_query'),                    
+    url(r'^pay/query/$', views.pay_query, name='pay_query'),
+    url(r'^traffic/query/$', views.traffic_query, name='traffic_query'),                                            
 ]

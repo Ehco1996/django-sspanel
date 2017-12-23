@@ -174,3 +174,59 @@ var genDoughnutChart = function (chartId, title, labels, data) {
   });
 }
 
+var genLineChart = function (chartId, config) {
+  /**
+      charId : 元素id 定位canvas用
+      config : 配置信息 dict类型
+          congig = {
+              title: 图表名字
+              labels :data对应的label
+              data_title: data的标题
+              data: 数据
+              x_label : x轴的lable
+              y_label : y轴的lable
+          }
+  **/
+  var ctx = $('#' + chartId)
+  var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: config.labels,
+      datasets: [{
+        label: config.data_title,
+        data: config.data,
+        backgroundColor: getRandomColor(),
+        borderColor: getRandomColor(),
+        steppedLine: false,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      title: {
+        display: true,
+        text: config.title,
+      },
+      hover: {
+        mode: 'nearest',
+        intersect: true
+      },
+      scales: {
+        xAxes: [{
+          display: true,
+          scaleLabel: {
+            display: true,
+            labelString: config.x_label,
+          }
+        }],
+        yAxes: [{
+          display: true,
+          scaleLabel: {
+            display: true,
+            labelString: config.y_label,
+          }
+        }]
+      }
+    }
+  })
+}

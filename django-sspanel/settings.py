@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import platform
 # 导入自定义设定文件
-if platform.node() == 'EhcodeMBP.lan':
+if platform.node() == 'Ehco-iMac.lan':
     from .simple_setting_local import *
 else:
     from.simple_setting_product import *

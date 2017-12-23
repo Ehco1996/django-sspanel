@@ -228,8 +228,25 @@ class TrafficLog(models.Model):
             [u.upload_traffic + u.download_traffic for u in traffics])
         return round(total_traffic / settings.GB, 2)
 
-    user_id = models.IntegerField('用户id', blank=False, null=False)
+    @classmethod
+    def getUserTraffic(cls, node_id, user_id):
+        '''返回指定用户对应节点的流量 单位GB'''
+        traffics = cls.objects.filter(node_id=node_id, user_id=user_id)
+        total_traffic = sum(
+            [u.upload_traffic + u.download_traffic for u in traffics])
+        return round(total_traffic / settings.GB, 2)
 
+    @classmethod
+    def getTrafficByDay(cls, node_id, user_id, date):
+        '''返回指定用户对应节点对应日期的流量 单位GB'''
+        traffics = cls.objects.filter(
+            node_id=node_id, user_id=user_id, log_date=date)
+        total_traffic = sum(
+            [u.upload_traffic + u.download_traffic for u in traffics])
+        return round(total_traffic / settings.GB, 2)
+
+    user_id = models.IntegerField('用户id', blank=False, null=False)
+    node_id = models.IntegerField('节点id', blank=False, null=False)
     upload_traffic = models.BigIntegerField(
         '上传流量',
         default=0,
@@ -240,11 +257,10 @@ class TrafficLog(models.Model):
         default=0,
         db_column='d'
     )
-
-    node_id = models.IntegerField('节点id', blank=False, null=False)
     rate = models.FloatField('流量比例', default=1.0, null=False)
     traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
+    log_date = models.DateField('记录日期', auto_now=True)
 
     def __str__(self):
         return self.traffic

@@ -13,12 +13,7 @@
         </div>
     </section>
 </div>
-
-
-
-
 <div class="column is-12">
-
     <nav class="level box ">
         <div class="level-item has-text-centered">
             <div>
@@ -29,61 +24,45 @@
         <div class="level-item has-text-centered">
             <div>
                 <p class="heading">流量剩余：</p>
-                <p class="title"><code>{{ ss_user.get_unused_traffic }}GB</code></p>
+                <p class="title">
+                    <code>{{ ss_user.get_unused_traffic }}GB</code>
+                </p>
             </div>
         </div>
     </nav>
-
-
     <div class="box">
-        <p class="subtitle">选择节点(最新的10条记录)：</p>
-        <form method="get" action="{% url 'shadowsocks:trafficlog' %}">
-            <div class="field has-addons">
-                <div class="control">
-                    <div class="select">
-                        <select name="nodes">
-                            {% for node in nodes %}
-                                <option value={{ node.pk }}>{{ node }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="control">
-                    <button type="submit" class="button is-outlined is-info">提交</button>
+        <p class="subtitle">选择节点获取流量记录：</p>
+        <div class="field has-addons">
+            <div class="control">
+                <div class="select">
+                    <select id="id-select-nodes" name="nodes">
+                        {% for node in nodes %}
+                        <option value={{ node.pk }}>{{ node }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
-        </form>
-        <br>
-        <div class="content">
-            <table class="table is-striped">
-                <p>节点: <strong>{{ node_name }}</strong>共消耗流量：<code>{{ total }}</code></p>
-                <thead>
-                    <tr>
-                        <th>时间:</th>
-                        <th>节点ID:</th>
-                        <th>流量:</th>
-                    </tr>
-                </thead>
-
-                {% for log in log_dic%}
-                <tr>
-                    <td>{{ log.t }}</td>
-                    <td>{{ log.node_id }}</td>
-                    <td>{{ log.traffic }}</td>
-                </tr>
-                {% empty %}
-                <h2 class="subtitle">
-                    <p class="subtitle">还没有使用过流量呢</p>
-                </h2>
-                {% endfor %}
-            </table>
+            <div class="control">
+                <button id="id-button-query" class="button is-outlined is-info">查询</button>
+            </div>
         </div>
-
+        <canvas id="traffic" width="500" height="300"></canvas>
     </div>
-
 </div>
-
-
-
-
-{% endblock main %}
+<script>
+    // 流量记录查询部分
+    queryButton = $("#id-button-query")
+    var payquery = function () {
+        url = "{% url 'api:traffic_query' %}"
+        var options = $("#id-select-nodes option:selected")
+        var data = {
+            'node_id': options.val(),
+            'node_name': options.text(),
+            'csrfmiddlewaretoken': '{{ csrf_token }}',
+        }
+        $.post(url, data, function (results) {
+            genLineChart('traffic', results)
+        })
+    }
+    queryButton.click(payquery)
+</script> {% endblock main %}

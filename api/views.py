@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from shadowsocks.models import (Donate, InviteCode, Node, NodeOnlineLog,
                                 PurchaseHistory, RebateRecord, Shop, User, MoneyCode, Donate, AlipayRequest, AlipayRecord)
-
+from shadowsocks.tools import get_date_list
 from ssserver.models import SSUser, TrafficLog
 
 from shadowsocks.payments import alipay
@@ -254,7 +254,7 @@ def pay_query(request):
         donate = Donate.objects.create(user=user, money=amount)
         # 后台数据库增加记录
         record = AlipayRecord.objects.create(username=user,
-                                                info_code=trade_num, amount=amount, money_code=code)
+                                             info_code=trade_num, amount=amount, money_code=code)
         del request.session['out_trade_no']
         # 返回充值信息
         info = {
@@ -272,4 +272,30 @@ def pay_query(request):
             'status': 'error', }
         context['info'] = info
     result = json.dumps(context, ensure_ascii=False)
+    return HttpResponse(result, content_type='application/json')
+
+
+@login_required
+def traffic_query(request):
+    '''
+    流量查请求
+    '''
+    node_id = request.POST.get('node_id', 0)
+    node_name = request.POST.get('node_name', '')
+    user_id = request.user.ss_user.user_id
+    last_week = get_date_list(6)
+    labels = ['{}-{}-{}'.format(t.year, t.month, t.day) for t in last_week]
+    trafficdata = [TrafficLog.getTrafficByDay(
+        node_id, user_id, t) for t in labels]
+    title = '节点 {} 当月共消耗：{} GB'.format(node_name,
+                                      TrafficLog.getUserTraffic(node_id, user_id))
+    configs = {
+        'title': title,
+        'labels': labels,
+        'data': trafficdata,
+        'data_title': '流量统计图',
+        'x_label': '日期 最近七天',
+        'y_label': '流量 单位：GB'
+    }
+    result = json.dumps(configs, ensure_ascii=False)
     return HttpResponse(result, content_type='application/json')
