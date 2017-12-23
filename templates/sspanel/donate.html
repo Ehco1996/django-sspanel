@@ -115,6 +115,7 @@
                 $("#id-img-qrcode").attr("src", `${protocol}//${host}/facepay/qrcode/`)
                 info = results.info
                 swal(info.title, info.subtitle, info.status)
+                requestButton.attr("disabled", "disabled")
             })
         } else {
             swal('错误！', '金额最少为一元', 'error')
@@ -133,5 +134,4 @@
         })
     }
     queryButton.click(payquery)
-</script>
-{% endblock main %}
+</script> {% endblock main %}
