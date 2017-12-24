@@ -240,7 +240,7 @@ class TrafficLog(models.Model):
     def getTrafficByDay(cls, node_id, user_id, date):
         '''返回指定用户对应节点对应日期的流量 单位GB'''
         traffics = cls.objects.filter(
-            node_id=node_id, user_id=user_id, log_date=date)
+            node_id=node_id, user_id=user_id, log_date__year=date.year, log_date__month=date.month, log_date__day=date.day)
         total_traffic = sum(
             [u.upload_traffic + u.download_traffic for u in traffics])
         return round(total_traffic / settings.GB, 2)
@@ -260,7 +260,8 @@ class TrafficLog(models.Model):
     rate = models.FloatField('流量比例', default=1.0, null=False)
     traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
-    log_date = models.DateField('记录日期', auto_now=True)
+    log_date = models.DateTimeField(
+        '记录日期', default=timezone.now, blank=False, null=False)
 
     def __str__(self):
         return self.traffic

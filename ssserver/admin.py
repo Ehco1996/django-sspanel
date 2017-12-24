@@ -17,7 +17,7 @@ class SSUserAdmin(admin.ModelAdmin):
 
 
 class TrafficLogAdmin(admin.ModelAdmin):
-    list_display = ['user_id', 'node_id', 'traffic', ]
+    list_display = ['user_id', 'node_id', 'traffic','log_date', ]
 
 
 # Register your models here.

@@ -284,18 +284,16 @@ def traffic_query(request):
     node_name = request.POST.get('node_name', '')
     user_id = request.user.ss_user.user_id
     last_week = get_date_list(6)
-    labels = ['{}-{}-{}'.format(t.year, t.month, t.day) for t in last_week]
-    new_labels = ['{}-{}'.format(t.split('-')[1], t.split('-')[2])
-                  for t in labels]
+    labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
     trafficdata = [TrafficLog.getTrafficByDay(
-        node_id, user_id, t) for t in labels]
+        node_id, user_id, t) for t in last_week]
     title = '节点 {} 当月共消耗：{} GB'.format(node_name,
                                        TrafficLog.getUserTraffic(node_id, user_id))
     configs = {
         'title': title,
-        'labels': new_labels,
+        'labels': labels,
         'data': trafficdata,
-        'data_title': '流量统计图',
+        'data_title': node_name,
         'x_label': '日期 最近七天',
         'y_label': '流量 单位：GB'
     }
