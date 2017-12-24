@@ -8,17 +8,13 @@ class UserAdmin(admin.ModelAdmin):
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
-    list_display = ['info','user', 'money', 'purchtime', ]
+    list_display = ['info', 'user', 'money', 'purchtime', ]
     search_fields = ['user', ]
 
 
 class InviteCodeAdmin(admin.ModelAdmin):
     list_display = ['code', 'time_created', 'isused', 'type']
     search_fields = ['code']
-
-
-class AliveipAdmin(admin.ModelAdmin):
-    list_display = ['user_name', 'ip_address', 'time']
 
 
 class MoneyCodeAdmin(admin.ModelAdmin):

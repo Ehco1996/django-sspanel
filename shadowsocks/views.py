@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.conf import settings
 from decimal import Decimal
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Aliveip, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket, RebateRecord
+from .models import Node, InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket, RebateRecord
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 
 # 导入加密混淆协议选项

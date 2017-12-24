@@ -338,42 +338,6 @@ class RebateRecord(models.Model):
         ordering = ('-rebatetime',)
 
 
-class Aliveip(models.Model):
-    '''节点在线ip'''
-
-    node_id = models.ForeignKey(
-        Node,
-        related_name='alive_node_id',
-        on_delete=models.CASCADE,
-        blank=True, null=True
-    )
-
-    user_name = models.CharField(
-        '用户名',
-        max_length=50,
-        blank=True, null=True)
-
-    ip_address = models.GenericIPAddressField('在线ip')
-
-    local = models.CharField(
-        '归属地',
-        max_length=128,
-        blank=True, null=True
-    )
-    time = models.DateTimeField(
-        '时间',
-        editable=False,
-        auto_now_add=True
-    )
-
-    def __str__(self):
-        return self.ip_address
-
-    class Meta:
-        verbose_name_plural = '在线ip'
-        ordering = ('-time',)
-
-
 class Donate(models.Model):
 
     @classmethod

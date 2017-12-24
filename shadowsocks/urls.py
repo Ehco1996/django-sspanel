@@ -60,7 +60,6 @@ urlpatterns = [
         views.node_edit, name='node_edit'),
     url(r'^backend/node/create/$', views.node_create, name='node_create'),
     # 用户相关
-    #url(r'^backend/aliveuser/$', views.backend_Aliveuser, name='alive_user'),
     url(r'^backend/userlist/$', views.backend_UserList, name='user_list'),
     url(r'^backend/user/delete/(?P<pk>[0-9]+)$',
         views.user_delete, name='user_delete'),
