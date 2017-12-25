@@ -152,7 +152,7 @@ def purchase(request):
             ss_user.transfer_enable += good.transfer
             user.balance -= good.money
             user.level = good.level
-            user.level_expire_time = timezone.now() + datetime.timedelta(days=good.days)
+            user.level_expire_time += datetime.timedelta(days=good.days)
             ss_user.save()
             user.save()
             # 增加购买记录
@@ -170,7 +170,6 @@ def purchase(request):
                 'title': '购买成功',
                 'subtitle': '请在用户中心检查最新信息',
                 'status': 'success', }
-
         result = json.dumps(registerinfo, ensure_ascii=False)
         return HttpResponse(result, content_type='application/json')
     else:

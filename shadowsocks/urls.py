@@ -31,7 +31,6 @@ urlpatterns = [
     url(r'^donate/$', views.donate, name='donate'),
     url(r'^shop/$', views.shop, name='shop'),
     url(r'^purchaselog/$', views.purchaselog, name='purchaselog'),
-    url(r'^purchase/(?P<goods_id>[0-9]+)$', views.purchase, name='purchase'),
     url(r'^chargecenter/$', views.chargecenter, name='chargecenter'),
     url(r'^charge/$', views.charge, name='charge'),
     # 公告
@@ -46,7 +45,6 @@ urlpatterns = [
     # 推广相关
     url(r'^affiliate/$', views.affiliate, name='affiliate'),
     url(r'^rebate/record/$', views.rebate_record, name='rebate'),
-
     # 网站后台面板
     url(r'^backend/$', views.backend_index, name='backend_index'),
     # 邀请码相关

@@ -401,57 +401,6 @@ def shop(request):
 
 
 @login_required
-def purchase(request, goods_id):
-    '''商品购买逻辑'''
-
-    goods = Shop.objects.all()
-    good = goods.get(pk=goods_id)
-    user = request.user
-    ss_user = request.user.ss_user
-
-    if user.balance < good.money:
-        registerinfo = {
-            'title': '金额不足！',
-            'subtitle': '请联系站长充值',
-            'status': 'error', }
-        context = {'ss_user': ss_user,
-                   'goods': goods,
-                   'registerinfo': registerinfo,
-                   }
-        return render(request, 'sspanel/shop.html', context=context)
-
-    else:
-        # 验证成功进行提权操作
-        ss_user.enable = True
-        ss_user.transfer_enable += good.transfer
-        user.balance -= good.money
-        user.level = good.level
-        user.level_expire_time = timezone.now() + datetime.timedelta(days=good.days)
-        ss_user.save()
-        user.save()
-        # 增加购买记录
-        record = PurchaseHistory(info=good, user=user, money=good.money,
-                                 purchtime=timezone.now())
-        record.save()
-        # 增加返利记录
-        inviter = User.objects.get(pk=user.invited_by)
-        rebaterecord = RebateRecord(
-            user_id=inviter.pk, money=good.money * Decimal(settings.INVITE_PERCENT))
-        inviter.balance += rebaterecord.money
-        inviter.save()
-        rebaterecord.save()
-        registerinfo = {
-            'title': '够买成功',
-            'subtitle': '即将跳转回用户中心',
-            'status': 'success', }
-        context = {
-            'ss_user': ss_user,
-            'registerinfo': registerinfo,
-        }
-        return render(request, 'sspanel/userinfo.html', context=context)
-
-
-@login_required
 def purchaselog(request):
     '''用户购买记录页面'''
 
