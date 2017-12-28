@@ -92,7 +92,7 @@ def ChangeSsPass(request):
                 'registerinfo': registerinfo,
                 'ss_user': ss_user,
             }
-            return render(request, 'sspanel/userinfoedit.html', context=context)
+            return redirect('/users/userinfoedit/')            
         else:
             return redirect('/')
     else:
@@ -282,7 +282,7 @@ def Subscribe(request, token):
     返回ssr订阅链接
     '''
     username = token.split('&&')[0]
-    user = base64.b64decode(username)
+    user = base64.b64decode(username).decode('utf8')
     try:
         user = User.objects.get(username=user)
         ss_user = user.ss_user

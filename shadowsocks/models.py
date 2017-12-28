@@ -505,7 +505,7 @@ class Shop(models.Model):
 class PurchaseHistory(models.Model):
     '''购买记录'''
 
-    info = models.ForeignKey(Shop)
+    info = models.ForeignKey(Shop, on_delete=models.CASCADE)
 
     user = models.CharField(
         '购买者',

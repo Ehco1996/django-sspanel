@@ -102,3 +102,4 @@ ENV/
 django_sspanel/simple_setting_product.py
 shadowsocks/Alipay_pub.pem
 shadowsocks/App_pravite.pem
+.vscode/launch.json
