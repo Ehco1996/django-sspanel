@@ -202,12 +202,17 @@ def userinfo(request):
     min_traffic = '{}m'.format(int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
     max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
+    # 订阅地址
+    token = base64.b64encode(
+        bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
+    sub_link = settings.HOST + 'server/subscribe/' + token
     context = {
         'user': user,
         'anno': anno,
         'remain_traffic': remain_traffic,
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
+        'sub_link': sub_link,        
     }
     return render(request, 'sspanel/userinfo.html', context=context)
 

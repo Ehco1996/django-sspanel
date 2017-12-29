@@ -22,20 +22,32 @@
             <div class="tile box is-child">
                 <p class="title">
                     <span class="icon is-large">
-                    <i class="fa fa-home"></i>
+                        <i class="fa fa-home"></i>
                     </span> 欢迎小主: {{ user.username }}</p>
                 <p class="subtitle is-5">这里的功能还比较少...</p>
-                <button class="button"><a href="{% url 'shadowsocks:logout' %}">注销登录</a></button>
-                <button class="button"><a href="{% url 'password_change' %}">修改密码</a></button>
-                <button class="button"><a><span id="id-change-port">重置端口</span></a></button>
-                <hr> 
+                <button class="button">
+                    <a href="{% url 'shadowsocks:logout' %}">注销登录</a>
+                </button>
+                <button class="button">
+                    <a href="{% url 'password_change' %}">修改密码</a>
+                </button>
+                <button class="button">
+                    <a>
+                        <span id="id-change-port">重置端口</span>
+                    </a>
+                </button>
+                <hr>
                 <div id="id-checkin-box">
                     {% if user.ss_user.get_check_in %}
                     <p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>
                     {% else %}
                     <p class="subtitle is-5 is-spaced"> 今天还没有签到，点一下可以获得{{ min_traffic }}~{{ max_traffic }}流量</p>
                     <br>
-                    <button class="button"><a><span id="id-checkin">签到</span></a></button> 
+                    <button class="button">
+                        <a>
+                            <span id="id-checkin">签到</span>
+                        </a>
+                    </button>
                     {% endif %}
                 </div>
             </div>
@@ -61,13 +73,24 @@
                         <p>连接信息</p>
                     </div>
                     <div class="message-body">
-                        <li> 端口：<code><span id="port">{{ user.ss_user.port }}</span></code></li>
-                        <li> 密码：<code>{{ user.ss_user.password }}</code></li>
-                        <li> 加密：<code>{{ user.ss_user.method }}</code></li>
-                        <li> 混淆：<code>{{ user.ss_user.protocol }}</code></li>
-                        <li> 协议：<code>{{ user.ss_user.obfs }}</code></li>
+                        <li> 端口：
+                            <code><span id="port">{{ user.ss_user.port }}</span></code>
+                        </li>
+                        <li> 密码：
+                            <code>{{ user.ss_user.password }}</code>
+                        </li>
+                        <li> 加密：
+                            <code>{{ user.ss_user.method }}</code>
+                        </li>
+                        <li> 混淆：
+                            <code>{{ user.ss_user.protocol }}</code>
+                        </li>
+                        <li> 协议：
+                            <code>{{ user.ss_user.obfs }}</code>
+                        </li>
                         <br>
-                        <a class="button is-link " href="{% url 'shadowsocks:nodeinfo' %}">详细节点信息请点击这里</a>
+                        <a class="button is-link " href="{% url 'shadowsocks:nodeinfo' %}">详细配置</a>
+                        <a class="button is-link " href="{{ sub_link }}">订阅地址</a>
                     </div>
                 </article>
 
@@ -79,7 +102,8 @@
                     <div class="message-body">
                         <div class="columns">
                             <div class="column is-4">
-                                <li>总量：<code>{{ user.ss_user.get_transfer }}GB </code> </li>
+                                <li>总量：
+                                    <code>{{ user.ss_user.get_transfer }}GB </code> </li>
                             </div>
                             <div class="column">
                                 <progress class="progress is-success" value="100" max="100"></progress>
@@ -87,7 +111,8 @@
                         </div>
                         <div class="columns">
                             <div class="column is-4">
-                                <li>剩余：<code>{{ user.ss_user.get_unused_traffic }}GB </code> </li>
+                                <li>剩余：
+                                    <code>{{ user.ss_user.get_unused_traffic }}GB </code> </li>
                             </div>
                             <div class="column">
                                 <progress class="progress is-info" value="{{  remain_traffic }}" max="100"></progress>
@@ -96,7 +121,8 @@
 
                         <div class="columns">
                             <div class="column is-4">
-                                <li>使用：<code>{{ user.ss_user.get_used_percentage }}%</code> </li>
+                                <li>使用：
+                                    <code>{{ user.ss_user.get_used_percentage }}%</code> </li>
                             </div>
                             <div class="column">
                                 <progress class="progress is-danger" value="{{  user.ss_user.get_used_percentage }}" max="100"></progress>
@@ -110,16 +136,30 @@
                         <p>个人信息</p>
                     </div>
                     <div class="message-body">
-                        <li> 余额：<code>{{ user.balance }} 元</code></li>
-                        <li> 邮箱：<code>{{ user.email }} </code></li>
-                        <li> 等级：<code>{{ user.level }} 级 </code></li>
+                        <li> 余额：
+                            <code>{{ user.balance }} 元</code>
+                        </li>
+                        <li> 邮箱：
+                            <code>{{ user.email }} </code>
+                        </li>
+                        <li> 等级：
+                            <code>{{ user.level }} 级 </code>
+                        </li>
                         {% if user.ss_user.enable == True %}
-                        <li> 状态：<code>正常使用</code></li>
+                        <li> 状态：
+                            <code>正常使用</code>
+                        </li>
                         {% else %}
-                        <li> 状态：<code>失效</code></li>
+                        <li> 状态：
+                            <code>失效</code>
+                        </li>
                         {% endif %}
-                        <li> 等级到期时间：<code>{{ user.get_expire_time }} </code></li>
-                        <li>上次使用时间: <code>{{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</code></li>
+                        <li> 等级到期时间：
+                            <code>{{ user.get_expire_time }} </code>
+                        </li>
+                        <li>上次使用时间:
+                            <code>{{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</code>
+                        </li>
 
                     </div>
                 </article>
@@ -132,28 +172,26 @@
 <script>
     // 端口重置Ajax部分
     var ProtButton = $("#id-change-port")
-    var changeport = function(){
+    var changeport = function () {
         url = "{% url 'api:changessport' %}"
-        $.getJSON(url,function(results){
-            swal(results.title,results.subtitle,results.status)
-            port.textContent= results.subtitle.slice(6,-1)
+        $.getJSON(url, function (results) {
+            swal(results.title, results.subtitle, results.status)
+            port.textContent = results.subtitle.slice(6, -1)
         })
     }
     ProtButton.click(changeport)
     // 签到AJAX部分
     var CheckButton = $("#id-checkin")
-    var Checkin = function(){
+    var Checkin = function () {
         url = "{% url 'shadowsocks:checkin' %}"
-        $.getJSON(url,function(results){
-            swal(results.title,results.subtitle,results.status)
+        $.getJSON(url, function (results) {
+            swal(results.title, results.subtitle, results.status)
             var box = $("#id-checkin-box")
             box.empty()
             box.append('今天已经签到过了ಠ౪ಠ')
         })
     }
     CheckButton.click(Checkin)
-</script>
-
-{% else %}
+</script> {% else %}
 <p>你还没有登录，请登录 </p>
 {% endif %} {% endblock main %}
