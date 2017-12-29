@@ -153,7 +153,7 @@ urlpatterns = [
     path('backend/shop/', views.backend_shop, name='backend_shop'),
     path('backend/shop/delete/<int:pk>/',
          views.good_delete, name='good_delete'),
-    path('backend/good/create/$', views.good_create, name='good_create'),
+    path('backend/good/create/', views.good_create, name='good_create'),
     path('backend/good/edit/<int:pk>/',
          views.good_edit, name='good_edit'),
     path('backend/purchase/history/',
