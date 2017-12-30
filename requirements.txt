@@ -1,7 +1,7 @@
 certifi==2017.7.27.1
 chardet==3.0.4
 cycler==0.10.0
-Django==1.11.4
+Django==2.0
 django-crontab==0.7.1
 idna==2.6
 image==1.5.11
@@ -14,7 +14,7 @@ PyMySQL==0.7.11
 pyparsing==2.2.0
 python-alipay-sdk==1.2.1
 python-dateutil==2.6.1
-pytz==2017.2
+pytz==2017.3
 qrcode==5.3
 six==1.10.0
 tomd==0.1.3

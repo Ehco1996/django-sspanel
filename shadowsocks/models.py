@@ -633,12 +633,10 @@ class Announcement(models.Model):
 
     # 重写save函数，将文本渲染成markdown格式存入数据库
     def save(self, *args, **kwargs):
-
         # 首先实例化一个MarkDown类，来渲染一下body的文本 成为html文本
         md = markdown.Markdown(extensions=[
             'markdown.extensions.extra',
         ])
-        # 让摘要默认为body字段的前54个字符 并且去掉html的标签
         self.body = md.convert(self.body)
         # 调动父类save 将数据保存到数据库中
         super(Announcement, self).save(*args, **kwargs)

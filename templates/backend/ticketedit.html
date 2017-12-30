@@ -14,12 +14,8 @@
         </div>
     </section>
 </div>
-
-
-
 <div class="column is-12">
     <div class="box">
-
         <form class="form" method="post">
             {% csrf_token %}
             <div class="control is-loading">
@@ -27,16 +23,14 @@
                 <textarea class="textarea" name="title" type="text" placeholder="标题" rows="1" maxlength="32">{{ ticket.title }}</textarea>
                 <br>
                 <span class="tag is-info">内容:</span>
-                <textarea class="textarea" name="body" type="text" placeholder="正文" rows="10">{{ ticket.body }}</textarea>
+                <textarea class="textarea" id="id-markdown-body" name="body" type="text" rows="10">{{ ticket.body }}</textarea>
                 <span class="tag is-info">状态:</span>
                 <div class="control">
                     <label class="radio">
-                      <input type="radio" name="status" value="开启">
-                      开启
+                        <input type="radio" name="status" value="开启"> 开启
                     </label>
                     <label class="radio">
-                      <input type="radio" name="status" value="关闭">
-                      关闭
+                        <input type="radio" name="status" value="关闭"> 关闭
                     </label>
                 </div>
             </div>
@@ -47,5 +41,8 @@
             </div>
         </form>
     </div>
-
-    {% endblock main %}
+</div>
+<script>
+    var simplemde = new SimpleMDE({ element: $("#id-markdown-body")[0] });
+    simplemde.togglePreview();
+</script> {% endblock main %}

@@ -70,7 +70,7 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 
 #### 后端框架：
 
-* Django 1.11 <https://www.djangoproject.com/>
+* Django  <https://www.djangoproject.com/>
 
 #### 第三方组件：
 

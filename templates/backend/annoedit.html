@@ -14,18 +14,13 @@
         </div>
     </section>
 </div>
-
-
-
 <div class="column is-12">
     <div class="box">
-
         <form class="form" method="post">
             {% csrf_token %}
             <div class="control is-loading">
-                <textarea class="textarea" name="body" type="text" placeholder="请使用作为Markdown格式" rows="10">{{ anno.body |safe }}</textarea>
+                <textarea class="textarea" id="id-markdown-body" name="body" type="text" rows="10">{{ anno.body }}</textarea>
             </div>
-
             <hr/>
             <div class="is-grouped">
                 <button type="submit" class="button is-danger is-outlined ">确认修改</button>
@@ -33,5 +28,7 @@
             </div>
         </form>
     </div>
-
-    {% endblock main %}
+</div>
+<script>
+    var simplemde = new SimpleMDE({ element: $("#id-markdown-body")[0] });
+</script> {% endblock main %}

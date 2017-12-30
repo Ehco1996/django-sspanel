@@ -9,7 +9,8 @@
                     创建新的公告：
                 </h1>
                 <h2 class="subtitle">
-                    公告格式采用 <strong>Markdown</strong>
+                    公告格式采用
+                    <strong>Markdown</strong>
                 </h2>
             </div>
         </div>
@@ -18,11 +19,10 @@
 
 <div class="column is-12">
     <div class="box">
-
         <form class="form" method="post">
             {% csrf_token %}
             <div class="control is-loading">
-                <textarea class="textarea" name="body" type="text" placeholder="请使用作为Markdown格式" rows="10"></textarea>
+                <textarea class="textarea" id="id-markdown-body" name="body" type="text" rows="10"></textarea>
             </div>
             <hr/>
             <div class="is-grouped">
@@ -30,7 +30,7 @@
                 <a class="button is-success is-outlined" href="{% url 'shadowsocks:backend_anno' %}">取消</a>
             </div>
         </form>
-
-</div>
-
-{% endblock main %}
+    </div>
+    <script>
+        var simplemde = new SimpleMDE({ element: $("#id-markdown-body")[0] });
+    </script> {% endblock main %}

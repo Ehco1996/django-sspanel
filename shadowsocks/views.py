@@ -212,7 +212,7 @@ def userinfo(request):
         'remain_traffic': remain_traffic,
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
-        'sub_link': sub_link,        
+        'sub_link': sub_link,
     }
     return render(request, 'sspanel/userinfo.html', context=context)
 
@@ -489,7 +489,6 @@ def charge(request):
 def announcement(request):
     '''网站公告列表'''
     anno = Announcement.objects.all()
-
     return render(request, 'sspanel/announcement.html', {'anno': anno})
 
 
@@ -498,7 +497,6 @@ def ticket(request):
     '''工单系统'''
     ticket = Ticket.objects.filter(user=request.user)
     context = {'ticket': ticket}
-
     return render(request, 'sspanel/ticket.html', context=context)
 
 
@@ -556,7 +554,6 @@ def ticket_edit(request, pk):
             'title': '修改成功',
             'subtitle': '数据更新成功',
             'status': 'success', }
-
         context = {
             'registerinfo': registerinfo,
             'ticket': Ticket.objects.filter(user=request.user)
@@ -573,7 +570,6 @@ def ticket_edit(request, pk):
 @login_required
 def affiliate(request):
     '''推广页面'''
-
     if request.user.pk != 1:
         invidecodes = InviteCode.objects.filter(
             code_id=request.user.pk, type=0)
@@ -607,7 +603,6 @@ def rebate_record(request):
 @permission_required('shadowsocks')
 def backend_index(request):
     '''跳转到后台界面'''
-
     context = {
         'userNum': User.userNum(),
     }
@@ -618,7 +613,6 @@ def backend_index(request):
 @permission_required('shadowsocks')
 def backend_node_info(request):
     '''节点编辑界面'''
-
     nodes = Node.objects.all()
     context = {
         'nodes': nodes,
@@ -632,12 +626,10 @@ def node_delete(request, node_id):
     node = Node.objects.filter(node_id=node_id)
     node.delete()
     nodes = Node.objects.all()
-
     registerinfo = {
         'title': '删除节点',
         'subtitle': '成功啦',
                     'status': 'success', }
-
     context = {
         'nodes': nodes,
         'registerinfo': registerinfo
@@ -659,7 +651,6 @@ def node_edit(request, node_id):
                 'title': '修改成功',
                 'subtitle': '数据更新成功',
                 'status': 'success', }
-
             context = {
                 'nodes': nodes,
                 'registerinfo': registerinfo,
@@ -699,7 +690,6 @@ def node_create(request):
                 'title': '添加成功',
                 'subtitle': '数据更新成功！',
                 'status': 'success', }
-
             context = {
                 'nodes': nodes,
                 'registerinfo': registerinfo,
@@ -809,18 +799,6 @@ class Page_List_View(object):
         }
 
         return context
-
-
-@permission_required('shadowsocks')
-def backend_Aliveuser(request):
-    '''返回在线用户的ip的View'''
-
-    obj = Aliveip
-    page_num = 10
-    context = Page_List_View(request, obj, page_num).get_page_context()
-
-    return render(request, 'backend/aliveuser.html', context=context)
-
 
 @permission_required('shadowsocks')
 def backend_UserList(request):
@@ -1076,7 +1054,6 @@ def purchase_history(request):
 @permission_required('shadowsocks')
 def backend_anno(request):
     '''公告管理界面'''
-
     anno = Announcement.objects.all()
     context = {
         'anno': anno,
@@ -1090,12 +1067,10 @@ def anno_delete(request, pk):
     anno = Announcement.objects.filter(pk=pk)
     anno.delete()
     anno = Announcement.objects.all()
-
     registerinfo = {
         'title': '删除公告',
         'subtitle': '成功啦',
                     'status': 'success', }
-
     context = {
         'anno': anno,
         'registerinfo': registerinfo
@@ -1115,7 +1090,6 @@ def anno_create(request):
                 'title': '添加成功',
                 'subtitle': '数据更新成功！',
                 'status': 'success', }
-
             context = {
                 'anno': anno,
                 'registerinfo': registerinfo,
@@ -1126,13 +1100,11 @@ def anno_create(request):
                 'title': '错误',
                 'subtitle': '数据填写错误',
                 'status': 'error', }
-
             context = {
                 'form': form,
                 'registerinfo': registerinfo,
             }
             return render(request, 'backend/annocreate.html', context=context)
-
     else:
         form = AnnoForm()
         return render(request, 'backend/annocreate.html', context={'form': form, })
@@ -1141,9 +1113,7 @@ def anno_create(request):
 @permission_required('shadowsocks')
 def anno_edit(request, pk):
     '''公告编辑'''
-
     anno = Announcement.objects.get(pk=pk)
-
     # 当为post请求时，修改数据
     if request.method == "POST":
         form = AnnoForm(request.POST, instance=anno)
@@ -1153,7 +1123,6 @@ def anno_edit(request, pk):
                 'title': '修改成功',
                 'subtitle': '数据更新成功',
                 'status': 'success', }
-
             context = {
                 'registerinfo': registerinfo,
                 'anno': Announcement.objects.all(),
@@ -1164,7 +1133,6 @@ def anno_edit(request, pk):
                 'title': '错误',
                 'subtitle': '数据填写错误',
                 'status': 'error', }
-
             context = {
                 'form': form,
                 'registerinfo': registerinfo,
@@ -1174,7 +1142,6 @@ def anno_edit(request, pk):
     # 当请求不是post时，渲染form
     else:
         anno.body = tomd.convert(anno.body)
-
         context = {
             'anno': anno,
         }
