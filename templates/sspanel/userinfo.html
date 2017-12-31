@@ -89,10 +89,24 @@
                             <code>{{ user.ss_user.obfs }}</code>
                         </li>
                         <br>
-                        <a class="button is-link " href="{% url 'shadowsocks:nodeinfo' %}">详细配置</a>
-                        <a class="button is-link " href="{{ sub_link }}">订阅地址</a>
+                        <a class="button is-link" href="{% url 'shadowsocks:nodeinfo' %}">详细配置</a>
+                        <a class="button is-link modal-button" data-target="modal-sub">订阅地址</a>
                     </div>
                 </article>
+                <div class="modal nodeinfo" id="modal-sub">
+                    <div class="modal-background"></div>
+                    <div class="modal-card">
+                        <header class="modal-card-head">
+                            <p class="modal-card-title">SSR订阅地址：</p>
+                            <button class="delete"></button>
+                        </header>
+                        <section class="modal-card-body">
+                            <p class="subtitle">复制下面红色的链接至客户端的订阅处</p>
+                            <p>如果你不知道这是什么请不要管!</p>
+                            <code>{{ sub_link }}</code>
+                        </section>
+                    </div>
+                </div>
 
                 <article class="message is-warning">
                     <div class="message-header">

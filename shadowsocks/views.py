@@ -153,6 +153,7 @@ def Login_view(request):
                     'remain_traffic': remain_traffic,
                     'min_traffic': min_traffic,
                     'max_traffic': max_traffic,
+                    'sub_link': get_sub_link(user),
                 }
                 return render(request, 'sspanel/userinfo.html', context=context)
             else:
@@ -189,11 +190,19 @@ def Logout_view(request):
     return render(request, 'sspanel/index.html', context=context)
 
 
+def get_sub_link(user):
+    '''生成该用户的订阅地址'''
+    # 订阅地址
+    token = base64.b64encode(
+        bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
+    sub_link = settings.HOST + 'server/subscribe/' + token
+    return sub_link
+
+
 @login_required
 def userinfo(request):
     '''用户中心'''
     user = request.user
-
     # 获取公告
     try:
         anno = Announcement.objects.all()[0]
@@ -203,9 +212,7 @@ def userinfo(request):
     max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
     # 订阅地址
-    token = base64.b64encode(
-        bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
-    sub_link = settings.HOST + 'server/subscribe/' + token
+    sub_link = get_sub_link(user)
     context = {
         'user': user,
         'anno': anno,
@@ -799,6 +806,7 @@ class Page_List_View(object):
         }
 
         return context
+
 
 @permission_required('shadowsocks')
 def backend_UserList(request):
