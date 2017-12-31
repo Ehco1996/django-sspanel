@@ -179,7 +179,7 @@ class SSUser(models.Model):
 
     def get_transfer(self):
         '''返回用户的总流量 GB'''
-        return '{:.2f} '.format(self.transfer_enable / settings.GB)
+        return '{:.2f}'.format(self.transfer_enable / settings.GB)
 
     def get_unused_traffic(self):
         '''返回用户的剩余流量'''

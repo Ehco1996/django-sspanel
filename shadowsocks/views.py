@@ -356,7 +356,7 @@ def nodeinfo(request):
     ss_user = request.user.ss_user
     user = request.user
     # 加入等级的判断
-    nodes = Node.objects.filter(level__lte=user.level, show='显示').values()
+    nodes = Node.objects.filter(show='显示').values()
     # 循环遍历每一条线路的在线人数
     for node in nodes:
         # 生成SSR和SS的链接

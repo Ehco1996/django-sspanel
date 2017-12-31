@@ -28,127 +28,156 @@
                     <p class="card-header-title">
                         <span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
                     {% endif %}
+                    <a id="id-icon-{{ list.node_id }}" class="card-header-icon">
+                        <span class="icon">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </span>
+                    </a>
                 </div>
-                <div class="card-content">
-                    <div class="content">
-                        {{ list.info }}
+                {% if user.level >= list.level %}
+                <div id="id-card-body-{{ list.node_id }}" hidden="true">
+                    <div class="card-content">
+                        <div class="content">
+                            {{ list.info }}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ list.node_id }}" data-target="modal-qrcode-{{ list.name }}">二维码</a>
+                        <a class="card-footer-item modal-button" data-target="modal-config-{{ list.node_id }}">配置</a>
+                        <a class="card-footer-item">
+                            <span class="icon">
+                                <i class="fa fa-user-o">「{{ list.count }}」</i>
+                            </span>
+                        </a>
+                    </div>
+                    <!--配置部分 -->
+                    <div class="modal nodeinfo" id="modal-config-{{ list.node_id }}">
+                        <div class="modal-background"></div>
+                        <div class="modal-card">
+                            <header class="modal-card-head">
+                                <p class="modal-card-title">节点配置信息:</p>
+                                <button class="delete"></button>
+                            </header>
+                            <section class="modal-card-body">
+                                <table class="table is-fullwidth is-bordered is-striped ">
+                                    <p class="subtitle">用原版SS要在节点编辑界面将
+                                        <strong>混淆</strong>改成
+                                        <code>http_simple_compatible</code>
+                                    </p>
+                                    <tr>
+                                        <td class="notification">节点ip:</td>
+                                        <td class="notification">{{ list.server }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">端口:</td>
+                                        <td class="notification">{{ ss_user.port }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">密码:</td>
+                                        <td class="notification">{{ ss_user.password }}</td>
+                                    </tr>
+                                    {% if list.custom_method == 0 %}
+                                    <tr>
+                                        <td class="notification">加密方式:</td>
+                                        <td class="notification">{{ list.method }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">协议(ss版客户端可不填写):</td>
+                                        <td class="notification">{{ list.protocol }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">混淆(ss版客户端可不填写):</td>
+                                        <td class="notification">{{ list.obfs }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td class="notification">加密方式:</td>
+                                        <td class="notification">{{ ss_user.method }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">协议(ss版客户端可不填写):</td>
+                                        <td class="notification">{{ ss_user.protocol }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">混淆(ss版客户端可不填写):</td>
+                                        <td class="notification">{{ ss_user.obfs }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                                <p class="subtitle">配置链接：</p>
+                                <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
+                                <br>
+                                <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
+                                <br>
+                                <br>
+                                <p class="subtitle">复制下面红色的链接至客户端的订阅处</p>
+                                <p>如果你不知道这是什么请不要管!</p>
+                                <code>{{ sub_link }}</code>
+                            </section>
+                        </div>
+                    </div>
+                    <!--二维码部分 -->
+                    <div class="modal" id="modal-qrcode-{{ list.name }}">
+                        <div class="modal-background"></div>
+                        <div class="modal-card">
+                            <header class="modal-card-head">
+                                <p class="modal-card-title">节点:
+                                    <strong>{{ list.name }}</strong> 配置二维码</p>
+                                <button class="delete" aria-label="close"></button>
+                            </header>
+                            <section class="modal-card-body">
+                                <p class="subtitle">用原版SS要在节点编辑界面将
+                                    <strong>混淆</strong>改成
+                                    <code>http_simple_compatible</code>
+                                </p>
+                                <div class="box">
+                                    <!-- SSR配置 ... -->
+                                    <p class="subtitle">SSR版本(推荐使用)：</p>
+                                    <img src="" id="id-ssr-{{ list.node_id }}" width="256" height="256">
+                                </div>
+                                <div class="box">
+                                    <!-- SS配置 ... -->
+                                    <p class="subtitle">SS原版：</p>
+                                    <img src="" id="id-ss-{{ list.node_id }}" width="256" height="256">
+                                </div>
+                            </section>
+                        </div>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <a class="card-footer-item modal-button" id="id-button-qrcode" data-target="modal-qrcode-{{ list.name }}">二维码</a>
-                    <a class="card-footer-item modal-button" data-target="modal-config-{{ list.node_id }}">配置</a>
-                    <a class="card-footer-item">人数:「{{ list.count }}」</a>
-                    <a class="card-footer-item">状态: 「{{ list.status }}」</a>
+                {% else %}
+                <div id="id-card-body-{{ list.node_id }}" hidden="true">
+                    <div class="card-content">
+                        <article class="message is-danger">
+                            <div class="message-body">
+                                <p>该线路为VIP线路
+                                    <strong>购买对应商品后</strong> 才能看见节点配置哟！</p>
+                                <a class="is-link" href="{% url 'shadowsocks:shop' %}">点我购买！</a>
+                            </div>
+                        </article>
+                    </div>
                 </div>
+                {% endif %}
             </div>
-
-            <div class="modal nodeinfo" id="modal-config-{{ list.node_id }}">
-                <div class="modal-background"></div>
-                <div class="modal-card">
-                    <header class="modal-card-head">
-                        <p class="modal-card-title">节点配置信息:</p>
-                        <button class="delete"></button>
-                    </header>
-                    <section class="modal-card-body">
-                        <table class="table is-fullwidth is-bordered is-striped ">
-                            <p class="subtitle">用原版SS要在节点编辑界面将
-                                <strong>混淆</strong>改成
-                                <code>http_simple_compatible</code>
-                            </p>
-                            <tr>
-                                <td class="notification">节点ip:</td>
-                                <td class="notification">{{ list.server }}</td>
-                            </tr>
-                            <tr>
-                                <td class="notification">端口:</td>
-                                <td class="notification">{{ ss_user.port }}</td>
-                            </tr>
-                            <tr>
-                                <td class="notification">密码:</td>
-                                <td class="notification">{{ ss_user.password }}</td>
-                            </tr>
-                            {% if list.custom_method == 0 %}
-                            <tr>
-                                <td class="notification">加密方式:</td>
-                                <td class="notification">{{ list.method }}</td>
-                            </tr>
-                            <tr>
-                                <td class="notification">协议(ss版客户端可不填写):</td>
-                                <td class="notification">{{ list.protocol }}</td>
-                            </tr>
-                            <tr>
-                                <td class="notification">混淆(ss版客户端可不填写):</td>
-                                <td class="notification">{{ list.obfs }}</td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td class="notification">加密方式:</td>
-                                <td class="notification">{{ ss_user.method }}</td>
-                            </tr>
-                            <tr>
-                                <td class="notification">协议(ss版客户端可不填写):</td>
-                                <td class="notification">{{ ss_user.protocol }}</td>
-                            </tr>
-                            <tr>
-                                <td class="notification">混淆(ss版客户端可不填写):</td>
-                                <td class="notification">{{ ss_user.obfs }}</td>
-                            </tr>
-                            {% endif %}
-                        </table>
-                        <p class="subtitle">配置链接：</p>
-                        <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
-                        <br>
-                        <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
-                        <br>
-                        <br>
-                        <p class="subtitle">复制下面红色的链接至客户端的订阅处</p>
-                        <p>如果你不知道这是什么请不要管!</p>
-                        <code>{{ sub_link }}</code>
-                    </section>
-                </div>
-            </div>
-
-            <!--二维码部分 -->
-            <div class="modal" id="modal-qrcode-{{ list.name }}">
-                <div class="modal-background"></div>
-                <div class="modal-card">
-                    <header class="modal-card-head">
-                        <p class="modal-card-title">节点:
-                            <strong>{{ list.name }}</strong> 配置二维码</p>
-                        <button class="delete" aria-label="close"></button>
-                    </header>
-                    <section class="modal-card-body">
-                        <p class="subtitle">用原版SS要在节点编辑界面将
-                            <strong>混淆</strong>改成
-                            <code>http_simple_compatible</code>
-                        </p>
-                        <div class="box">
-                            <!-- SSR配置 ... -->
-                            <p class="subtitle">SSR版本(推荐使用)：</p>
-                            <img src="" id="id-ssr-{{ list.node_id }}" width="256" height="256">
-                        </div>
-                        <div class="box">
-                            <!-- SS配置 ... -->
-                            <p class="subtitle">SS原版：</p>
-                            <img src="" id="id-ss-{{ list.node_id }}" width="256" height="256">
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <br>
         </div>
-        {% endfor %}
+        <br> {% endfor %}
     </div>
 </div>
+
 
 <script>
     var nodeList = $("#id-nodelist")
     // 事件委托绑定按钮
-    nodeList.on('click', '#id-button-qrcode', function (event) {
-        var button = $(event.target)
-        var node = button.closest('.node-cell')
+    nodeList.on('click', 'a', function (event) {
+        var target = $(event.target)
+        var node = target.closest('.node-cell')
         // 找到节点id
         var nodeId = node.data('id')
+        // 列表伸缩
+        var toggleButton = node.find(`#id-icon-${nodeId}`)
+        toggleButton.click(function () {
+            var cardBody = node.find(`#id-card-body-${nodeId}`)
+            cardBody.toggle()
+        })
         // 找到节点二维码img标签
         var ssr = node.find(`#id-ssr-${nodeId}`)
         var ss = node.find(`#id-ss-${nodeId}`)

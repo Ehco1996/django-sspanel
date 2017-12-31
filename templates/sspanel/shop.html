@@ -8,7 +8,10 @@
                     商品列表：
                 </h1>
                 <h2 class="subtitle">
-                    嘿，土豪，快把我收到碗里去
+                    PY战站长获得充值码 或者
+                    <a href="{% url 'shadowsocks:donate' %}">
+                        <strong>捐赠</strong>
+                    </a>那支持支付宝!
                 </h2>
             </div>
         </div>
@@ -37,42 +40,57 @@
                     商品序号：{{ good.pk }}
                 </p>
                 <a class="modal-button card-header-icon" data-target="modal-{{ good.pk }}">
-                <span class="icon">
-                    <i class="fa fa-shopping-bag" aria-hidden="true"></i>
-                </span>
-                <span>购买</span>
+                    <span class="icon">
+                        <i class="fa fa-shopping-bag" aria-hidden="true"></i>
+                    </span>
+                    <span>购买</span>
                 </a>
             </header>
             <div class="card-content">
                 <div class="content">
-                    {{ good.name }} <br>
-                    <strong>价格：</strong><code>{{ good.money }}元</code><br>
-                    <strong>流量：</strong><code>{{ good.get_transfer_by_GB }} GB</code><br>
-                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code><br>
-                    <strong>等级有效期：</strong><code>{{ good.days }} 天</code>                                                           
+                    {{ good.name }}
+                    <br>
+                    <strong>价格：</strong>
+                    <code>{{ good.money }}元</code>
+                    <br>
+                    <strong>流量：</strong>
+                    <code>{{ good.get_transfer_by_GB }} GB</code>
+                    <br>
+                    <strong>提升等级至：</strong>
+                    <code>{{ good.level }} 级</code>
+                    <br>
+                    <strong>等级有效期：</strong>
+                    <code>{{ good.days }} 天</code>
                 </div>
             </div>
         </div>
         <div class="modal" id="modal-{{ good.pk }}">
-                <div class="modal-background"></div>
-                <div class="modal-card">
-                    <header class="modal-card-head">
-                        <p class="modal-card-title">订单确认:</p>
-                        <button class="delete"></button>
-                    </header>
-                    <section class="modal-card-body" data-id="{{ good.pk }}">
-                    <p class="subtitle">    {{ good.name }} </p>
-                    <strong>价格：</strong><code>{{ good.money }}元</code> <br>
-                    <strong>流量：</strong><code>{{ good.get_transfer_by_GB }} GB</code><br>
-                    <strong>提升等级至：</strong><code>{{ good.level }} 级</code><br>
-                    <strong>等级有效期：</strong><code>{{ good.days }} 天</code>                
-                    <br><br>        
-                    <a class="button is-danger is-outlined" id="id-button-pruchase">确认购买</a>                  
-                    </section>
-                </div>
-            </div>     
-        <br> 
-        {% empty %}
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">订单确认:</p>
+                    <button class="delete"></button>
+                </header>
+                <section class="modal-card-body" data-id="{{ good.pk }}">
+                    <p class="subtitle"> {{ good.name }} </p>
+                    <strong>价格：</strong>
+                    <code>{{ good.money }}元</code>
+                    <br>
+                    <strong>流量：</strong>
+                    <code>{{ good.get_transfer_by_GB }} GB</code>
+                    <br>
+                    <strong>提升等级至：</strong>
+                    <code>{{ good.level }} 级</code>
+                    <br>
+                    <strong>等级有效期：</strong>
+                    <code>{{ good.days }} 天</code>
+                    <br>
+                    <br>
+                    <a class="button is-danger is-outlined" id="id-button-pruchase">确认购买</a>
+                </section>
+            </div>
+        </div>
+        <br> {% empty %}
         <p class="subtitle">暂时没有商品上架哦</p>
         {% endfor %}
     </div>
@@ -82,18 +100,16 @@
     // 事件委托绑定按钮
     goodList.on('click', '#id-button-pruchase', function (event) {
         var button = $(event.target)
-        var good = button.closest('.modal-card-body')  
+        var good = button.closest('.modal-card-body')
         // 找到节点id
         var goodId = good.data('id')
         data = {
             csrfmiddlewaretoken: "{{ csrf_token }}",
-            goodId : goodId
+            goodId: goodId
         }
         url = "{% url 'api:purchase' %}"
-        $.post(url,data,function(results){
-            swal(results.title,results.subtitle,results.status)
+        $.post(url, data, function (results) {
+            swal(results.title, results.subtitle, results.status)
         })
     })
-</script>
-
-{% endblock main %}
+</script> {% endblock main %}

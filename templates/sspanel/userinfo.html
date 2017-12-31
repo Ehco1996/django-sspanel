@@ -116,8 +116,9 @@
                     <div class="message-body">
                         <div class="columns">
                             <div class="column is-4">
-                                <li>总量：
-                                    <code>{{ user.ss_user.get_transfer }}GB </code> </li>
+                                <li>总量:
+                                    <code>{{ user.ss_user.get_transfer }}GB</code>
+                                </li>
                             </div>
                             <div class="column">
                                 <progress class="progress is-success" value="100" max="100"></progress>
@@ -125,8 +126,9 @@
                         </div>
                         <div class="columns">
                             <div class="column is-4">
-                                <li>剩余：
-                                    <code>{{ user.ss_user.get_unused_traffic }}GB </code> </li>
+                                <li>剩余:
+                                    <code>{{ user.ss_user.get_unused_traffic }}GB </code> 
+                                </li>
                             </div>
                             <div class="column">
                                 <progress class="progress is-info" value="{{  remain_traffic }}" max="100"></progress>
@@ -135,7 +137,7 @@
 
                         <div class="columns">
                             <div class="column is-4">
-                                <li>使用：
+                                <li>使用:
                                     <code>{{ user.ss_user.get_used_percentage }}%</code> </li>
                             </div>
                             <div class="column">
