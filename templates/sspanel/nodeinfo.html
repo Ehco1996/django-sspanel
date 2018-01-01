@@ -28,7 +28,7 @@
                     <p class="card-header-title">
                         <span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
                     {% endif %}
-                    <a id="id-icon-{{ list.node_id }}" class="card-header-icon">
+                    <a id="id-icon-{{ list.node_id }}" class="card-header-icon" onclick="$(`#id-card-body-${ {{ list.node_id }} }`).toggle('swing')">
                         <span class="icon">
                             <i class="fa fa-ellipsis-v"></i>
                         </span>
@@ -110,9 +110,19 @@
                                 <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
                                 <br>
                                 <br>
-                                <p class="subtitle">复制下面红色的链接至客户端的订阅处</p>
-                                <p>如果你不知道这是什么请不要管!</p>
-                                <code>{{ sub_link }}</code>
+                                <p class="subtitle">订阅链接</p>                                
+                                <strong>点击按钮复制链接至客户端的订阅处</strong>
+                                <div class="field is-grouped">
+                                    <p class="control is-expanded">
+                                        <input class="input" id="id-sub-link" value="{{ sub_link }}">
+                                    </p>
+                                    <p class="control">
+                                        <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-sub-link">
+                                            <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                        </a>
+                                    </p>
+                                </div>
+                                <span class="copied" hidden="true">Copied!</span>
                             </section>
                         </div>
                     </div>
@@ -165,6 +175,12 @@
 
 
 <script>
+    // 点击复制
+    var clip = new Clipboard('#id-button-clip');
+    clip.on('success', function (e) {
+        $('.copied').show();
+        $('.copied').fadeOut(1000);
+    });
     var nodeList = $("#id-nodelist")
     // 事件委托绑定按钮
     nodeList.on('click', 'a', function (event) {
@@ -172,13 +188,6 @@
         var node = target.closest('.node-cell')
         // 找到节点id
         var nodeId = node.data('id')
-        // 列表伸缩
-        var toggleButton = node.find(`#id-icon-${nodeId}`)
-        toggleButton.click(function () {
-            var cardBody = node.find(`#id-card-body-${nodeId}`)
-            cardBody.toggle()
-        })
-        // 找到节点二维码img标签
         var ssr = node.find(`#id-ssr-${nodeId}`)
         var ss = node.find(`#id-ss-${nodeId}`)
         // 获取当前域名
