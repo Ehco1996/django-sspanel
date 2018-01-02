@@ -53,17 +53,32 @@
                 </div>
                 <!-- 手机界面菜单-->
                 <div class="is-hidden-tablet">
-                    <a class="navbar-item is-active" href="{% url 'shadowsocks:backend_index' %}">系统状态</a>
+                    <a class="navbar-item is-active">
+                        <strong>面板管理</strong>
+                    </a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:backend_index' %}">系统状态</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_invite' %}">邀请相关</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_anno' %}">公告管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a>
-                    <a class="navbar-item is-active" href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
-                    <a class="navbar-item is-active" href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
+                    <a class="navbar-item is-active">
+                        <strong>节点管理</strong>
+                    </a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
+                    <a class="navbar-item is-active">
+                        <strong>交易管理</strong>
+                    </a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:purchase_history' %}">购买记录</a>
+                    <a class="navbar-item is-active">
+                        <strong>用户管理</strong>
+                    </a>
                     <a class="navbar-item" href="{% url 'shadowsocks:user_list' %}">用户列表</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:user_status' %}">用户分析</a>
-                    <a class="navbar-item is-active" href="/admin">数据后台</a>
+                    <a class="navbar-item is-active">
+                        <strong>面板跳转</strong>
+                    </a>
+                    <a class="navbar-item" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">用户面板</a>
                 </div>
             </div>
@@ -92,7 +107,7 @@
                     {% if user.is_authenticated %}
                     <aside class="menu">
                         <p class="menu-label">
-                            管理面板：
+                            面板管理
                         </p>
                         <ul class="menu-list">
                             <li>
@@ -109,7 +124,7 @@
                             </li>
                         </ul>
                         <p class="menu-label">
-                            节点相关
+                            节点管理
                         </p>
                         <ul class="menu-list">
                             <li>
@@ -117,7 +132,7 @@
                             </li>
                         </ul>
                         <p class="menu-label">
-                            交易相关
+                            交易管理
                         </p>
                         <ul class="menu-list">
                             <li>
@@ -131,7 +146,7 @@
                             </li>
                         </ul>
                         <p class="menu-label">
-                            用户相关
+                            用户管理
                         </p>
                         <ul class="menu-list">
                             <li>

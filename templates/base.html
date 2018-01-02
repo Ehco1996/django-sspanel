@@ -54,20 +54,35 @@
                 </div>
                 <!-- 手机界面菜单-->
                 <div class="is-hidden-tablet">
-                    <a class="navbar-item is-active" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
+                    <a class="navbar-item is-active">
+                        <strong>我的信息</strong>
+                    </a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:announcement' %}">查看公告</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:ticket' %}">联系站长</a>
+                    <a class="navbar-item is-active">
+                        <strong>节点相关</strong>
+                    </a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:userinfo_edit' %}">节点编辑</a>
-                    <a class="navbar-item" href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
-                    <a class="navbar-item" href="{% url 'shadowsocks:announcement' %}">公告栏</a>
-                    <a class="navbar-item is-active" href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:trafficlog' %}">流量记录</a>
-                    <a class="navbar-item" href="{% url 'shadowsocks:ticket' %}">工单系统</a>
-                    <a class="navbar-item is-active" href="{% url 'shadowsocks:chargecenter' %}">充值界面</a>
+                    <a class="navbar-item is-active">
+                        <strong>交易相关</strong>
+                    </a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:donate' %}">捐赠充值</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:chargecenter' %}">充值界面</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:shop' %}">商品界面</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:purchaselog' %}">购买记录</a>
-                    <a class="navbar-item is-active" href="{% url 'shadowsocks:affiliate' %}">邀请管理</a>
+                    <a class="navbar-item is-active">
+                        <strong>邀请相关</strong>
+                    </a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:affiliate' %}">邀请管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:rebate' %}">返利记录</a>
                     {% if perms.shadowsocks %}
-                    <a class="navbar-item is-active" href="/admin">数据后台</a>
+                    <a class="navbar-item is-active">
+                        <strong>管理面板</strong>
+                    </a>
+                    <a class="navbar-item" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_index' %}">网站后台</a>
                     {% endif %}
                 </div>
@@ -104,33 +119,33 @@
                                 <a class="" href="{% url 'shadowsocks:userinfo' %}">账户信息</a>
                             </li>
                             <li>
-                                <a href="{% url 'shadowsocks:userinfo_edit' %}">节点编辑</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
-                            </li>
-                            <li>
                                 <a href="{% url 'shadowsocks:announcement' %}">查看公告</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:ticket' %}">联系站长</a>
                             </li>
                         </ul>
                         <p class="menu-label">
-                            使用菜单
+                            节点相关
                         </p>
                         <ul class="menu-list">
                             <li>
                                 <a href="{% url 'shadowsocks:nodeinfo' %}">节点信息</a>
                             </li>
                             <li>
-                                <a href="{% url 'shadowsocks:trafficlog' %}">流量记录</a>
+                                <a href="{% url 'shadowsocks:userinfo_edit' %}">节点编辑</a>
                             </li>
                             <li>
-                                <a href="{% url 'shadowsocks:ticket' %}">工单系统</a>
+                                <a href="{% url 'shadowsocks:trafficlog' %}">流量记录</a>
                             </li>
                         </ul>
                         <p class="menu-label">
-                            交易系统
+                            交易相关
                         </p>
                         <ul class="menu-list">
+                            <li>
+                                <a href="{% url 'shadowsocks:donate' %}">捐赠付费</a>
+                            </li>
                             <li>
                                 <a href="{% url 'shadowsocks:chargecenter' %}">充值界面</a>
                             </li>
@@ -142,7 +157,7 @@
                             </li>
                         </ul>
                         <p class="menu-label">
-                            邀请系统
+                            邀请相关
                         </p>
                         <ul class="menu-list">
                             <li>
@@ -152,7 +167,6 @@
                                 <a href="{% url 'shadowsocks:rebate' %}">返利记录</a>
                             </li>
                         </ul>
-
                         {% if perms.shadowsocks %}
                         <p class="menu-label">
                             管理面板
