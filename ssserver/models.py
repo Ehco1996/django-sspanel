@@ -85,9 +85,12 @@ class SSUser(models.Model):
             '''将所有端口都加入列表'''
             port_list.append(int(user.port))
         # 生成从最小到最大的断口池
-        all_ports = [i for i in range(1025, port_list[-1])]
-        # 随机返回一个没有没占用的端口（取差集）
-        return choice(list(set(all_ports).difference(set(port_list))))
+        all_ports = [i for i in range(1025, max(port_list) + 1)]
+        try:
+            # 随机返回一个没有没占用的端口（取差集）
+            return choice(list(set(all_ports).difference(set(port_list))))
+        except:
+            return max(port_list) + 1
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
