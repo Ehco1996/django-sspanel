@@ -51,9 +51,9 @@ def nodeData(request):
     所有节点名
     各自消耗的流量
     '''
-    nodeName = [node.name for node in Node.objects.all()]
+    nodeName = [node.name for node in Node.objects.filter(show='显示')]
     nodeTraffic = [TrafficLog.totalTraffic(
-        node.node_id) for node in Node.objects.all()]
+        node.node_id) for node in Node.objects.filter(show='显示')]
 
     data = {
         'nodeName': nodeName,
@@ -152,7 +152,10 @@ def purchase(request):
             ss_user.transfer_enable += good.transfer
             user.balance -= good.money
             user.level = good.level
-            user.level_expire_time += datetime.timedelta(days=good.days)
+            if user.level_expire_time < datetime.datetime.now():
+                user.level_expire_time = datetime.datetime.now() + datetime.timedelta(days=good.days)
+            else:
+                user.level_expire_time += datetime.timedelta(days=good.days)
             ss_user.save()
             user.save()
             # 增加购买记录
