@@ -12,36 +12,13 @@ import datetime
 import base64
 import time
 
-METHOD_CHOICES = (
-    ('aes-256-cfb', 'aes-256-cfb'),
-    ('aes-128-ctr', 'aes-128-ctr'),
-    ('rc4-md5', 'rc4-md5'),
-    ('salsa20', 'salsa20'),
-    ('chacha20', 'chacha20'),
-    ('none', 'none'),
-)
+from ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
+
 
 STATUS_CHOICES = (
     ('好用', '好用'),
     ('维护', '维护'),
     ('坏了', '坏了'),
-)
-
-PROTOCOL_CHOICES = (
-    ('auth_sha1_v4', 'auth_sha1_v4'),
-    ('auth_aes128_md5', 'auth_aes128_md5'),
-    ('auth_aes128_sha1', 'auth_aes128_sha1'),
-    ('auth_chain_a', 'auth_chain_a'),
-    ('origin', 'origin'),
-)
-
-
-OBFS_CHOICES = (
-    ('plain', 'plain'),
-    ('http_simple', 'http_simple'),
-    ('http_simple_compatible', 'http_simple_compatible'),
-    ('http_post', 'http_post'),
-    ('tls1.2_ticket_auth', 'tls1.2_ticket_auth'),
 )
 
 # Create your models here.
