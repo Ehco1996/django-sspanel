@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.shortcuts import resolve_url
 from django.conf import settings
 
 # python标准库
@@ -14,11 +13,6 @@ from random import choice
 # 自己编写的脚本
 from shadowsocks.tools import get_short_random_string
 
-
-PLAN_CHOICES = (
-    ('free', 'Free'),
-    ('pro', 'pro')
-)
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
@@ -96,13 +90,6 @@ class SSUser(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='ss_user'
-    )
-
-    plan = models.CharField(
-        '套餐',
-        max_length=32,
-        default='Free',
-        choices=PLAN_CHOICES,
     )
 
     last_check_in_time = models.DateTimeField(
