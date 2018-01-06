@@ -179,8 +179,8 @@ def Logout_view(request):
     '''用户登出函数'''
     logout(request)
     registerinfo = {
-        'title': '注销成功！',
-        'subtitle': '欢迎下次再来!！',
+        'title': '注销成功',
+        'subtitle': '欢迎下次再来',
                     'status': 'success',
     }
     context = {
@@ -452,6 +452,7 @@ def charge(request):
             context = {
                 'registerinfo': registerinfo,
                 'ss_user': user,
+                'codelist': codelist,
             }
             return render(request, 'sspanel/chargecenter.html', context=context)
 
@@ -466,7 +467,9 @@ def charge(request):
                     'status': 'error', }
                 context = {
                     'registerinfo': registerinfo,
-                    'ss_user': user, }
+                    'ss_user': user,
+                    'codelist': codelist,
+                }
                 return render(request, 'sspanel/chargecenter.html', context=context)
             else:
                 # 充值操作
@@ -583,7 +586,7 @@ def affiliate(request):
         inviteNum = request.user.invitecode_num - len(invidecodes)
     else:
         # 如果是管理员，特殊处理
-        # 写死，每次呢个生成5额邀请码
+        # 写死，每次只能生成5额邀请码
         invidecodes = InviteCode.objects.filter(
             code_id=request.user.pk, type=0, isused=False)
         inviteNum = 5
@@ -1061,7 +1064,7 @@ def purchase_history(request):
 
 @permission_required('shadowsocks')
 def backend_anno(request):
-    '''公告管理界面'''
+    '''公告管理界面'''
     anno = Announcement.objects.all()
     context = {
         'anno': anno,
@@ -1096,7 +1099,7 @@ def anno_create(request):
             anno = Announcement.objects.all()
             registerinfo = {
                 'title': '添加成功',
-                'subtitle': '数据更新成功！',
+                'subtitle': '数据更新成功',
                 'status': 'success', }
             context = {
                 'anno': anno,
