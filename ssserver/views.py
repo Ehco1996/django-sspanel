@@ -250,7 +250,7 @@ def auto_register(num, level=0):
 
 @permission_required('ssesrver')
 def clean_zombie_user(request):
-    '''清楚从未使用过的用户'''
+    '''清除从未使用过的用户'''
     import datetime
     users = User.objects.all()
     count = 0
