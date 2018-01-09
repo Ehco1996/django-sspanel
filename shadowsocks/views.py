@@ -190,15 +190,6 @@ def Logout_view(request):
     return render(request, 'sspanel/index.html', context=context)
 
 
-def get_sub_link(user):
-    '''生成该用户的订阅地址'''
-    # 订阅地址
-    token = base64.b64encode(
-        bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
-    sub_link = settings.HOST + 'server/subscribe/' + token
-    return sub_link
-
-
 @login_required
 def userinfo(request):
     '''用户中心'''
@@ -212,7 +203,7 @@ def userinfo(request):
     max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
     # 订阅地址
-    sub_link = get_sub_link(user)
+    sub_link = user.get_sub_link()
     context = {
         'user': user,
         'anno': anno,
@@ -374,9 +365,7 @@ def nodeinfo(request):
             node['count'] = 0
         nodelists.append(node)
     # 订阅地址
-    token = base64.b64encode(
-        bytes(user.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
-    sub_link = settings.HOST + 'server/subscribe/' + token
+    sub_link = user.get_sub_link()
     context = {
         'nodelists': nodelists,
         'ss_user': ss_user,

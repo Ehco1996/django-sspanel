@@ -93,6 +93,14 @@ class User(AbstractUser):
         '''返回等级到期时间'''
         return self.level_expire_time
 
+    def get_sub_link(self):
+        '''生成该用户的订阅地址'''
+        # 订阅地址
+        token = base64.b64encode(
+            bytes(self.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(self.password, 'utf-8')).decode('ascii')
+        sub_link = settings.HOST + 'server/subscribe/' + token
+        return sub_link
+
     class Meta(AbstractUser.Meta):
         verbose_name = '用户'
 

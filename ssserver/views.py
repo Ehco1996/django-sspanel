@@ -92,7 +92,7 @@ def ChangeSsPass(request):
                 'registerinfo': registerinfo,
                 'ss_user': ss_user,
             }
-            return redirect('/users/userinfoedit/')            
+            return redirect('/users/userinfoedit/')
         else:
             return redirect('/')
     else:
@@ -248,7 +248,7 @@ def auto_register(num, level=0):
         ss_user = SSUser.objects.create(user=user, port=port)
 
 
-@permission_required('ssesrver')
+@permission_required('ssserver')
 def clean_zombie_user(request):
     '''清除从未使用过的用户'''
     import datetime
@@ -268,15 +268,6 @@ def clean_zombie_user(request):
     return render(request, 'backend/index.html', context=context)
 
 
-def testcheck(request):
-    '''test url '''
-    # auto_register(10)
-    # do some test page
-    # check_user_state()
-    # clean_traffic_log()
-    return HttpResponse('ok')
-
-
 def Subscribe(request, token):
     '''
     返回ssr订阅链接
@@ -292,10 +283,10 @@ def Subscribe(request, token):
     keys = base64.b64encode(bytes(user.username, 'utf-8')).decode('ascii') + \
         '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
     if token == keys:
-        # 生成订阅链接部分
-        sub_code = ''
         # 遍历该用户所有的节点
         node_list = Node.objects.filter(level__lte=user.level, show='显示')
+        # 生成订阅链接部分
+        sub_code = 'MAX={}\n'.format(len(node_list))
         for node in node_list:
             sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
