@@ -4,6 +4,7 @@ import base64
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
+from django.http import FileResponse, StreamingHttpResponse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, render
 from django.utils import timezone
 from shadowsocks.models import User, Node, NodeInfoLog, NodeOnlineLog
@@ -268,7 +269,7 @@ def clean_zombie_user(request):
     return render(request, 'backend/index.html', context=context)
 
 
-def Subscribe(request, token):
+def subscribe(request, token):
     '''
     返回ssr订阅链接
     '''
@@ -293,3 +294,40 @@ def Subscribe(request, token):
         return HttpResponse(sub_code)
     else:
         return HttpResponse('ERROR')
+
+
+@login_required
+def node_config(request):
+    '''返回节点json配置'''
+    user = request.user
+    node_list = Node.objects.filter(level__lte=user.level, show='显示')
+    data = {'configs': []}
+    for node in node_list:
+        if node.custom_method == 0:
+            data['configs'].append({
+                "remarks": node.name,
+                "enable": True,
+                "password": user.ss_user.password,
+                "method": node.method,
+                "server": node.server,
+                "obfs": node.obfs,
+                "protocol": node.protocol,
+                "server_port": user.ss_user.port,
+                "remarks_base64": base64.b64encode(bytes(node.name, 'utf8')).decode('ascii'),
+            })
+        else:
+            data['configs'].append({
+                "remarks": node.name,
+                "enable": True,
+                "password": user.ss_user.password,
+                "method": user.ss_user.method,
+                "server": node.server,
+                "obfs": user.ss_user.obfs,
+                "protocol": user.ss_user.protocol,
+                "server_port": user.ss_user.port,
+                "remarks_base64": base64.b64encode(bytes(node.name, 'utf8')).decode('ascii')
+            })
+    response = StreamingHttpResponse(json.dumps(data, ensure_ascii=False))
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment; filename="ss.json"'
+    return response

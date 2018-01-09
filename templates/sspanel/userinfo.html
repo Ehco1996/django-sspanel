@@ -89,7 +89,7 @@
                             <code>{{ user.ss_user.obfs }}</code>
                         </li>
                         <br>
-                        <a class="button is-link" href="{% url 'shadowsocks:nodeinfo' %}">详细配置</a>
+                        <a class="button is-link modal-button" href="{% url 'ssserver:node_config' %}" download>配置下载</a>
                         <a class="button is-link modal-button" data-target="modal-sub">订阅地址</a>
                     </div>
                 </article>

@@ -11,5 +11,6 @@ urlpatterns = [
     path('changessprotocol/', views.ChangeSsProtocol, name='changessprotocol'),
     path('changessobfs/', views.ChangeSsObfs, name='changessobfs'),
     path('clean/zombie/user', views.clean_zombie_user, name='clean_zombie_user'),
-    re_path('subscribe/(?P<token>.+)/', views.Subscribe, name='subscribe'),
+    re_path('subscribe/(?P<token>.+)/', views.subscribe, name='subscribe'),
+    path('node/config/', views.node_config, name='node_config'),
 ]

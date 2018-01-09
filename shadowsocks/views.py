@@ -153,7 +153,7 @@ def Login_view(request):
                     'remain_traffic': remain_traffic,
                     'min_traffic': min_traffic,
                     'max_traffic': max_traffic,
-                    'sub_link': get_sub_link(user),
+                    'sub_link': user.get_sub_link()
                 }
                 return render(request, 'sspanel/userinfo.html', context=context)
             else:
