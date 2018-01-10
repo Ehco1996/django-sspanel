@@ -273,17 +273,11 @@ def subscribe(request, token):
     '''
     返回ssr订阅链接
     '''
-    username = token.split('&&')[0]
-    user = base64.b64decode(username).decode('utf8')
+    user = base64.b64decode(token).decode('utf8')
+    # 验证token
     try:
         user = User.objects.get(username=user)
         ss_user = user.ss_user
-    except:
-        return HttpResponse('ERROR')
-    # 验证token
-    keys = base64.b64encode(bytes(user.username, 'utf-8')).decode('ascii') + \
-        '&&' + base64.b64encode(bytes(user.password, 'utf-8')).decode('ascii')
-    if token == keys:
         # 遍历该用户所有的节点
         node_list = Node.objects.filter(level__lte=user.level, show='显示')
         # 生成订阅链接部分
@@ -292,7 +286,7 @@ def subscribe(request, token):
             sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
         return HttpResponse(sub_code)
-    else:
+    except:
         return HttpResponse('ERROR')
 
 

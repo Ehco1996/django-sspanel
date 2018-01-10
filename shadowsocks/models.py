@@ -97,8 +97,8 @@ class User(AbstractUser):
         '''生成该用户的订阅地址'''
         # 订阅地址
         token = base64.b64encode(
-            bytes(self.username, 'utf-8')).decode('ascii') + '&&' + base64.b64encode(bytes(self.password, 'utf-8')).decode('ascii')
-        sub_link = settings.HOST + 'server/subscribe/' + token
+            bytes(self.username, 'utf-8')).decode('ascii')
+        sub_link = settings.HOST + 'server/subscribe/' + token + '/'
         return sub_link
 
     class Meta(AbstractUser.Meta):
@@ -107,6 +107,15 @@ class User(AbstractUser):
 
 class Node(models.Model):
     '''线路节点'''
+    @classmethod
+    def get_sub_code(cls, user):
+        '''获取该用户的所有节点链接'''
+        ss_user = user.ss_user
+        sub_code = ''
+        node_list = cls.objects.filter(level__lte=user.level, show='显示')
+        for node in node_list:
+            sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
+        return sub_code
 
     node_id = models.IntegerField('节点id', unique=True,)
 
@@ -158,18 +167,19 @@ class Node(models.Model):
         default='显示',
     )
 
-    group = models.CharField('分组', max_length=32, default='1')
+    group = models.CharField(
+        '分组名', max_length=32, default='谜之屋')
 
     def __str__(self):
         return self.name
 
     def get_ssr_link(self, ss_user):
         '''返回ssr链接'''
-        ssr_password = base64.b64encode(
+        ssr_password = base64.urlsafe_b64encode(
             bytes(ss_user.password, 'utf8')).decode('ascii')
-        ssr_remarks = base64.b64encode(
+        ssr_remarks = base64.urlsafe_b64encode(
             bytes(self.name, 'utf8')).decode('ascii')
-        ssr_group = base64.b64encode(
+        ssr_group = base64.urlsafe_b64encode(
             bytes(self.group, 'utf8')).decode('ascii')
         if self.custom_method == 1:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
@@ -177,7 +187,8 @@ class Node(models.Model):
         else:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
                 self.server, ss_user.port, self.protocol, self.method, self.obfs, ssr_password, ssr_remarks, ssr_group)
-        ssr_pass = base64.b64encode(bytes(ssr_code, 'utf8')).decode('ascii')
+        ssr_pass = base64.urlsafe_b64encode(
+            bytes(ssr_code, 'utf8')).decode('ascii')
         ssr_link = 'ssr://{}'.format(ssr_pass)
         return ssr_link
 
@@ -189,7 +200,8 @@ class Node(models.Model):
         else:
             ss_code = '{}:{}@{}:{}'.format(
                 self.method, ss_user.password, self.server, ss_user.port)
-        ss_pass = base64.b64encode(bytes(ss_code, 'utf8')).decode('ascii')
+        ss_pass = base64.urlsafe_b64encode(
+            bytes(ss_code, 'utf8')).decode('ascii')
         ss_link = 'ss://{}'.format(ss_pass)
         return ss_link
 

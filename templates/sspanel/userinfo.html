@@ -89,8 +89,11 @@
                             <code>{{ user.ss_user.obfs }}</code>
                         </li>
                         <br>
-                        <a class="button is-link modal-button" href="{% url 'ssserver:node_config' %}" download>配置下载</a>
-                        <a class="button is-link modal-button" data-target="modal-sub">订阅地址</a>
+                        <div class="buttons">
+                            <a class="button is-link" href="{{ sub_code }}">一键导入</a>
+                            <a class="button is-link" href="{% url 'ssserver:node_config' %}" download>配置下载</a>
+                            <span class="button is-link modal-button" data-target="modal-sub">订阅</span>                                    
+                        </div>
                     </div>
                 </article>
                 <div class="modal nodeinfo" id="modal-sub">

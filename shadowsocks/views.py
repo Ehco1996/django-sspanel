@@ -153,7 +153,9 @@ def Login_view(request):
                     'remain_traffic': remain_traffic,
                     'min_traffic': min_traffic,
                     'max_traffic': max_traffic,
-                    'sub_link': user.get_sub_link()
+                    'sub_link': user.get_sub_link(),
+                    'sub_code': Node.get_sub_code(user),
+
                 }
                 return render(request, 'sspanel/userinfo.html', context=context)
             else:
@@ -194,6 +196,7 @@ def Logout_view(request):
 def userinfo(request):
     '''用户中心'''
     user = request.user
+
     # 获取公告
     try:
         anno = Announcement.objects.all()[0]
@@ -204,6 +207,8 @@ def userinfo(request):
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
     # 订阅地址
     sub_link = user.get_sub_link()
+    # 节点导入链接
+    sub_code = Node.get_sub_code(user)
     context = {
         'user': user,
         'anno': anno,
@@ -211,6 +216,7 @@ def userinfo(request):
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
         'sub_link': sub_link,
+        'sub_code': sub_code,
     }
     return render(request, 'sspanel/userinfo.html', context=context)
 
