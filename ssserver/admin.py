@@ -3,7 +3,7 @@ from . import models
 
 
 class SSUserAdmin(admin.ModelAdmin):
-    list_display = ['user', 'port', 'traffic', 'fulltraffic', ]
+    list_display = ['user', 'level', 'port', 'traffic', 'fulltraffic', ]
 
     def fulltraffic(self, obj):
         return '{} GB'.format(obj.transfer_enable / 1024 / 1024 / 1024)
@@ -17,7 +17,7 @@ class SSUserAdmin(admin.ModelAdmin):
 
 
 class TrafficLogAdmin(admin.ModelAdmin):
-    list_display = ['user_id', 'node_id', 'traffic','log_date', ]
+    list_display = ['user_id', 'node_id', 'traffic', 'log_date', ]
 
 
 # Register your models here.

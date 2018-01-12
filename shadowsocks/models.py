@@ -101,6 +101,16 @@ class User(AbstractUser):
         sub_link = settings.HOST + 'server/subscribe/' + token + '/'
         return sub_link
 
+    # 重写一下save函数，保证user与ss_user的level字段同步
+    def save(self, *args, **kwargs):
+        super(User, self).save(*args, **kwargs)
+        try:
+            ss_user = self.ss_user
+            ss_user.level = self.level
+            ss_user.save()
+        except:
+            print('请手动进admin界面绑定ss_user!!!!')
+
     class Meta(AbstractUser.Meta):
         verbose_name = '用户'
 

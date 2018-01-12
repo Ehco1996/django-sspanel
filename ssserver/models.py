@@ -6,13 +6,13 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.conf import settings
 
+
 # python标准库
 import datetime
 from random import choice
 
 # 自己编写的脚本
 from shadowsocks.tools import get_short_random_string
-
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
@@ -155,6 +155,11 @@ class SSUser(models.Model):
 
     obfs = models.CharField(
         '混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES,)
+
+    # 等级字段 和 shadowsocks.user 的level 同步
+    level = models.PositiveIntegerField(
+        '用户等级',
+        default=0,)
 
     def __str__(self):
         return self.user.username
