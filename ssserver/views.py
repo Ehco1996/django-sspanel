@@ -7,10 +7,10 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.http import FileResponse, StreamingHttpResponse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, render
 from django.utils import timezone
-from shadowsocks.models import User, Node, NodeInfoLog, NodeOnlineLog
+from shadowsocks.models import User
 from shadowsocks.forms import UserForm
 from .forms import ChangeSsPassForm, SSUserForm
-from .models import SSUser, TrafficLog
+from .models import SSUser, TrafficLog, Node, NodeInfoLog, NodeOnlineLog
 
 # 导入加密混淆协议选项
 from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES

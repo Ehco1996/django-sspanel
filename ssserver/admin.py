@@ -20,6 +20,21 @@ class TrafficLogAdmin(admin.ModelAdmin):
     list_display = ['user_id', 'node_id', 'traffic', 'log_date', ]
 
 
+class NodeAdmin(admin.ModelAdmin):
+    list_display = ['node_id', 'name', 'level', 'show', ]
+
+
+class NodeOnlineAdmin(admin.ModelAdmin):
+    list_display = ['node_id', 'online_user']
+
+
+class NodeInfoAdmin(admin.ModelAdmin):
+    list_display = ['node_id', 'load']
+
+
 # Register your models here.
 admin.site.register(models.SSUser, SSUserAdmin)
 admin.site.register(models.TrafficLog, TrafficLogAdmin)
+admin.site.register(models.Node, NodeAdmin)
+admin.site.register(models.NodeOnlineLog, NodeOnlineAdmin)
+admin.site.register(models.NodeInfoLog, NodeInfoAdmin)

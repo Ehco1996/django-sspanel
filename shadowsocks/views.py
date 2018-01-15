@@ -11,14 +11,14 @@ from django.db.models import Q
 from django.conf import settings
 from decimal import Decimal
 # 导入shadowsocks节点相关文件
-from .models import Node, InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, NodeOnlineLog, AlipayRequest, NodeInfoLog, Announcement, Ticket, RebateRecord
+from .models import InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, AlipayRequest,  Announcement, Ticket, RebateRecord
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 
 # 导入加密混淆协议选项
-from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
+from ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 
 # 导入ssservermodel
-from ssserver.models import SSUser, TrafficLog
+from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, NodeInfoLog
 
 # 导入第三方模块
 import qrcode

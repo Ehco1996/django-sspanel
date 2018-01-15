@@ -9,10 +9,10 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import HttpResponse, render
 from django.utils import timezone
 
-from shadowsocks.models import (Donate, InviteCode, Node, NodeOnlineLog,
-                                PurchaseHistory, RebateRecord, Shop, User, MoneyCode, Donate, AlipayRequest, AlipayRecord)
+from shadowsocks.models import (Donate, InviteCode, PurchaseHistory,
+                                RebateRecord, Shop, User, MoneyCode, Donate, AlipayRequest, AlipayRecord)
 from shadowsocks.tools import get_date_list
-from ssserver.models import SSUser, TrafficLog
+from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog
 
 from shadowsocks.payments import alipay
 
