@@ -718,22 +718,25 @@ def node_create(request):
 
 
 class Page_List_View(object):
-    '''拥有翻页功能的通用类'''
+    '''
+    拥有翻页功能的通用类
+    Args:
+        request ： django request
+        obj： 等待分分页的列表，例如 User.objects.all()
+        page_num： 分页的页数
+    '''
 
-    def __init__(self, request, obj, page_num):
+    def __init__(self, request, obj_list, page_num):
         self.request = request
-        self.obj = obj
+        self.obj_list = obj_list
         self.page_num = page_num
 
     def get_page_context(self):
         '''返回分页context'''
-
-        objects = self.obj.objects.all()
         # 每页显示10条记录
-        paginator = Paginator(objects, self.page_num)
+        paginator = Paginator(self.obj_list, self.page_num)
         # 构造分页.获取当前页码数量
         page = self.request.GET.get('page')
-
         # 页码为1时，防止异常
         try:
             contacts = paginator.page(page)
@@ -743,10 +746,8 @@ class Page_List_View(object):
             page = 1
         except EmptyPage:
             contacts = paginator.page(paginator.num_pages)
-
         # 获得整个分页页码列表
         page_list = paginator.page_range
-
         # 获得分页后的总页数
         total = paginator.num_pages
 
@@ -777,19 +778,16 @@ class Page_List_View(object):
         else:
             left = page_list[(page - 2) if (page - 2) > 0 else 0:page - 1]
             right = page_list[page:page + 2]
-
             # 是否需要显示最后一页和最后一页前的省略号
             if right[-1] < total - 1:
                 right_has_more = True
             if right[-1] < total:
                 last = True
-
             # 是否需要显示第 1 页和第 1 页后的省略号
             if left[0] > 2:
                 left_has_more = True
             if left[0] > 1:
                 first = True
-
         context = {
             'contacts': contacts,
             'page_list': page_list,
@@ -802,14 +800,13 @@ class Page_List_View(object):
             'total': total,
             'page': page,
         }
-
         return context
 
 
 @permission_required('shadowsocks')
 def backend_UserList(request):
     '''返回所有用户的View'''
-    obj = User
+    obj = User.objects.all()
     page_num = 15
     context = Page_List_View(request, obj, page_num).get_page_context()
     try:
@@ -827,14 +824,14 @@ def user_delete(request, pk):
     user = User.objects.filter(pk=pk)
     user.delete()
 
-    obj = User
+    obj = User.objects.all()
     page_num = 15
     context = Page_List_View(request, obj, page_num).get_page_context()
 
     registerinfo = {
         'title': '删除用户',
         'subtitle': '成功啦',
-                    'status': 'success', }
+        'status': 'success', }
 
     context['registerinfo'] = registerinfo
     return render(request, 'backend/userlist.html', context=context)
@@ -849,7 +846,6 @@ def user_search(request):
     context = {
         'contacts': contacts,
     }
-
     return render(request, 'backend/userlist.html', context=context)
 
 
@@ -914,7 +910,7 @@ def gen_invite_code(request):
 def backend_charge(request):
     '''后台充值码界面'''
     # 获取所有充值码记录
-    obj = MoneyCode
+    obj = MoneyCode.objects.all()
     page_num = 10
     context = Page_List_View(request, obj, page_num).get_page_context()
     try:
@@ -1051,7 +1047,7 @@ def good_create(request):
 @permission_required('shadowsocks')
 def purchase_history(request):
     '''购买历史'''
-    obj = PurchaseHistory
+    obj = PurchaseHistory.objects.all()
     page_num = 10
     context = Page_List_View(request, obj, page_num).get_page_context()
     return render(request, 'backend/purchasehistory.html', context=context)
