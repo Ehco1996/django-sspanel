@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.conf import settings
 from decimal import Decimal
 # 导入shadowsocks节点相关文件
-from .models import InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, AlipayRecord, AlipayRequest,  Announcement, Ticket, RebateRecord
+from .models import InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, PayRequest,  Announcement, Ticket, RebateRecord
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 
 # 导入加密混淆协议选项
@@ -312,6 +312,10 @@ def donate(request):
     '''捐赠界面和支付宝当面付功能'''
     donatelist = Donate.objects.all()[:8]
     context = {'donatelist': donatelist, }
+
+    if settings.USE_91PAY == True:
+        return render(request, 'sspanel/donate91.html', context=context)
+
     if settings.USE_ALIPAY == True:
         context['alipay'] = True
     else:
@@ -327,9 +331,9 @@ def gen_face_pay_qrcode(request):
         # 从seesion中获取订单的二维码
         url = request.session.get('code_url', '')
         # 生成支付宝申请记录
-        record = AlipayRequest.objects.create(username=request.user,
-                                              info_code=request.session['out_trade_no'],
-                                              amount=request.session['amount'],)
+        record = PayRequest.objects.create(username=request.user,
+                                           info_code=request.session['out_trade_no'],
+                                           amount=request.session['amount'],)
         # 删除sessions信息
         del request.session['code_url']
         del request.session['amount']

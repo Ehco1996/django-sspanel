@@ -5,7 +5,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 # mysql 设置
 DATABASES = {
-
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'sspanel',
@@ -13,7 +12,6 @@ DATABASES = {
         'PASSWORD': 'xx',
         'HOST': '127.0.0.1',
         'PORT': '3306',
-
     }
 }
 
@@ -40,9 +38,15 @@ MIN_CHECKIN_TRAFFIC = 10 * MB
 MAX_CHECKIN_TRAFFIC = 200 * MB
 
 # 是否启用支付宝系统
-USE_ALIPAY = True
+USE_ALIPAY = False
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
+
+# 是否开启91pay 第三方接口
+# 91PAY 、ALIPAY只能开启一项
+# 需要授权请联系：
+# https://t.me/gh012363  或者QQ群538609570
+USE_91PAY = True
 
 # 网站title
 TITLE = '谜之屋'

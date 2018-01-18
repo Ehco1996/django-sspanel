@@ -1,0 +1,155 @@
+{% extends 'base.html' %} {% block main %} {% load static %} {% load ehcofilter %}
+<div class="column is-12">
+    <section class="hero is-primary is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    捐赠榜：
+                </h1>
+                <h2 class="subtitle">
+                    有你们的支持,才让这里继续下去 谢谢！
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="tile is-ancestor">
+        <div class="tile is-5 is-vertical is-parent">
+            <div class="tile box is-child">
+                <p class="subtitle">
+                    请在在下方选择:
+                    <br>
+                    <strong>充值/捐赠金额、支付方式</strong>
+                </p>
+                <p>点击提交会弹出
+                    <strong>支付二维码</strong>
+                    <br>扫描二维码确认付款之后
+                    <br>账户里会增加对应的金额</p>
+                <strong>付完款之后要按红色的确认按钮！</strong>
+                <hr>
+
+                <div class="field is-grouped">
+                    <div class="control has-icons-left">
+                        <div class="select is-rounded is-fullwidth">
+                            <select name="selects">
+                                <option value="1" selected>支持站长1元</option>                                
+                                <option value="10" selected>支持站长10元</option>
+                                <option value="30">支持站长30元</option>
+                                <option value="108">支持站长108元</option>
+                            </select>
+                        </div>
+                        <div class="icon is-small is-left">
+                            <i class="fa fa-jpy"></i>
+                        </div>
+                    </div>
+                    <p class="control">
+                        <button class="button is-outlined is-info is-rounded" id="id-button-payrequest">提交</button>
+                    </p>
+                </div>
+                <div class="control">
+                    <label class="radio">
+                        <input type="radio" value="1" name="pay">
+                        <span class="icon has-text-info">
+                            <i class="fa fa-paypal"></i>
+                        </span> 支付宝
+                    </label>
+                    <label class="radio">
+                        <input type="radio" value="2" name="pay">
+                        <span class="icon has-text-info">
+                            <i class="fa fa-qq"></i>
+                        </span> QQ
+                    </label>
+                    <label class="radio">
+                        <input type="radio" value="3" name="pay">
+                        <span class="icon has-text-info">
+                            <i class="fa fa-weixin"></i>
+                        </span>微信
+                    </label>
+                </div>
+                <div id="id-qrcode-box" class="is-hidden">
+                    <hr>
+                    <figure class="image">
+                        <img id="id-img-qrcode" src="">
+                    </figure>
+                    <p>
+                        <strong>付费完成之后请点击确认！</strong>
+                    </p>
+                    <div class="control">
+                        <button id="id-button-query" class="button is-outlined is-danger" href="#">确认</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="tile is-7 is-vertical is-parent">
+            <div class="tile box is-child">
+                <div class="content">
+                    <p class="subtitle">在充值界面充值也等同于捐赠，记录会自动同步</p>
+                    <table class="table is-striped">
+                        <thead>
+                            <tr>
+                                <th>捐赠人:</th>
+                                <th>捐赠金额:</th>
+                                <th>捐赠时间:</th>
+                            </tr>
+                        </thead>
+                        {% for donate in donatelist %}
+                        <tr>
+                            <td>{{ donate.user|mix_name:donate.user }}</td>
+                            <td>{{ donate.money }} 元</td>
+                            <td>{{ donate.time|date:"m月d日" }}：</td>
+                        </tr>
+                        {% empty %}
+                        <p class="subtitle">
+                            居然还没有人捐赠 要喝西北风了
+                        </p>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 支付请求 部分
+    var requestButton = $("#id-button-payrequest")
+    var codeBox = $("#id-qrcode-box")
+    var payrequest = function () {
+        url = "{% url 'api:pay91_request' %}"
+        var paynum = $("select[name=selects]").val();
+        var payway = $("input[name=pay]:checked").val();
+        if (payway) {
+            data = {
+                paynum: paynum,
+                type: payway,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
+            $.post(url, data, function (results) {
+                codeBox.attr('class', '')
+                info = results.info
+                // 追加二维码图片
+                $("#id-img-qrcode").attr("src", results.qrcode)
+                swal(info.title, info.subtitle, info.status)
+                requestButton.attr("disabled", "disabled")
+            })
+        } else {
+            swal('错误！', '请选择支付方式', 'error')
+        }
+    }
+    requestButton.click(payrequest)
+    // 支付查询部分
+    queryButton = $("#id-button-query")
+    var payquery = function () {
+        codeBox.empty()
+        codeBox.append('后台飞速查询结果中 请稍候....')
+        url = "{% url 'api:pay91_query' %}"
+        $.getJSON(url, function (results) {
+            info = results.info
+            swal(info.title, info.subtitle, info.status)
+        })
+    }
+    queryButton.click(payquery)
+</script> {% endblock main %}

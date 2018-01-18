@@ -371,7 +371,7 @@ class PurchaseHistory(models.Model):
         ordering = ('-purchtime',)
 
 
-class AlipayRecord(models.Model):
+class PayRecord(models.Model):
     '''充值流水单号记录'''
 
     username = models.CharField(
@@ -407,16 +407,23 @@ class AlipayRecord(models.Model):
         unique=True,
     )
 
+    # 1：支付宝 2：QQ钱包 3：微信支付。默认值：1
+    type = models.CharField(
+        '充值类型',
+        max_length=10,
+        default=1,
+    )
+
     def __str__(self):
         return self.info_code
 
     class Meta:
-        verbose_name_plural = '支付宝转账记录'
+        verbose_name_plural = '支付转账记录'
         ordering = ('-time',)
 
 
-class AlipayRequest(models.Model):
-    '''支付宝申请记录'''
+class PayRequest(models.Model):
+    '''支付申请记录'''
 
     username = models.CharField(
         '用户名',
@@ -445,11 +452,18 @@ class AlipayRequest(models.Model):
         blank=True,
     )
 
+    # 1：支付宝 2：QQ钱包 3：微信支付。默认值：1
+    type = models.CharField(
+        '充值类型',
+        max_length=10,
+        default=1,
+    )
+
     def __str__(self):
         return self.username
 
     class Meta:
-        verbose_name_plural = '支付宝申请记录'
+        verbose_name_plural = '支付申请记录'
         ordering = ('-time',)
 
 

@@ -28,6 +28,7 @@ class AlipayAdmin(admin.ModelAdmin):
 
 class AlipayRequestAdmin(admin.ModelAdmin):
     list_display = ['username', 'amount', 'info_code', 'time', ]
+    search_fields = ['info_code', ]
 
 
 class DonateAdmin(admin.ModelAdmin):
@@ -46,7 +47,7 @@ admin.site.register(models.Donate, DonateAdmin)
 admin.site.register(models.MoneyCode, MoneyCodeAdmin)
 admin.site.register(models.Shop, ShopAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
-admin.site.register(models.AlipayRecord, AlipayAdmin)
-admin.site.register(models.AlipayRequest, AlipayRequestAdmin)
+admin.site.register(models.PayRecord, AlipayAdmin)
+admin.site.register(models.PayRequest, AlipayRequestAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)

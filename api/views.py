@@ -1,21 +1,22 @@
 import datetime
 import time
+import qrcode
 import json
 from decimal import Decimal
-from random import randint
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import HttpResponse, render
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import HttpResponse
 from django.utils import timezone
+from django.utils.six import BytesIO
 
 from shadowsocks.models import (Donate, InviteCode, PurchaseHistory,
-                                RebateRecord, Shop, User, MoneyCode, Donate, AlipayRequest, AlipayRecord)
+                                RebateRecord, Shop, User, MoneyCode, Donate, PayRequest, PayRecord)
 from shadowsocks.tools import get_date_list
 from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog
 
-from shadowsocks.payments import alipay
-
+from shadowsocks.payments import alipay, pay91
 # Create your views here.
 
 
@@ -255,8 +256,8 @@ def pay_query(request):
         # 将充值记录和捐赠绑定
         donate = Donate.objects.create(user=user, money=amount)
         # 后台数据库增加记录
-        record = AlipayRecord.objects.create(username=user,
-                                             info_code=trade_num, amount=amount, money_code=code)
+        record = PayRecord.objects.create(username=user,
+                                          info_code=trade_num, amount=amount, money_code=code)
         del request.session['out_trade_no']
         # 返回充值信息
         info = {
@@ -300,4 +301,117 @@ def traffic_query(request):
         'y_label': '流量 单位：GB'
     }
     result = json.dumps(configs, ensure_ascii=False)
+    return HttpResponse(result, content_type='application/json')
+
+
+@login_required
+def get_qrcode(request, content):
+    '''返回字符串编码后的二维码图片'''
+    # 加入节点信息等级判断
+    ss_img = qrcode.make(content)
+    buf = BytesIO()
+    ss_img.save(buf)
+    image_stream = buf.getvalue()
+    # 构造图片reponse
+    response = HttpResponse(image_stream, content_type="image/png")
+    return response
+
+
+@csrf_exempt
+def pay_notify(request):
+    '''
+    保存91pay的回掉信息入数据库
+    '''
+    if request.method == 'POST':
+        data = request.POST
+        try:
+            code = MoneyCode.objects.create(number=data['money'])
+            record = PayRecord.objects.create(username=data['pay_id'],
+                                              info_code=data['pay_no'], amount=data['money'], money_code=code, type=data['type'])
+            return HttpResponse('ok')
+        except:
+            return HttpResponse('error')
+    else:
+        return HttpResponse('error')
+
+
+@login_required
+def pay91_request(request):
+    '''
+    91pay请求逻辑
+    '''
+    try:
+        data = request.POST
+        context = {}
+        # 获取金额数量
+        amount = data['paynum']
+        type = data['type']
+        # 生成订单号
+        pay_id = datetime.datetime.fromtimestamp(
+            time.time()).strftime('%Y%m%d%H%M%S%s') + '@' + request.user.username
+        res = pay91.pay_request(type, amount, pay_id)
+        request.session['pay_id'] = pay_id
+        # 记录申请记录
+        record = PayRequest.objects.create(username=request.user.username,
+                                           info_code=res['trade_no'],
+                                           amount=amount, type=res['type'])
+        # 获取二维码链接
+        context['qrcode'] = res['qrcode']
+        info = {
+            'title': '请求成功！',
+            'subtitle': '描下方二维码付款，付款完成记得按确认哟！',
+            'status': 'success', }
+        context['info'] = info
+    except:
+        info = {
+            'title': '糟糕，当面付插件可能出现问题了',
+            'subtitle': '如果一直失败,请后台联系站长',
+            'status': 'error', }
+        context['info'] = info
+    result = json.dumps(context, ensure_ascii=False)
+    return HttpResponse(result, content_type='application/json')
+
+
+@login_required
+def pay91_query(request):
+    '''
+    91pay结果查询逻辑
+    rtype:
+        json
+    '''
+    context = {}
+    user = request.user
+    paid = False
+    pay_id = request.session['pay_id']
+    # 等待1秒在查询
+    time.sleep(1)
+    res = PayRecord.objects.filter(username=pay_id)
+    if len(res) == 1:
+        rec = res[0]
+        code = MoneyCode.objects.get(code=rec.money_code)
+        user.balance += code.number
+        user.save()
+        code.user = user.username
+        code.isused = True
+        code.save()
+        # 将充值记录和捐赠绑定
+        donate = Donate.objects.create(user=user, money=rec.amount)
+        # 后台数据库增加记录
+        del request.session['pay_id']
+        paid = True
+        # 返回充值信息
+        info = {
+            'title': '充值成功！',
+            'subtitle': '请去商品界面购买商品！',
+            'status': 'success', }
+        context['info'] = info
+    else:
+        paid = False
+    if paid is False:
+        info = {
+            'title': '支付查询失败！',
+            'subtitle': '亲，确认支付了么？',
+            'status': 'error', }
+        context['info'] = info
+    result = json.dumps(context, ensure_ascii=False)
     return HttpResponse(result, content_type='application/json')
