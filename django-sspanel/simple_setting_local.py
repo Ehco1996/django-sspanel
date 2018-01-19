@@ -47,6 +47,8 @@ ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 # 需要授权请联系：
 # https://t.me/gh012363  或者QQ群538609570
 USE_91PAY = True
+ID_91PAY='123'
+USER_91PAY='ehco'
 
 # 网站title
 TITLE = '谜之屋'
