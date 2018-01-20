@@ -43,11 +43,14 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 
 * 流量查询:
 
-![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/24229400.jpg)
+![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/23097796.jpg)
+
 
 * 充值捐增（支付宝/91pay):
 
-![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/56050357.jpg)
+![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/84610707.jpg)
+
+
 
 
 **后台界面:**
