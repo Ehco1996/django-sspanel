@@ -29,35 +29,44 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 
 **用户界面：**
 
+* 注册界面:
+
+![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/21920210.jpg)
+
 * 用户首页:
-![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/89397162.jpg)
+
+![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/44962964.jpg)
 
 * 节点信息：
-![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/45975575.jpg)
 
-* 充值捐增（支持支付宝):
-![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/86274004.jpg)
+![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/12404617.jpg)
 
-* 推广界面
-![](http://opj9lh0x4.bkt.clouddn.com/17-10-25/14059898.jpg)
+* 流量查询:
 
-更多内容请访问:  [迷之屋](http://www.ehcozone.club/)
+![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/24229400.jpg)
+
+* 充值捐增（支付宝/91pay):
+
+![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/56050357.jpg)
+
 
 **后台界面:**
 
 * 后台首页：
+
 ![](http://opj9lh0x4.bkt.clouddn.com/17-10-25/23766206.jpg)
 
 * 商品管理：
+
 ![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/76575609.jpg)
 
 * 节点管理：
+
 ![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/12003054.jpg)
 
 * 对数据库直接管理的Django后台：  
-![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/10484526.jpg)
 
-剩下的就不一一截图了
+![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/10484526.jpg)
 
 
 ## 项目组件
@@ -78,6 +87,8 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 * Markdown <https://pypi.python.org/pypi/Markdown>
 * alipay(支付宝插件) <https://github.com/fzlee/alipay>
 
-## 部署步骤：
+## 部署教程：
 
-点这里: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E9%83%A8%E7%BD%B2)
+硬核版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E9%83%A8%E7%BD%B2)
+
+萌新版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B-%E8%90%8C%E6%96%B0%E7%89%88)
