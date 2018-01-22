@@ -19,5 +19,6 @@ urlpatterns = [
     # 91pay支持
     path('pay/notify/', views.pay_notify, name='pay_notify'),
     path('pay/91/request/', views.pay91_request, name='pay91_request'),
-    path('pay/91/query/', views.pay91_query, name='pay91_query'),    
+    path('pay/91/query/', views.pay91_query, name='pay91_query'), 
+    path('change/theme/', views.change_theme, name='change_theme'), 
 ]

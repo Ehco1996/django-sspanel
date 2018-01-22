@@ -415,3 +415,21 @@ def pay91_query(request):
         context['info'] = info
     result = json.dumps(context, ensure_ascii=False)
     return HttpResponse(result, content_type='application/json')
+
+
+@login_required
+def change_theme(request):
+    '''
+    更换用户主题
+    '''
+    theme = request.POST.get('theme','default')
+    user = request.user
+    user.theme = theme
+    user.save()
+    registerinfo = {
+        'title': '修改成功！',
+        'subtitle': '主题更换成功，刷新页面可见',
+        'status': 'success',
+    }
+    result = json.dumps(registerinfo, ensure_ascii=False)
+    return HttpResponse(result, content_type='application/json')

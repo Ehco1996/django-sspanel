@@ -77,6 +77,12 @@ class User(AbstractUser):
         help_text='等级有效期',
     )
 
+    theme = models.CharField(
+        '主题',
+        max_length=10,
+        default='default',
+    )
+
     def __str__(self):
         return self.username
 

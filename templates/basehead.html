@@ -4,7 +4,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" href="{% static 'img/logo/logo.ico' %}" />
 <!-- css -->
+{% if user.theme %}
+<link href="https://cdn.bootcss.com/bulmaswatch/0.5.2/{{ user.theme }}/bulmaswatch.min.css" rel="stylesheet"> 
+    {% if user.theme == "default" %}
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bulma/0.6.2/css/bulma.css" rel="stylesheet"> 
+    {% endif %} 
+{% else %}
 <link rel="stylesheet" href="https://cdn.bootcss.com/bulma/0.6.2/css/bulma.css" rel="stylesheet">
+{% endif %}
 <link rel="stylesheet" href="{% static 'sspanel/css/ehco.css'%}">
 <link rel="stylesheet" href="{% static 'sspanel/css/sweetalert.css'%}">
 <link rel="stylesheet" href="https://cdn.bootcss.com/simplemde/1.11.2/simplemde.min.css" rel="stylesheet">
