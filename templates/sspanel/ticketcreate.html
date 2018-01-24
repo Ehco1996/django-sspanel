@@ -20,8 +20,9 @@
     <div class="box">
         <form class="form" method="post">
             {% csrf_token %}
-            <div class="control is-loading">
-                <textarea class="textarea" name="title" type="text" placeholder="标题" rows="1" maxlength="32"></textarea>
+            <div class="control">
+                <input class="input" name="title" type="text" placeholder="标题" maxlength="32">
+                <br>
                 <br>
                 <textarea class="textarea" id="id-markdown-body" name="body" type="text" placeholder="正文" rows="10"></textarea>
             </div>
@@ -33,5 +34,5 @@
     </div>
 </div>
 <script>
-    var simplemde = new SimpleMDE({ element: $("#id-markdown-body")[0] });
+    var simplemde = new SimpleMDE({ spellChecker: false, element: $("#id-markdown-body")[0] });
 </script> {% endblock main %}
