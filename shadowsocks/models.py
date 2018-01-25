@@ -329,6 +329,16 @@ class Shop(models.Model):
         ]
     )
 
+    sale = models.CharField(
+        '商品状态',
+        max_length=32,
+        default='上架',
+        choices=(
+            ('上架', '上架'),
+            ('下架', '下架'),
+        )
+    )
+
     def __str__(self):
         return self.name
 

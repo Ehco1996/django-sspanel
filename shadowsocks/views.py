@@ -402,12 +402,9 @@ def trafficlog(request):
 def shop(request):
     '''跳转到商品界面'''
     ss_user = request.user
-
-    goods = Shop.objects.all()
-
+    goods = Shop.objects.filter(sale='上架')
     context = {'ss_user': ss_user,
                'goods': goods, }
-
     return render(request, 'sspanel/shop.html', context=context)
 
 

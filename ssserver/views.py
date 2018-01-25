@@ -4,8 +4,8 @@ import base64
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import FileResponse, StreamingHttpResponse
-from django.shortcuts import HttpResponse, HttpResponseRedirect, redirect, render
+from django.http import StreamingHttpResponse
+from django.shortcuts import HttpResponse, redirect, render
 from django.utils import timezone
 from shadowsocks.models import User
 from shadowsocks.forms import UserForm
@@ -252,11 +252,10 @@ def auto_register(num, level=0):
 @permission_required('ssserver')
 def clean_zombie_user(request):
     '''清除从未使用过的用户'''
-    import datetime
     users = User.objects.all()
     count = 0
     for user in users:
-        if user.ss_user.last_use_time == 0:
+        if user.ss_user.last_use_time == 0 and user.balance == 0:
             user.delete()
             count += 1
     registerinfo = {
