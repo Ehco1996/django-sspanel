@@ -79,7 +79,7 @@ class SSUser(models.Model):
 
     @classmethod
     def randomPord(cls):
-        '''从其实端口~最大端口随机找出一个没有用过的端口'''
+        '''从起始端口~最大端口随机找出一个没有用过的端口'''
         users = cls.objects.all()
         port_list = []
         for user in users:
