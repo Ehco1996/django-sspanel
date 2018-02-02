@@ -157,8 +157,8 @@ def purchase(request):
                 user.level_expire_time = datetime.datetime.now() + datetime.timedelta(days=good.days)
             else:
                 user.level_expire_time += datetime.timedelta(days=good.days)
-            ss_user.save()
             user.save()
+            ss_user.save()            
             # 增加购买记录
             record = PurchaseHistory(info=good, user=user, money=good.money,
                                      purchtime=timezone.now())

@@ -79,16 +79,13 @@ class SSUser(models.Model):
 
     @classmethod
     def randomPord(cls):
-        '''从起始端口~最大端口随机找出一个没有用过的端口'''
+        '''随机端口'''
         users = cls.objects.all()
         port_list = []
         for user in users:
-            '''将所有端口都加入列表'''
-            port_list.append(int(user.port))
-        # 生成从最小到最大的断口池
+            port_list.append(user.port)
         all_ports = [i for i in range(1025, max(port_list) + 1)]
         try:
-            # 随机返回一个没有没占用的端口（取差集）
             return choice(list(set(all_ports).difference(set(port_list))))
         except:
             return max(port_list) + 1
@@ -206,13 +203,13 @@ class SSUser(models.Model):
         if self.port:
             if not 1024 < self.port < 50000:
                 raise ValidationError('端口必须在1024和50000之间')
-        else:
-            max_port_user = SSUser.objects.order_by('-port').first()
-            if max_port_user:
-                self.port = max_port_user.port + choice([2, 3])
-            else:
-                self.port = settings.START_PORT
+    
+    # 重写一下save函数，保证user与ss_user的level字段同步
+    def save(self, *args, **kwargs):
+        self.level = self.user.level        
+        super(SSUser, self).save(*args, **kwargs)
 
+    
     class Meta:
         verbose_name_plural = 'SS账户'
         ordering = ('-last_check_in_time',)

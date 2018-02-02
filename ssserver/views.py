@@ -186,15 +186,15 @@ def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''
     users = User.objects.filter(level__gt=0)
     for user in users:
-        # 判断用户过期时间是否大于一天
+        # 判断用户过期
         if timezone.now() - timezone.timedelta(days=1) > user.level_expire_time:
+            user.level = 0
+            user.save()
             user.ss_user.enable = False
             user.ss_user.upload_traffic = 0
             user.ss_user.download_traffic = 0
             user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
             user.ss_user.save()
-            user.level = 0
-            user.save()
             logs = 'time: {} use: {} level timeout '.format(timezone.now().strftime('%Y-%m-%d'),
                                                             user.username).encode('utf8')
             print(logs)
