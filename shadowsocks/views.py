@@ -448,7 +448,7 @@ def charge(request):
             context = {
                 'registerinfo': registerinfo,
                 'ss_user': user,
-                'codelist': codelist,
+                'codelist': MoneyCode.objects.filter(user=user),
             }
             return render(request, 'sspanel/chargecenter.html', context=context)
 
