@@ -1,18 +1,18 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.utils import timezone
-from django.contrib.auth.hashers import make_password, check_password
-from django.core.validators import MaxValueValidator, MinValueValidator
-# 自己写的小脚本 用于生成邀请码
-from .tools import get_long_random_string, get_short_random_string
-from django.conf import settings
+import time
+import base64
+import datetime
 
 import markdown
-import datetime
-import base64
-import time
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password, check_password
+from django.core.validators import MaxValueValidator, MinValueValidator
 
-# Create your models here.
+# 自己写的小脚本 用于生成邀请码
+from .tools import get_long_random_string, get_short_random_string
+
 
 
 class User(AbstractUser):

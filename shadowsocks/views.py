@@ -364,6 +364,7 @@ def nodeinfo(request):
         obj = Node.objects.get(node_id=node['node_id'])
         node['ssrlink'] = obj.get_ssr_link(ss_user)
         node['sslink'] = obj.get_ss_link(ss_user)
+        node['country'] = obj.country.lower()
         # 得到在线人数
         try:
             log = NodeOnlineLog.objects.filter(

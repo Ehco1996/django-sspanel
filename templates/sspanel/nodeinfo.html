@@ -1,5 +1,4 @@
 {% extends 'base.html' %} {% block main %}
-
 <div class="column is-12">
     <section class="hero is-success is-smaill">
         <div class="hero-body">
@@ -26,13 +25,20 @@
                         <span class="tag is-success">在线</span>&nbsp&nbsp{{ list.name }}</p>
                     {% else %}
                     <p class="card-header-title">
-                        <span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
+                        <span class="tag is-danger">掉线</span>&nbsp&nbsp 节点名：{{ list.name }}</p>
                     {% endif %}
+                    <p class="card-header-icon">地区：
+                        <span class="icon">
+                            <i class="flag-icon flag-icon-{{ list.country }}"></i>
+                        </span>
+                    </p>
                     <a id="id-icon-{{ list.node_id }}" class="card-header-icon" onclick="$(`#id-card-body-${ {{ list.node_id }} }`).toggle('swing')">
                         <span class="icon">
                             <i class="fa fa-ellipsis-v"></i>
                         </span>
                     </a>
+
+
                 </div>
                 {% if user.level >= list.level %}
                 <div id="id-card-body-{{ list.node_id }}" hidden="true">
@@ -110,7 +116,7 @@
                                 <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
                                 <br>
                                 <br>
-                                <p class="subtitle">订阅链接</p>                                
+                                <p class="subtitle">订阅链接</p>
                                 <strong>点击按钮复制链接至客户端的订阅处</strong>
                                 <div class="field is-grouped">
                                     <p class="control is-expanded">
