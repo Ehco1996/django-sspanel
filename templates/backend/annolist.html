@@ -15,10 +15,8 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
     <div class="box">
-
         <table class="table is-fullwidth">
             <thead>
                 <tr>
@@ -42,7 +40,6 @@
                 <td>{{ rec.time }}</td>
                 <td>{{ rec.body |safe }}</td>
             </tr>
-
             <div class="modal user_delete" id="modal-{{ rec.pk }}">
                 <div class="modal-background"></div>
                 <div class="modal-card">
@@ -51,7 +48,8 @@
                         <button class="delete"></button>
                     </header>
                     <section class="modal-card-body">
-                        <p class="subtitle">确定要删除:<code>{{ rec.pk }}</code>号公告么?</p>
+                        <p class="subtitle">确定要删除:
+                            <code>{{ rec.pk }}</code>号公告么?</p>
                         <p align="center">
                             <a class="button is-danger is-outlined" href="{% url 'shadowsocks:anno_delete' rec.pk %}">确定删除</a>
                         </p>
@@ -62,8 +60,10 @@
             <p class="subtitle">没有公告哟</p>
             {% endfor %}
         </table>
-        <p align="right"><a class="button is-danger is-outlined" href="{% url 'shadowsocks:anno_create' %}">增加公告</a></p>
-        </div>
+        <p align="right">
+            <a class="button is-danger is-outlined" href="{% url 'shadowsocks:anno_create' %}">增加公告</a>
+        </p>
+    </div>
 </div>
 
 {% endblock main %}

@@ -1,17 +1,14 @@
-{% extends 'base.html' %} {% block main %}
-{% load static %}
+{% extends 'base.html' %} {% block main %} {% load static %}
 <div class="box">
     <div class="container">
-      <h1 class="title">
-        客户端推荐：
-      </h1>
-      <h2 class="subtitle">
-        务必保重龙体!
-      </h2>
+        <h1 class="title">
+            客户端推荐：
+        </h1>
+        <h2 class="subtitle">
+            务必保重龙体!
+        </h2>
     </div>
 </div>
-
-
 <div class="tile is-ancestor">
     <div class="tile is-vertical is-8">
         <div class="tile">
@@ -44,7 +41,9 @@
                 <p class="title">Windows</p>
                 <p class="subtitle">请不要下载来路不明的软件：</p>
                 <div class="content">
-                    <p class="subtitle"><a href="https://github.com/iMeiji/shadowsocks_install/releases/tag/0.13">ShadowsocksR(影梭) </a></p>
+                    <p class="subtitle">
+                        <a href="https://github.com/iMeiji/shadowsocks_install/releases/tag/0.13">ShadowsocksR(影梭) </a>
+                    </p>
                 </div>
             </article>
         </div>
@@ -53,7 +52,10 @@
         <article class="tile is-child notification is-success">
             <div class="content">
                 <p class="title">碎碎念：</p>
-                <p class="subtitle">欢迎关注我的微信公众号：<br><em>findyourownway</em><br> 获取最新的客户端和优惠信息</p>
+                <p class="subtitle">欢迎关注我的微信公众号：
+                    <br>
+                    <em>findyourownway</em>
+                    <br> 获取最新的客户端和优惠信息</p>
                 <div class="content">
                     <figure class="image">
                         <img src="{% static '/img/wechat.jpg'%}">

@@ -14,7 +14,6 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
     <div class="box">
         <div class="content">
@@ -29,10 +28,11 @@
                         <th>状态</th>
                     </tr>
                 </thead>
-
                 {% for record in ticket %}
                 <tr>
-                    <td><a class="button is-danger" href="{% url 'shadowsocks:backend_ticketedit' record.pk %}">处理</a></td>
+                    <td>
+                        <a class="button is-danger" href="{% url 'shadowsocks:backend_ticketedit' record.pk %}">处理</a>
+                    </td>
                     <td>{{ record.user }}</td>
                     <td>{{ record.time }}</td>
                     <td>{{ record.title }}</td>
@@ -47,9 +47,4 @@
         </div>
     </div>
 </div>
-
-
-
-
-
 {% endblock main %}

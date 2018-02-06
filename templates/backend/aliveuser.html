@@ -1,6 +1,4 @@
  {% extends 'backendbase.html' %} {% block main %}
-
-
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -15,32 +13,27 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
     <div class="box">
-
         <nav class="pagination">
-
             {% if contacts.has_previous %}
-            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %} 
-            {% if contacts.has_next%}
-            <a class="pagination-next" href="?page={{ contacts.next_page_number }}">下一页</a> 
+            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %} {% if contacts.has_next%}
+            <a class="pagination-next" href="?page={{ contacts.next_page_number }}">下一页</a>
             {% endif %}
             <p>页码：</p>
             <ul class="pagination-list">
                 {% for page in page_list %}
                 <li>
                     {% if page == contacts.number %}
-                    <a href="?page={{ page }}" class="pagination-link is-current">{{ page }}</a> 
+                    <a href="?page={{ page }}" class="pagination-link is-current">{{ page }}</a>
                     {% else %}
-                    <a href="?page={{ page }}" class="pagination-link">{{ page }}</a> 
+                    <a href="?page={{ page }}" class="pagination-link">{{ page }}</a>
                     {% endif %}
                 </li>
                 {% endfor %}
             </ul>
         </nav>
         <br>
-
         <table class="table is-fullwidth">
             <thead>
                 <tr>
@@ -62,12 +55,7 @@
             {% empty %}
             <p class="subtitle">没有用户在线哟</p>
             {% endfor %}
-
         </table>
-
-
     </div>
-
 </div>
-
 {% endblock main %}

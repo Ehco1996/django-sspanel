@@ -17,9 +17,7 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
-
     <div class="box ">
         <div class="field has-addons">
             <a class="button is-outlined is-info" id="id-gen-invitecode">生成{{ inviteNumn }}个邀请码 </a>
@@ -36,7 +34,6 @@
                         <th>是否使用</th>
                     </tr>
                 </thead>
-
                 {% for code in invitecodes %}
                 <tr>
                     <td>{{ code.time_created | date:"m月d日" }}</td>

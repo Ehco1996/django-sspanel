@@ -1,6 +1,4 @@
 {% extends 'backendbase.html' %} {% block main %}
-
-
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -15,10 +13,6 @@
         </div>
     </section>
 </div>
-
-
-
-
 <div class="column is-12">
     <div class="box">
         <table class="table is-fullwidth">
@@ -27,14 +21,13 @@
                     <th>操作:</th>
                     <th>ID:</th>
                     <th>节点名:</th>
-                    <th>显示:</th>                                        
+                    <th>显示:</th>
                     <th>IP:</th>
                     <th>加密:</th>
-                    <th>等级:</th>                    
+                    <th>等级:</th>
                     <th>描述:</th>
                 </tr>
             </thead>
-
             {% for node in nodes %}
             <tr>
                 <td>
@@ -47,10 +40,10 @@
                 </td>
                 <td>#{{ node.pk }}</td>
                 <td>{{ node.name }}</td>
-                <td>{{ node.show }}</td>                                
+                <td>{{ node.show }}</td>
                 <td>{{ node.server }}</td>
                 <td>{{ node.method }}</td>
-                <td>{{ node.level }}</td>                
+                <td>{{ node.level }}</td>
                 <td>{{ node.info }}</td>
             </tr>
             <div class="modal node_delete" id="modal-{{ node.node_id }}">
@@ -61,7 +54,8 @@
                         <button class="delete"></button>
                     </header>
                     <section class="modal-card-body">
-                        <p class="subtitle">确定要删除:<code>{{ node.name }}</code>?</p>                        
+                        <p class="subtitle">确定要删除:
+                            <code>{{ node.name }}</code>?</p>
                         <p align="center">
                             <a class="button is-danger is-outlined" href="{% url 'shadowsocks:node_delete' node.node_id %}">确定删除</a>
                         </p>
@@ -74,7 +68,9 @@
             </h2>
             {% endfor %}
         </table>
-        <p align="right"><a class="button is-danger is-outlined" href="{% url 'shadowsocks:node_create' %}">增加节点</a></p>
+        <p align="right">
+            <a class="button is-danger is-outlined" href="{% url 'shadowsocks:node_create' %}">增加节点</a>
+        </p>
     </div>
 </div>
 {% endblock main %}

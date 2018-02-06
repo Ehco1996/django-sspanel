@@ -1,6 +1,4 @@
  {% extends 'backendbase.html' %} {% block main %}
-
-
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -15,9 +13,7 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
-
     <form method="get" action="{% url 'shadowsocks:user_search' %}">
         <div class="field has-addons">
             <div class="control">
@@ -55,7 +51,6 @@
             {% endif %}
         </nav>
         <br>
-
         <table class="table is-fullwidth">
             <thead>
                 <tr>
@@ -83,7 +78,6 @@
                 <td>{{ contact.ss_user.port }}</td>
                 <td>{{ contact.ss_user.get_traffic }} GB / {{ contact.ss_user.get_transfer }} GB</td>
             </tr>
-
             <div class="modal user_delete" id="modal-{{ contact.pk }}">
                 <div class="modal-background"></div>
                 <div class="modal-card">
@@ -106,5 +100,4 @@
         </table>
     </div>
 </div>
-
 {% endblock main %}

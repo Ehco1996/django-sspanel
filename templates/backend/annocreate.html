@@ -1,6 +1,4 @@
 {% extends 'backendbase.html' %} {% block main %}
-
-
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -16,7 +14,6 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
     <div class="box">
         <form class="form" method="post">
@@ -32,6 +29,6 @@
         </form>
     </div>
 </div>
-    <script>
-        var simplemde = new SimpleMDE({ spellChecker: false,element: $("#id-markdown-body")[0] });
-    </script> {% endblock main %}
+<script>
+    var simplemde = new SimpleMDE({ spellChecker: false, element: $("#id-markdown-body")[0] });
+</script> {% endblock main %}

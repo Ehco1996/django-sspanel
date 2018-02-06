@@ -1,6 +1,4 @@
  {% extends 'backendbase.html' %} {% block main %}
-
-
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -17,7 +15,6 @@
 </div>
 
 <div class="column is-12">
-
     <div class="box">
         <nav class="pagination">
             {% if contacts.has_previous %}
@@ -36,7 +33,6 @@
             </ul>
         </nav>
         <br>
-
         <table class="table is-fullwidth">
             <thead>
                 <tr>
@@ -55,13 +51,10 @@
                 <td>{{ contact.money }} 元</td>
                 <td>{{ contact.purchtime }}</td>
             </tr>
-
             {% empty %}
             <p class="subtitle">暂时还没有人购买哦</p>
             {% endfor %}
-
         </table>
     </div>
 </div>
-
 {% endblock main %}

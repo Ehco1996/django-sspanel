@@ -14,12 +14,7 @@
         </div>
     </section>
 </div>
-
-
-
-
 <div class="column is-12">
-
     <div class="box">
         <h3 class="title">注册:</h3>
         <form class="form" action="{% url 'shadowsocks:register' %}" method="post">
@@ -30,7 +25,6 @@
             {% if field.help_text %}
             <p class="help is-danger">{{ field.help_text|safe }}</p>
             {% endif %} {% endfor %}
-
             <hr>
             <div class="field is-grouped">
                 <p class="control">
@@ -41,10 +35,6 @@
                 </p>
             </div>
         </form>
-
     </div>
 </div>
-
-
-
 {% endblock main%}

@@ -1,5 +1,4 @@
 {% extends 'base.html' %} {% block main %}
-
 <div class="column is-12">
     <section class="hero is-primary is-smaill">
         <div class="hero-body">
@@ -14,9 +13,7 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
-
     <div class="box">
         <div class="content">
             <p class="subtitle">公告记录:</p>
@@ -25,10 +22,9 @@
                     <tr>
                         <th>ID:</th>
                         <th>时间:</th>
-                        <th>内容:</th>                        
+                        <th>内容:</th>
                     </tr>
                 </thead>
-
                 {% for record in anno %}
                 <tr>
                     <td>#{{ record.pk }}</td>

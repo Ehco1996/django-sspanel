@@ -1,5 +1,4 @@
-{% extends 'base.html' %} {% block main %}
-{% load ehcofilter %}
+{% extends 'base.html' %} {% block main %} {% load ehcofilter %}
 <div class="column is-12">
     <section class="hero is-info is-smaill">
         <div class="hero-body">
@@ -14,7 +13,6 @@
         </div>
     </section>
 </div>
-
 <div class="column is-12">
     <div class="box">
         <div class="content">
@@ -26,7 +24,6 @@
                         <th>邀请码:</th>
                     </tr>
                 </thead>
-
                 {% for code in codelist %}
                 <tr>
                     <td>{{ code.time_created|date:"m月d日" }}：</td>
@@ -45,5 +42,4 @@
         </div>
     </div>
 </div>
-
 {% endblock main%}
