@@ -31,7 +31,7 @@
                 <div class="content">
                     <div class="field has-addons">
                         <div class="control">
-                            <input id="id-input-payinput" class="input" type="number" placeholder="最低不得小于1元: " required>
+                            <input id="id-input-payinput" class="input" type="number" step="1" placeholder="最低不得小于1元: " required>
                         </div>
                         <div class="control">
                             <button class="button is-outlined is-info" id="id-button-payrequest">提交</button>
@@ -99,7 +99,7 @@
     var payrequest = function () {
         url = "{% url 'api:pay_request' %}"
         paynum = payinput.val()
-        if (paynum >= 1) {
+        if (paynum >= 1 && paynum % 1 == 0) {
             data = {
                 num: paynum,
                 csrfmiddlewaretoken: '{{ csrf_token }}',
@@ -117,7 +117,7 @@
                 requestButton.attr("disabled", "disabled")
             })
         } else {
-            swal('错误！', '金额最少为一元', 'error')
+            swal('错误！', '金额必须为整数且最少为一元', 'error')
         }
     }
     requestButton.click(payrequest)
