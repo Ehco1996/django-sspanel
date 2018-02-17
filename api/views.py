@@ -2,12 +2,14 @@ import datetime
 import time
 import qrcode
 import json
-from decimal import Decimal
+import base64
 
+from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import HttpResponse
+from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.six import BytesIO
 
@@ -158,7 +160,7 @@ def purchase(request):
             else:
                 user.level_expire_time += datetime.timedelta(days=good.days)
             user.save()
-            ss_user.save()            
+            ss_user.save()
             # 增加购买记录
             record = PurchaseHistory(info=good, user=user, money=good.money,
                                      purchtime=timezone.now())
@@ -422,7 +424,7 @@ def change_theme(request):
     '''
     更换用户主题
     '''
-    theme = request.POST.get('theme','default')
+    theme = request.POST.get('theme', 'default')
     user = request.user
     user.theme = theme
     user.save()
@@ -433,3 +435,28 @@ def change_theme(request):
     }
     result = json.dumps(registerinfo, ensure_ascii=False)
     return HttpResponse(result, content_type='application/json')
+
+
+@csrf_exempt
+def get_invitecode(request):
+    '''
+    获取邀请码接口
+    只开放给管理员账号（user_id=1）
+    只接受post请求
+    返回一个没用过的邀请码
+    需要验证token
+    token为 base64(username+port)
+    '''
+    if request.method == 'POST':
+        token = request.POST.get('token', '')
+        admin_user = User.objects.get(pk=1)
+        if token == base64.b64encode(bytes('{}+{}'.format(admin_user.username, admin_user.ss_user.port), 'utf8')).decode('utf8'):
+            code = InviteCode.objects.filter(code_id=1, isused=False)
+            if len(code) > 1:
+                return JsonResponse({'msg': code[0].code})
+            else:
+                return JsonResponse({'msg': '邀请码用光啦'})
+        else:
+            return JsonResponse({'msg': 'auth error'})
+    else:
+        return JsonResponse({'msg': 'method error'})
