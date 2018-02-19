@@ -64,8 +64,8 @@ ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 # 需要授权请联系：
 # https://t.me/gh012363  或者QQ群538609570
 USE_91PAY = False
-ID_91PAY='123'
-USER_91PAY='ehco'
+ID_91PAY = '123'
+USER_91PAY = 'ehco'
 
 # 网站title
 TITLE = '谜之屋'
@@ -81,3 +81,13 @@ INVITEINFO = '邀请码实时更新，如果用完了进telegram群 群链接：
 
 # 网站域名设置（请正确填写，不然订阅功能会失效：
 HOST = 'https://www.ehcozone.ml/'
+
+
+import base64
+# 管理员账号
+USERNAME = 'ehco'
+# 管理员ss端口
+PORT = 1025
+# 管理员私有token，用于后端接口调用
+TOKEN = base64.b64encode(
+    bytes('{}+{}'.format(USERNAME, PORT), 'utf8')).decode()

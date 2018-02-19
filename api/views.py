@@ -8,6 +8,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.shortcuts import HttpResponse
 from django.http import JsonResponse
 from django.utils import timezone
@@ -19,6 +20,7 @@ from shadowsocks.tools import get_date_list
 from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog
 
 from shadowsocks.payments import alipay, pay91
+from shadowsocks.tools import traffic_format
 # Create your views here.
 
 
@@ -449,8 +451,7 @@ def get_invitecode(request):
     '''
     if request.method == 'POST':
         token = request.POST.get('token', '')
-        admin_user = User.objects.get(pk=1)
-        if token == base64.b64encode(bytes('{}+{}'.format(admin_user.username, admin_user.ss_user.port), 'utf8')).decode('utf8'):
+        if token == settings.TOKEN:
             code = InviteCode.objects.filter(code_id=1, isused=False)
             if len(code) > 1:
                 return JsonResponse({'msg': code[0].code})
@@ -460,3 +461,104 @@ def get_invitecode(request):
             return JsonResponse({'msg': 'auth error'})
     else:
         return JsonResponse({'msg': 'method error'})
+
+
+@require_http_methods(['GET', ])
+def node_api(request, node_id):
+    '''
+    返回节点流量比例
+    '''
+    token = request.GET.get('token', '')
+    if token == settings.TOKEN:
+        node = Node.objects.filter(node_id=node_id)
+        if len(node) > 0:
+            data = (node[0].traffic_rate,)
+        else:
+            data = None
+        re_dict = {'ret': 1,
+                   'data': data}
+    else:
+        re_dict = {'ret': -1}
+    return JsonResponse(re_dict)
+
+
+@require_http_methods(['POST', ])
+@csrf_exempt
+def node_online_api(request):
+    '''
+    接受节点在线人数上报
+    '''
+    token = request.GET.get('token', '')
+    if token == settings.TOKEN:
+        data = json.loads(request.body)
+        node = Node.objects.filter(node_id=data['node_id'])
+        if len(node) > 0:
+            NodeOnlineLog.objects.create(
+                node_id=data['node_id'], online_user=data['online_user'], log_time=round(time.time()))
+        else:
+            data = None
+        re_dict = {'ret': 1,
+                   'data': []}
+    else:
+        re_dict = {'ret': -1}
+    return JsonResponse(re_dict)
+
+
+@require_http_methods(['GET', ])
+def user_api(request, node_id):
+    '''
+    返回符合节点要求的用户信息
+    '''
+    token = request.GET.get('token', '')
+    if token == settings.TOKEN:
+        node = Node.objects.filter(node_id=node_id)
+        if len(node) > 0:
+            data = []
+            level = node[0].level
+            user_list = SSUser.objects.filter(
+                level__gte=level, transfer_enable__gte=0)
+            for user in user_list:
+                cfg = {'port': user.port,
+                       'u': user.upload_traffic,
+                       'd': user.download_traffic,
+                       'transfer_enable': user.transfer_enable,
+                       'passwd': user.password,
+                       'enable': user.enable,
+                       'id': user.pk,
+                       'method': user.method,
+                       'obfs': user.obfs,
+                       'protocol': user.protocol}
+                data.append(cfg)
+        else:
+            data = None
+        re_dict = {'ret': 1,
+                   'data': data}
+    else:
+        re_dict = {'ret': -1}
+    return JsonResponse(re_dict)
+
+
+@require_http_methods(['POST', ])
+@csrf_exempt
+def traffic_api(request):
+    '''
+    接受服务端的用户流量上报
+    '''
+    token = request.GET.get('token', '')
+    if token == settings.TOKEN:
+        traffic_rec_list = json.loads(request.body)['data']
+        node_id = json.loads(request.body)['node_id']
+        for rec in traffic_rec_list:
+            user = SSUser.objects.get(pk=rec['user_id'])
+            user.upload_traffic += rec['u']
+            user.download_traffic += rec['d']
+            # user.transfer_enable = user.transfer_enable - rec['u'] - rec['d']
+            user.save()
+            # 流量记录
+            traffic = traffic_format(rec['u'] + rec['d'])
+            TrafficLog.objects.create(
+                node_id=node_id, user_id=rec['user_id'], traffic=traffic, download_traffic=rec['d'], upload_traffic=rec['u'], log_time=round(time.time()))
+        re_dict = {'ret': 1, 'data': []}
+    else:
+        re_dict = {'ret': -1}
+    return JsonResponse(re_dict)

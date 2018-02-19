@@ -33,3 +33,13 @@ def get_date_list(dela):
     t = datetime.today()
     l = [t - timedelta(days=i) for i in range(dela + 1)]
     return list(reversed(l))
+
+
+def traffic_format(traffic):
+    if traffic < 1024 * 8:
+        return str(int(traffic)) + "B"
+
+    if traffic < 1024 * 1024 * 2:
+        return str(round((traffic / 1024.0), 2)) + "KB"
+
+    return str(round((traffic / 1048576.0), 2)) + "MB"

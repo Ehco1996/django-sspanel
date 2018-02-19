@@ -64,3 +64,12 @@ INVITEINFO = '邀请码实时更新，如果用完了请关注公众号findyouro
 
 # 网站域名设置（请正确填写，不然订阅功能会失效：
 HOST = 'http://127.0.0.1:8000/'
+
+import base64
+# 管理员账号
+USERNAME = 'ehco'
+# 管理员ss端口
+PORT = 2345
+# 管理员私有token，用于后端接口调用
+TOKEN = base64.b64encode(
+    bytes('{}+{}'.format(USERNAME, PORT), 'utf8')).decode()

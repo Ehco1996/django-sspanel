@@ -24,4 +24,10 @@ urlpatterns = [
     # 邀请码接口
     path('get/invitecode/', views.get_invitecode),
 
+    # web api 接口
+    path('nodes/<int:node_id>', views.node_api),
+    path('nodes/online', views.node_online_api),
+    path('users/nodes/<int:node_id>', views.user_api),
+    path('traffic/upload', views.traffic_api),
+
 ]
