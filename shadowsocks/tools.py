@@ -42,4 +42,22 @@ def traffic_format(traffic):
     if traffic < 1024 * 1024 * 2:
         return str(round((traffic / 1024.0), 2)) + "KB"
 
-    return str(round((traffic / 1048576.0), 2)) + "MB"
+    if traffic < 1024 * 1024 * 1024:
+        return str(round((traffic / 1024.0), 2)) + "KB"
+
+    return str(round((traffic / 1073741824.0), 2)) + "GB"
+
+
+def reverse_traffic(str):
+    '''
+    将流量字符串转换为整数类型
+    '''
+    if 'GB' in str:
+        num = float(str.replace('GB', '')) * 1024 * 1024 * 1024
+    elif 'MB' in str:
+        num = float(str.replace('MB', '')) * 1024*1024
+    elif 'KB' in str:
+        num = float(str.replace('KB', '')) * 1024
+    else:
+        num = num = float(str.replace('B', ''))
+    return round(num)

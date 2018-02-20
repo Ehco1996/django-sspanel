@@ -1,41 +1,30 @@
-# 导入django内置模块
-from django.shortcuts import render, render_to_response, redirect, HttpResponseRedirect
-from django.http import HttpResponse
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, permission_required
-from django.utils.six import BytesIO
-from django.utils import timezone
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
-from django.conf import settings
-from decimal import Decimal
-# 导入shadowsocks节点相关文件
-from .models import InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, PayRequest,  Announcement, Ticket, RebateRecord
-from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
-
-# 导入加密混淆协议选项
-from ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-
-# 导入ssservermodel
-from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, NodeInfoLog
-
-# 导入第三方模块
+import time
+import tomd
+import json
 import qrcode
 import base64
 import datetime
-import time
-import tomd
 from random import randint
-import json
 
-# 导入支付宝当面付插件
+from decimal import Decimal
+from django.db.models import Q
+from django.conf import settings
+from django.utils import timezone
+from django.contrib import messages
+from django.utils.six import BytesIO
+from django.http import HttpResponse
+from django.contrib.auth import authenticate, login, logout
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.decorators import login_required, permission_required
+from django.shortcuts import render, render_to_response, redirect, HttpResponseRedirect
+
 from .payments import alipay
+from shadowsocks.tools import reverse_traffic
+from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
+from ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
+from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, NodeInfoLog
+from .models import InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, PayRequest,  Announcement, Ticket, RebateRecord
 
-
-# Create your views here.
-
-# 网站用户界面：
 
 def index(request):
     '''跳转到首页'''
@@ -654,6 +643,8 @@ def node_edit(request, node_id):
         form = NodeForm(request.POST, instance=node)
         if form.is_valid():
             form.save()
+            node.total_traffic =reverse_traffic(form.cleaned_data['human_total_traffic'])
+            node.save()
             registerinfo = {
                 'title': '修改成功',
                 'subtitle': '数据更新成功',

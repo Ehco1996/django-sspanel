@@ -11,7 +11,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from shadowsocks.tools import get_short_random_string
+from shadowsocks.tools import get_short_random_string, traffic_format
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
@@ -580,6 +580,22 @@ class Node(models.Model):
     group = models.CharField(
         '分组名', max_length=32, default='谜之屋')
 
+    total_traffic = models.BigIntegerField(
+        '总流量',
+        default=0,
+    )
+
+    human_total_traffic = models.CharField(
+        '节点总流量', max_length=255, default='1GB', blank=True, null=True)
+
+    used_traffic = models.BigIntegerField(
+        '已用流量',
+        default=0,
+    )
+
+    human_used_traffic = models.CharField(
+        '已用流量', max_length=255, blank=True, null=True)
+
     def __str__(self):
         return self.name
 
@@ -615,8 +631,13 @@ class Node(models.Model):
         ss_link = 'ss://{}'.format(ss_pass)
         return ss_link
 
+    def save(self, *args, **kwargs):
+        self.human_total_traffic = traffic_format(self.total_traffic)
+        self.human_used_traffic = traffic_format(self.used_traffic)
+        super(Node, self).save(*args, **kwargs)
+
     class Meta:
-        ordering = ['id']
+        ordering = ['node_id']
         verbose_name_plural = '节点'
         db_table = 'ss_node'
 

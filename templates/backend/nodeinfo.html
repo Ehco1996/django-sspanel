@@ -25,7 +25,8 @@
                     <th>IP:</th>
                     <th>加密:</th>
                     <th>等级:</th>
-                    <th>描述:</th>
+                    <th>已用流量:</th>
+                    <th>总流量:</th>                    
                 </tr>
             </thead>
             {% for node in nodes %}
@@ -44,7 +45,8 @@
                 <td>{{ node.server }}</td>
                 <td>{{ node.method }}</td>
                 <td>{{ node.level }}</td>
-                <td>{{ node.info }}</td>
+                <td>{{ node.human_used_traffic }}</td>
+                <td>{{ node.human_total_traffic }}</td>                
             </tr>
             <div class="modal node_delete" id="modal-{{ node.node_id }}">
                 <div class="modal-background"></div>
