@@ -466,12 +466,13 @@ def get_invitecode(request):
 @require_http_methods(['GET', ])
 def node_api(request, node_id):
     '''
-    返回节点流量比例
+    返回节点信息
+    筛选节点是否用光
     '''
     token = request.GET.get('token', '')
     if token == settings.TOKEN:
         node = Node.objects.filter(node_id=node_id)
-        if len(node) > 0:
+        if len(node) > 0 and node[0].used_traffic < node[0].total_traffic:
             data = (node[0].traffic_rate,)
         else:
             data = None
@@ -548,16 +549,19 @@ def traffic_api(request):
     if token == settings.TOKEN:
         traffic_rec_list = json.loads(request.body)['data']
         node_id = json.loads(request.body)['node_id']
+        node = Node.objects.get(node_id=node_id)
         for rec in traffic_rec_list:
+            #  用户流量流量记录
             user = SSUser.objects.get(pk=rec['user_id'])
             user.upload_traffic += rec['u']
             user.download_traffic += rec['d']
-            # user.transfer_enable = user.transfer_enable - rec['u'] - rec['d']
             user.save()
-            # 流量记录
             traffic = traffic_format(rec['u'] + rec['d'])
             TrafficLog.objects.create(
                 node_id=node_id, user_id=rec['user_id'], traffic=traffic, download_traffic=rec['d'], upload_traffic=rec['u'], log_time=round(time.time()))
+            # 节点流量记录
+            node.used_traffic = node.used_traffic + rec['u'] + rec['d']
+            node.save()
         re_dict = {'ret': 1, 'data': []}
     else:
         re_dict = {'ret': -1}
