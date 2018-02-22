@@ -1,38 +1,27 @@
-import datetime
 import time
-import qrcode
 import json
 import base64
+import datetime
 
+import qrcode
 from decimal import Decimal
 from django.conf import settings
-from django.contrib.auth.decorators import login_required, permission_required
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.shortcuts import HttpResponse
-from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.six import BytesIO
+from django.http import JsonResponse
+from django.shortcuts import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required, permission_required
 
+
+from shadowsocks.tools import get_date_list
+from shadowsocks.tools import traffic_format
+from shadowsocks.payments import alipay, pay91
+from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog
 from shadowsocks.models import (Donate, InviteCode, PurchaseHistory,
                                 RebateRecord, Shop, User, MoneyCode, Donate, PayRequest, PayRecord)
-from shadowsocks.tools import get_date_list
-from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog
 
-from shadowsocks.payments import alipay, pay91
-from shadowsocks.tools import traffic_format
-# Create your views here.
-
-
-@permission_required('shadowsocks')
-def test(request):
-    '''测试api'''
-
-    data = {
-        'user': [1, 2, 3, 4]
-    }
-    result = json.dumps(data, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
 
 
 @permission_required('shadowsocks')
@@ -44,9 +33,7 @@ def userData(request):
 
     data = [NodeOnlineLog.totalOnlineUser(), len(User.todayRegister()),
             SSUser.userTodyChecked(), SSUser.userNeverChecked(), SSUser.userNeverUsed(), ]
-
-    result = json.dumps(data, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse({'data': data})
 
 
 @permission_required('shadowsocks')
@@ -57,15 +44,15 @@ def nodeData(request):
     各自消耗的流量
     '''
     nodeName = [node.name for node in Node.objects.filter(show='显示')]
-    nodeTraffic = [TrafficLog.totalTraffic(
-        node.node_id) for node in Node.objects.filter(show='显示')]
+
+    nodeTraffic = [
+        round(node.used_traffic/settings.GB, 2) for node in Node.objects.filter(show='显示')]
 
     data = {
         'nodeName': nodeName,
         'nodeTraffic': nodeTraffic,
     }
-    result = json.dumps(data, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(data)
 
 
 @permission_required('shadowsocks')
@@ -76,9 +63,7 @@ def donateData(request):
     捐赠总金额
     '''
     data = [Donate.totalDonateNums(), int(Donate.totalDonateMoney())]
-
-    result = json.dumps(data, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse({'data': data})
 
 
 @login_required
@@ -97,10 +82,7 @@ def change_ss_port(request):
         'subtitle': '端口修改为：{}！'.format(port),
         'status': 'success',
     }
-    result = json.dumps(registerinfo, ensure_ascii=False)
-
-    # AJAX 返回json数据
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(registerinfo)
 
 
 @login_required
@@ -129,10 +111,7 @@ def gen_invite_code(request):
             'title': '失败',
             'subtitle': '已经不能生成更多的邀请码了',
             'status': 'error', }
-
-    result = json.dumps(registerinfo, ensure_ascii=False)
-
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(registerinfo)
 
 
 @login_required
@@ -178,8 +157,7 @@ def purchase(request):
                 'title': '购买成功',
                 'subtitle': '请在用户中心检查最新信息',
                 'status': 'success', }
-        result = json.dumps(registerinfo, ensure_ascii=False)
-        return HttpResponse(result, content_type='application/json')
+        return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
 
@@ -227,9 +205,7 @@ def pay_request(request):
                 'subtitle': '如果一直失败,请后台联系站长',
                 'status': 'error', }
             context['info'] = info
-
-    result = json.dumps(context, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(context)
 
 
 @login_required
@@ -278,8 +254,7 @@ def pay_query(request):
             'subtitle': '亲，确认支付了么？',
             'status': 'error', }
         context['info'] = info
-    result = json.dumps(context, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(context)
 
 
 @login_required
@@ -304,8 +279,7 @@ def traffic_query(request):
         'x_label': '日期 最近七天',
         'y_label': '流量 单位：GB'
     }
-    result = json.dumps(configs, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(configs)
 
 
 @login_required
@@ -372,8 +346,7 @@ def pay91_request(request):
             'subtitle': '如果一直失败,请后台联系站长',
             'status': 'error', }
         context['info'] = info
-    result = json.dumps(context, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(context)
 
 
 @login_required
@@ -417,8 +390,7 @@ def pay91_query(request):
             'subtitle': '亲，确认支付了么？',
             'status': 'error', }
         context['info'] = info
-    result = json.dumps(context, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(context)
 
 
 @login_required
@@ -435,8 +407,7 @@ def change_theme(request):
         'subtitle': '主题更换成功，刷新页面可见',
         'status': 'success',
     }
-    result = json.dumps(registerinfo, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
+    return JsonResponse(registerinfo)
 
 
 @csrf_exempt

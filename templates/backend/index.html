@@ -34,7 +34,7 @@
     // 获取后台首页状态
     var getSystemStatus = function () {
         $.getJSON("{% url 'api:userdata' %}", function (results) {
-            genDoughnutChart('userState', '总用户:{{ userNum }} ', ['在线人数','今日注册', '今日签到', '从未签到', '从未使用'], results)
+            genDoughnutChart('userState', '总用户:{{ userNum }} ', ['在线人数','今日注册', '今日签到', '从未签到', '从未使用'], results.data)
         })
 
         $.getJSON("{% url 'api:nodedata' %}", function (results) {
@@ -42,7 +42,7 @@
         })
 
         $.getJSON("{% url 'api:donatedata' %}", function (results) {
-            genDoughnutChart('donateState', '收入分析', ['成交数 (笔)', '成交金额 (元)'], results)
+            genDoughnutChart('donateState', '收入分析', ['成交数 (笔)', '成交金额 (元)'], results.data)
         })
     }
     getSystemStatus()

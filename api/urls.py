@@ -5,7 +5,6 @@ from .import views
 
 app_name = "api"
 urlpatterns = [
-    path('test/', views.test, name='test'),
     path('user/data/', views.userData, name='userdata'),
     path('node/data/', views.nodeData, name='nodedata'),
     path('donate/data/', views.donateData, name='donatedata'),
