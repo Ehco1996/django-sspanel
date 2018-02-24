@@ -151,5 +151,7 @@ CRONJOBS = [
      '>>' + BASE_DIR + '/logs/trafficrest.log'),  # 每月第一天凌晨2点删除节点在线记录，日志写入logs
     ('0 3 1 * *', 'ssserver.views.clean_node_log',
      '>>' + BASE_DIR + '/logs/trafficrest.log'),  # 每月第一天凌晨3点删除所有节点负载，日志写入logs
+    ('0 4 1 * *', 'ssserver.views.reset_node_traffic',
+     '>>' + BASE_DIR + '/logs/node_reset.log'),  # 每月第一天凌晨4点重置节点流量，日志写入logs
 
 ]

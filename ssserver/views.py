@@ -233,6 +233,14 @@ def clean_node_log():
     print('all node info record removed!:{}'.format(log))
 
 
+def reset_node_traffic():
+    '''月初重置节点使用流量'''
+    for node in Node.objects.all():
+        node.used_traffic = 0
+        node.save()
+    print('all node traffic removed!:{}'.format(log))
+
+
 @permission_required('ssserver')
 def clean_zombie_user(request):
     '''清除从未使用过的用户'''
