@@ -18,10 +18,9 @@ from django.contrib.auth.decorators import login_required, permission_required
 from shadowsocks.tools import get_date_list
 from shadowsocks.tools import traffic_format
 from shadowsocks.payments import alipay, pay91
-from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog
+from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp
 from shadowsocks.models import (Donate, InviteCode, PurchaseHistory,
                                 RebateRecord, Shop, User, MoneyCode, Donate, PayRequest, PayRecord)
-
 
 
 @permission_required('shadowsocks')
@@ -510,8 +509,8 @@ def user_api(request, node_id):
     return JsonResponse(re_dict)
 
 
-@require_http_methods(['POST', ])
 @csrf_exempt
+@require_http_methods(['POST', ])
 def traffic_api(request):
     '''
     接受服务端的用户流量上报
@@ -533,6 +532,23 @@ def traffic_api(request):
             # 节点流量记录
             node.used_traffic = node.used_traffic + rec['u'] + rec['d']
             node.save()
+        re_dict = {'ret': 1, 'data': []}
+    else:
+        re_dict = {'ret': -1}
+    return JsonResponse(re_dict)
+
+
+@csrf_exempt
+@require_http_methods(['POST', ])
+def alive_ip_api(request):
+    token = request.GET.get('token', '')
+    if token == settings.TOKEN:
+        data = json.loads(request.body)['data']
+        node_id = json.loads(request.body)['node_id']
+        for user, ip_list in data.items():
+            user = SSUser.objects.get(pk=user).user
+            for ip in ip_list:
+                AliveIp.objects.create(node_id=node_id, user=user, ip=ip)
         re_dict = {'ret': 1, 'data': []}
     else:
         re_dict = {'ret': -1}

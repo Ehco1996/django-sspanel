@@ -22,7 +22,7 @@ from .payments import alipay
 from shadowsocks.tools import reverse_traffic
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 from ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, NodeInfoLog
+from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, NodeInfoLog, AliveIp
 from .models import InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, PayRequest,  Announcement, Ticket, RebateRecord
 
 
@@ -643,7 +643,8 @@ def node_edit(request, node_id):
         form = NodeForm(request.POST, instance=node)
         if form.is_valid():
             form.save()
-            node.total_traffic =reverse_traffic(form.cleaned_data['human_total_traffic'])
+            node.total_traffic = reverse_traffic(
+                form.cleaned_data['human_total_traffic'])
             node.save()
             registerinfo = {
                 'title': '修改成功',
@@ -1180,3 +1181,14 @@ def backend_ticketedit(request, pk):
             'ticket': ticket,
         }
         return render(request, 'backend/ticketedit.html', context=context)
+
+
+@permission_required('ssserver')
+def backend_alive_user(request):
+    obj_list = []
+    for node in Node.objects.all():
+        obj_list.extend(AliveIp.recent_alive(node.node_id))
+    page_num = 15
+    context = Page_List_View(request, obj_list, page_num).get_page_context()
+
+    return render(request, 'backend/aliveuser.html', context=context)

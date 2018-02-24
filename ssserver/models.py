@@ -696,3 +696,35 @@ class NodeOnlineLog(models.Model):
     class Meta:
         verbose_name_plural = '节点在线记录'
         db_table = 'ss_node_online_log'
+
+
+class AliveIp(models.Model):
+
+    @classmethod
+    def recent_alive(cls, node_id):
+        '''
+        返回节点在线的最新记录
+        '''
+        now = timezone.now()
+        last_now = now - datetime.timedelta(minutes=1)
+        ret = []
+        ip_pool = []
+        _ = cls.objects.filter(node_id=node_id, log_time__range=[
+            str(last_now), str(now)])
+        for item in _:
+            if item.ip not in ip_pool:
+                ip_pool.append(item.ip)
+                ret.append(item)
+        return ret
+
+    node_id = models.IntegerField('节点id', blank=False, null=False)
+
+    ip = models.CharField('设备ip', max_length=128,)
+
+    user = models.CharField('用户名', max_length=128,)
+
+    log_time = models.DateTimeField('日志时间', auto_now=True)
+
+    class Meta:
+        verbose_name_plural = '节点在线IP'
+        ordering = ['-log_time']

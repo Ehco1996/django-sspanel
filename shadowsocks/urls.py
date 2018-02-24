@@ -87,4 +87,7 @@ urlpatterns = [
     path('backend/ticket/', views.backend_ticket, name='backend_ticket'),
     path('backend/ticket/edit/<int:pk>/',
          views.backend_ticketedit, name='backend_ticketedit'),
+    # 在线ip
+    path('backend/aliveuser/', views.backend_alive_user, name='alive_user'),
+    
 ]

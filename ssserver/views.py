@@ -1,21 +1,18 @@
-from random import randint
 import json
 import base64
+from random import randint
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required, permission_required
+from django.utils import timezone
 from django.http import StreamingHttpResponse
 from django.shortcuts import HttpResponse, redirect, render
-from django.utils import timezone
+from django.contrib.auth.decorators import login_required, permission_required
+
 from shadowsocks.models import User
 from shadowsocks.forms import UserForm
 from .forms import ChangeSsPassForm, SSUserForm
-from .models import SSUser, TrafficLog, Node, NodeInfoLog, NodeOnlineLog
-
-# 导入加密混淆协议选项
 from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-
-# Create your views here.
+from .models import SSUser, TrafficLog, Node, NodeInfoLog, NodeOnlineLog
 
 
 @permission_required('ssesrver')
@@ -234,19 +231,6 @@ def clean_node_log():
     res = NodeInfoLog.objects.all().delete()
     log = str(res)
     print('all node info record removed!:{}'.format(log))
-
-
-def auto_register(num, level=0):
-    '''自动注册num个用户'''
-    for i in range(num):
-        username = 'test' + str(i)
-        code = 'testcode' + str(i)
-        User.objects.create_user(
-            username=username, email=None, password=None, level=level, invitecode=code)
-        user = User.objects.get(username=username)
-        max_port_user = SSUser.objects.order_by('-port').first()
-        port = max_port_user.port + randint(2, 3)
-        ss_user = SSUser.objects.create(user=user, port=port)
 
 
 @permission_required('ssserver')

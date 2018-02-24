@@ -28,5 +28,6 @@ urlpatterns = [
     path('nodes/online', views.node_online_api),
     path('users/nodes/<int:node_id>', views.user_api),
     path('traffic/upload', views.traffic_api),
+    path('nodes/aliveip', views.alive_ip_api),    
 
 ]

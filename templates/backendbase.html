@@ -60,6 +60,7 @@
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_ticket' %}">工单管理</a>
                     <a class="navbar-item is-active">节点管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
+                    <a class="navbar-item" href="{% url 'shadowsocks:alive_user' %}">在线IP</a>
                     <a class="navbar-item is-active">交易管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_charge' %}">充值管理</a>
                     <a class="navbar-item" href="{% url 'shadowsocks:backend_shop' %}">商品管理</a>
@@ -119,6 +120,9 @@
                         <ul class="menu-list">
                             <li>
                                 <a href="{% url 'shadowsocks:backend_node_info' %}">节点列表</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'shadowsocks:alive_user' %}">在线IP</a>
                             </li>
                         </ul>
                         <p class="menu-label">
