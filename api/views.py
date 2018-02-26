@@ -520,6 +520,7 @@ def traffic_api(request):
         traffic_rec_list = json.loads(request.body)['data']
         node_id = json.loads(request.body)['node_id']
         node = Node.objects.get(node_id=node_id)
+        traffic_pool = 0
         for rec in traffic_rec_list:
             #  用户流量流量记录
             user = SSUser.objects.get(pk=rec['user_id'])
@@ -529,9 +530,10 @@ def traffic_api(request):
             traffic = traffic_format(rec['u'] + rec['d'])
             TrafficLog.objects.create(
                 node_id=node_id, user_id=rec['user_id'], traffic=traffic, download_traffic=rec['d'], upload_traffic=rec['u'], log_time=round(time.time()))
-            # 节点流量记录
-            node.used_traffic = node.used_traffic + rec['u'] + rec['d']
-            node.save()
+            traffic_pool = traffic_pool + int(rec['u'])+int(rec['d'])
+        # 节点流量记录
+        node.used_traffic = node.used_traffic + traffic_pool
+        node.save()
         re_dict = {'ret': 1, 'data': []}
     else:
         re_dict = {'ret': -1}
