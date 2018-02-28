@@ -30,11 +30,11 @@ alipay = AliPay(
 91pay 相关设置
 '''
 # 自己网站的域名
-HOST = 'http://xx'
+HOST = 'http://xx.com'
 # 91pay的账号id
-ID = 123123
+ID = 10700
 # 91pay的token
-TOKEN = 'xx'
+TOKEN = 'AWHrqo7x8y2nf6n9pT0blkb4jkKZx96n'
 
 
 class Pay91():
