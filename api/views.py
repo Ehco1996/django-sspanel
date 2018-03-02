@@ -324,8 +324,8 @@ def pay91_request(request):
         amount = data['paynum']
         type = data['type']
         # 生成订单号
-        pay_id = settings.ID_91PAY + '@' + settings.USER_91PAY + '@' + datetime.datetime.fromtimestamp(
-            time.time()).strftime('%Y%m%d%H%M%S%s')
+        pay_id = '{}@{}@{}@{}'.format(request.user.pk, settings.HOST, settings.ALIPAY_NUM,
+                                      datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S%s'))
         res = pay91.pay_request(type, amount, pay_id)
         request.session['pay_id'] = pay_id
         # 记录申请记录
