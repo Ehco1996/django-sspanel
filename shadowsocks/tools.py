@@ -53,11 +53,11 @@ def reverse_traffic(str):
     将流量字符串转换为整数类型
     '''
     if 'GB' in str:
-        num=float(str.replace('GB', '')) * 1024 * 1024 * 1024
+        num = float(str.replace('GB', '')) * 1024 * 1024 * 1024
     elif 'MB' in str:
-        num=float(str.replace('MB', '')) * 1024*1024
+        num = float(str.replace('MB', '')) * 1024*1024
     elif 'KB' in str:
-        num=float(str.replace('KB', '')) * 1024
+        num = float(str.replace('KB', '')) * 1024
     else:
-        num=num=float(str.replace('B', ''))
+        num = num = float(str.replace('B', ''))
     return round(num)

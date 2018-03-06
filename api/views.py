@@ -453,8 +453,8 @@ def node_api(request, node_id):
     return JsonResponse(re_dict)
 
 
-@require_http_methods(['POST', ])
 @csrf_exempt
+@require_http_methods(['POST', ])
 def node_online_api(request):
     '''
     接受节点在线人数上报
@@ -519,21 +519,25 @@ def traffic_api(request):
     if token == settings.TOKEN:
         traffic_rec_list = json.loads(request.body)['data']
         node_id = json.loads(request.body)['node_id']
-        node = Node.objects.get(node_id=node_id)
-        traffic_pool = 0
+        # 定义循环池
+        node_total_traffic = 0
+        trafficlog_model_list = []
+        log_time = int(time.time())
         for rec in traffic_rec_list:
-            #  用户流量流量记录
-            user = SSUser.objects.get(pk=rec['user_id'])
-            user.upload_traffic += rec['u']
-            user.download_traffic += rec['d']
-            user.save()
+            res = SSUser.objects.filter(pk=rec['user_id']).values_list(
+                'upload_traffic', 'download_traffic')[0]
+            SSUser.objects.filter(pk=rec['user_id']).update(
+                upload_traffic=(res[0]+rec['u']), download_traffic=(res[1]+rec['d']))
             traffic = traffic_format(rec['u'] + rec['d'])
-            TrafficLog.objects.create(
-                node_id=node_id, user_id=rec['user_id'], traffic=traffic, download_traffic=rec['d'], upload_traffic=rec['u'], log_time=round(time.time()))
-            traffic_pool = traffic_pool + int(rec['u'])+int(rec['d'])
+            trafficlog_model_list.append(TrafficLog(
+                node_id=node_id, user_id=rec['user_id'], traffic=traffic, download_traffic=rec['d'], upload_traffic=rec['u'], log_time=log_time))
+            node_total_traffic = node_total_traffic + rec['u']+rec['d']
         # 节点流量记录
-        node.used_traffic = node.used_traffic + traffic_pool
+        node = Node.objects.get(node_id=node_id)
+        node.used_traffic += node_total_traffic
         node.save()
+        # 个人流量记录
+        TrafficLog.objects.bulk_create(trafficlog_model_list)
         re_dict = {'ret': 1, 'data': []}
     else:
         re_dict = {'ret': -1}
@@ -547,10 +551,12 @@ def alive_ip_api(request):
     if token == settings.TOKEN:
         data = json.loads(request.body)['data']
         node_id = json.loads(request.body)['node_id']
+        model_list = []
         for user, ip_list in data.items():
             user = SSUser.objects.get(pk=user).user
             for ip in ip_list:
-                AliveIp.objects.create(node_id=node_id, user=user, ip=ip)
+                model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
+        AliveIp.objects.bulk_create(model_list)
         re_dict = {'ret': 1, 'data': []}
     else:
         re_dict = {'ret': -1}
