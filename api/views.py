@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.six import BytesIO
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
@@ -475,6 +476,7 @@ def node_online_api(request):
     return JsonResponse(re_dict)
 
 
+@cache_page(60*60)
 @require_http_methods(['GET', ])
 def user_api(request, node_id):
     '''
