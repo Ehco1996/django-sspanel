@@ -7,6 +7,7 @@ import threading
 from random import randint
 import logging
 
+
 class EhcoApi(object):
     '''
     提供发送get/post的抽象类
@@ -66,12 +67,14 @@ class EhcoApi(object):
             logging.error(trace)
             raise Exception('network issue or server error!')
 
-
     def close(self):
         self.session_pool.close()
 
 
 def gen_fake_traffic_data():
+    '''
+    生成流量数据
+    '''
     data = []
     for i in range(randint(1, 100)):
         data.append({'u': randint(999, 99999),
@@ -80,7 +83,10 @@ def gen_fake_traffic_data():
     return data
 
 
-def traffic_api_test(data={}, times=100):
+def test_traffic_api(data={}, times=100):
+    '''
+    测试流量上报接口
+    '''
     uri = '/traffic/upload'
     for i in range(times):
         data = {
@@ -91,17 +97,29 @@ def traffic_api_test(data={}, times=100):
         api.close()
 
 
-def trafic_api_load_test(thread_num=10):
+def test_user_api(times=100):
+    '''
+    测试用户配置数据
+    '''
+    for i in range(times):    
+        uri = '/users/nodes/1'
+        api = EhcoApi('ZWhjbysyMzQ1', 'http://127.0.0.1:8000/api')
+        api.getApi(uri)
+        api.close()
+
+
+def thread_test(thread_num=10):
+    # for i in range(thread_num):
+    #     test_thread = threading.Thread(
+    #         target=test_traffic_api)
+    #     test_thread.start()
     for i in range(thread_num):
         test_thread = threading.Thread(
-            target=traffic_api_test)
+            target=test_user_api)
         test_thread.start()
 
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     import os
-    print(os.getpid())
-    trafic_api_load_test(10)
-
-
-
+    print('当前的进程id为：', os.getpid())
+    thread_test()
