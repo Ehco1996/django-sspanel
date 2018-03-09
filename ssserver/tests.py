@@ -14,10 +14,11 @@ def auto_register(num, level=0):
         username = 'test' + str(i)
         code = 'testcode' + str(i)
         User.objects.create_user(
-            username=username, email=None, password=None, level=level, invitecode=code)
+            username=username, email=None, password=None,
+            level=level, invitecode=code)
         user = User.objects.get(username=username)
         port = randint(10, 9999)
-        ss_user = SSUser.objects.create(user=user, port=port)
+        SSUser.objects.create(user=user, port=port)
 
 
 class CrontabTestCase(TestCase):

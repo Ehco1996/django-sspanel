@@ -52,7 +52,8 @@ urlpatterns = [
     path('backend/invite/', views.backend_invite, name='backend_invite'),
     path('invite_gen_code/', views.gen_invite_code, name='geninvitecode'),
     # 节点相关
-    path('backend/nodeinfo/', views.backend_node_info, name='backend_node_info'),
+    path('backend/nodeinfo/', views.backend_node_info,
+         name='backend_node_info'),
     path('backend/node/delete/<int:node_id>/',
          views.node_delete, name='node_delete'),
     path('backend/node/edit/<int:node_id>/',
@@ -89,5 +90,5 @@ urlpatterns = [
          views.backend_ticketedit, name='backend_ticketedit'),
     # 在线ip
     path('backend/aliveuser/', views.backend_alive_user, name='alive_user'),
-    
+
 ]

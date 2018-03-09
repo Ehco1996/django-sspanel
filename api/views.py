@@ -1,6 +1,5 @@
 import time
 import json
-import base64
 import datetime
 
 import qrcode
@@ -20,8 +19,9 @@ from shadowsocks.tools import get_date_list
 from shadowsocks.tools import traffic_format
 from shadowsocks.payments import alipay, pay91
 from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp
-from shadowsocks.models import (Donate, InviteCode, PurchaseHistory,
-                                RebateRecord, Shop, User, MoneyCode, Donate, PayRequest, PayRecord)
+from shadowsocks.models import (InviteCode, PurchaseHistory,
+                                RebateRecord, Shop, User, MoneyCode,
+                                Donate, PayRequest, PayRecord)
 
 
 @permission_required('shadowsocks')
@@ -32,7 +32,8 @@ def userData(request):
     '''
 
     data = [NodeOnlineLog.totalOnlineUser(), len(User.todayRegister()),
-            SSUser.userTodyChecked(), SSUser.userNeverChecked(), SSUser.userNeverUsed(), ]
+            SSUser.userTodyChecked(), SSUser.userNeverChecked(),
+            SSUser.userNeverUsed(), ]
     return JsonResponse({'data': data})
 
 
@@ -46,7 +47,8 @@ def nodeData(request):
     nodeName = [node.name for node in Node.objects.filter(show='显示')]
 
     nodeTraffic = [
-        round(node.used_traffic/settings.GB, 2) for node in Node.objects.filter(show='显示')]
+        round(node.used_traffic/settings.GB, 2)
+        for node in Node.objects.filter(show='显示')]
 
     data = {
         'nodeName': nodeName,
@@ -137,7 +139,8 @@ def purchase(request):
             user.balance -= good.money
             user.level = good.level
             if user.level_expire_time < datetime.datetime.now():
-                user.level_expire_time = datetime.datetime.now() + datetime.timedelta(days=good.days)
+                user.level_expire_time = datetime.datetime.now() \
+                    + datetime.timedelta(days=good.days)
             else:
                 user.level_expire_time += datetime.timedelta(days=good.days)
             user.save()
@@ -149,7 +152,8 @@ def purchase(request):
             # 增加返利记录
             inviter = User.objects.get(pk=user.invited_by)
             rebaterecord = RebateRecord(
-                user_id=inviter.pk, money=good.money * Decimal(settings.INVITE_PERCENT))
+                user_id=inviter.pk,
+                money=good.money * Decimal(settings.INVITE_PERCENT))
             inviter.balance += rebaterecord.money
             inviter.save()
             rebaterecord.save()
@@ -198,7 +202,7 @@ def pay_request(request):
                 'status': 'success', }
             context['info'] = info
         except:
-            res = alipay.api_alipay_trade_cancel(
+            alipay.api_alipay_trade_cancel(
                 out_trade_no=out_trade_no)
             info = {
                 'title': '糟糕，当面付插件可能出现问题了',
@@ -234,10 +238,10 @@ def pay_query(request):
         code.isused = True
         code.save()
         # 将充值记录和捐赠绑定
-        donate = Donate.objects.create(user=user, money=amount)
+        Donate.objects.create(user=user, money=amount)
         # 后台数据库增加记录
-        record = PayRecord.objects.create(username=user,
-                                          info_code=trade_num, amount=amount, money_code=code)
+        PayRecord.objects.create(username=user, info_code=trade_num,
+                                 amount=amount, money_code=code)
         del request.session['out_trade_no']
         # 返回充值信息
         info = {
@@ -269,8 +273,8 @@ def traffic_query(request):
     labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
     trafficdata = [TrafficLog.getTrafficByDay(
         node_id, user_id, t) for t in last_week]
-    title = '节点 {} 当月共消耗：{} GB'.format(node_name,
-                                       TrafficLog.getUserTraffic(node_id, user_id))
+    title = '节点 {} 当月共消耗：{} GB'.format(
+        node_name, TrafficLog.getUserTraffic(node_id, user_id))
     configs = {
         'title': title,
         'labels': labels,
@@ -304,8 +308,10 @@ def pay_notify(request):
         data = request.POST
         try:
             code = MoneyCode.objects.create(number=data['money'])
-            record = PayRecord.objects.create(username=data['pay_id'],
-                                              info_code=data['pay_no'], amount=data['money'], money_code=code, type=data['type'])
+            PayRecord.objects.create(username=data['pay_id'],
+                                     info_code=data['pay_no'],
+                                     amount=data['money'], money_code=code,
+                                     type=data['type'])
             return HttpResponse('ok')
         except:
             return HttpResponse('error')
@@ -325,14 +331,16 @@ def pay91_request(request):
         amount = data['paynum']
         type = data['type']
         # 生成订单号
-        pay_id = '{}@{}@{}@{}'.format(request.user.pk, settings.HOST, settings.ALIPAY_NUM,
-                                      datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S%s'))
+        pay_id = '{}@{}@{}@{}'.format(
+            request.user.pk, settings.HOST,
+            settings.ALIPAY_NUM,
+            datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H'))
         res = pay91.pay_request(type, amount, pay_id)
         request.session['pay_id'] = pay_id
         # 记录申请记录
-        record = PayRequest.objects.create(username=request.user.username,
-                                           info_code=res['trade_no'],
-                                           amount=amount, type=res['type'])
+        PayRequest.objects.create(username=request.user.username,
+                                  info_code=res['trade_no'],
+                                  amount=amount, type=res['type'])
         # 获取二维码链接
         context['qrcode'] = res['qrcode']
         info = {
@@ -372,7 +380,7 @@ def pay91_query(request):
         code.isused = True
         code.save()
         # 将充值记录和捐赠绑定
-        donate = Donate.objects.create(user=user, money=rec.amount)
+        Donate.objects.create(user=user, money=rec.amount)
         # 后台数据库增加记录
         del request.session['pay_id']
         paid = True
@@ -466,7 +474,8 @@ def node_online_api(request):
         node = Node.objects.filter(node_id=data['node_id'])
         if len(node) > 0:
             NodeOnlineLog.objects.create(
-                node_id=data['node_id'], online_user=data['online_user'], log_time=round(time.time()))
+                node_id=data['node_id'],
+                online_user=data['online_user'], log_time=round(time.time()))
         else:
             data = None
         re_dict = {'ret': 1,
@@ -529,10 +538,13 @@ def traffic_api(request):
             res = SSUser.objects.filter(pk=rec['user_id']).values_list(
                 'upload_traffic', 'download_traffic')[0]
             SSUser.objects.filter(pk=rec['user_id']).update(
-                upload_traffic=(res[0]+rec['u']), download_traffic=(res[1]+rec['d']))
+                upload_traffic=(res[0]+rec['u']),
+                download_traffic=(res[1]+rec['d']))
             traffic = traffic_format(rec['u'] + rec['d'])
             trafficlog_model_list.append(TrafficLog(
-                node_id=node_id, user_id=rec['user_id'], traffic=traffic, download_traffic=rec['d'], upload_traffic=rec['u'], log_time=log_time))
+                node_id=node_id, user_id=rec['user_id'], traffic=traffic,
+                download_traffic=rec['d'],
+                upload_traffic=rec['u'], log_time=log_time))
             node_total_traffic = node_total_traffic + rec['u']+rec['d']
         # 节点流量记录
         node = Node.objects.get(node_id=node_id)

@@ -39,7 +39,6 @@ class ShopAdmin(admin.ModelAdmin):
     list_display = ['name', 'transfer', 'money', 'level', ]
 
 
-
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)

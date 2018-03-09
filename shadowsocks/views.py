@@ -1,29 +1,25 @@
-import time
 import tomd
 import json
 import qrcode
-import base64
-import datetime
 from random import randint
 
-from decimal import Decimal
 from django.db.models import Q
 from django.conf import settings
 from django.utils import timezone
-from django.contrib import messages
 from django.utils.six import BytesIO
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import render, render_to_response, redirect, HttpResponseRedirect
+from django.shortcuts import render, redirect
 
-from .payments import alipay
 from shadowsocks.tools import reverse_traffic
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 from ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, NodeInfoLog, AliveIp
-from .models import InviteCode, User, Donate, Shop, MoneyCode, PurchaseHistory, PayRequest,  Announcement, Ticket, RebateRecord
+from ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
+from .models import (InviteCode, User, Donate, Shop, MoneyCode,
+                     PurchaseHistory, PayRequest,  Announcement, Ticket,
+                     RebateRecord)
 
 
 def index(request):
@@ -78,7 +74,8 @@ def register(request):
                     'registerinfo': registerinfo,
                     'form': form,
                 }
-                return render(request, 'sspanel/register.html', context=context)
+                return render(request,
+                              'sspanel/register.html', context=context)
 
             else:
                 registerinfo = {
@@ -101,7 +98,7 @@ def register(request):
                 user.save()
                 max_port_user = SSUser.objects.order_by('-port').first()
                 port = max_port_user.port + randint(2, 3)
-                ss_user = SSUser.objects.create(user=user, port=port)
+                SSUser.objects.create(user=user, port=port)
                 return render(request, 'sspanel/index.html', context=context)
 
     else:
@@ -146,7 +143,8 @@ def Login_view(request):
                     'sub_code': Node.get_sub_code(user),
 
                 }
-                return render(request, 'sspanel/userinfo.html', context=context)
+                return render(request,
+                              'sspanel/userinfo.html', context=context)
             else:
                 form = LoginForm()
                 registerinfo = {
@@ -302,10 +300,10 @@ def donate(request):
     donatelist = Donate.objects.all()[:8]
     context = {'donatelist': donatelist, }
 
-    if settings.USE_91PAY == True:
+    if settings.USE_91PAY is True:
         return render(request, 'sspanel/donate91.html', context=context)
 
-    if settings.USE_ALIPAY == True:
+    if settings.USE_ALIPAY is True:
         context['alipay'] = True
     else:
         # 关闭支付宝支付
@@ -320,9 +318,9 @@ def gen_face_pay_qrcode(request):
         # 从seesion中获取订单的二维码
         url = request.session.get('code_url', '')
         # 生成支付宝申请记录
-        record = PayRequest.objects.create(username=request.user,
-                                           info_code=request.session['out_trade_no'],
-                                           amount=request.session['amount'],)
+        PayRequest.objects.create(username=request.user,
+                                  info_code=request.session['out_trade_no'],
+                                  amount=request.session['amount'],)
         # 删除sessions信息
         del request.session['code_url']
         del request.session['amount']
@@ -440,12 +438,13 @@ def charge(request):
                 'ss_user': user,
                 'codelist': MoneyCode.objects.filter(user=user),
             }
-            return render(request, 'sspanel/chargecenter.html', context=context)
+            return render(request,
+                          'sspanel/chargecenter.html', context=context)
 
         else:
             code = code_query[0]
             # 判断充值码是否被使用
-            if code.isused == True:
+            if code.isused is True:
                 # 当被使用的是时候
                 registerinfo = {
                     'title': '充值码失效',
@@ -454,9 +453,10 @@ def charge(request):
                 context = {
                     'registerinfo': registerinfo,
                     'ss_user': user,
-                    'codelist': codelist,
+                    'codelist': MoneyCode.objects.filter(user=user),
                 }
-                return render(request, 'sspanel/chargecenter.html', context=context)
+                return render(request,
+                              'sspanel/chargecenter.html', context=context)
             else:
                 # 充值操作
                 user.balance += code.number
@@ -465,7 +465,7 @@ def charge(request):
                 user.save()
                 code.save()
                 # 将充值记录和捐赠绑定
-                donate = Donate.objects.create(user=user, money=code.number)
+                Donate.objects.create(user=user, money=code.number)
                 # 检索充值记录
                 codelist = MoneyCode.objects.filter(user=user)
                 registerinfo = {
@@ -478,7 +478,8 @@ def charge(request):
                     'ss_user': user,
                     'codelist': codelist,
                 }
-                return render(request, 'sspanel/chargecenter.html', context=context)
+                return render(request,
+                              'sspanel/chargecenter.html', context=context)
 
 
 @login_required
@@ -513,7 +514,7 @@ def ticket_create(request):
             'ticket': ticket,
             'registerinfo': registerinfo,
         }
-        return redirect('/ticket')
+        return render(request, 'sspanel/ticket.html', context=context)
     else:
         return render(request, 'sspanel/ticketcreate.html')
 
@@ -708,7 +709,8 @@ def node_create(request):
 
     else:
         form = NodeForm()
-        return render(request, 'backend/nodecreate.html', context={'form': form, })
+        return render(request,
+                      'backend/nodecreate.html', context={'form': form, })
 
 
 class Page_List_View(object):
@@ -874,7 +876,8 @@ def user_status(request):
 def backend_invite(request):
     '''邀请码生成'''
     code_list = InviteCode.objects.filter(type=0, isused=False, code_id=1)
-    return render(request, 'backend/invitecode.html', {'code_list': code_list, })
+    return render(request,
+                  'backend/invitecode.html', {'code_list': code_list, })
 
 
 @permission_required('shadowsocks')
@@ -1035,7 +1038,8 @@ def good_create(request):
             return render(request, 'backend/goodcreate.html', context=context)
     else:
         form = ShopForm()
-        return render(request, 'backend/goodcreate.html', context={'form': form, })
+        return render(request,
+                      'backend/goodcreate.html', context={'form': form, })
 
 
 @permission_required('shadowsocks')
@@ -1103,7 +1107,8 @@ def anno_create(request):
             return render(request, 'backend/annocreate.html', context=context)
     else:
         form = AnnoForm()
-        return render(request, 'backend/annocreate.html', context={'form': form, })
+        return render(request,
+                      'backend/annocreate.html', context={'form': form, })
 
 
 @permission_required('shadowsocks')

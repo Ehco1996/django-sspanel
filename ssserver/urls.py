@@ -1,5 +1,5 @@
 # from django.conf.urls import url
-from django.urls import path, re_path
+from django.urls import path
 from .import views
 
 
@@ -10,7 +10,7 @@ urlpatterns = [
     path('changessmethod/', views.ChangeSsMethod, name='changessmethod'),
     path('changessprotocol/', views.ChangeSsProtocol, name='changessprotocol'),
     path('changessobfs/', views.ChangeSsObfs, name='changessobfs'),
-    path('clean/zombie/user', views.clean_zombie_user, name='clean_zombie_user'),
+    path('clean/user', views.clean_zombie_user, name='clean_user'),
     path('subscribe/<token>/', views.subscribe, name='subscribe'),
     path('node/config/', views.node_config, name='node_config'),
 ]

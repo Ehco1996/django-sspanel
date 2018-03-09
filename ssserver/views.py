@@ -1,6 +1,5 @@
 import json
 import base64
-from random import randint
 
 from django.conf import settings
 from django.utils import timezone
@@ -57,7 +56,6 @@ def User_edit(request, pk):
     else:
         # 特别初始化总流量字段
         data = {'transfer_enable': ss_user.transfer_enable // settings.GB}
-        passdata = {'password': ''}
         ssform = SSUserForm(initial=data, instance=ss_user)
         userform = UserForm(instance=ss_user.user)
         context = {
@@ -90,7 +88,8 @@ def ChangeSsPass(request):
                 'registerinfo': registerinfo,
                 'ss_user': ss_user,
             }
-            return redirect('/users/userinfoedit/')
+            return render(request,
+                          'sspanel/userinfoedit.html', context=context)
         else:
             return redirect('/')
     else:
@@ -184,7 +183,8 @@ def check_user_state():
     users = User.objects.filter(level__gt=0)
     for user in users:
         # 判断用户过期
-        if timezone.now() - timezone.timedelta(days=1) > user.level_expire_time:
+        if timezone.now() - timezone.timedelta(days=1) > \
+                user.level_expire_time:
             user.level = 0
             user.save()
             user.ss_user.enable = False
@@ -192,8 +192,9 @@ def check_user_state():
             user.ss_user.download_traffic = 0
             user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
             user.ss_user.save()
-            logs = 'time: {} use: {} level timeout '.format(timezone.now().strftime('%Y-%m-%d'),
-                                                            user.username).encode('utf8')
+            logs = 'time: {} use: {} level timeout ' \
+                .format(timezone.now().strftime('%Y-%m-%d'),
+                        user.username).encode('utf8')
             print(logs)
     print('Time:{} CHECKED'.format(timezone.now()))
 
@@ -238,7 +239,7 @@ def reset_node_traffic():
     for node in Node.objects.all():
         node.used_traffic = 0
         node.save()
-    print('all node traffic removed!:{}'.format(log))
+    print('all node traffic removed!')
 
 
 @permission_required('ssserver')
@@ -298,7 +299,8 @@ def node_config(request):
                 "obfs": node.obfs,
                 "protocol": node.protocol,
                 "server_port": user.ss_user.port,
-                "remarks_base64": base64.b64encode(bytes(node.name, 'utf8')).decode('ascii'),
+                "remarks_base64": base64.b64encode(
+                    bytes(node.name, 'utf8')).decode('ascii'),
             })
         else:
             data['configs'].append({
@@ -310,7 +312,8 @@ def node_config(request):
                 "obfs": user.ss_user.obfs,
                 "protocol": user.ss_user.protocol,
                 "server_port": user.ss_user.port,
-                "remarks_base64": base64.b64encode(bytes(node.name, 'utf8')).decode('ascii')
+                "remarks_base64": base64.b64encode(
+                    bytes(node.name, 'utf8')).decode('ascii')
             })
     response = StreamingHttpResponse(json.dumps(data, ensure_ascii=False))
     response['Content-Type'] = 'application/octet-stream'

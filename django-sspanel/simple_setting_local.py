@@ -1,3 +1,5 @@
+import base64
+
 # DEBUG设置
 DEBUG = True
 
@@ -48,7 +50,7 @@ ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 # https://t.me/gh012363  或者QQ群538609570
 USE_91PAY = True
 # 自己的支付宝账号
-ALIPAY_NUM='xx'
+ALIPAY_NUM = 'xx'
 
 # 网站title
 TITLE = '谜之屋'
@@ -65,7 +67,6 @@ INVITEINFO = '邀请码实时更新，如果用完了请关注公众号findyouro
 # 网站域名设置（请正确填写，不然订阅功能会失效：
 HOST = 'http://127.0.0.1:8000/'
 
-import base64
 # 管理员账号
 USERNAME = 'ehco'
 # 管理员ss端口

@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 from alipay import AliPay
 
@@ -77,11 +76,14 @@ class Pay91():
             }
         '''
         # 根据参数拼凑支付url
-        url = 'http://codepay.fateqq.com:52888/creat_order?id={}&token={}&price={}&pay_id={}&type={}&page=4&notify_url={}'.format(
+        url = 'http://codepay.fateqq.com:52888/creat_order?id={}&token= \
+            {}&price={}&pay_id={}&type={}&page=4&notify_url={}'.format(
             self.id, self.token, price, pay_id, type, self.notify_url)
         # 模拟一个常见headers
         headers = {
-            "User-Agent": 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'}
+            "User-Agent": 'Mozilla/5.0 \
+            (Macintosh; Intel Mac OS X 10_13_2)AppleWebKit/537.36 \
+            (KHTML, like Gecko)Chrome/63.0.3239.132 Safari/537.36'}
         try:
             # 防止请求失败，我们重试三次
             t = 3

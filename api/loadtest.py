@@ -101,7 +101,7 @@ def test_user_api(times=100):
     '''
     测试用户配置数据
     '''
-    for i in range(times):    
+    for i in range(0, times):
         uri = '/users/nodes/1'
         api = EhcoApi('ZWhjbysyMzQ1', 'http://127.0.0.1:8000/api')
         api.getApi(uri)

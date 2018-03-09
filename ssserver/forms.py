@@ -3,7 +3,6 @@ from django.forms import ModelForm
 from .models import SSUser
 
 
-
 class ChangeSsPassForm(forms.Form):
 
     password = forms.CharField(
@@ -23,21 +22,21 @@ class ChangeSsPassForm(forms.Form):
         if not self.is_valid():
             raise forms.ValidationError('太短啦！')
         else:
-            cleaned_data = super(ChangeSsPassForm, self).clean()
+            self.cleaned_data = super(ChangeSsPassForm, self).clean()
 
 
 class SSUserForm(ModelForm):
     class Meta:
         model = SSUser
         fields = ['user', 'port', 'password',
-                  'upload_traffic', 'download_traffic', 'transfer_enable', 'enable']
+                  'upload_traffic', 'download_traffic',
+                  'transfer_enable', 'enable']
         widgets = {
             'enable': forms.CheckboxInput(attrs={'class': 'checkbox'}),
-            'user': forms.Select(attrs={'class': 'input',}),
+            'user': forms.Select(attrs={'class': 'input', }),
             'port': forms.NumberInput(attrs={'class': 'input'}),
             'password': forms.TextInput(attrs={'class': 'input'}),
             'upload_traffic': forms.NumberInput(attrs={'class': 'input'}),
             'download_traffic': forms.NumberInput(attrs={'class': 'input'}),
             'transfer_enable': forms.NumberInput(attrs={'class': 'input'}),
         }
- 

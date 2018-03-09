@@ -31,8 +31,8 @@ def get_short_random_string():
 def get_date_list(dela):
     '''返回从当前日期开始回溯指定天数的日期列表'''
     t = datetime.today()
-    l = [t - timedelta(days=i) for i in range(dela + 1)]
-    return list(reversed(l))
+    date_list = [t - timedelta(days=i) for i in range(dela + 1)]
+    return list(reversed(date_list))
 
 
 def traffic_format(traffic):

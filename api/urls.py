@@ -1,4 +1,3 @@
-#from django.conf.urls import url
 from django.urls import path, re_path
 from .import views
 
@@ -28,6 +27,6 @@ urlpatterns = [
     path('nodes/online', views.node_online_api),
     path('users/nodes/<int:node_id>', views.user_api),
     path('traffic/upload', views.traffic_api),
-    path('nodes/aliveip', views.alive_ip_api),    
+    path('nodes/aliveip', views.alive_ip_api),
 
 ]

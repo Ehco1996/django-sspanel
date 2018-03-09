@@ -688,7 +688,7 @@ class NodeOnlineLog(models.Model):
 
     def get_online_user(self):
         '''返回在线人数'''
-        if self.get_oneline_status() == True:
+        if self.get_oneline_status() is True:
             return self.online_user
         else:
             return 0

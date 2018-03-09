@@ -13,11 +13,12 @@ username,email,level,level_expire_time,blance,u,t,d,passwd,transfer_enable,metho
 用户的密码为用户名+abc
 用户的端口会重置
 '''
-import sys
-import os
 import json
-from random import randint
+import os
+import sys
 from datetime import datetime
+from random import randint
+
 import django
 
 # 启动django配置

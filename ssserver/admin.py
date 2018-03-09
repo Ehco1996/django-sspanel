@@ -34,7 +34,7 @@ class NodeInfoAdmin(admin.ModelAdmin):
 
 
 class AliveIpAdmin(admin.ModelAdmin):
-    list_display = ['node_id', 'user', 'ip','log_time']
+    list_display = ['node_id', 'user', 'ip', 'log_time']
 
 
 # Register your models here.
