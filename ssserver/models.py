@@ -309,7 +309,8 @@ class SSUser(models.Model):
     @classmethod
     def userNeverChecked(cls):
         '''返回从未签到过人数'''
-        return len([o for o in cls.objects.all() if o.last_check_in_time.year == 1970])
+        return len([o for o in cls.objects.all()
+                    if o.last_check_in_time.year == 1970])
 
     @classmethod
     def userNeverUsed(cls):
@@ -401,13 +402,16 @@ class SSUser(models.Model):
     )
 
     method = models.CharField(
-        '加密类型', default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES,)
+        '加密类型', default=settings.DEFAULT_METHOD,
+        max_length=32, choices=METHOD_CHOICES,)
 
     protocol = models.CharField(
-        '协议', default=settings.DEFAULT_PROTOCOL, max_length=32, choices=PROTOCOL_CHOICES,)
+        '协议', default=settings.DEFAULT_PROTOCOL,
+        max_length=32, choices=PROTOCOL_CHOICES,)
 
     obfs = models.CharField(
-        '混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES,)
+        '混淆', default=settings.DEFAULT_OBFS,
+        max_length=32, choices=OBFS_CHOICES,)
 
     # 等级字段 和 shadowsocks.user 的level 同步
     level = models.PositiveIntegerField(
@@ -423,7 +427,8 @@ class SSUser(models.Model):
 
     def get_traffic(self):
         '''返回用户使用的总流量GB '''
-        return '{:.2f}'.format((self.download_traffic + self.upload_traffic) / settings.GB)
+        return '{:.2f}'.format((
+            self.download_traffic + self.upload_traffic) / settings.GB)
 
     def get_transfer(self):
         '''返回用户的总流量 GB'''
@@ -431,12 +436,16 @@ class SSUser(models.Model):
 
     def get_unused_traffic(self):
         '''返回用户的剩余流量'''
-        return '{:.2f}'.format((self.transfer_enable - self.upload_traffic - self.download_traffic) / settings.GB)
+        return '{:.2f}'.format((
+            self.transfer_enable - self.upload_traffic - self.download_traffic)
+            / settings.GB)
 
     def get_used_percentage(self):
         '''返回用户的为使用流量百分比'''
         try:
-            return '{:.2f}'.format((self.download_traffic + self.upload_traffic) / self.transfer_enable * 100)
+            return '{:.2f}'.format((
+                self.download_traffic + self.upload_traffic)
+                / self.transfer_enable * 100)
         except ZeroDivisionError:
             return '100'
 
@@ -487,7 +496,9 @@ class TrafficLog(models.Model):
     def getTrafficByDay(cls, node_id, user_id, date):
         '''返回指定用户对应节点对应日期的流量 单位GB'''
         traffics = cls.objects.filter(
-            node_id=node_id, user_id=user_id, log_date__year=date.year, log_date__month=date.month, log_date__day=date.day)
+            node_id=node_id, user_id=user_id,
+            log_date__year=date.year,
+            log_date__month=date.month, log_date__day=date.day)
         total_traffic = sum(
             [u.upload_traffic + u.download_traffic for u in traffics])
         return round(total_traffic / settings.GB, 2)
@@ -541,7 +552,8 @@ class Node(models.Model):
     server = models.CharField('服务器IP', max_length=128,)
 
     method = models.CharField(
-        '加密类型', default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES,)
+        '加密类型', default=settings.DEFAULT_METHOD,
+        max_length=32, choices=METHOD_CHOICES,)
 
     custom_method = models.SmallIntegerField(
         '自定义加密', choices=((0, 0), (1, 1)), default=0,)
@@ -549,10 +561,12 @@ class Node(models.Model):
     traffic_rate = models.FloatField('流量比例', default=1.0)
 
     protocol = models.CharField(
-        '协议', default=settings.DEFAULT_PROTOCOL, max_length=32, choices=PROTOCOL_CHOICES,)
+        '协议', default=settings.DEFAULT_PROTOCOL,
+        max_length=32, choices=PROTOCOL_CHOICES,)
 
     obfs = models.CharField(
-        '混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES,)
+        '混淆', default=settings.DEFAULT_OBFS,
+        max_length=32, choices=OBFS_CHOICES,)
 
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True,)
 
@@ -609,10 +623,12 @@ class Node(models.Model):
             bytes(self.group, 'utf8')).decode('ascii')
         if self.custom_method == 1:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
-                self.server, ss_user.port, ss_user.protocol, ss_user.method, ss_user.obfs, ssr_password, ssr_remarks, ssr_group)
+                self.server, ss_user.port, ss_user.protocol, ss_user.method,
+                ss_user.obfs, ssr_password, ssr_remarks, ssr_group)
         else:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
-                self.server, ss_user.port, self.protocol, self.method, self.obfs, ssr_password, ssr_remarks, ssr_group)
+                self.server, ss_user.port, self.protocol, self.method,
+                self.obfs, ssr_password, ssr_remarks, ssr_group)
         ssr_pass = base64.urlsafe_b64encode(
             bytes(ssr_code, 'utf8')).decode('ascii')
         ssr_link = 'ssr://{}'.format(ssr_pass)
