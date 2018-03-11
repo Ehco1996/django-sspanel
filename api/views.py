@@ -475,7 +475,7 @@ def node_online_api(request):
         if len(node) > 0:
             NodeOnlineLog.objects.create(
                 node_id=data['node_id'],
-                online_user=data['online_user'], log_time=round(time.time()))
+                online_user=data['online_user'], log_time=int(time.time()))
         else:
             data = None
         re_dict = {'ret': 1,
@@ -539,7 +539,8 @@ def traffic_api(request):
                 'upload_traffic', 'download_traffic')[0]
             SSUser.objects.filter(pk=rec['user_id']).update(
                 upload_traffic=(res[0]+rec['u']),
-                download_traffic=(res[1]+rec['d']))
+                download_traffic=(res[1]+rec['d']),
+                last_use_time=log_time)
             traffic = traffic_format(rec['u'] + rec['d'])
             trafficlog_model_list.append(TrafficLog(
                 node_id=node_id, user_id=rec['user_id'], traffic=traffic,

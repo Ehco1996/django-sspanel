@@ -1,0 +1,1 @@
+uwsgi --http :8000 --wsgi-file django-sspanel/wsgi.py --master --processes 2 --threads 2 --stats 127.0.0.1:9191 --stats-http

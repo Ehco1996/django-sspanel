@@ -248,7 +248,8 @@ def clean_zombie_user(request):
     users = User.objects.all()
     count = 0
     for user in users:
-        if user.ss_user.last_use_time == 0 and user.balance == 0:
+        if user.ss_user.last_use_time == 0 and user.balance == 0 \
+                and user.ss_user.level == 0:
             user.delete()
             count += 1
     registerinfo = {
