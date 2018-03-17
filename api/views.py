@@ -3,13 +3,13 @@ import json
 import datetime
 
 import qrcode
+from django.core.cache import cache
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
 from django.utils.six import BytesIO
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
-from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
@@ -161,6 +161,7 @@ def purchase(request):
                 'title': '购买成功',
                 'subtitle': '请在用户中心检查最新信息',
                 'status': 'success', }
+            cache.delete('user_api_cache')
         return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
@@ -484,8 +485,6 @@ def node_online_api(request):
         re_dict = {'ret': -1}
     return JsonResponse(re_dict)
 
-
-@cache_page(60*60)
 @require_http_methods(['GET', ])
 def user_api(request, node_id):
     '''
