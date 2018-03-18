@@ -697,7 +697,7 @@ class NodeOnlineLog(models.Model):
 
     def get_oneline_status(self):
         '''检测是否在线'''
-        if int(time.time()) - self.log_time > 75:
+        if int(time.time()) - self.log_time > 120:
             return False
         else:
             return True
