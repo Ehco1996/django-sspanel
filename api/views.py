@@ -137,12 +137,13 @@ def purchase(request):
             ss_user.enable = True
             ss_user.transfer_enable += good.transfer
             user.balance -= good.money
-            user.level = good.level
-            if user.level_expire_time < datetime.datetime.now():
+            if (user.level == good.level and
+                    user.level_expire_time > datetime.datetime.now()):
+                user.level_expire_time += datetime.timedelta(days=good.days)
+            else:
                 user.level_expire_time = datetime.datetime.now() \
                     + datetime.timedelta(days=good.days)
-            else:
-                user.level_expire_time += datetime.timedelta(days=good.days)
+            user.level = good.level
             user.save()
             ss_user.save()
             # 增加购买记录
@@ -484,6 +485,7 @@ def node_online_api(request):
     else:
         re_dict = {'ret': -1}
     return JsonResponse(re_dict)
+
 
 @require_http_methods(['GET', ])
 def user_api(request, node_id):
