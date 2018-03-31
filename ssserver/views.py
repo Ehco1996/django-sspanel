@@ -11,7 +11,8 @@ from shadowsocks.models import User
 from shadowsocks.forms import UserForm
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-from .models import SSUser, TrafficLog, Node, NodeInfoLog, NodeOnlineLog
+from .models import (SSUser, TrafficLog, Node,
+                     NodeInfoLog, NodeOnlineLog, AliveIp)
 
 
 @permission_required('ssesrver')
@@ -232,6 +233,14 @@ def clean_node_log():
     res = NodeInfoLog.objects.all().delete()
     log = str(res)
     print('all node info record removed!:{}'.format(log))
+
+
+def clean_online_ip_log():
+    '''清空在线ip记录'''
+    res = AliveIp.objects.all().delete()
+    log = str(res)
+    print('Today: {} all online ip log removed!:{}'.format(timezone.now(),
+                                                           log))
 
 
 def reset_node_traffic():
