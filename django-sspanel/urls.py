@@ -18,6 +18,7 @@ from django.urls import path, include
 from django.contrib import admin
 
 urlpatterns = [
+    path('jet/', include('jet.urls', 'jet')),
     path('admin/', admin.site.urls),
     path('', include('shadowsocks.urls', namespace='shadowsocks')),
     path('', include('django.contrib.auth.urls')),

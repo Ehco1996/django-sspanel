@@ -36,6 +36,7 @@ SECRET_KEY = '#d$3kz$u_qb26y+idj#kf7$)wcl)j%6vfjvd@poqy(vvxj#8o9'
 # Application definition
 
 INSTALLED_APPS = [
+    'jet',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -155,4 +156,37 @@ CRONJOBS = [
      '>>' + BASE_DIR + '/logs/node_reset.log'),  # 每月第一天凌晨4点重置节点流量，日志写入logs
     ('30 1 * * *', 'ssserver.views.clean_online_ip_log',
      '>>' + BASE_DIR + '/logs/onlineip_reset.log'),  # 每天凌晨1点半清空ip记录
+]
+
+JET_THEMES = [
+    {
+        'theme': 'default',  # theme folder name
+        'color': '#47bac1',  # color of the theme's button in user menu
+        'title': 'Default'  # theme title
+    },
+    {
+        'theme': 'green',
+        'color': '#44b78b',
+        'title': 'Green'
+    },
+    {
+        'theme': 'light-green',
+        'color': '#2faa60',
+        'title': 'Light Green'
+    },
+    {
+        'theme': 'light-violet',
+        'color': '#a464c4',
+        'title': 'Light Violet'
+    },
+    {
+        'theme': 'light-blue',
+        'color': '#5EADDE',
+        'title': 'Light Blue'
+    },
+    {
+        'theme': 'light-gray',
+        'color': '#222',
+        'title': 'Light Gray'
+    },
 ]

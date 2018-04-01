@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
+
 from . import models
 
 
@@ -55,3 +57,6 @@ admin.site.register(models.PayRecord, AlipayAdmin)
 admin.site.register(models.PayRequest, AlipayRequestAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
+
+
+admin.site.unregister(Group)
