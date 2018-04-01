@@ -14,6 +14,7 @@ class SSUserAdmin(admin.ModelAdmin):
     traffic.short_description = '使用流量'
 
     search_fields = ['user__username', 'user__email', 'port', 'user__pk']
+    list_filter = ['level', 'enable', ]
 
 
 class TrafficLogAdmin(admin.ModelAdmin):
@@ -35,6 +36,7 @@ class NodeInfoAdmin(admin.ModelAdmin):
 
 class AliveIpAdmin(admin.ModelAdmin):
     list_display = ['node_id', 'user', 'ip', 'log_time']
+    list_filter = ['node_id', 'log_time']
 
 
 # Register your models here.

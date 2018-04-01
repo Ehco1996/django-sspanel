@@ -5,11 +5,13 @@ from . import models
 class UserAdmin(admin.ModelAdmin):
     list_display = ['username', 'level', 'balance', ]
     search_fields = ['username', 'email', 'pk']
+    list_filter = ['level', ]
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
     list_display = ['info', 'user', 'money', 'purchtime', ]
     search_fields = ['user', ]
+    list_filter = ['info', 'purchtime']
 
 
 class InviteCodeAdmin(admin.ModelAdmin):
@@ -24,15 +26,18 @@ class MoneyCodeAdmin(admin.ModelAdmin):
 class AlipayAdmin(admin.ModelAdmin):
     list_display = ['username', 'info_code', 'amount', 'money_code', 'time', ]
     search_fields = ['info_code', ]
+    list_filter = ['time', 'amount', ]
 
 
 class AlipayRequestAdmin(admin.ModelAdmin):
     list_display = ['username', 'amount', 'info_code', 'time', ]
     search_fields = ['info_code', ]
+    list_filter = ['time', 'amount', ]
 
 
 class DonateAdmin(admin.ModelAdmin):
     list_display = ['user', 'money', 'time', ]
+    list_filter = ['time', 'money', ]
 
 
 class ShopAdmin(admin.ModelAdmin):
