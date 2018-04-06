@@ -653,7 +653,7 @@ class Node(models.Model):
         super(Node, self).save(*args, **kwargs)
 
     class Meta:
-        ordering = ['node_id']
+        ordering = ['-show', 'level']
         verbose_name_plural = '节点'
         db_table = 'ss_node'
 

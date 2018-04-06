@@ -22,7 +22,7 @@ class TrafficLogAdmin(admin.ModelAdmin):
 
 
 class NodeAdmin(admin.ModelAdmin):
-    list_display = ['node_id', 'name', 'level',
+    list_display = ['name', 'node_id', 'level',
                     'human_used_traffic', 'human_total_traffic', 'show', ]
 
 
