@@ -271,7 +271,7 @@ def traffic_query(request):
     node_id = request.POST.get('node_id', 0)
     node_name = request.POST.get('node_name', '')
     user_id = request.user.ss_user.user_id
-    last_week = get_date_list(6)
+    last_week = get_date_list(7)
     labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
     trafficdata = [TrafficLog.getTrafficByDay(
         node_id, user_id, t) for t in last_week]

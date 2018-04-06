@@ -684,7 +684,14 @@ class NodeOnlineLog(models.Model):
     @classmethod
     def totalOnlineUser(cls):
         '''返回所有节点的在线人数总和'''
-        return sum([o.get_online_user() for o in cls.objects.all()])
+        count = 0
+        node_ids = [o['node_id'] for o in Node.objects.filter(
+            show='显示').values('node_id')]
+        for node_id in node_ids:
+            o = cls.objects.filter(node_id=node_id).order_by('-log_time')[:1]
+            if o:
+                count += o[0].get_online_user()
+        return count
 
     node_id = models.IntegerField('节点id', blank=False, null=False)
 
