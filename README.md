@@ -37,6 +37,11 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 
 ![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/44962964.jpg)
 
+
+* 支持多种主题切换:
+
+![](http://opj9lh0x4.bkt.clouddn.com/18-4-7/37704064.jpg)
+
 * 节点信息：
 
 ![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/12404617.jpg)
@@ -46,10 +51,9 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 ![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/23097796.jpg)
 
 
-* 充值捐增（支付宝/91pay):
+* 充值捐增:
 
 ![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/84610707.jpg)
-
 
 
 
@@ -67,10 +71,10 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 
 ![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/12003054.jpg)
 
-* 对数据库直接管理的Django后台：  
 
-![](http://opj9lh0x4.bkt.clouddn.com/17-9-17/10484526.jpg)
+* Django-jet 后台:
 
+![](http://opj9lh0x4.bkt.clouddn.com/18-4-7/67402906.jpg)
 
 ## 项目组件
 
