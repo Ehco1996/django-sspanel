@@ -11,6 +11,7 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django-sspanel.settings")
+env = os.getenv('DJANGO_ENV', 'production')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "configs.{}".format(env))
 
 application = get_wsgi_application()

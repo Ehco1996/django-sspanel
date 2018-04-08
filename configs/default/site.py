@@ -2,27 +2,11 @@ import base64
 
 # DEBUG设置
 DEBUG = True
+# 网站密钥
+SECRET_KEY = '#d$3kz$u_qb26y+idj#kf7$)wcl)j%6vfjvd@poqy(vvxj#8o9'
 
 # 域名设置
 ALLOWED_HOSTS = ['*']
-# mysql 设置
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sspanel',
-        'USER': 'root',
-        'PASSWORD': 'xx',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-    }
-}
-
-# 邮件服务设置：
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# 是否开启邮件功能
-USE_SMTP = False
-
 
 # SS面板设置：
 MB = 1024 * 1024
