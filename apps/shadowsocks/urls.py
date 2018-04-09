@@ -1,12 +1,11 @@
 from django.urls import path
-# from django.conf.urls import url
 from .import views
 
 
 app_name = "shadowsocks"
 urlpatterns = [
     # 网站用户面板
-    path('', views.index, name='index'),
+    path('index/', views.index, name='index'),
     path('sshelp/', views.sshelp, name='sshelp'),
     path('ssclient/', views.ssclient, name='ssclient'),
     path('ssinvite/', views.ssinvite, name='ssinvite'),
@@ -14,8 +13,8 @@ urlpatterns = [
          views.pass_invitecode, name='passinvitecode'),
     # 注册/登录
     path('register/', views.register, name='register'),
-    path('login/', views.Login_view, name='login'),
-    path('logout/', views.Logout_view, name='logout'),
+    path('login/', views.user_login, name='login'),
+    path('logout/', views.user_logout, name='logout'),
     # 节点
     path('nodeinfo/', views.nodeinfo, name='nodeinfo'),
     path('trafficlog/', views.trafficlog, name='trafficlog'),

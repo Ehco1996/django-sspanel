@@ -13,10 +13,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 
-from shadowsocks.tools import reverse_traffic
+from apps.shadowsocks.tools import reverse_traffic
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
-from ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-from ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
+from apps.ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
+from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Shop, MoneyCode,
                      PurchaseHistory, PayRequest,  Announcement, Ticket,
                      RebateRecord)
@@ -107,7 +107,7 @@ def register(request):
     return render(request, 'sspanel/register.html', {'form': form})
 
 
-def Login_view(request):
+def user_login(request):
     '''用户登录函数'''
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -164,7 +164,7 @@ def Login_view(request):
         return render(request, 'sspanel/login.html', context=context)
 
 
-def Logout_view(request):
+def user_logout(request):
     '''用户登出函数'''
     logout(request)
     registerinfo = {

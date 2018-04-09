@@ -12,8 +12,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_crontab',  # 定时任务相关
-    'shadowsocks',  # 前端网站
-    'ssserver',
+    'apps.shadowsocks',  # 前端网站
+    'apps.ssserver',
 ]
 
 MIDDLEWARE = [
@@ -86,7 +86,7 @@ MEDIA_URL = '/media/'
 # 自定义用户验证
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'shadowsocks.backends.EmailBackend',
+    'apps.shadowsocks.backends.EmailBackend',
 )
 
 # 用户模型设置：

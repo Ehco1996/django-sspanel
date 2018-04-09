@@ -1,7 +1,7 @@
 import json
 from django.test import TestCase, Client
 
-from ssserver.models import Node
+from apps.ssserver.models import Node
 
 
 class TestBase(TestCase):

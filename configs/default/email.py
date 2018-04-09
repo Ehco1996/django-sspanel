@@ -11,3 +11,5 @@ EMAIL_PORT = 25
 EMAIL_HOST_USER = 'USER'
 EMAIL_HOST_PASSWORD = 'PASS'
 DEFAULT_FROM_EMAIL = 'Ehco<ADDRESS>'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

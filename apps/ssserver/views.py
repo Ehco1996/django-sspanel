@@ -7,8 +7,8 @@ from django.http import StreamingHttpResponse
 from django.shortcuts import HttpResponse, redirect, render
 from django.contrib.auth.decorators import login_required, permission_required
 
-from shadowsocks.models import User
-from shadowsocks.forms import UserForm
+from apps.shadowsocks.models import User
+from apps.shadowsocks.forms import UserForm
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 from .models import (SSUser, TrafficLog, Node,

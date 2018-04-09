@@ -11,7 +11,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from shadowsocks.tools import get_short_random_string, traffic_format
+from apps.shadowsocks.tools import get_short_random_string, traffic_format
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),

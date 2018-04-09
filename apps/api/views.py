@@ -15,13 +15,12 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 
-from shadowsocks.tools import get_date_list
-from shadowsocks.tools import traffic_format
-from shadowsocks.payments import alipay, pay91
-from ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp
-from shadowsocks.models import (InviteCode, PurchaseHistory,
-                                RebateRecord, Shop, User, MoneyCode,
-                                Donate, PayRequest, PayRecord)
+from apps.shadowsocks.tools import get_date_list, traffic_format
+from apps.shadowsocks.payments import alipay, pay91
+from apps.ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp
+from apps.shadowsocks.models import (InviteCode, PurchaseHistory,
+                                     RebateRecord, Shop, User, MoneyCode,
+                                     Donate, PayRequest, PayRecord)
 
 
 @permission_required('shadowsocks')

@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
 from .models import Announcement, Shop, User
-from ssserver.models import Node
+from apps.ssserver.models import Node
 
 
 class RegisterForm(UserCreationForm):
