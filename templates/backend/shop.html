@@ -30,7 +30,7 @@
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'shadowsocks:good_edit' good.pk  %}">编辑</a>
+                        <a class="button is-info" href="{% url 'sspanel:good_edit' good.pk  %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button" data-target="modal-{{ good.pk }}">删除</a>
@@ -53,7 +53,7 @@
                         <p class="subtitle">确定要删除:
                             <code>{{ good.name }}</code>?</p>
                         <p align="center">
-                            <a class="button is-danger is-outlined" href="{% url 'shadowsocks:good_delete' good.pk %}">确定删除</a>
+                            <a class="button is-danger is-outlined" href="{% url 'sspanel:good_delete' good.pk %}">确定删除</a>
                         </p>
                     </section>
                 </div>
@@ -65,7 +65,7 @@
             {% endfor %}
         </table>
         <p align="right">
-            <a class="button is-danger is-outlined" href="{% url 'shadowsocks:good_create' %}">增加商品</a>
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:good_create' %}">增加商品</a>
         </p>
     </div>
 </div>

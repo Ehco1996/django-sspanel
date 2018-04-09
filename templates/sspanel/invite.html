@@ -28,7 +28,7 @@
                 <tr>
                     <td>{{ code.time_created|date:"m月d日" }}：</td>
                     <td>
-                        <a href="{% url 'shadowsocks:passinvitecode' code.code %}" code.code }}>
+                        <a href="{% url 'sspanel:passinvitecode' code.code %}" code.code }}>
                             {{ code.code }}
                         </a>
                     </td>

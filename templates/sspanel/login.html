@@ -19,13 +19,13 @@
         <p class="title">欢迎小主: {{ user.username }}</p>
         <p class="subtitle">点击下方按钮进入用户中心 </p>
         <button class="button">
-            <a href="{% url 'shadowsocks:userinfo' %}">进入</a>
+            <a href="{% url 'sspanel:userinfo' %}">进入</a>
         </button>
     </div>
     {% else %}
     <div class="box">
         <h3 class="title">登录:</h3>
-        <form class="form" action="{% url 'shadowsocks:login' %}" method="post">
+        <form class="form" action="{% url 'sspanel:login' %}" method="post">
             {% csrf_token %} {{ form.non_field_errors }} {% for field in form %} {{ field.label_tag }} {{ field }} {{ field.errors }}
             {% if field.help_text %}
             <p class="help is-danger">{{ field.help_text|safe }}</p>

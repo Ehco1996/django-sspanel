@@ -24,7 +24,7 @@
                     </span> 欢迎小主: {{ user.username }}</p>
                 <p class="subtitle is-5">这里的功能还比较少...</p>
                 <button class="button is-rounded">
-                    <a href="{% url 'shadowsocks:logout' %}">注销登录</a>
+                    <a href="{% url 'sspanel:logout' %}">注销登录</a>
                 </button>
                 <button class="button is-rounded">
                     <a href="{% url 'password_change' %}">修改密码</a>
@@ -240,7 +240,7 @@
     // 签到AJAX部分
     var CheckButton = $("#id-checkin")
     var Checkin = function () {
-        url = "{% url 'shadowsocks:checkin' %}"
+        url = "{% url 'sspanel:checkin' %}"
         $.getJSON(url, function (results) {
             swal(results.title, results.subtitle, results.status)
             var box = $("#id-checkin-box")

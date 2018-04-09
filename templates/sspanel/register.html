@@ -17,7 +17,7 @@
 <div class="column is-12">
     <div class="box">
         <h3 class="title">注册:</h3>
-        <form class="form" action="{% url 'shadowsocks:register' %}" method="post">
+        <form class="form" action="{% url 'sspanel:register' %}" method="post">
             {% csrf_token %} {% for field in form %}
             {{ field.label_tag }}
             {{ field }}
@@ -31,7 +31,7 @@
                     <button type="submit" class="button is-primary is-outlined">注册吧少年！</button>
                 </p>
                 <p class="control">
-                    <a class="button is-info is-outlined " href="{% url 'shadowsocks:login' %}">刚注册过了？</a>
+                    <a class="button is-info is-outlined " href="{% url 'sspanel:login' %}">刚注册过了？</a>
                 </p>
             </div>
         </form>

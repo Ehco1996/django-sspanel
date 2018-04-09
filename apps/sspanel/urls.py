@@ -2,7 +2,7 @@ from django.urls import path
 from .import views
 
 
-app_name = "shadowsocks"
+app_name = "sspanel"
 urlpatterns = [
     # 网站用户面板
     path('index/', views.index, name='index'),

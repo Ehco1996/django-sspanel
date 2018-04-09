@@ -11,7 +11,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.shadowsocks.tools import get_short_random_string, traffic_format
+from apps.sspanel.tools import get_short_random_string, traffic_format
 
 METHOD_CHOICES = (
     ('aes-256-cfb', 'aes-256-cfb'),
@@ -354,9 +354,9 @@ class SSUser(models.Model):
         editable=False,
     )
 
-    # shadowsocks 数据库表字段
+    # sspanel 数据库表字段
     password = models.CharField(
-        'Shadowsocks密码',
+        'sspanel密码',
         max_length=32,
         # 当密码少于6位时报错
         validators=[validators.MinLengthValidator(6), ],
@@ -413,7 +413,7 @@ class SSUser(models.Model):
         '混淆', default=settings.DEFAULT_OBFS,
         max_length=32, choices=OBFS_CHOICES,)
 
-    # 等级字段 和 shadowsocks.user 的level 同步
+    # 等级字段 和 sspanel.user 的level 同步
     level = models.PositiveIntegerField(
         '用户等级',
         default=0,)

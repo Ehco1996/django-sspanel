@@ -31,7 +31,7 @@
                 {% for record in ticket %}
                 <tr>
                     <td>
-                        <a class="button is-danger" href="{% url 'shadowsocks:backend_ticketedit' record.pk %}">处理</a>
+                        <a class="button is-danger" href="{% url 'sspanel:backend_ticketedit' record.pk %}">处理</a>
                     </td>
                     <td>{{ record.user }}</td>
                     <td>{{ record.time }}</td>

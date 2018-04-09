@@ -33,7 +33,7 @@
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'shadowsocks:node_edit' node.node_id  %}">编辑</a>
+                        <a class="button is-info" href="{% url 'sspanel:node_edit' node.node_id  %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button" data-target="modal-{{ node.node_id }}">删除</a>
@@ -59,7 +59,7 @@
                         <p class="subtitle">确定要删除:
                             <code>{{ node.name }}</code>?</p>
                         <p align="center">
-                            <a class="button is-danger is-outlined" href="{% url 'shadowsocks:node_delete' node.node_id %}">确定删除</a>
+                            <a class="button is-danger is-outlined" href="{% url 'sspanel:node_delete' node.node_id %}">确定删除</a>
                         </p>
                     </section>
                 </div>
@@ -71,7 +71,7 @@
             {% endfor %}
         </table>
         <p align="right">
-            <a class="button is-danger is-outlined" href="{% url 'shadowsocks:node_create' %}">增加节点</a>
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:node_create' %}">增加节点</a>
         </p>
     </div>
 </div>

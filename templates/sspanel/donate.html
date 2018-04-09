@@ -105,7 +105,7 @@
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             }
             $.post(url, data, function (results) {
-                qrcode_url = "{% url 'shadowsocks:facepay_qrcode' %}"
+                qrcode_url = "{% url 'sspanel:facepay_qrcode' %}"
                 codeBox.attr('class', '')
                 // 获取当前域名
                 var host = window.location.host

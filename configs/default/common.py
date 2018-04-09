@@ -12,7 +12,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_crontab',  # 定时任务相关
-    'apps.shadowsocks',  # 前端网站
+    'apps.sspanel',  # 前端网站
     'apps.ssserver',
 ]
 
@@ -86,11 +86,11 @@ MEDIA_URL = '/media/'
 # 自定义用户验证
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'apps.shadowsocks.backends.EmailBackend',
+    'apps.sspanel.backends.EmailBackend',
 )
 
 # 用户模型设置：
-AUTH_USER_MODEL = 'shadowsocks.User'
+AUTH_USER_MODEL = 'sspanel.User'
 
 JET_THEMES = [
     {

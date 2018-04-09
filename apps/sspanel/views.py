@@ -13,7 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 
-from apps.shadowsocks.tools import reverse_traffic
+from apps.sspanel.tools import reverse_traffic
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 from apps.ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
@@ -597,7 +597,7 @@ def rebate_record(request):
 
 
 # 网站后台界面
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_index(request):
     '''跳转到后台界面'''
     context = {
@@ -607,7 +607,7 @@ def backend_index(request):
     return render(request, 'backend/index.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_node_info(request):
     '''节点编辑界面'''
     nodes = Node.objects.all()
@@ -617,7 +617,7 @@ def backend_node_info(request):
     return render(request, 'backend/nodeinfo.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def node_delete(request, node_id):
     '''删除节点'''
     node = Node.objects.filter(node_id=node_id)
@@ -634,7 +634,7 @@ def node_delete(request, node_id):
     return render(request, 'backend/nodeinfo.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def node_edit(request, node_id):
     '''编辑节点'''
     node = Node.objects.get(node_id=node_id)
@@ -678,7 +678,7 @@ def node_edit(request, node_id):
         return render(request, 'backend/nodeedit.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def node_create(request):
     '''创建节点'''
     if request.method == "POST":
@@ -799,7 +799,7 @@ class Page_List_View(object):
         return context
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_UserList(request):
     '''返回所有用户的View'''
     obj = User.objects.all()
@@ -814,7 +814,7 @@ def backend_UserList(request):
     return render(request, 'backend/userlist.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def user_delete(request, pk):
     '''删除user'''
     user = User.objects.filter(pk=pk)
@@ -833,7 +833,7 @@ def user_delete(request, pk):
     return render(request, 'backend/userlist.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def user_search(request):
     '''用户搜索结果'''
     q = request.GET.get('q')
@@ -845,7 +845,7 @@ def user_search(request):
     return render(request, 'backend/userlist.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def user_status(request):
     '''站内用户分析'''
     # 查询今日注册的用户
@@ -872,7 +872,7 @@ def user_status(request):
     return render(request, 'backend/userstatus.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_invite(request):
     '''邀请码生成'''
     code_list = InviteCode.objects.filter(type=0, isused=False, code_id=1)
@@ -880,7 +880,7 @@ def backend_invite(request):
                   'backend/invitecode.html', {'code_list': code_list, })
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def gen_invite_code(request):
 
     Num = request.GET.get('num')
@@ -903,7 +903,7 @@ def gen_invite_code(request):
     return render(request, 'backend/invitecode.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_charge(request):
     '''后台充值码界面'''
     # 获取所有充值码记录
@@ -931,7 +931,7 @@ def backend_charge(request):
     return render(request, 'backend/charge.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_shop(request):
     '''商品管理界面'''
 
@@ -942,7 +942,7 @@ def backend_shop(request):
     return render(request, 'backend/shop.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def good_delete(request, pk):
     '''删除商品'''
     good = Shop.objects.filter(pk=pk)
@@ -961,7 +961,7 @@ def good_delete(request, pk):
     return render(request, 'backend/shop.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def good_edit(request, pk):
     '''商品编辑'''
 
@@ -1006,7 +1006,7 @@ def good_edit(request, pk):
         return render(request, 'backend/goodedit.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def good_create(request):
     '''商品创建'''
     if request.method == "POST":
@@ -1042,7 +1042,7 @@ def good_create(request):
                       'backend/goodcreate.html', context={'form': form, })
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def purchase_history(request):
     '''购买历史'''
     obj = PurchaseHistory.objects.all()
@@ -1051,7 +1051,7 @@ def purchase_history(request):
     return render(request, 'backend/purchasehistory.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_anno(request):
     '''公告管理界面'''
     anno = Announcement.objects.all()
@@ -1061,7 +1061,7 @@ def backend_anno(request):
     return render(request, 'backend/annolist.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def anno_delete(request, pk):
     '''删除公告'''
     anno = Announcement.objects.filter(pk=pk)
@@ -1078,7 +1078,7 @@ def anno_delete(request, pk):
     return render(request, 'backend/annolist.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def anno_create(request):
     '''公告创建'''
     if request.method == "POST":
@@ -1111,7 +1111,7 @@ def anno_create(request):
                       'backend/annocreate.html', context={'form': form, })
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def anno_edit(request, pk):
     '''公告编辑'''
     anno = Announcement.objects.get(pk=pk)
@@ -1149,7 +1149,7 @@ def anno_edit(request, pk):
         return render(request, 'backend/annoedit.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_ticket(request):
     '''工单系统'''
     ticket = Ticket.objects.filter(status='开启')
@@ -1157,7 +1157,7 @@ def backend_ticket(request):
     return render(request, 'backend/ticket.html', context=context)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def backend_ticketedit(request, pk):
     '''后台工单编辑'''
     ticket = Ticket.objects.get(pk=pk)

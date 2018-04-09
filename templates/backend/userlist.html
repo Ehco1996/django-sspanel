@@ -14,7 +14,7 @@
     </section>
 </div>
 <div class="column is-12">
-    <form method="get" action="{% url 'shadowsocks:user_search' %}">
+    <form method="get" action="{% url 'sspanel:user_search' %}">
         <div class="field has-addons">
             <div class="control">
                 <input name="q" class="input" type="search" placeholder="用户名/邮箱 模糊搜索" required>
@@ -89,7 +89,7 @@
                         <p class="subtitle">确定要删除:
                             <code>{{ contact.username }}</code>?</p>
                         <p align="center">
-                            <a class="button is-danger is-outlined" href="{% url 'shadowsocks:user_delete' contact.pk %}">确定删除</a>
+                            <a class="button is-danger is-outlined" href="{% url 'sspanel:user_delete' contact.pk %}">确定删除</a>
                         </p>
                     </section>
                 </div>

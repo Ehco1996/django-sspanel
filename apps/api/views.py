@@ -15,15 +15,16 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 
-from apps.shadowsocks.tools import get_date_list, traffic_format
-from apps.shadowsocks.payments import alipay, pay91
-from apps.ssserver.models import SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp
-from apps.shadowsocks.models import (InviteCode, PurchaseHistory,
-                                     RebateRecord, Shop, User, MoneyCode,
-                                     Donate, PayRequest, PayRecord)
+from apps.sspanel.tools import get_date_list, traffic_format
+from apps.sspanel.payments import alipay, pay91
+from apps.ssserver.models import (
+    SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp)
+from apps.sspanel.models import (InviteCode, PurchaseHistory,
+                                 RebateRecord, Shop, User, MoneyCode,
+                                 Donate, PayRequest, PayRecord)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def userData(request):
     '''
     返回用户信息：
@@ -36,7 +37,7 @@ def userData(request):
     return JsonResponse({'data': data})
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def nodeData(request):
     '''
     返回节点信息
@@ -56,7 +57,7 @@ def nodeData(request):
     return JsonResponse(data)
 
 
-@permission_required('shadowsocks')
+@permission_required('sspanel')
 def donateData(request):
     '''
     返回捐赠信息
