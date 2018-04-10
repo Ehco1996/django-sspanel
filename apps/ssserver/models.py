@@ -11,7 +11,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.sspanel.tools import get_short_random_string, traffic_format
+from apps.utils import get_short_random_string, traffic_format
 from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
                             COUNTRIES_CHOICES)
 

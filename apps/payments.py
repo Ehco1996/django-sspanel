@@ -24,7 +24,6 @@ alipay = AliPay(
     debug=False,  # 默认False
 )
 
-
 '''
 91pay 相关设置
 '''

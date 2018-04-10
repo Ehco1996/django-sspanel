@@ -15,8 +15,8 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 
-from apps.sspanel.tools import get_date_list, traffic_format
-from apps.sspanel.payments import alipay, pay91
+from apps.utils import get_date_list, traffic_format
+from apps.payments import alipay, pay91
 from apps.ssserver.models import (
     SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory,

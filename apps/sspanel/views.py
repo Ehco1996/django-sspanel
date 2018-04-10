@@ -13,7 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 
-from apps.sspanel.tools import reverse_traffic
+from apps.utils import reverse_traffic
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
 from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Shop, MoneyCode,

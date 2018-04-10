@@ -8,8 +8,7 @@ from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-# 自己写的小脚本 用于生成邀请码
-from .tools import get_long_random_string
+from apps.utils import get_long_random_string
 
 
 class User(AbstractUser):
