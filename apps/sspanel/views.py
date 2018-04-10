@@ -15,11 +15,11 @@ from django.shortcuts import render, redirect
 
 from apps.sspanel.tools import reverse_traffic
 from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
-from apps.ssserver.models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Shop, MoneyCode,
                      PurchaseHistory, PayRequest,  Announcement, Ticket,
                      RebateRecord)
+from apps.constants import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 
 
 def index(request):

@@ -1,6 +1,5 @@
 from .common import BASE_DIR
 
-print(BASE_DIR)
 # 定时任务相关
 CRONJOBS = [
     ('59 23 * * *', 'apps.ssserver.views.check_user_state',
