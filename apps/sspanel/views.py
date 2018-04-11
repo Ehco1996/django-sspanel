@@ -794,7 +794,7 @@ class Page_List_View(object):
 @permission_required('sspanel')
 def backend_userlist(request):
     '''返回所有用户的View'''
-    obj = User.objects.all()
+    obj = User.objects.all().order_by('-date_joined')
     page_num = 15
     context = Page_List_View(request, obj, page_num).get_page_context()
     try:
@@ -919,7 +919,7 @@ def backend_charge(request):
             'subtitle': '添加{}元充值码{}个'.format(money, Num),
             'status': 'success'}
         request.session['registerinfo'] = registerinfo
-        return redirect('/backend/charge')
+        return redirect('/sspanel/backend/charge')
     return render(request, 'backend/charge.html', context=context)
 
 
