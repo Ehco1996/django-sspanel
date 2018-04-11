@@ -13,7 +13,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 from apps.utils import get_short_random_string, traffic_format
 from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
-                            COUNTRIES_CHOICES)
+                            COUNTRIES_CHOICES, NODE_TIME_OUT)
 
 
 class SSUser(models.Model):
@@ -60,7 +60,8 @@ class SSUser(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='ss_user'
+        related_name='ss_user',
+        verbose_name='用户名'
     )
 
     last_check_in_time = models.DateTimeField(
@@ -143,19 +144,17 @@ class SSUser(models.Model):
         return timezone.datetime.fromtimestamp(self.last_use_time)
 
     def get_traffic(self):
-        '''返回用户使用的总流量GB '''
-        return '{:.2f}'.format((
-            self.download_traffic + self.upload_traffic) / settings.GB)
+        '''返回用户使用的总流量'''
+        return traffic_format(self.download_traffic + self.upload_traffic)
 
     def get_transfer(self):
-        '''返回用户的总流量 GB'''
-        return '{:.2f}'.format(self.transfer_enable / settings.GB)
+        '''返回用户的总流量'''
+        return traffic_format(self.transfer_enable)
 
     def get_unused_traffic(self):
         '''返回用户的剩余流量'''
-        return '{:.2f}'.format((
+        return traffic_format(
             self.transfer_enable - self.upload_traffic - self.download_traffic)
-            / settings.GB)
 
     def get_used_percentage(self):
         '''返回用户的为使用流量百分比'''
@@ -185,7 +184,7 @@ class SSUser(models.Model):
         super(SSUser, self).save(*args, **kwargs)
 
     class Meta:
-        verbose_name_plural = 'SS账户'
+        verbose_name_plural = 'SS用户'
         ordering = ('-last_check_in_time',)
         db_table = 'user'
 
@@ -250,17 +249,21 @@ class TrafficLog(models.Model):
 class Node(models.Model):
     '''线路节点'''
     STATUS_CHOICES = (
-        ('好用', '好用'),
-        ('维护', '维护'),
-        ('坏了', '坏了'),
+        (1, '好用'),
+        (0, '维护'),
+        (-1, '坏了'),
     )
+
+    SHOW_CHOICE = (
+        (1, '显示'),
+        (-1, '不显示'))
 
     @classmethod
     def get_sub_code(cls, user):
         '''获取该用户的所有节点链接'''
         ss_user = user.ss_user
         sub_code = ''
-        node_list = cls.objects.filter(level__lte=user.level, show='显示')
+        node_list = cls.objects.filter(level__lte=user.level, show=1)
         for node in node_list:
             sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
         return sub_code
@@ -293,9 +296,6 @@ class Node(models.Model):
 
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True,)
 
-    status = models.CharField(
-        '状态', max_length=32, default='ok', choices=STATUS_CHOICES,)
-
     level = models.PositiveIntegerField(
         '节点等级',
         default=0,
@@ -305,13 +305,13 @@ class Node(models.Model):
         ]
     )
 
-    show = models.CharField(
+    status = models.SmallIntegerField(
+        '状态', default=1, choices=STATUS_CHOICES,)
+
+    show = models.SmallIntegerField(
         '是否显示',
-        max_length=32,
-        choices=(
-            ('显示', '显示'),
-            ('不显示', '不显示')),
-        default='显示',
+        choices=SHOW_CHOICE,
+        default=1,
     )
 
     group = models.CharField(
@@ -319,7 +319,7 @@ class Node(models.Model):
 
     total_traffic = models.BigIntegerField(
         '总流量',
-        default=0,
+        default=settings.GB,
     )
 
     human_total_traffic = models.CharField(
@@ -409,7 +409,7 @@ class NodeOnlineLog(models.Model):
         '''返回所有节点的在线人数总和'''
         count = 0
         node_ids = [o['node_id'] for o in Node.objects.filter(
-            show='显示').values('node_id')]
+            show=1).values('node_id')]
         for node_id in node_ids:
             o = cls.objects.filter(node_id=node_id).order_by('-log_time')[:1]
             if o:
@@ -427,7 +427,7 @@ class NodeOnlineLog(models.Model):
 
     def get_oneline_status(self):
         '''检测是否在线'''
-        if int(time.time()) - self.log_time > 120:
+        if int(time.time()) - self.log_time > NODE_TIME_OUT:
             return False
         else:
             return True

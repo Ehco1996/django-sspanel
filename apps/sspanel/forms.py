@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
-from .models import Announcement, Shop, User
+from .models import Announcement, Goods, User
 from apps.ssserver.models import Node
 
 
@@ -88,9 +88,9 @@ class NodeForm(ModelForm):
         exclude = ['total_traffic', 'used_traffic', 'human_used_traffic']
 
 
-class ShopForm(ModelForm):
+class GoodsForm(ModelForm):
     class Meta:
-        model = Shop
+        model = Goods
         fields = '__all__'
 
 

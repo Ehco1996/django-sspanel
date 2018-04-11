@@ -41,14 +41,9 @@
                             <select name="selects">
                                 <option value="" disabled="" selected="">更换页面主题</option>
                                 <option disabled="">───</option>
-                                <option value="default">Default</option>
-                                <option value="darkly">Darkly</option>
-                                <option value="flatly">Flatly</option>
-                                <option value="journal">Journal</option>
-                                <option value="materia">Materia</option>
-                                <option value="minty">Minty</option>
-                                <option value="spacelab">Spacelab</option>
-                                <option value="superhero">Superhero</option>
+                                {% for theme in  themes %}
+                                <option value="{{ theme.0 }}">{{ theme.1 }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="icon is-small is-left">

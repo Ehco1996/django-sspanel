@@ -282,7 +282,7 @@ def subscribe(request, token):
         ss_user = user.ss_user
         # 遍历该用户所有的节点
         node_list = Node.objects.filter(
-            level__lte=user.level, show='显示').order_by('level')
+            level__lte=user.level, show=1).order_by('level')
         # 生成订阅链接部分
         sub_code = 'MAX={}\n'.format(len(node_list))
         for node in node_list:
@@ -297,7 +297,7 @@ def subscribe(request, token):
 def node_config(request):
     '''返回节点json配置'''
     user = request.user
-    node_list = Node.objects.filter(level__lte=user.level, show='显示')
+    node_list = Node.objects.filter(level__lte=user.level, show=1)
     data = {'configs': []}
     for node in node_list:
         if node.custom_method == 0:

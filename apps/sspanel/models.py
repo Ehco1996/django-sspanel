@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.utils import get_long_random_string
+from apps.utils import get_long_random_string, traffic_format
+from apps.constants import THEME_CHOICES
 
 
 class User(AbstractUser):
@@ -27,7 +28,6 @@ class User(AbstractUser):
     @classmethod
     def todayRegister(cls):
         '''返回今日注册的用户'''
-        # 获取今天凌晨的时间
         today = datetime.datetime.combine(
             datetime.date.today(), datetime.time.min)
         return cls.objects.filter(date_joined__gt=today)
@@ -77,6 +77,7 @@ class User(AbstractUser):
         '主题',
         max_length=10,
         default='default',
+        choices=THEME_CHOICES,
     )
 
     def __str__(self):
@@ -88,7 +89,6 @@ class User(AbstractUser):
 
     def get_sub_link(self):
         '''生成该用户的订阅地址'''
-        # 订阅地址
         token = base64.b64encode(
             bytes(self.username, 'utf-8')).decode('ascii')
         sub_link = settings.HOST + 'server/subscribe/' + token + '/'
@@ -101,9 +101,11 @@ class User(AbstractUser):
 class InviteCode(models.Model):
     '''邀请码'''
 
+    INVITE_CODE_TYPE = ((1, '公开'), (0, '不公开'))
+
     type = models.IntegerField(
         '类型',
-        choices=((1, '公开'), (0, '不公开')),
+        choices=INVITE_CODE_TYPE,
         default=0,
     )
 
@@ -193,6 +195,7 @@ class Donate(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='捐赠人',
     )
 
     time = models.DateTimeField(
@@ -211,10 +214,10 @@ class Donate(models.Model):
     )
 
     def __str__(self):
-        return str(self.money)
+        return '{}-{}'.format(self.user, self.money)
 
     class Meta:
-        verbose_name_plural = '捐赠'
+        verbose_name_plural = '捐赠记录'
         ordering = ('-time',)
 
 
@@ -274,18 +277,29 @@ class MoneyCode(models.Model):
         ordering = ('isused',)
 
 
-class Shop(models.Model):
+class Goods(models.Model):
     '''商品'''
 
+    STATUS_TYPE = (
+        (1, '上架'),
+        (-1, '下架'),
+    )
+
     name = models.CharField(
-        '商品描述',
+        '商品名字',
         max_length=128,
         default='待编辑'
     )
 
+    content = models.CharField(
+        '商品描述',
+        max_length=256,
+        default='待编辑'
+    )
+
     transfer = models.BigIntegerField(
-        '增加的流量(GB)',
-        default=1
+        '增加的流量',
+        default=settings.GB
     )
 
     money = models.DecimalField(
@@ -315,22 +329,18 @@ class Shop(models.Model):
         ]
     )
 
-    sale = models.CharField(
+    status = models.SmallIntegerField(
         '商品状态',
-        max_length=32,
-        default='上架',
-        choices=(
-            ('上架', '上架'),
-            ('下架', '下架'),
-        )
+        default=1,
+        choices=STATUS_TYPE
     )
 
     def __str__(self):
         return self.name
 
-    def get_transfer_by_GB(self):
-        '''增加的流量以GB的形式返回'''
-        return '{}'.format(self.transfer / settings.GB)
+    def get_transfer(self):
+        '''增加的流量'''
+        return traffic_format(self.transfer)
 
     def get_days(self):
         '''返回增加的天数'''
@@ -344,7 +354,8 @@ class Shop(models.Model):
 class PurchaseHistory(models.Model):
     '''购买记录'''
 
-    info = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    good = models.ForeignKey(
+        Goods, on_delete=models.CASCADE, verbose_name='商品名',)
 
     user = models.CharField(
         '购买者',
@@ -501,10 +512,13 @@ class Announcement(models.Model):
 
 class Ticket(models.Model):
     '''工单'''
-
+    TICKET_CHOICE = (
+        (1, '开启'),
+        (-1, '关闭'))
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='用户'
     )
 
     time = models.DateTimeField(
@@ -522,11 +536,10 @@ class Ticket(models.Model):
         '内容主体'
     )
 
-    status = models.CharField(
+    status = models.SmallIntegerField(
         '状态',
-        max_length=10,
-        choices=(('开启', '开启'), ('关闭', '关闭')),
-        default='开启',
+        choices=TICKET_CHOICE,
+        default=1,
     )
 
     def __str__(self):

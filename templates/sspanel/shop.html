@@ -37,7 +37,7 @@
         <div class="card">
             <header class="card-header">
                 <p class="card-header-title">
-                    商品序号：{{ good.pk }}
+                    商品名:{{ good.name }}
                 </p>
                 <a class="modal-button card-header-icon" data-target="modal-{{ good.pk }}">
                     <span class="icon">
@@ -48,13 +48,12 @@
             </header>
             <div class="card-content">
                 <div class="content">
-                    {{ good.name }}
-                    <br>
+                    <p class="subtitle"> {{ good.content }} </p>
                     <strong>价格：</strong>
                     <code>{{ good.money }}元</code>
                     <br>
                     <strong>流量：</strong>
-                    <code>{{ good.get_transfer_by_GB }} GB</code>
+                    <code>{{ good.get_transfer }}</code>
                     <br>
                     <strong>提升等级至：</strong>
                     <code>{{ good.level }} 级</code>
@@ -77,7 +76,7 @@
                     <code>{{ good.money }}元</code>
                     <br>
                     <strong>流量：</strong>
-                    <code>{{ good.get_transfer_by_GB }} GB</code>
+                    <code>{{ good.get_transfer }} GB</code>
                     <br>
                     <strong>提升等级至：</strong>
                     <code>{{ good.level }} 级</code>

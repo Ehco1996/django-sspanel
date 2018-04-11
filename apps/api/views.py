@@ -20,7 +20,7 @@ from apps.payments import alipay, pay91
 from apps.ssserver.models import (
     SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory,
-                                 RebateRecord, Shop, User, MoneyCode,
+                                 RebateRecord, Goods, User, MoneyCode,
                                  Donate, PayRequest, PayRecord)
 
 
@@ -44,11 +44,11 @@ def nodeData(request):
     所有节点名
     各自消耗的流量
     '''
-    nodeName = [node.name for node in Node.objects.filter(show='显示')]
+    nodeName = [node.name for node in Node.objects.filter(show=1)]
 
     nodeTraffic = [
         round(node.used_traffic/settings.GB, 2)
-        for node in Node.objects.filter(show='显示')]
+        for node in Node.objects.filter(show=1)]
 
     data = {
         'nodeName': nodeName,
@@ -126,7 +126,7 @@ def purchase(request):
         user = request.user
         ss_user = user.ss_user
         goodId = request.POST.get('goodId')
-        good = Shop.objects.get(pk=goodId)
+        good = Goods.objects.get(pk=goodId)
         if user.balance < good.money:
             registerinfo = {
                 'title': '金额不足！',
@@ -147,7 +147,7 @@ def purchase(request):
             user.save()
             ss_user.save()
             # 增加购买记录
-            record = PurchaseHistory(info=good, user=user, money=good.money,
+            record = PurchaseHistory(good=good, user=user, money=good.money,
                                      purchtime=timezone.now())
             record.save()
             # 增加返利记录

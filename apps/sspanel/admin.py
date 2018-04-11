@@ -11,9 +11,9 @@ class UserAdmin(admin.ModelAdmin):
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
-    list_display = ['info', 'user', 'money', 'purchtime', ]
+    list_display = ['good', 'user', 'money', 'purchtime', ]
     search_fields = ['user', ]
-    list_filter = ['info', 'purchtime']
+    list_filter = ['good', 'purchtime']
 
 
 class InviteCodeAdmin(admin.ModelAdmin):
@@ -42,7 +42,7 @@ class DonateAdmin(admin.ModelAdmin):
     list_filter = ['time', 'money', ]
 
 
-class ShopAdmin(admin.ModelAdmin):
+class GoodsAdmin(admin.ModelAdmin):
     list_display = ['name', 'transfer', 'money', 'level', ]
 
 
@@ -51,7 +51,7 @@ admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)
 admin.site.register(models.Donate, DonateAdmin)
 admin.site.register(models.MoneyCode, MoneyCodeAdmin)
-admin.site.register(models.Shop, ShopAdmin)
+admin.site.register(models.Goods, GoodsAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.PayRecord, AlipayAdmin)
 admin.site.register(models.PayRequest, AlipayRequestAdmin)

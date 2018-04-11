@@ -275,3 +275,18 @@ COUNTRIES_CHOICES = (
     ("ZM", "Zambia"),
     ("ZW", "Zimbabwe"),
 )
+
+THEME_CHOICES = (
+    ("default", "default"),
+    ("darkly", "darkly"),
+    ("flatly", "flatly"),
+    ("journal", "journal"),
+    ("materia", "materia"),
+    ("minty", "minty"),
+    ("spacelab", "spacelab"),
+    ("superhero", "superhero"),
+)
+
+
+# 判断节点在线时间间隔
+NODE_TIME_OUT = 85

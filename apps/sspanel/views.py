@@ -13,13 +13,14 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 
-from apps.utils import reverse_traffic
-from .forms import RegisterForm, LoginForm, NodeForm, ShopForm, AnnoForm
+from apps.utils import reverse_traffic, traffic_format
+from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
 from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
-from .models import (InviteCode, User, Donate, Shop, MoneyCode,
+from .models import (InviteCode, User, Donate, Goods, MoneyCode,
                      PurchaseHistory, PayRequest,  Announcement, Ticket,
                      RebateRecord)
-from apps.constants import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
+from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES,
+                            OBFS_CHOICES, THEME_CHOICES)
 
 
 def index(request):
@@ -119,14 +120,9 @@ def user_login(request):
             user = authenticate(username=username, password=password)
             if user is not None and user.is_active:
                 login(request, user)
-                try:
-                    anno = Announcement.objects.all()[0]
-                except:
-                    anno = None
-                min_traffic = '{}m'.format(
-                    int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
-                max_traffic = '{}m'.format(
-                    int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
+                anno = Announcement.objects.all().first()
+                min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
+                max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
                 remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
                 registerinfo = {
                     'title': '登录成功！',
@@ -183,14 +179,10 @@ def user_logout(request):
 def userinfo(request):
     '''用户中心'''
     user = request.user
-
     # 获取公告
-    try:
-        anno = Announcement.objects.all()[0]
-    except:
-        anno = None
-    min_traffic = '{}m'.format(int(settings.MIN_CHECKIN_TRAFFIC / 1024 / 1024))
-    max_traffic = '{}m'.format(int(settings.MAX_CHECKIN_TRAFFIC / 1024 / 1024))
+    anno = Announcement.objects.all().first()
+    min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
+    max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
     # 订阅地址
     sub_link = user.get_sub_link()
@@ -204,7 +196,7 @@ def userinfo(request):
         'max_traffic': max_traffic,
         'sub_link': sub_link,
         'sub_code': sub_code,
-    }
+        'themes': THEME_CHOICES}
     return render(request, 'sspanel/userinfo.html', context=context)
 
 
@@ -221,7 +213,7 @@ def checkin(request):
         ss_user.save()
         registerinfo = {
             'title': '签到成功！',
-            'subtitle': '获得{}m流量！'.format(ll // settings.MB),
+            'subtitle': '获得{}流量！'.format(traffic_format(ll)),
             'status': 'success', }
     else:
         registerinfo = {
@@ -344,7 +336,7 @@ def nodeinfo(request):
     ss_user = request.user.ss_user
     user = request.user
     # 加入等级的判断
-    nodes = Node.objects.filter(show='显示').values()
+    nodes = Node.objects.filter(show=1).values()
     # 循环遍历每一条线路的在线人数
     for node in nodes:
         # 生成SSR和SS的链接
@@ -378,7 +370,7 @@ def trafficlog(request):
     '''跳转到流量记录的页面'''
 
     ss_user = request.user.ss_user
-    nodes = Node.objects.filter(show='显示')
+    nodes = Node.objects.filter(show=1)
     context = {
         'ss_user': ss_user,
         'nodes': nodes,
@@ -390,7 +382,7 @@ def trafficlog(request):
 def shop(request):
     '''跳转到商品界面'''
     ss_user = request.user
-    goods = Shop.objects.filter(sale='上架')
+    goods = Goods.objects.filter(status=1)
     context = {'ss_user': ss_user,
                'goods': goods, }
     return render(request, 'sspanel/shop.html', context=context)
@@ -800,7 +792,7 @@ class Page_List_View(object):
 
 
 @permission_required('sspanel')
-def backend_UserList(request):
+def backend_userlist(request):
     '''返回所有用户的View'''
     obj = User.objects.all()
     page_num = 15
@@ -935,7 +927,7 @@ def backend_charge(request):
 def backend_shop(request):
     '''商品管理界面'''
 
-    goods = Shop.objects.all()
+    goods = Goods.objects.all()
     context = {
         'goods': goods,
     }
@@ -945,9 +937,9 @@ def backend_shop(request):
 @permission_required('sspanel')
 def good_delete(request, pk):
     '''删除商品'''
-    good = Shop.objects.filter(pk=pk)
+    good = Goods.objects.filter(pk=pk)
     good.delete()
-    goods = Shop.objects.all()
+    goods = Goods.objects.all()
 
     registerinfo = {
         'title': '删除商品',
@@ -965,14 +957,14 @@ def good_delete(request, pk):
 def good_edit(request, pk):
     '''商品编辑'''
 
-    good = Shop.objects.get(pk=pk)
-    goods = Shop.objects.all()
+    good = Goods.objects.get(pk=pk)
+    goods = Goods.objects.all()
     # 当为post请求时，修改数据
     if request.method == "POST":
         # 转换为GB
         data = request.POST.copy()
         data['transfer'] = eval(data['transfer']) * settings.GB
-        form = ShopForm(data, instance=good)
+        form = GoodsForm(data, instance=good)
         if form.is_valid():
             form.save()
             registerinfo = {
@@ -998,7 +990,7 @@ def good_edit(request, pk):
     # 当请求不是post时，渲染form
     else:
         data = {'transfer': round(good.transfer / settings.GB)}
-        form = ShopForm(initial=data, instance=good)
+        form = GoodsForm(initial=data, instance=good)
         context = {
             'form': form,
             'good': good,
@@ -1013,10 +1005,10 @@ def good_create(request):
         # 转换为GB
         data = request.POST.copy()
         data['transfer'] = eval(data['transfer']) * settings.GB
-        form = ShopForm(data)
+        form = GoodsForm(data)
         if form.is_valid():
             form.save()
-            goods = Shop.objects.all()
+            goods = Goods.objects.all()
             registerinfo = {
                 'title': '添加成功',
                 'subtitle': '数据更新成功！',
@@ -1037,7 +1029,7 @@ def good_create(request):
             }
             return render(request, 'backend/goodcreate.html', context=context)
     else:
-        form = ShopForm()
+        form = GoodsForm()
         return render(request,
                       'backend/goodcreate.html', context={'form': form, })
 
@@ -1152,7 +1144,7 @@ def anno_edit(request, pk):
 @permission_required('sspanel')
 def backend_ticket(request):
     '''工单系统'''
-    ticket = Ticket.objects.filter(status='开启')
+    ticket = Ticket.objects.filter(status=1)
     context = {'ticket': ticket}
     return render(request, 'backend/ticket.html', context=context)
 
@@ -1177,7 +1169,7 @@ def backend_ticketedit(request, pk):
 
         context = {
             'registerinfo': registerinfo,
-            'ticket': Ticket.objects.filter(status='开启')
+            'ticket': Ticket.objects.filter(status=1)
         }
         return render(request, 'backend/ticket.html', context=context)
     # 当请求不是post时，渲染

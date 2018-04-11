@@ -59,7 +59,7 @@ urlpatterns = [
          views.node_edit, name='node_edit'),
     path('backend/node/create/', views.node_create, name='node_create'),
     # 用户相关
-    path('backend/userlist/', views.backend_UserList, name='user_list'),
+    path('backend/userlist/', views.backend_userlist, name='user_list'),
     path('backend/user/delete/<int:pk>/',
          views.user_delete, name='user_delete'),
     path('backend/user/search/', views.user_search, name='user_search'),
