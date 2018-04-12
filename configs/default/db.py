@@ -5,7 +5,12 @@ DATABASES = {
         'NAME': 'sspanel',
         'USER': 'root',
         'PASSWORD': 'xx',
-        'HOST': '127.0.0.1',
+        'HOST': '',
         'PORT': '3306',
+        'OPTIONS': {
+            'autocommit': True,
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        },
     }
 }
