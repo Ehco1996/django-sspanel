@@ -2,7 +2,7 @@ from .common import BASE_DIR
 
 # 定时任务相关
 CRONJOBS = [
-    ('59 23 * * *', 'apps.ssserver.views.check_user_state',
+    ('* * * * *', 'apps.ssserver.views.check_user_state',
      '>>' + BASE_DIR + '/logs/userstate.log'),  # 每天23.59分检测用户等级是否到期，日志写入logs
     ('0 0 1 * *', 'apps.ssserver.views.auto_reset_traffic',
      '>>' + BASE_DIR + '/logs/trafficrest.log'),  # 每月月初重置免费用户流量，日志写入logs

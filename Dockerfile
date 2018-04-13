@@ -17,5 +17,4 @@ ADD . /src/django-sspanel
 WORKDIR /src/django-sspanel
 
 # Using pip:
-RUN python3 -m pip install -r requirements.txt
-
+RUN pip install -r requirements.txt && python manage.py collectstatic --no-input

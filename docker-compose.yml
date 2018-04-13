@@ -10,6 +10,7 @@ services:
       MYSQL_DATABASE: sspanel
     volumes:
       - ./configs/mysqld/mysqld_charset.cnf:/etc/mysql/conf.d/mysqld_charset.cnf
+      - mysql-data:/var/lib/mysql
     networks: 
       - sspanel_network
   web:
@@ -24,6 +25,7 @@ services:
     command: uwsgi uwsgi.ini
     volumes:
       - .:/src/django-sspanel
+      - static/:/src/django-sspanel/static      
     ports:
       - 8080:8080
     depends_on:
@@ -36,7 +38,7 @@ services:
     container_name : sspanel-nginx
     volumes:
       - ./configs/nginx/:/etc/nginx/conf.d
-      - ./static/:/src/django-sspanel/static
+      - static/:/src/django-sspanel/static
     ports:
       - 80:80
     depends_on:
@@ -45,3 +47,6 @@ services:
       - sspanel_network
 networks:
   sspanel_network:
+volumes:
+  static:
+  mysql-data:
