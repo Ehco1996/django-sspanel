@@ -1,9 +1,8 @@
 import base64
 
-# DEBUG设置
-DEBUG = True
+
 # 网站密钥
-SECRET_KEY = '#d$3kz$u_qb26y+idj#kf7$)wcl)j%6vfjvd@poqy(vvxj#8o9'
+SECRET_KEY = 'aasdasdas'
 
 # 域名设置
 ALLOWED_HOSTS = ['*']

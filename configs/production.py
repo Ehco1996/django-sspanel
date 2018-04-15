@@ -5,8 +5,8 @@ from configs.default import *
 DEBUG = False
 
 DATABASES['default'].update(
-    {'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-     'HOST': os.getenv('MYSQL_HOST')
+    {'PASSWORD': os.getenv('MYSQL_PASSWORD', 'your_pass'),
+     'HOST': os.getenv('MYSQL_HOST', '127.0.0.1')
      })
 
 
