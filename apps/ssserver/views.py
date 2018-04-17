@@ -40,7 +40,7 @@ def User_edit(request, pk):
                 'subtitle': '数据更新成功',
                 'status': 'success', }
             request.session['registerinfo'] = registerinfo
-            return redirect('/backend/userlist/')
+            return redirect('/sspanel/backend/userlist/')
         else:
             registerinfo = {
                 'title': '错误',

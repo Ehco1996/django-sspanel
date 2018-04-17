@@ -99,6 +99,7 @@ ENV/
 # mypy
 .mypy_cache/
 .DS_Store
-django_sspanel/simple_setting_product.py
 .vscode/launch.json
 .vscode/settings.json
+apps/App_pravite.pem
+apps/Alipay_pub.pem

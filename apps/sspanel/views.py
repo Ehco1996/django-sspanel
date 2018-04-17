@@ -902,11 +902,10 @@ def backend_charge(request):
     obj = MoneyCode.objects.all()
     page_num = 10
     context = Page_List_View(request, obj, page_num).get_page_context()
-    try:
-        context['registerinfo'] = request.session['registerinfo']
+    registerinfo = request.session.get('registerinfo')
+    if registerinfo:
+        context['registerinfo'] = registerinfo
         del request.session['registerinfo']
-    except:
-        pass
     # 获取充值的金额和数量
     Num = request.GET.get('num')
     money = request.GET.get('money')
@@ -1157,7 +1156,7 @@ def backend_ticketedit(request, pk):
     if request.method == "POST":
         title = request.POST.get('title', '')
         body = request.POST.get('body', '')
-        status = request.POST.get('status', '开启')
+        status = request.POST.get('status', 1)
         ticket.title = title
         ticket.body = body
         ticket.status = status

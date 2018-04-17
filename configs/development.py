@@ -2,6 +2,8 @@ import os
 
 from configs.default import *
 
+# DEBUG设置
+DEBUG = True
 
 DATABASES['default'].update(
     {'PASSWORD': os.getenv('MYSQL_PASSWORD'),
