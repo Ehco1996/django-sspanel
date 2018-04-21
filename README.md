@@ -78,7 +78,7 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 
 ## 项目组件
 
-#### 前端框架：
+#### 前端相关：
 
 * BULMA(布玛) <http://bulma.io/>
 
@@ -88,14 +88,11 @@ Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络�
 
 * Django  <https://www.djangoproject.com/>
 
-#### 第三方组件：
-
-* Qrcode <https://github.com/lincolnloop/python-qrcode>
-* Markdown <https://pypi.python.org/pypi/Markdown>
-* alipay(支付宝插件) <https://github.com/fzlee/alipay>
 
 ## 部署教程：
 
 硬核版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E9%83%A8%E7%BD%B2)
 
 萌新版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B-%E8%90%8C%E6%96%B0%E7%89%88)
+
+Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E5%88%A9%E7%94%A8Dokcer-%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85)
