@@ -333,6 +333,8 @@ class Node(models.Model):
     human_used_traffic = models.CharField(
         '已用流量', max_length=255, blank=True, null=True)
 
+    order = models.PositiveSmallIntegerField('排序', default=1)
+
     def __str__(self):
         return self.name
 
@@ -376,7 +378,7 @@ class Node(models.Model):
         super(Node, self).save(*args, **kwargs)
 
     class Meta:
-        ordering = ['-show', 'level']
+        ordering = ['-show', 'order']
         verbose_name_plural = '节点'
         db_table = 'ss_node'
 

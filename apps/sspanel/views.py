@@ -347,7 +347,7 @@ def nodeinfo(request):
         # 得到在线人数
         try:
             log = NodeOnlineLog.objects.filter(
-                node_id=node['node_id']).order_by('-id')[0]
+                node_id=node['node_id']).first()
             node['online'] = log.get_oneline_status()
             node['count'] = log.get_online_user()
         except:

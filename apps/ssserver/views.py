@@ -281,8 +281,7 @@ def subscribe(request, token):
         user = User.objects.get(username=user)
         ss_user = user.ss_user
         # 遍历该用户所有的节点
-        node_list = Node.objects.filter(
-            level__lte=user.level, show=1).order_by('level')
+        node_list = Node.objects.filter(level__lte=user.level, show=1)
         # 生成订阅链接部分
         sub_code = 'MAX={}\n'.format(len(node_list))
         for node in node_list:

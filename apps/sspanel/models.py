@@ -335,6 +335,8 @@ class Goods(models.Model):
         choices=STATUS_TYPE
     )
 
+    order = models.PositiveSmallIntegerField('排序', default=1)
+
     def __str__(self):
         return self.name
 
@@ -348,7 +350,7 @@ class Goods(models.Model):
 
     class Meta:
         verbose_name_plural = '商品'
-        ordering = ['level', ]
+        ordering = ['order', ]
 
 
 class PurchaseHistory(models.Model):
