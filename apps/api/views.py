@@ -452,16 +452,16 @@ def node_api(request, node_id):
     '''
     token = request.GET.get('token', '')
     if token == settings.TOKEN:
-        node = Node.objects.filter(node_id=node_id)
-        if len(node) > 0 and node[0].used_traffic < node[0].total_traffic:
-            data = (node[0].traffic_rate,)
+        node = Node.objects.filter(node_id=node_id).first()
+        if node and node.used_traffic < node.total_traffic:
+            data = (node.traffic_rate,)
         else:
             data = None
-        re_dict = {'ret': 1,
-                   'data': data}
+        res = {'ret': 1,
+               'data': data}
     else:
-        re_dict = {'ret': -1}
-    return JsonResponse(re_dict)
+        res = {'ret': -1}
+    return JsonResponse(res)
 
 
 @csrf_exempt
@@ -473,18 +473,18 @@ def node_online_api(request):
     token = request.GET.get('token', '')
     if token == settings.TOKEN:
         data = json.loads(request.body)
-        node = Node.objects.filter(node_id=data['node_id'])
-        if len(node) > 0:
+        node = Node.objects.filter(node_id=data['node_id']).first()
+        if node:
             NodeOnlineLog.objects.create(
                 node_id=data['node_id'],
                 online_user=data['online_user'], log_time=int(time.time()))
         else:
             data = None
-        re_dict = {'ret': 1,
-                   'data': []}
+        res = {'ret': 1,
+               'data': []}
     else:
-        re_dict = {'ret': -1}
-    return JsonResponse(re_dict)
+        res = {'ret': -1}
+    return JsonResponse(res)
 
 
 @require_http_methods(['GET', ])
@@ -494,10 +494,10 @@ def user_api(request, node_id):
     '''
     token = request.GET.get('token', '')
     if token == settings.TOKEN:
-        node = Node.objects.filter(node_id=node_id)
-        if len(node) > 0:
+        node = Node.objects.filter(node_id=node_id).first()
+        if node:
             data = []
-            level = node[0].level
+            level = node.level
             user_list = SSUser.objects.filter(
                 level__gte=level, transfer_enable__gte=0)
             for user in user_list:
@@ -514,11 +514,11 @@ def user_api(request, node_id):
                 data.append(cfg)
         else:
             data = None
-        re_dict = {'ret': 1,
-                   'data': data}
+        res = {'ret': 1,
+               'data': data}
     else:
-        re_dict = {'ret': -1}
-    return JsonResponse(re_dict)
+        res = {'ret': -1}
+    return JsonResponse(res)
 
 
 @csrf_exempt
@@ -554,10 +554,10 @@ def traffic_api(request):
         node.save()
         # 个人流量记录
         TrafficLog.objects.bulk_create(trafficlog_model_list)
-        re_dict = {'ret': 1, 'data': []}
+        res = {'ret': 1, 'data': []}
     else:
-        re_dict = {'ret': -1}
-    return JsonResponse(re_dict)
+        res = {'ret': -1}
+    return JsonResponse(res)
 
 
 @csrf_exempt
@@ -573,7 +573,7 @@ def alive_ip_api(request):
             for ip in ip_list:
                 model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
         AliveIp.objects.bulk_create(model_list)
-        re_dict = {'ret': 1, 'data': []}
+        res = {'ret': 1, 'data': []}
     else:
-        re_dict = {'ret': -1}
-    return JsonResponse(re_dict)
+        res = {'ret': -1}
+    return JsonResponse(res)
