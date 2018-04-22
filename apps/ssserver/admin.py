@@ -6,11 +6,11 @@ class SSUserAdmin(admin.ModelAdmin):
     list_display = ['user', 'level', 'port', 'traffic', 'fulltraffic', ]
 
     def fulltraffic(self, obj):
-        return '{} GB'.format(obj.transfer_enable / 1024 / 1024 / 1024)
+        return obj.get_transfer()
     fulltraffic.short_description = '总流量'
 
     def traffic(self, obj):
-        return '{} GB'.format(obj.get_traffic())
+        return obj.get_traffic()
     traffic.short_description = '使用流量'
 
     search_fields = ['user__username', 'user__email', 'port', 'user__pk']
