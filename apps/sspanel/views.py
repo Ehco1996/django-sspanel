@@ -6,12 +6,13 @@ from random import randint
 from django.db.models import Q
 from django.conf import settings
 from django.utils import timezone
+from django.core.cache import cache
 from django.utils.six import BytesIO
 from django.http import HttpResponse
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import render, redirect
 
 from apps.utils import reverse_traffic, traffic_format
 from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
@@ -100,6 +101,7 @@ def register(request):
                 max_port_user = SSUser.objects.order_by('-port').first()
                 port = max_port_user.port + randint(2, 3)
                 SSUser.objects.create(user=user, port=port)
+                cache.delete('user_api')
                 return render(request, 'sspanel/index.html', context=context)
 
     else:
