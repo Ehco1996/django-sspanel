@@ -3,6 +3,7 @@ import base64
 
 from django.conf import settings
 from django.utils import timezone
+from django.core.cache import cache
 from django.http import StreamingHttpResponse
 from django.shortcuts import HttpResponse, redirect, render
 from django.contrib.auth.decorators import login_required, permission_required
@@ -80,6 +81,7 @@ def ChangeSsPass(request):
             ss_pass = request.POST.get('password')
             ss_user.password = ss_pass
             ss_user.save()
+            cache.delete('user_api')
             registerinfo = {
                 'title': '修改成功！',
                 'subtitle': '请及时更换客户端密码！',
@@ -115,6 +117,7 @@ def ChangeSsMethod(request):
         methods = [m[0] for m in METHOD_CHOICES]
         protocols = [p[0] for p in PROTOCOL_CHOICES]
         obfss = [o[0] for o in OBFS_CHOICES]
+        cache.delete('user_api')        
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,
@@ -142,6 +145,7 @@ def ChangeSsProtocol(request):
         methods = [m[0] for m in METHOD_CHOICES]
         protocols = [p[0] for p in PROTOCOL_CHOICES]
         obfss = [o[0] for o in OBFS_CHOICES]
+        cache.delete('user_api')        
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,
@@ -169,6 +173,7 @@ def ChangeSsObfs(request):
         methods = [m[0] for m in METHOD_CHOICES]
         protocols = [p[0] for p in PROTOCOL_CHOICES]
         obfss = [o[0] for o in OBFS_CHOICES]
+        cache.delete('user_api')        
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,

@@ -3,10 +3,10 @@ import json
 import datetime
 
 import qrcode
-from django.core.cache import cache
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
+from django.core.cache import cache
 from django.utils.six import BytesIO
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
@@ -14,9 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
-
-from apps.utils import get_date_list, traffic_format
 from apps.payments import alipay, pay91
+from apps.utils import get_date_list, traffic_format, simple_cached_view
 from apps.ssserver.models import (
     SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory,
@@ -47,7 +46,7 @@ def nodeData(request):
     nodeName = [node.name for node in Node.objects.filter(show=1)]
 
     nodeTraffic = [
-        round(node.used_traffic/settings.GB, 2)
+        round(node.used_traffic / settings.GB, 2)
         for node in Node.objects.filter(show=1)]
 
     data = {
@@ -79,6 +78,7 @@ def change_ss_port(request):
     port = SSUser.randomPord()
     user.port = port
     user.save()
+    cache.delete('user_api')
     registerinfo = {
         'title': '修改成功！',
         'subtitle': '端口修改为：{}！'.format(port),
@@ -162,7 +162,8 @@ def purchase(request):
                 'title': '购买成功',
                 'subtitle': '请在用户中心检查最新信息',
                 'status': 'success', }
-            cache.delete('user_api_cache')
+            # 删除缓存
+            cache.delete('user_api')
         return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
@@ -444,6 +445,7 @@ def get_invitecode(request):
         return JsonResponse({'msg': 'method error'})
 
 
+@simple_cached_view()
 @require_http_methods(['GET', ])
 def node_api(request, node_id):
     '''
@@ -487,6 +489,7 @@ def node_online_api(request):
     return JsonResponse(res)
 
 
+@simple_cached_view(key='user_api')
 @require_http_methods(['GET', ])
 def user_api(request, node_id):
     '''
@@ -539,15 +542,15 @@ def traffic_api(request):
             res = SSUser.objects.filter(pk=rec['user_id']).values_list(
                 'upload_traffic', 'download_traffic')[0]
             SSUser.objects.filter(pk=rec['user_id']).update(
-                upload_traffic=(res[0]+rec['u']),
-                download_traffic=(res[1]+rec['d']),
+                upload_traffic=(res[0] + rec['u']),
+                download_traffic=(res[1] + rec['d']),
                 last_use_time=log_time)
             traffic = traffic_format(rec['u'] + rec['d'])
             trafficlog_model_list.append(TrafficLog(
                 node_id=node_id, user_id=rec['user_id'], traffic=traffic,
                 download_traffic=rec['d'],
                 upload_traffic=rec['u'], log_time=log_time))
-            node_total_traffic = node_total_traffic + rec['u']+rec['d']
+            node_total_traffic = node_total_traffic + rec['u'] + rec['d']
         # 节点流量记录
         node = Node.objects.get(node_id=node_id)
         node.used_traffic += node_total_traffic
