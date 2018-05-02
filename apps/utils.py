@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from django.core.cache import cache
 
 from apps.constants import DEFUALT_CACHE_TTL
+from apps.cache_keys import CacheKey as cache_keys
 
 
 def get_random_string(length=12,
@@ -74,6 +75,7 @@ def simple_cached_view(key=None, ttl=None):
     def decorator(func):
         cache_key = key if key else func.__name__
         cache_ttl = ttl if ttl else DEFUALT_CACHE_TTL
+
         @wraps(func)
         def cached_view(*agrs, **kwagrs):
             resp = cache.get(cache_key)
@@ -85,3 +87,42 @@ def simple_cached_view(key=None, ttl=None):
                 return resp
         return cached_view
     return decorator
+
+
+def clear_node_user_cache():
+    from apps.ssserver.models import Node
+    node_ids = Node.objects.filter(show=1).values_list('node_id', flat=True)
+    for node_id in node_ids:
+        key = cache_keys.key_of_node_user(node_id)
+        cache.delete(key)
+
+
+def get_node_user(node_id):
+    '''
+    返回所有当前节点可以使用的用户信息
+    '''
+    from apps.ssserver.models import Node, SSUser
+    key = cache_keys.key_of_node_user(node_id)
+    data = cache.get(key)
+    if data:
+        return data
+    node = Node.objects.filter(node_id=node_id).first()
+    if node:
+        data = []
+        level = node.level
+        user_list = SSUser.objects.filter(
+            level__gte=level, transfer_enable__gte=0)
+        for user in user_list:
+            cfg = {'port': user.port,
+                   'u': user.upload_traffic,
+                   'd': user.download_traffic,
+                   'transfer_enable': user.transfer_enable,
+                   'passwd': user.password,
+                   'enable': user.enable,
+                   'id': user.pk,
+                   'method': user.method,
+                   'obfs': user.obfs,
+                   'protocol': user.protocol}
+            data.append(cfg)
+        cache.set(key, data, DEFUALT_CACHE_TTL)
+        return data

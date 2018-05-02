@@ -15,7 +15,9 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.payments import alipay, pay91
-from apps.utils import get_date_list, traffic_format, simple_cached_view
+from apps.utils import (get_date_list, traffic_format,
+                        simple_cached_view, get_node_user,
+                        clear_node_user_cache)
 from apps.ssserver.models import (
     SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory,
@@ -78,7 +80,7 @@ def change_ss_port(request):
     port = SSUser.randomPord()
     user.port = port
     user.save()
-    cache.delete('user_api')
+    clear_node_user_cache()
     registerinfo = {
         'title': '修改成功！',
         'subtitle': '端口修改为：{}！'.format(port),
@@ -163,7 +165,7 @@ def purchase(request):
                 'subtitle': '请在用户中心检查最新信息',
                 'status': 'success', }
             # 删除缓存
-            cache.delete('user_api')
+            clear_node_user_cache()
         return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
@@ -489,7 +491,6 @@ def node_online_api(request):
     return JsonResponse(res)
 
 
-@simple_cached_view(key='user_api')
 @require_http_methods(['GET', ])
 def user_api(request, node_id):
     '''
@@ -497,26 +498,7 @@ def user_api(request, node_id):
     '''
     token = request.GET.get('token', '')
     if token == settings.TOKEN:
-        node = Node.objects.filter(node_id=node_id).first()
-        if node:
-            data = []
-            level = node.level
-            user_list = SSUser.objects.filter(
-                level__gte=level, transfer_enable__gte=0)
-            for user in user_list:
-                cfg = {'port': user.port,
-                       'u': user.upload_traffic,
-                       'd': user.download_traffic,
-                       'transfer_enable': user.transfer_enable,
-                       'passwd': user.password,
-                       'enable': user.enable,
-                       'id': user.pk,
-                       'method': user.method,
-                       'obfs': user.obfs,
-                       'protocol': user.protocol}
-                data.append(cfg)
-        else:
-            data = None
+        data = get_node_user(node_id)
         res = {'ret': 1,
                'data': data}
     else:

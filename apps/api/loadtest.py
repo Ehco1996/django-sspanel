@@ -125,17 +125,17 @@ class TestTrafficApi(object):
 
 
 def main_test(thread_num=10):
-    # for i in range(thread_num):
-    #     user_api_test = TestUserApi()
-    #     thread = threading.Thread(
-    #         target=user_api_test.test_user_api)
-    #     thread.start()
-
     for i in range(thread_num):
-        traffic_api_test = TestTrafficApi()
+        user_api_test = TestUserApi()
         thread = threading.Thread(
-            target=traffic_api_test.test_traffic_api)
+            target=user_api_test.test_user_api)
         thread.start()
+
+    # for i in range(thread_num):
+    #     traffic_api_test = TestTrafficApi()
+    #     thread = threading.Thread(
+    #         target=traffic_api_test.test_traffic_api)
+    #     thread.start()
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 
-from apps.utils import reverse_traffic, traffic_format
+from apps.utils import reverse_traffic, traffic_format, clear_node_user_cache
 from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
 from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Goods, MoneyCode,
@@ -101,7 +101,7 @@ def register(request):
                 max_port_user = SSUser.objects.order_by('-port').first()
                 port = max_port_user.port + randint(2, 3)
                 SSUser.objects.create(user=user, port=port)
-                cache.delete('user_api')
+                clear_node_user_cache()
                 return render(request, 'sspanel/index.html', context=context)
 
     else:
