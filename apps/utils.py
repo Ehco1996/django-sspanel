@@ -122,7 +122,10 @@ def get_node_user(node_id):
                    'id': user.pk,
                    'method': user.method,
                    'obfs': user.obfs,
-                   'protocol': user.protocol}
+                   'obfs_param': user.obfs_param,
+                   'protocol': user.protocol,
+                   'protocol_param': user.protocol_param,
+                   }
             data.append(cfg)
         cache.set(key, data, DEFUALT_CACHE_TTL)
         return data

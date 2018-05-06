@@ -127,9 +127,15 @@ class SSUser(models.Model):
         '协议', default=settings.DEFAULT_PROTOCOL,
         max_length=32, choices=PROTOCOL_CHOICES,)
 
+    protocol_param = models.CharField(
+        '协议参数', max_length=128, null=True, blank=True)
+
     obfs = models.CharField(
         '混淆', default=settings.DEFAULT_OBFS,
         max_length=32, choices=OBFS_CHOICES,)
+
+    obfs_param = models.CharField(
+        '混淆参数', max_length=128, null=True, blank=True)
 
     # 等级字段 和 sspanel.user 的level 同步
     level = models.PositiveIntegerField(
