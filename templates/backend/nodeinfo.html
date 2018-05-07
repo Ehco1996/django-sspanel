@@ -19,10 +19,10 @@
             <thead>
                 <tr>
                     <th>操作:</th>
-                    <th>ID:</th>
+                    <th>节点ID:</th>
                     <th>节点名:</th>
                     <th>显示:</th>
-                    <th>IP:</th>
+                    <th>节点IP:</th>
                     <th>加密:</th>
                     <th>等级:</th>
                     <th>已用流量:</th>
@@ -39,7 +39,7 @@
                         <a class="button is-danger modal-button" data-target="modal-{{ node.node_id }}">删除</a>
                     </p>
                 </td>
-                <td>#{{ node.pk }}</td>
+                <td>{{ node.node_id }}</td>
                 <td>{{ node.name }}</td>
                 <td>{{ node.show }}</td>
                 <td>{{ node.server }}</td>

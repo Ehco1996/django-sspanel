@@ -264,6 +264,11 @@ class Node(models.Model):
         (1, '显示'),
         (-1, '不显示'))
 
+    NODE_TYPE = (
+        (0, '多端口多用户'),
+        (1, '单端口多用户')
+    )
+
     @classmethod
     def get_sub_code(cls, user):
         '''获取该用户的所有节点链接'''
@@ -288,7 +293,7 @@ class Node(models.Model):
         max_length=32, choices=METHOD_CHOICES,)
 
     custom_method = models.SmallIntegerField(
-        '自定义加密', choices=((0, 0), (1, 1)), default=0,)
+        '自定义加密', choices=((0, '否'), (1, '是')), default=0,)
 
     traffic_rate = models.FloatField('流量比例', default=1.0)
 
@@ -296,9 +301,15 @@ class Node(models.Model):
         '协议', default=settings.DEFAULT_PROTOCOL,
         max_length=32, choices=PROTOCOL_CHOICES,)
 
+    protocol_param = models.CharField(
+        '协议参数', max_length=128, null=True, blank=True)
+
     obfs = models.CharField(
         '混淆', default=settings.DEFAULT_OBFS,
         max_length=32, choices=OBFS_CHOICES,)
+
+    obfs_param = models.CharField(
+        '混淆参数', max_length=128, null=True, blank=True)
 
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True,)
 
@@ -318,6 +329,12 @@ class Node(models.Model):
         '是否显示',
         choices=SHOW_CHOICE,
         default=1,
+    )
+
+    node_type = models.SmallIntegerField(
+        '节点类型',
+        choices=NODE_TYPE,
+        default=0,
     )
 
     group = models.CharField(
