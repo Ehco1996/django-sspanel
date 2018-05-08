@@ -364,12 +364,23 @@ class Node(models.Model):
     def get_ssr_link(self, ss_user):
         '''返回ssr链接'''
         ssr_password = base64.urlsafe_b64encode(
-            bytes(ss_user.password, 'utf8')).decode('ascii')
+            bytes(ss_user.password, 'utf8')).decode('utf8')
         ssr_remarks = base64.urlsafe_b64encode(
-            bytes(self.name, 'utf8')).decode('ascii')
+            bytes(self.name, 'utf8')).decode('utf8')
         ssr_group = base64.urlsafe_b64encode(
-            bytes(self.group, 'utf8')).decode('ascii')
-        if self.custom_method == 1:
+            bytes(self.group, 'utf8')).decode('utf8')
+        if self.node_type == 1:
+            # 单端口多用户
+            info = '{}:{}'.format(ss_user.port, ss_user.password)
+            protocol_param = base64.urlsafe_b64encode(
+                bytes(info, 'utf8')).decode('utf8')
+            obfs_param = base64.urlsafe_b64encode(
+                bytes(str(self.obfs_param), 'utf8')).decode('utf8')
+            ssr_code = '{}:{}:{}:{}:{}:{}/?obfsparam={}&protoparam={}&remarks={}&group={}'.format(
+                self.server, ss_user.port, self.protocol, self.method,
+                self.obfs, ssr_password, obfs_param, protocol_param,
+                ssr_remarks, ssr_group)
+        elif self.custom_method == 1:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
                 self.server, ss_user.port, ss_user.protocol, ss_user.method,
                 ss_user.obfs, ssr_password, ssr_remarks, ssr_group)
@@ -378,7 +389,7 @@ class Node(models.Model):
                 self.server, ss_user.port, self.protocol, self.method,
                 self.obfs, ssr_password, ssr_remarks, ssr_group)
         ssr_pass = base64.urlsafe_b64encode(
-            bytes(ssr_code, 'utf8')).decode('ascii')
+            bytes(ssr_code, 'utf8')).decode('utf8')
         ssr_link = 'ssr://{}'.format(ssr_pass)
         return ssr_link
 
@@ -391,8 +402,8 @@ class Node(models.Model):
             ss_code = '{}:{}@{}:{}'.format(
                 self.method, ss_user.password, self.server, ss_user.port)
         ss_pass = base64.urlsafe_b64encode(
-            bytes(ss_code, 'utf8')).decode('ascii')
-        ss_link = 'ss://{}'.format(ss_pass)
+            bytes(ss_code, 'utf8')).decode('utf8')
+        ss_link = 'ss://{}#{}'.format(ss_pass, self.name)
         return ss_link
 
     def save(self, *args, **kwargs):
