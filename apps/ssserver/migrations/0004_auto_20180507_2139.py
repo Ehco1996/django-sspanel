@@ -13,16 +13,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='node',
             name='node_type',
-            field=models.SmallIntegerField(choices=[(0, '多端口多用户'), (1, '单端口多用户')], default=0, verbose_name='节点类型'),
+            field=models.SmallIntegerField(
+                choices=[(0, '多端口多用户'), (1, '单端口多用户')], default=0, verbose_name='节点类型'),
         ),
         migrations.AddField(
             model_name='node',
             name='obfs_param',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='混淆参数'),
+            field=models.CharField(
+                blank=True, max_length=128, null=True, default='', verbose_name='混淆参数'),
         ),
         migrations.AddField(
             model_name='node',
             name='protocol_param',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='协议参数'),
+            field=models.CharField(
+                blank=True, max_length=128, null=True, default='', verbose_name='协议参数'),
         ),
     ]

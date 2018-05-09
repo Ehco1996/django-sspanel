@@ -22,10 +22,12 @@
                 <div class="card-header">
                     {% if list.online == True %}
                     <p class="card-header-title">
+                        <span class="tag is-info">{{ list.node_type }}</span>&nbsp&nbsp
                         <span class="tag is-success">在线</span>&nbsp&nbsp{{ list.name }}</p>
                     {% else %}
                     <p class="card-header-title">
-                        <span class="tag is-danger">掉线</span>&nbsp&nbsp{{ list.name }}</p>
+                        <span class="tag is-info">{{ list.node_type }}</span>&nbsp&nbsp
+                        <span class="tag is-danger">掉线</span>&nbsp&nbsp {{ list.name }}</p>
                     {% endif %}
                     <p class="card-header-icon">地区：
                         <span class="icon">
@@ -74,39 +76,32 @@
                                     </tr>
                                     <tr>
                                         <td class="notification">端口:</td>
-                                        <td class="notification">{{ ss_user.port }}</td>
+                                        <td class="notification">{{ list.port }}</td>
                                     </tr>
                                     <tr>
                                         <td class="notification">密码:</td>
-                                        <td class="notification">{{ ss_user.password }}</td>
+                                        <td class="notification">{{ list.password }}</td>
                                     </tr>
-                                    {% if list.custom_method == 0 %}
                                     <tr>
                                         <td class="notification">加密方式:</td>
                                         <td class="notification">{{ list.method }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="notification">协议(ss版客户端可不填写):</td>
+                                        <td class="notification">协议:</td>
                                         <td class="notification">{{ list.protocol }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="notification">混淆(ss版客户端可不填写):</td>
+                                        <td class="notification">协议参数:</td>
+                                        <td class="notification">{{ list.protocol_param }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">混淆:</td>
                                         <td class="notification">{{ list.obfs }}</td>
                                     </tr>
-                                    {% else %}
                                     <tr>
-                                        <td class="notification">加密方式:</td>
-                                        <td class="notification">{{ ss_user.method }}</td>
+                                        <td class="notification">混淆参数:</td>
+                                        <td class="notification">{{ list.obfs_param }}</td>
                                     </tr>
-                                    <tr>
-                                        <td class="notification">协议(ss版客户端可不填写):</td>
-                                        <td class="notification">{{ ss_user.protocol }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="notification">混淆(ss版客户端可不填写):</td>
-                                        <td class="notification">{{ ss_user.obfs }}</td>
-                                    </tr>
-                                    {% endif %}
                                 </table>
                                 <p class="subtitle">配置链接：</p>
                                 <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
@@ -145,6 +140,7 @@
                                     <p class="subtitle">SSR版本(推荐使用)：</p>
                                     <img src="" id="id-ssr-{{ list.node_id }}" width="256" height="256">
                                 </div>
+                                {% if list.node_type == "多端口"%}
                                 <p class="subtitle">用原版SS要在节点编辑界面将
                                     <strong>混淆</strong>改成
                                     <code>http_simple_compatible</code>
@@ -154,6 +150,7 @@
                                     <p class="subtitle">SS原版：</p>
                                     <img src="" id="id-ss-{{ list.node_id }}" width="256" height="256">
                                 </div>
+                                {% endif %}
                             </section>
                         </div>
                     </div>

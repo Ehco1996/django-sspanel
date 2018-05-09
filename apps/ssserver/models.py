@@ -254,20 +254,17 @@ class TrafficLog(models.Model):
 
 class Node(models.Model):
     '''线路节点'''
-    STATUS_CHOICES = (
-        (1, '好用'),
-        (0, '维护'),
-        (-1, '坏了'),
-    )
-
-    SHOW_CHOICE = (
+    SHOW_CHOICES = (
         (1, '显示'),
         (-1, '不显示'))
 
-    NODE_TYPE = (
+    NODE_TYPE_CHOICES = (
         (0, '多端口多用户'),
         (1, '单端口多用户')
     )
+
+    CUSTOM_METHOD_CHOICES = (
+        (0, '否'), (1, '是'))
 
     @classmethod
     def get_sub_code(cls, user):
@@ -280,83 +277,45 @@ class Node(models.Model):
         return sub_code
 
     node_id = models.IntegerField('节点id', unique=True,)
-
+    port = models.IntegerField(
+        '节点端口', null=True, blank=True, help_text='单端口多用户时需要')
+    password = models.CharField(
+        '节点密码', max_length=32, null=True, blank=True, help_text='单端口多用户时需要')
     country = models.CharField(
         '国家', default='CN', max_length=2, choices=COUNTRIES_CHOICES)
-
-    name = models.CharField('名字', max_length=32,)
-
-    server = models.CharField('服务器IP', max_length=128,)
-
+    custom_method = models.SmallIntegerField(
+        '自定义加密', choices=CUSTOM_METHOD_CHOICES, default=0)
+    show = models.SmallIntegerField('是否显示', choices=SHOW_CHOICES, default=1)
+    node_type = models.SmallIntegerField(
+        '节点类型', choices=NODE_TYPE_CHOICES, default=0)
+    name = models.CharField('名字', max_length=32)
+    info = models.CharField('节点说明', max_length=1024, blank=True, null=True)
+    server = models.CharField('服务器IP', max_length=128)
     method = models.CharField(
         '加密类型', default=settings.DEFAULT_METHOD,
         max_length=32, choices=METHOD_CHOICES,)
-
-    custom_method = models.SmallIntegerField(
-        '自定义加密', choices=((0, '否'), (1, '是')), default=0,)
-
     traffic_rate = models.FloatField('流量比例', default=1.0)
-
     protocol = models.CharField(
         '协议', default=settings.DEFAULT_PROTOCOL,
         max_length=32, choices=PROTOCOL_CHOICES,)
-
     protocol_param = models.CharField(
         '协议参数', max_length=128, null=True, blank=True)
-
     obfs = models.CharField(
         '混淆', default=settings.DEFAULT_OBFS,
         max_length=32, choices=OBFS_CHOICES,)
-
     obfs_param = models.CharField(
-        '混淆参数', max_length=128, null=True, blank=True)
-
-    info = models.CharField('节点说明', max_length=1024, blank=True, null=True,)
-
+        '混淆参数', max_length=128, default='', null=True, blank=True)
     level = models.PositiveIntegerField(
-        '节点等级',
-        default=0,
-        validators=[
-            MaxValueValidator(9),
-            MinValueValidator(0),
-        ]
-    )
-
-    status = models.SmallIntegerField(
-        '状态', default=1, choices=STATUS_CHOICES,)
-
-    show = models.SmallIntegerField(
-        '是否显示',
-        choices=SHOW_CHOICE,
-        default=1,
-    )
-
-    node_type = models.SmallIntegerField(
-        '节点类型',
-        choices=NODE_TYPE,
-        default=0,
-    )
-
-    group = models.CharField(
-        '分组名', max_length=32, default='谜之屋')
-
-    total_traffic = models.BigIntegerField(
-        '总流量',
-        default=settings.GB,
-    )
-
+        '节点等级', default=0,
+        validators=[MaxValueValidator(9), MinValueValidator(0)])
+    total_traffic = models.BigIntegerField('总流量', default=settings.GB)
     human_total_traffic = models.CharField(
         '节点总流量', max_length=255, default='1GB', blank=True, null=True)
-
-    used_traffic = models.BigIntegerField(
-        '已用流量',
-        default=0,
-    )
-
+    used_traffic = models.BigIntegerField('已用流量', default=0,)
     human_used_traffic = models.CharField(
         '已用流量', max_length=255, blank=True, null=True)
-
     order = models.PositiveSmallIntegerField('排序', default=1)
+    group = models.CharField('分组名', max_length=32, default='谜之屋')
 
     def __str__(self):
         return self.name
@@ -371,23 +330,21 @@ class Node(models.Model):
             bytes(self.group, 'utf8')).decode('utf8')
         if self.node_type == 1:
             # 单端口多用户
+            ssr_password = base64.urlsafe_b64encode(
+                bytes(self.password, 'utf8')).decode('utf8')
             info = '{}:{}'.format(ss_user.port, ss_user.password)
             protocol_param = base64.urlsafe_b64encode(
                 bytes(info, 'utf8')).decode('utf8')
             obfs_param = base64.urlsafe_b64encode(
                 bytes(str(self.obfs_param), 'utf8')).decode('utf8')
             ssr_code = '{}:{}:{}:{}:{}:{}/?obfsparam={}&protoparam={}&remarks={}&group={}'.format(
-                self.server, ss_user.port, self.protocol, self.method,
+                self.server, self.port, self.protocol, self.method,
                 self.obfs, ssr_password, obfs_param, protocol_param,
                 ssr_remarks, ssr_group)
         elif self.custom_method == 1:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
                 self.server, ss_user.port, ss_user.protocol, ss_user.method,
                 ss_user.obfs, ssr_password, ssr_remarks, ssr_group)
-        else:
-            ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
-                self.server, ss_user.port, self.protocol, self.method,
-                self.obfs, ssr_password, ssr_remarks, ssr_group)
         ssr_pass = base64.urlsafe_b64encode(
             bytes(ssr_code, 'utf8')).decode('utf8')
         ssr_link = 'ssr://{}'.format(ssr_pass)
@@ -409,6 +366,8 @@ class Node(models.Model):
     def save(self, *args, **kwargs):
         self.human_total_traffic = traffic_format(self.total_traffic)
         self.human_used_traffic = traffic_format(self.used_traffic)
+        if self.node_type == 1:
+            self.custom_method = 0
         super(Node, self).save(*args, **kwargs)
 
     class Meta:

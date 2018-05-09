@@ -346,13 +346,32 @@ def nodeinfo(request):
         node['ssrlink'] = obj.get_ssr_link(ss_user)
         node['sslink'] = obj.get_ss_link(ss_user)
         node['country'] = obj.country.lower()
-        # 得到在线人数
-        try:
-            log = NodeOnlineLog.objects.filter(
-                node_id=node['node_id']).last()
+        node['node_type'] = obj.get_node_type_display()[:-3]
+        if obj.node_type == 1:
+            # 单端口的情况下
+            node['port'] = obj.port
+            node['method'] = obj.method
+            node['password'] = obj.password
+            node['protocol'] = obj.protocol
+            node['protocol_param'] = '{}:{}'.format(
+                ss_user.port, ss_user.password)
+            node['obfs'] = obj.obfs
+            node['obfs_param'] = obj.obfs_param
+        elif obj.custom_method == 1:
+            node['port'] = ss_user.port
+            node['method'] = ss_user.method
+            node['password'] = ss_user.password
+            node['protocol'] = ss_user.protocol
+            node['protocol_param'] = ss_user.protocol_param
+            node['obfs'] = ss_user.obfs
+            node['obfs_param'] = ss_user.obfs_param
+            # 得到在线人数
+        log = NodeOnlineLog.objects.filter(
+            node_id=node['node_id']).last()
+        if log:
             node['online'] = log.get_oneline_status()
             node['count'] = log.get_online_user()
-        except:
+        else:
             node['online'] = False
             node['count'] = 0
         nodelists.append(node)
