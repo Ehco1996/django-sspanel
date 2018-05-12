@@ -126,14 +126,6 @@ def get_node_user(node_id):
                    'protocol': user.protocol,
                    'protocol_param': user.protocol_param,
                    }
-            if node.node_type == 1:
-                cfg.update({
-                    'passwd': node.password,
-                    'method': node.method,
-                    'obfs': node.obfs,
-                    'protocol': node.protocol,
-                    'protocol_param': '{}:{}'.format(user.port, user.password)
-                })
             data.append(cfg)
         cache.set(key, data, DEFUALT_CACHE_TTL)
         return data
