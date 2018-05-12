@@ -3,7 +3,6 @@ import base64
 
 from django.conf import settings
 from django.utils import timezone
-from django.core.cache import cache
 from django.http import StreamingHttpResponse
 from django.shortcuts import HttpResponse, redirect, render
 from django.contrib.auth.decorators import login_required, permission_required

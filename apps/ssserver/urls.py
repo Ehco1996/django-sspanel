@@ -10,7 +10,6 @@ urlpatterns = [
     path('changessmethod/', views.ChangeSsMethod, name='changessmethod'),
     path('changessprotocol/', views.ChangeSsProtocol, name='changessprotocol'),
     path('changessobfs/', views.ChangeSsObfs, name='changessobfs'),
-    path('clean/user', views.clean_zombie_user, name='clean_user'),
     path('subscribe/<token>/', views.subscribe, name='subscribe'),
     path('node/config/', views.node_config, name='node_config'),
 ]
