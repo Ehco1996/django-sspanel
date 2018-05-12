@@ -128,7 +128,6 @@ def get_node_user(node_id):
                    }
             if node.node_type == 1:
                 cfg.update({
-                    'port': node.port,
                     'passwd': node.password,
                     'method': node.method,
                     'obfs': node.obfs,
