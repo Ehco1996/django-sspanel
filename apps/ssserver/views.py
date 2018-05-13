@@ -256,26 +256,6 @@ def reset_node_traffic():
     print('all node traffic removed!')
 
 
-@permission_required('ssserver')
-def clean_zombie_user(request):
-    '''清除从未使用过的用户'''
-    users = User.objects.all()
-    count = 0
-    for user in users:
-        if user.ss_user.last_use_time == 0 and user.balance == 0 \
-                and user.ss_user.level == 0:
-            user.delete()
-            count += 1
-    registerinfo = {
-        'title': '删除僵尸用户',
-        'subtitle': '成功删除{}个僵尸用户'.format(count),
-                    'status': 'success', }
-    context = {
-        'registerinfo': registerinfo
-    }
-    return render(request, 'backend/index.html', context=context)
-
-
 def subscribe(request, token):
     '''
     返回ssr订阅链接
