@@ -3,7 +3,7 @@ version: '3'
 services:
   db:
     image: mysql:5.6
-    container_name : sspanel-db    
+    container_name : sspanel-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: yourpass
@@ -11,7 +11,7 @@ services:
     volumes:
       - ./configs/mysqld/mysqld_charset.cnf:/etc/mysql/conf.d/mysqld_charset.cnf
       - mysql-data:/var/lib/mysql
-    networks: 
+    networks:
       - sspanel_network
   web:
     container_name : sspanel-web
@@ -25,16 +25,16 @@ services:
     command: uwsgi uwsgi.ini
     volumes:
       - .:/src/django-sspanel
-      - static/:/src/django-sspanel/static      
+      - static/:/src/django-sspanel/static
     ports:
       - 8080:8080
     depends_on:
       - db
-    networks: 
+    networks:
       - sspanel_network
   nginx:
     image: nginx
-    restart: always    
+    restart: always
     container_name : sspanel-nginx
     volumes:
       - ./configs/nginx/:/etc/nginx/conf.d
@@ -43,7 +43,7 @@ services:
       - 80:80
     depends_on:
       - web
-    networks: 
+    networks:
       - sspanel_network
 networks:
   sspanel_network:
