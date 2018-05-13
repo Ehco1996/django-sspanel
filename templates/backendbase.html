@@ -22,10 +22,10 @@
         </div>
         <div id="navMenuColorprimary-example" class="navbar-menu">
             <div class="navbar-end">
-                <a class="navbar-item is-hidden-mobile" href="/">首页</a>
-                <a class="navbar-item is-hidden-mobile" href="/sshelp">使用说明</a>
-                <a class="navbar-item is-hidden-mobile" href="/ssinvite">邀请码</a>
-                <a class="navbar-item is-hidden-mobile" href="/ssclient">客户端</a>
+                <a class="navbar-item" href="{% url 'sspanel:index' %}">首页</a>
+                <a class="navbar-item" href="{% url 'sspanel:sshelp' %}">使用说明</a>
+                <a class="navbar-item" href="{% url 'sspanel:ssinvite' %}">邀请码</a>
+                <a class="navbar-item" href="{% url 'sspanel:ssclient' %}">客户端</a>
                 <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
                     <span class="navbar-item">
                         <a class="button is-primary is-inverted" href="{% url 'sspanel:userinfo' %}">

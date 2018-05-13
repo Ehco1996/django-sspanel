@@ -1,4 +1,3 @@
-
 import time
 import base64
 import datetime
@@ -17,7 +16,6 @@ from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
 
 
 class SSUser(models.Model):
-
     @classmethod
     def userTodyChecked(cls):
         '''返回今日签到人数'''
@@ -26,8 +24,9 @@ class SSUser(models.Model):
     @classmethod
     def userNeverChecked(cls):
         '''返回从未签到过人数'''
-        return len([o for o in cls.objects.all()
-                    if o.last_check_in_time.year == 1970])
+        return len([
+            o for o in cls.objects.all() if o.last_check_in_time.year == 1970
+        ])
 
     @classmethod
     def userNeverUsed(cls):
@@ -61,8 +60,7 @@ class SSUser(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='ss_user',
-        verbose_name='用户名'
-    )
+        verbose_name='用户名')
 
     last_check_in_time = models.DateTimeField(
         '最后签到时间',
@@ -77,7 +75,9 @@ class SSUser(models.Model):
         'sspanel密码',
         max_length=32,
         # 当密码少于6位时报错
-        validators=[validators.MinLengthValidator(6), ],
+        validators=[
+            validators.MinLengthValidator(6),
+        ],
         default=get_short_random_string,
         db_column='passwd',
     )
@@ -87,27 +87,11 @@ class SSUser(models.Model):
         unique=True,
     )
     last_use_time = models.IntegerField(
-        '最后使用时间',
-        default=0,
-        editable=False,
-        help_text='时间戳',
-        db_column='t'
-    )
-    upload_traffic = models.BigIntegerField(
-        '上传流量',
-        default=0,
-        db_column='u'
-    )
-    download_traffic = models.BigIntegerField(
-        '下载流量',
-        default=0,
-        db_column='d'
-    )
+        '最后使用时间', default=0, editable=False, help_text='时间戳', db_column='t')
+    upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
+    download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
     transfer_enable = models.BigIntegerField(
-        '总流量',
-        default=settings.DEFAULT_TRAFFIC,
-        db_column='transfer_enable'
-    )
+        '总流量', default=settings.DEFAULT_TRAFFIC, db_column='transfer_enable')
     switch = models.BooleanField(
         '保留字段switch',
         default=True,
@@ -120,19 +104,28 @@ class SSUser(models.Model):
     )
 
     method = models.CharField(
-        '加密类型', default=settings.DEFAULT_METHOD,
-        max_length=32, choices=METHOD_CHOICES,)
+        '加密类型',
+        default=settings.DEFAULT_METHOD,
+        max_length=32,
+        choices=METHOD_CHOICES,
+    )
 
     protocol = models.CharField(
-        '协议', default=settings.DEFAULT_PROTOCOL,
-        max_length=32, choices=PROTOCOL_CHOICES,)
+        '协议',
+        default=settings.DEFAULT_PROTOCOL,
+        max_length=32,
+        choices=PROTOCOL_CHOICES,
+    )
 
     protocol_param = models.CharField(
         '协议参数', max_length=128, null=True, blank=True)
 
     obfs = models.CharField(
-        '混淆', default=settings.DEFAULT_OBFS,
-        max_length=32, choices=OBFS_CHOICES,)
+        '混淆',
+        default=settings.DEFAULT_OBFS,
+        max_length=32,
+        choices=OBFS_CHOICES,
+    )
 
     obfs_param = models.CharField(
         '混淆参数', max_length=128, null=True, blank=True)
@@ -140,7 +133,8 @@ class SSUser(models.Model):
     # 等级字段 和 sspanel.user 的level 同步
     level = models.PositiveIntegerField(
         '用户等级',
-        default=0,)
+        default=0,
+    )
 
     def __str__(self):
         return self.user.username
@@ -165,9 +159,9 @@ class SSUser(models.Model):
     def get_used_percentage(self):
         '''返回用户的为使用流量百分比'''
         try:
-            return '{:.2f}'.format((
-                self.download_traffic + self.upload_traffic)
-                / self.transfer_enable * 100)
+            return '{:.2f}'.format(
+                (self.download_traffic + self.upload_traffic) /
+                self.transfer_enable * 100)
         except ZeroDivisionError:
             return '100'
 
@@ -191,7 +185,7 @@ class SSUser(models.Model):
 
     class Meta:
         verbose_name_plural = 'SS用户'
-        ordering = ('-last_check_in_time',)
+        ordering = ('-last_check_in_time', )
         db_table = 'user'
 
 
@@ -218,25 +212,19 @@ class TrafficLog(models.Model):
     def getTrafficByDay(cls, node_id, user_id, date):
         '''返回指定用户对应节点对应日期的流量 单位GB'''
         traffics = cls.objects.filter(
-            node_id=node_id, user_id=user_id,
+            node_id=node_id,
+            user_id=user_id,
             log_date__year=date.year,
-            log_date__month=date.month, log_date__day=date.day)
+            log_date__month=date.month,
+            log_date__day=date.day)
         total_traffic = sum(
             [u.upload_traffic + u.download_traffic for u in traffics])
         return round(total_traffic / settings.GB, 2)
 
     user_id = models.IntegerField('用户id', blank=False, null=False)
     node_id = models.IntegerField('节点id', blank=False, null=False)
-    upload_traffic = models.BigIntegerField(
-        '上传流量',
-        default=0,
-        db_column='u'
-    )
-    download_traffic = models.BigIntegerField(
-        '下载流量',
-        default=0,
-        db_column='d'
-    )
+    upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
+    download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
     rate = models.FloatField('流量比例', default=1.0, null=False)
     traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
@@ -248,23 +236,17 @@ class TrafficLog(models.Model):
 
     class Meta:
         verbose_name_plural = '流量记录'
-        ordering = ('-log_time',)
+        ordering = ('-log_time', )
         db_table = 'user_traffic_log'
 
 
 class Node(models.Model):
     '''线路节点'''
-    SHOW_CHOICES = (
-        (1, '显示'),
-        (-1, '不显示'))
+    SHOW_CHOICES = ((1, '显示'), (-1, '不显示'))
 
-    NODE_TYPE_CHOICES = (
-        (0, '多端口多用户'),
-        (1, '单端口多用户')
-    )
+    NODE_TYPE_CHOICES = ((0, '多端口多用户'), (1, '单端口多用户'))
 
-    CUSTOM_METHOD_CHOICES = (
-        (0, '否'), (1, '是'))
+    CUSTOM_METHOD_CHOICES = ((0, '否'), (1, '是'))
 
     @classmethod
     def get_sub_code(cls, user):
@@ -276,7 +258,10 @@ class Node(models.Model):
             sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
         return sub_code
 
-    node_id = models.IntegerField('节点id', unique=True,)
+    node_id = models.IntegerField(
+        '节点id',
+        unique=True,
+    )
     port = models.IntegerField(
         '节点端口', null=True, blank=True, help_text='单端口多用户时需要')
     password = models.CharField(
@@ -292,26 +277,40 @@ class Node(models.Model):
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True)
     server = models.CharField('服务器IP', max_length=128)
     method = models.CharField(
-        '加密类型', default=settings.DEFAULT_METHOD,
-        max_length=32, choices=METHOD_CHOICES,)
+        '加密类型',
+        default=settings.DEFAULT_METHOD,
+        max_length=32,
+        choices=METHOD_CHOICES,
+    )
     traffic_rate = models.FloatField('流量比例', default=1.0)
     protocol = models.CharField(
-        '协议', default=settings.DEFAULT_PROTOCOL,
-        max_length=32, choices=PROTOCOL_CHOICES,)
+        '协议',
+        default=settings.DEFAULT_PROTOCOL,
+        max_length=32,
+        choices=PROTOCOL_CHOICES,
+    )
     protocol_param = models.CharField(
         '协议参数', max_length=128, null=True, blank=True)
     obfs = models.CharField(
-        '混淆', default=settings.DEFAULT_OBFS,
-        max_length=32, choices=OBFS_CHOICES,)
+        '混淆',
+        default=settings.DEFAULT_OBFS,
+        max_length=32,
+        choices=OBFS_CHOICES,
+    )
     obfs_param = models.CharField(
         '混淆参数', max_length=128, default='', null=True, blank=True)
     level = models.PositiveIntegerField(
-        '节点等级', default=0,
-        validators=[MaxValueValidator(9), MinValueValidator(0)])
+        '节点等级',
+        default=0,
+        validators=[MaxValueValidator(9),
+                    MinValueValidator(0)])
     total_traffic = models.BigIntegerField('总流量', default=settings.GB)
     human_total_traffic = models.CharField(
         '节点总流量', max_length=255, default='1GB', blank=True, null=True)
-    used_traffic = models.BigIntegerField('已用流量', default=0,)
+    used_traffic = models.BigIntegerField(
+        '已用流量',
+        default=0,
+    )
     human_used_traffic = models.CharField(
         '已用流量', max_length=255, blank=True, null=True)
     order = models.PositiveSmallIntegerField('排序', default=1)
@@ -324,42 +323,46 @@ class Node(models.Model):
         '''返回ssr链接'''
         ssr_password = base64.urlsafe_b64encode(
             bytes(ss_user.password, 'utf8')).decode('utf8')
-        ssr_remarks = base64.urlsafe_b64encode(
-            bytes(self.name, 'utf8')).decode('utf8')
-        ssr_group = base64.urlsafe_b64encode(
-            bytes(self.group, 'utf8')).decode('utf8')
+        ssr_remarks = base64.urlsafe_b64encode(bytes(self.name,
+                                                     'utf8')).decode('utf8')
+        ssr_group = base64.urlsafe_b64encode(bytes(self.group,
+                                                   'utf8')).decode('utf8')
         if self.node_type == 1:
             # 单端口多用户
             ssr_password = base64.urlsafe_b64encode(
                 bytes(self.password, 'utf8')).decode('utf8')
             info = '{}:{}'.format(ss_user.port, ss_user.password)
-            protocol_param = base64.urlsafe_b64encode(
-                bytes(info, 'utf8')).decode('utf8')
+            protocol_param = base64.urlsafe_b64encode(bytes(
+                info, 'utf8')).decode('utf8')
             obfs_param = base64.urlsafe_b64encode(
                 bytes(str(self.obfs_param), 'utf8')).decode('utf8')
             ssr_code = '{}:{}:{}:{}:{}:{}/?obfsparam={}&protoparam={}&remarks={}&group={}'.format(
-                self.server, self.port, self.protocol, self.method,
-                self.obfs, ssr_password, obfs_param, protocol_param,
-                ssr_remarks, ssr_group)
+                self.server, self.port, self.protocol, self.method, self.obfs,
+                ssr_password, obfs_param, protocol_param, ssr_remarks,
+                ssr_group)
         elif self.custom_method == 1:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
                 self.server, ss_user.port, ss_user.protocol, ss_user.method,
                 ss_user.obfs, ssr_password, ssr_remarks, ssr_group)
-        ssr_pass = base64.urlsafe_b64encode(
-            bytes(ssr_code, 'utf8')).decode('utf8')
+        else:
+            ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
+                self.server, ss_user.port, self.protocol, self.method,
+                self.obfs, ssr_password, ssr_remarks, ssr_group)
+        ssr_pass = base64.urlsafe_b64encode(bytes(ssr_code,
+                                                  'utf8')).decode('utf8')
         ssr_link = 'ssr://{}'.format(ssr_pass)
         return ssr_link
 
     def get_ss_link(self, ss_user):
         '''返回ss链接'''
         if self.custom_method == 1:
-            ss_code = '{}:{}@{}:{}'.format(
-                ss_user.method, ss_user.password, self.server, ss_user.port)
+            ss_code = '{}:{}@{}:{}'.format(ss_user.method, ss_user.password,
+                                           self.server, ss_user.port)
         else:
-            ss_code = '{}:{}@{}:{}'.format(
-                self.method, ss_user.password, self.server, ss_user.port)
-        ss_pass = base64.urlsafe_b64encode(
-            bytes(ss_code, 'utf8')).decode('utf8')
+            ss_code = '{}:{}@{}:{}'.format(self.method, ss_user.password,
+                                           self.server, ss_user.port)
+        ss_pass = base64.urlsafe_b64encode(bytes(ss_code,
+                                                 'utf8')).decode('utf8')
         ss_link = 'ss://{}#{}'.format(ss_pass, self.name)
         return ss_link
 
@@ -393,7 +396,7 @@ class NodeInfoLog(models.Model):
     class Meta:
         verbose_name_plural = '节点日志'
         db_table = 'ss_node_info_log'
-        ordering = ('-log_time',)
+        ordering = ('-log_time', )
 
 
 class NodeOnlineLog(models.Model):
@@ -403,8 +406,9 @@ class NodeOnlineLog(models.Model):
     def totalOnlineUser(cls):
         '''返回所有节点的在线人数总和'''
         count = 0
-        node_ids = [o['node_id'] for o in Node.objects.filter(
-            show=1).values('node_id')]
+        node_ids = [
+            o['node_id'] for o in Node.objects.filter(show=1).values('node_id')
+        ]
         for node_id in node_ids:
             o = cls.objects.filter(node_id=node_id).order_by('-log_time')[:1]
             if o:
@@ -440,7 +444,6 @@ class NodeOnlineLog(models.Model):
 
 
 class AliveIp(models.Model):
-
     @classmethod
     def recent_alive(cls, node_id):
         '''
@@ -450,8 +453,9 @@ class AliveIp(models.Model):
         last_now = now - datetime.timedelta(minutes=2)
         ret = []
         ip_pool = []
-        _ = cls.objects.filter(node_id=node_id, log_time__range=[
-            str(last_now), str(now)])
+        _ = cls.objects.filter(
+            node_id=node_id, log_time__range=[str(last_now),
+                                              str(now)])
         for item in _:
             if item.ip not in ip_pool:
                 ip_pool.append(item.ip)
@@ -460,9 +464,15 @@ class AliveIp(models.Model):
 
     node_id = models.IntegerField('节点id', blank=False, null=False)
 
-    ip = models.CharField('设备ip', max_length=128,)
+    ip = models.CharField(
+        '设备ip',
+        max_length=128,
+    )
 
-    user = models.CharField('用户名', max_length=128,)
+    user = models.CharField(
+        '用户名',
+        max_length=128,
+    )
 
     log_time = models.DateTimeField('日志时间', auto_now=True)
 
