@@ -4,7 +4,9 @@ import hashlib
 from functools import wraps
 from datetime import datetime, timedelta
 
+from django.conf import settings
 from django.core.cache import cache
+from django.http import JsonResponse
 
 from apps.constants import DEFUALT_CACHE_TTL
 from apps.cache_keys import CacheKey as cache_keys
@@ -18,11 +20,8 @@ def get_random_string(length=12,
     '''
     random.seed(
         hashlib.sha256(
-            ("%s%s%s" % (
-                random.getstate(),
-                time.time(),
-                'SCRWEWYOURBITCHES')).encode('utf-8')
-        ).digest())
+            ("%s%s%s" % (random.getstate(), time.time(),
+                         'SCRWEWYOURBITCHES')).encode('utf-8')).digest())
     return ''.join(random.choice(allowed_chars) for i in range(length))
 
 
@@ -85,8 +84,22 @@ def simple_cached_view(key=None, ttl=None):
                 resp = func(*agrs, **kwagrs)
                 cache.set(cache_key, resp, cache_ttl)
                 return resp
+
         return cached_view
+
     return decorator
+
+
+def authorized(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        token = request.GET.get('token', '')
+        if token == settings.TOKEN:
+            return view_func(request, *args, **kwargs)
+        else:
+            return JsonResponse({'ret': -1})
+
+    return wrapper
 
 
 def clear_node_user_cache():
@@ -113,19 +126,20 @@ def get_node_user(node_id):
         user_list = SSUser.objects.filter(
             level__gte=level, transfer_enable__gte=0)
         for user in user_list:
-            cfg = {'port': user.port,
-                   'u': user.upload_traffic,
-                   'd': user.download_traffic,
-                   'transfer_enable': user.transfer_enable,
-                   'passwd': user.password,
-                   'enable': user.enable,
-                   'id': user.pk,
-                   'method': user.method,
-                   'obfs': user.obfs,
-                   'obfs_param': user.obfs_param,
-                   'protocol': user.protocol,
-                   'protocol_param': user.protocol_param,
-                   }
+            cfg = {
+                'port': user.port,
+                'u': user.upload_traffic,
+                'd': user.download_traffic,
+                'transfer_enable': user.transfer_enable,
+                'passwd': user.password,
+                'enable': user.enable,
+                'id': user.pk,
+                'method': user.method,
+                'obfs': user.obfs,
+                'obfs_param': user.obfs_param,
+                'protocol': user.protocol,
+                'protocol_param': user.protocol_param,
+            }
             data.append(cfg)
         cache.set(key, data, DEFUALT_CACHE_TTL)
         return data
