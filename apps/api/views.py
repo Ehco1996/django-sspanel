@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
-from apps.payments import alipay, pay91
+from apps.payments import alipay
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
                         get_node_user, clear_node_user_cache, authorized)
 from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
@@ -319,116 +319,6 @@ def get_qrcode(request, content):
     # 构造图片reponse
     response = HttpResponse(image_stream, content_type="image/png")
     return response
-
-
-@csrf_exempt
-def pay_notify(request):
-    '''
-    保存91pay的回掉信息入数据库
-    '''
-    if request.method == 'POST':
-        data = request.POST
-        try:
-            code = MoneyCode.objects.create(number=data['money'])
-            PayRecord.objects.create(
-                username=data['pay_id'],
-                info_code=data['pay_no'],
-                amount=data['money'],
-                money_code=code,
-                type=data['type'])
-            return HttpResponse('ok')
-        except:
-            return HttpResponse('error')
-    else:
-        return HttpResponse('error')
-
-
-@login_required
-def pay91_request(request):
-    '''
-    91pay请求逻辑
-    '''
-    try:
-        data = request.POST
-        context = {}
-        # 获取金额数量
-        amount = data['paynum']
-        type = data['type']
-        # 生成订单号
-        pay_id = '{}@{}@{}@{}'.format(request.user.pk, settings.HOST,
-                                      settings.ALIPAY_NUM,
-                                      datetime.datetime.fromtimestamp(
-                                          time.time()).strftime('%Y%m%d%H'))
-        res = pay91.pay_request(type, amount, pay_id)
-        request.session['pay_id'] = pay_id
-        # 记录申请记录
-        PayRequest.objects.create(
-            username=request.user.username,
-            info_code=res['trade_no'],
-            amount=amount,
-            type=res['type'])
-        # 获取二维码链接
-        context['qrcode'] = res['qrcode']
-        info = {
-            'title': '请求成功！',
-            'subtitle': '描下方二维码付款，付款完成记得按确认哟！',
-            'status': 'success',
-        }
-        context['info'] = info
-    except:
-        info = {
-            'title': '糟糕，当面付插件可能出现问题了',
-            'subtitle': '如果一直失败,请后台联系站长',
-            'status': 'error',
-        }
-        context['info'] = info
-    return JsonResponse(context)
-
-
-@login_required
-def pay91_query(request):
-    '''
-    91pay结果查询逻辑
-    rtype:
-        json
-    '''
-    context = {}
-    user = request.user
-    paid = False
-    pay_id = request.session['pay_id']
-    # 等待1秒在查询
-    time.sleep(1)
-    res = PayRecord.objects.filter(username=pay_id)
-    if len(res) == 1:
-        rec = res[0]
-        code = MoneyCode.objects.get(code=rec.money_code)
-        user.balance += code.number
-        user.save()
-        code.user = user.username
-        code.isused = True
-        code.save()
-        # 将充值记录和捐赠绑定
-        Donate.objects.create(user=user, money=rec.amount)
-        # 后台数据库增加记录
-        del request.session['pay_id']
-        paid = True
-        # 返回充值信息
-        info = {
-            'title': '充值成功！',
-            'subtitle': '请去商品界面购买商品！',
-            'status': 'success',
-        }
-        context['info'] = info
-    else:
-        paid = False
-    if paid is False:
-        info = {
-            'title': '支付查询失败！',
-            'subtitle': '亲，确认支付了么？',
-            'status': 'error',
-        }
-        context['info'] = info
-    return JsonResponse(context)
 
 
 @login_required

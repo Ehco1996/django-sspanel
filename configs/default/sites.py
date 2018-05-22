@@ -24,12 +24,6 @@ USE_ALIPAY = True
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 
-# 91PAY 、ALIPAY只能开启一项
-# 需要授权请联系：QQ群 634651237
-USE_91PAY = False
-# 自己的支付宝账号
-ALIPAY_NUM = 'xx'
-
 # 网站title
 TITLE = '谜之屋'
 SUBTITLE = '秘密的小屋test'
