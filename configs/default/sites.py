@@ -1,6 +1,10 @@
 # 网站密钥
 SECRET_KEY = 'aasdasdas'
 
+# 默认的theme
+# 可选列表在 apps/constants.py 里的THEME_CHOICES里
+DEFAULT_THEME = 'superhero'
+
 # 域名设置
 ALLOWED_HOSTS = ['*']
 
