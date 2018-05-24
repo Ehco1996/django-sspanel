@@ -341,7 +341,7 @@ class Node(models.Model):
                 self.server, self.port, self.protocol, self.method,
                 self.obfs, ssr_password, obfs_param, protocol_param,
                 ssr_remarks, ssr_group)
-        elif self.custom_method == 1:
+        else:
             ssr_code = '{}:{}:{}:{}:{}:{}/?remarks={}&group={}'.format(
                 self.server, ss_user.port, ss_user.protocol, ss_user.method,
                 ss_user.obfs, ssr_password, ssr_remarks, ssr_group)
