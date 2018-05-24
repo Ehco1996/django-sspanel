@@ -99,7 +99,7 @@ def gen_invite_code(request):
     返回是否成功
     '''
     u = request.user
-    if u.pk == 1:
+    if u.is_superuser is True:
         # 针对管理员特出处理，每次生成5个邀请码
         num = 5
     else:
@@ -108,7 +108,6 @@ def gen_invite_code(request):
         for i in range(num):
             code = InviteCode(type=0, code_id=u.pk)
             code.save()
-
         registerinfo = {
             'title': '成功',
             'subtitle': '添加邀请码{}个,请刷新页面'.format(num),

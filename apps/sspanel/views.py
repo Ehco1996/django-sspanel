@@ -576,7 +576,6 @@ def ticket_edit(request, pk):
             'ticket': Ticket.objects.filter(user=request.user)
         }
         return render(request, 'sspanel/ticket.html', context=context)
-    # 当请求不是post时，渲染
     else:
         context = {
             'ticket': ticket,
@@ -587,13 +586,12 @@ def ticket_edit(request, pk):
 @login_required
 def affiliate(request):
     '''推广页面'''
-    if request.user.pk != 1:
+    if request.user.is_superuser is not True:
         invidecodes = InviteCode.objects.filter(
             code_id=request.user.pk, type=0)
         inviteNum = request.user.invitecode_num - len(invidecodes)
     else:
         # 如果是管理员，特殊处理
-        # 写死，每次只能生成5额邀请码
         invidecodes = InviteCode.objects.filter(
             code_id=request.user.pk, type=0, isused=False)
         inviteNum = 5
