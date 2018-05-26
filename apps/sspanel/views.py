@@ -25,7 +25,9 @@ from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
 
 def index(request):
     '''跳转到首页'''
-    return render(request, 'sspanel/index.html')
+
+    return render(request, 'sspanel/index.html',
+                  {'allow_register': settings.ALLOW_REGISET})
 
 
 def sshelp(request):
@@ -58,6 +60,8 @@ def pass_invitecode(request, invitecode):
 
 def register(request):
     '''用户注册时的函数'''
+    if settings.ALLOW_REGISET is False:
+        return HttpResponse('已经关闭注册了喵')
     if request.method == 'POST':
         form = RegisterForm(request.POST)
 

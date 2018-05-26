@@ -1,6 +1,9 @@
 # 网站密钥
 SECRET_KEY = 'aasdasdas'
 
+# 是否开启注册
+ALLOW_REGISET = False
+
 # 默认的theme
 # 可选列表在 apps/constants.py 里的THEME_CHOICES里
 DEFAULT_THEME = 'superhero'
