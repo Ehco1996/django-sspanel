@@ -1,8 +1,9 @@
-import base64
-
-
 # 网站密钥
 SECRET_KEY = 'aasdasdas'
+
+# 默认的theme
+# 可选列表在 apps/constants.py 里的THEME_CHOICES里
+DEFAULT_THEME = 'superhero'
 
 # 域名设置
 ALLOWED_HOSTS = ['*']
@@ -27,12 +28,6 @@ USE_ALIPAY = True
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 
-# 91PAY 、ALIPAY只能开启一项
-# 需要授权请联系：QQ群 634651237
-USE_91PAY = False
-# 自己的支付宝账号
-ALIPAY_NUM = 'xx'
-
 # 网站title
 TITLE = '谜之屋'
 SUBTITLE = '秘密的小屋test'
@@ -48,10 +43,5 @@ INVITEINFO = '邀请码实时更新，如果用完了请关注公众号findyouro
 # 网站域名设置（请正确填写，不然订阅功能会失效：
 HOST = 'http://127.0.0.1:8000/'
 
-# 管理员账号
-USERNAME = 'ehco'
-# 管理员ss端口
-PORT = 2345
-# 管理员私有token，用于后端接口调用
-TOKEN = base64.b64encode(
-    bytes('{}+{}'.format(USERNAME, PORT), 'utf8')).decode()
+# 部分API接口TOKEN
+TOKEN = 'you own token'

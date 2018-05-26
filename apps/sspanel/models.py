@@ -29,8 +29,8 @@ class User(AbstractUser):
     @classmethod
     def todayRegister(cls):
         '''返回今日注册的用户'''
-        today = datetime.datetime.combine(
-            datetime.date.today(), datetime.time.min)
+        today = datetime.datetime.combine(datetime.date.today(),
+                                          datetime.time.min)
         return cls.objects.filter(date_joined__gt=today)
 
     @classmethod
@@ -62,9 +62,7 @@ class User(AbstractUser):
     )
 
     invitecode_num = models.PositiveIntegerField(
-        '可生成的邀请码数量',
-        default=settings.INVITE_NUM
-    )
+        '可生成的邀请码数量', default=settings.INVITE_NUM)
 
     invited_by = models.PositiveIntegerField(
         '邀请人id',
@@ -78,8 +76,7 @@ class User(AbstractUser):
         validators=[
             MaxValueValidator(9),
             MinValueValidator(0),
-        ]
-    )
+        ])
 
     level_expire_time = models.DateTimeField(
         '等级有效期',
@@ -90,7 +87,7 @@ class User(AbstractUser):
     theme = models.CharField(
         '主题',
         max_length=10,
-        default='default',
+        default=settings.DEFAULT_THEME,
         choices=THEME_CHOICES,
     )
 
@@ -103,8 +100,7 @@ class User(AbstractUser):
 
     def get_sub_link(self):
         '''生成该用户的订阅地址'''
-        token = base64.b64encode(
-            bytes(self.username, 'utf-8')).decode('ascii')
+        token = base64.b64encode(bytes(self.username, 'utf-8')).decode('ascii')
         sub_link = settings.HOST + 'server/subscribe/' + token + '/'
         return sub_link
 
@@ -133,14 +129,10 @@ class InviteCode(models.Model):
         primary_key=True,
         blank=True,
         max_length=40,
-        default=get_long_random_string
-    )
+        default=get_long_random_string)
 
     time_created = models.DateTimeField(
-        '创建时间',
-        editable=False,
-        auto_now_add=True
-    )
+        '创建时间', editable=False, auto_now_add=True)
 
     isused = models.BooleanField(
         '是否使用',
@@ -152,7 +144,10 @@ class InviteCode(models.Model):
 
     class Meta:
         verbose_name_plural = '邀请码'
-        ordering = ('isused', '-time_created',)
+        ordering = (
+            'isused',
+            '-time_created',
+        )
 
 
 class RebateRecord(models.Model):
@@ -173,17 +168,13 @@ class RebateRecord(models.Model):
     )
 
     rebatetime = models.DateTimeField(
-        '返利时间',
-        editable=False,
-        auto_now_add=True
-    )
+        '返利时间', editable=False, auto_now_add=True)
 
     class Meta:
-        ordering = ('-rebatetime',)
+        ordering = ('-rebatetime', )
 
 
 class Donate(models.Model):
-
     @classmethod
     def totalDonateMoney(cls):
         '''返回捐赠总金额'''
@@ -212,11 +203,7 @@ class Donate(models.Model):
         verbose_name='捐赠人',
     )
 
-    time = models.DateTimeField(
-        '捐赠时间',
-        editable=False,
-        auto_now_add=True
-    )
+    time = models.DateTimeField('捐赠时间', editable=False, auto_now_add=True)
 
     money = models.DecimalField(
         '捐赠金额',
@@ -232,7 +219,7 @@ class Donate(models.Model):
 
     class Meta:
         verbose_name_plural = '捐赠记录'
-        ordering = ('-time',)
+        ordering = ('-time', )
 
 
 class MoneyCode(models.Model):
@@ -244,19 +231,14 @@ class MoneyCode(models.Model):
         null=True,
     )
 
-    time = models.DateTimeField(
-        '捐赠时间',
-        editable=False,
-        auto_now_add=True
-    )
+    time = models.DateTimeField('捐赠时间', editable=False, auto_now_add=True)
 
     code = models.CharField(
         '充值码',
         unique=True,
         blank=True,
         max_length=40,
-        default=get_long_random_string
-    )
+        default=get_long_random_string)
 
     number = models.DecimalField(
         '捐赠金额',
@@ -276,10 +258,7 @@ class MoneyCode(models.Model):
         # 保证充值码不会重复
         code_length = len(self.code or '')
         if 0 < code_length < 12:
-            self.code = '{}{}'.format(
-                self.code,
-                get_long_random_string()
-            )
+            self.code = '{}{}'.format(self.code, get_long_random_string())
         else:
             self.code = get_long_random_string()
 
@@ -288,7 +267,7 @@ class MoneyCode(models.Model):
 
     class Meta:
         verbose_name_plural = '充值码'
-        ordering = ('isused',)
+        ordering = ('isused', )
 
 
 class Goods(models.Model):
@@ -299,22 +278,11 @@ class Goods(models.Model):
         (-1, '下架'),
     )
 
-    name = models.CharField(
-        '商品名字',
-        max_length=128,
-        default='待编辑'
-    )
+    name = models.CharField('商品名字', max_length=128, default='待编辑')
 
-    content = models.CharField(
-        '商品描述',
-        max_length=256,
-        default='待编辑'
-    )
+    content = models.CharField('商品描述', max_length=256, default='待编辑')
 
-    transfer = models.BigIntegerField(
-        '增加的流量',
-        default=settings.GB
-    )
+    transfer = models.BigIntegerField('增加的流量', default=settings.GB)
 
     money = models.DecimalField(
         '金额',
@@ -331,8 +299,7 @@ class Goods(models.Model):
         validators=[
             MaxValueValidator(9),
             MinValueValidator(0),
-        ]
-    )
+        ])
 
     days = models.PositiveIntegerField(
         '设置等级时间(天)',
@@ -340,14 +307,9 @@ class Goods(models.Model):
         validators=[
             MaxValueValidator(365),
             MinValueValidator(1),
-        ]
-    )
+        ])
 
-    status = models.SmallIntegerField(
-        '商品状态',
-        default=1,
-        choices=STATUS_TYPE
-    )
+    status = models.SmallIntegerField('商品状态', default=1, choices=STATUS_TYPE)
 
     order = models.PositiveSmallIntegerField('排序', default=1)
 
@@ -364,19 +326,23 @@ class Goods(models.Model):
 
     class Meta:
         verbose_name_plural = '商品'
-        ordering = ['order', ]
+        ordering = [
+            'order',
+        ]
 
 
 class PurchaseHistory(models.Model):
     '''购买记录'''
 
     good = models.ForeignKey(
-        Goods, on_delete=models.CASCADE, verbose_name='商品名',)
+        Goods,
+        on_delete=models.CASCADE,
+        verbose_name='商品名',
+    )
 
     user = models.CharField(
         '购买者',
         max_length=128,
-
     )
     money = models.DecimalField(
         '金额',
@@ -387,29 +353,20 @@ class PurchaseHistory(models.Model):
         blank=True,
     )
 
-    purchtime = models.DateTimeField(
-        '购买时间',
-        editable=False,
-        auto_now_add=True
-    )
+    purchtime = models.DateTimeField('购买时间', editable=False, auto_now_add=True)
 
     def __str__(self):
         return self.user
 
     class Meta:
         verbose_name_plural = '购买记录'
-        ordering = ('-purchtime',)
+        ordering = ('-purchtime', )
 
 
 class PayRecord(models.Model):
     '''充值流水单号记录'''
 
-    username = models.CharField(
-        '用户名',
-        max_length=64,
-        blank=False,
-        null=False
-    )
+    username = models.CharField('用户名', max_length=64, blank=False, null=False)
 
     info_code = models.CharField(
         '流水号',
@@ -417,10 +374,7 @@ class PayRecord(models.Model):
         unique=True,
     )
 
-    time = models.DateTimeField(
-        '时间',
-        auto_now_add=True
-    )
+    time = models.DateTimeField('时间', auto_now_add=True)
 
     amount = models.DecimalField(
         '金额',
@@ -449,18 +403,13 @@ class PayRecord(models.Model):
 
     class Meta:
         verbose_name_plural = '支付转账记录'
-        ordering = ('-time',)
+        ordering = ('-time', )
 
 
 class PayRequest(models.Model):
     '''支付申请记录'''
 
-    username = models.CharField(
-        '用户名',
-        max_length=64,
-        blank=False,
-        null=False
-    )
+    username = models.CharField('用户名', max_length=64, blank=False, null=False)
 
     info_code = models.CharField(
         '流水号',
@@ -468,10 +417,7 @@ class PayRequest(models.Model):
         unique=True,
     )
 
-    time = models.DateTimeField(
-        '时间',
-        auto_now_add=True
-    )
+    time = models.DateTimeField('时间', auto_now_add=True)
 
     amount = models.DecimalField(
         '金额',
@@ -494,19 +440,14 @@ class PayRequest(models.Model):
 
     class Meta:
         verbose_name_plural = '支付申请记录'
-        ordering = ('-time',)
+        ordering = ('-time', )
 
 
 class Announcement(models.Model):
     '''公告界面'''
-    time = models.DateTimeField(
-        '时间',
-        auto_now_add=True
-    )
+    time = models.DateTimeField('时间', auto_now_add=True)
 
-    body = models.TextField(
-        '主体'
-    )
+    body = models.TextField('主体')
 
     def __str__(self):
         return '日期:{}'.format(str(self.time)[:9])
@@ -523,34 +464,22 @@ class Announcement(models.Model):
 
     class Meta:
         verbose_name_plural = '系统公告'
-        ordering = ('-time',)
+        ordering = ('-time', )
 
 
 class Ticket(models.Model):
     '''工单'''
-    TICKET_CHOICE = (
-        (1, '开启'),
-        (-1, '关闭'))
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='用户'
-    )
+    TICKET_CHOICE = ((1, '开启'), (-1, '关闭'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
 
-    time = models.DateTimeField(
-        '时间',
-        editable=False,
-        auto_now_add=True
-    )
+    time = models.DateTimeField('时间', editable=False, auto_now_add=True)
 
     title = models.CharField(
         '标题',
         max_length=128,
     )
 
-    body = models.TextField(
-        '内容主体'
-    )
+    body = models.TextField('内容主体')
 
     status = models.SmallIntegerField(
         '状态',
@@ -563,4 +492,4 @@ class Ticket(models.Model):
 
     class Meta:
         verbose_name_plural = '工单'
-        ordering = ('-time',)
+        ordering = ('-time', )

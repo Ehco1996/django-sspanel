@@ -13,6 +13,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='node',
             name='password',
-            field=models.CharField(blank=True, help_text='单端口多用户是需要', max_length=32, null=True, verbose_name='节点密码'),
+            field=models.CharField(
+                default='',
+                help_text='单端口多用户是需要',
+                max_length=32,
+                verbose_name='节点密码'),
         ),
     ]

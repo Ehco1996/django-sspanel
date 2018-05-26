@@ -25,7 +25,7 @@
             <div>
                 <p class="heading">流量剩余：</p>
                 <p class="title">
-                    <code>{{ ss_user.get_unused_traffic }}GB</code>
+                    <code>{{ ss_user.get_unused_traffic }}</code>
                 </p>
             </div>
         </div>
@@ -37,7 +37,7 @@
                 <div class="select">
                     <select id="id-select-nodes" name="nodes">
                         {% for node in nodes %}
-                        <option value={{ node.pk }}>{{ node }}</option>
+                        <option value={{ node.node_id }}>{{ node.name }}</option>
                         {% endfor %}
                     </select>
                 </div>

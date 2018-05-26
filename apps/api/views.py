@@ -6,7 +6,6 @@ import qrcode
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
-from django.core.cache import cache
 from django.utils.six import BytesIO
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
@@ -14,15 +13,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
-from apps.payments import alipay, pay91
-from apps.utils import (get_date_list, traffic_format,
-                        simple_cached_view, get_node_user,
-                        clear_node_user_cache)
-from apps.ssserver.models import (
-    SSUser, TrafficLog, Node, NodeOnlineLog, AliveIp)
-from apps.sspanel.models import (InviteCode, PurchaseHistory,
-                                 RebateRecord, Goods, User, MoneyCode,
-                                 Donate, PayRequest, PayRecord)
+from apps.payments import alipay
+from apps.utils import (get_date_list, traffic_format, simple_cached_view,
+                        get_node_user, clear_node_user_cache, authorized)
+from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
+                                  AliveIp)
+from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
+                                 Goods, User, MoneyCode, Donate, PayRequest,
+                                 PayRecord)
 
 
 @permission_required('sspanel')
@@ -32,9 +30,13 @@ def userData(request):
     在线人数、今日签到、从未签到、从未使用
     '''
 
-    data = [NodeOnlineLog.totalOnlineUser(), len(User.todayRegister()),
-            SSUser.userTodyChecked(), SSUser.userNeverChecked(),
-            SSUser.userNeverUsed(), ]
+    data = [
+        NodeOnlineLog.totalOnlineUser(),
+        len(User.todayRegister()),
+        SSUser.userTodyChecked(),
+        SSUser.userNeverChecked(),
+        SSUser.userNeverUsed(),
+    ]
     return JsonResponse({'data': data})
 
 
@@ -49,7 +51,8 @@ def nodeData(request):
 
     nodeTraffic = [
         round(node.used_traffic / settings.GB, 2)
-        for node in Node.objects.filter(show=1)]
+        for node in Node.objects.filter(show=1)
+    ]
 
     data = {
         'nodeName': nodeName,
@@ -96,7 +99,7 @@ def gen_invite_code(request):
     返回是否成功
     '''
     u = request.user
-    if u.pk == 1:
+    if u.is_superuser is True:
         # 针对管理员特出处理，每次生成5个邀请码
         num = 5
     else:
@@ -105,16 +108,17 @@ def gen_invite_code(request):
         for i in range(num):
             code = InviteCode(type=0, code_id=u.pk)
             code.save()
-
         registerinfo = {
             'title': '成功',
             'subtitle': '添加邀请码{}个,请刷新页面'.format(num),
-            'status': 'success', }
+            'status': 'success',
+        }
     else:
         registerinfo = {
             'title': '失败',
             'subtitle': '已经不能生成更多的邀请码了',
-            'status': 'error', }
+            'status': 'error',
+        }
     return JsonResponse(registerinfo)
 
 
@@ -133,14 +137,15 @@ def purchase(request):
             registerinfo = {
                 'title': '金额不足！',
                 'subtitle': '请去捐赠界面/联系站长充值',
-                'status': 'error', }
+                'status': 'error',
+            }
         else:
             # 验证成功进行提权操作
             ss_user.enable = True
             ss_user.transfer_enable += good.transfer
             user.balance -= good.money
-            if (user.level == good.level and
-                    user.level_expire_time > datetime.datetime.now()):
+            if (user.level == good.level
+                    and user.level_expire_time > datetime.datetime.now()):
                 user.level_expire_time += datetime.timedelta(days=good.days)
             else:
                 user.level_expire_time = datetime.datetime.now() \
@@ -149,8 +154,11 @@ def purchase(request):
             user.save()
             ss_user.save()
             # 增加购买记录
-            record = PurchaseHistory(good=good, user=user, money=good.money,
-                                     purchtime=timezone.now())
+            record = PurchaseHistory(
+                good=good,
+                user=user,
+                money=good.money,
+                purchtime=timezone.now())
             record.save()
             # 增加返利记录
             inviter = User.objects.get(pk=user.invited_by)
@@ -163,7 +171,8 @@ def purchase(request):
             registerinfo = {
                 'title': '购买成功',
                 'subtitle': '请在用户中心检查最新信息',
-                'status': 'success', }
+                'status': 'success',
+            }
             # 删除缓存
             clear_node_user_cache()
         return JsonResponse(registerinfo)
@@ -182,7 +191,8 @@ def pay_request(request):
         info = {
             'title': '失败',
             'subtitle': '请保证金额大于1元',
-            'status': 'error', }
+            'status': 'error',
+        }
         context['info'] = info
     else:
         out_trade_no = datetime.datetime.fromtimestamp(
@@ -195,7 +205,8 @@ def pay_request(request):
                 subject=settings.ALIPAY_TRADE_INFO.format(amount),
                 out_trade_no=out_trade_no,
                 total_amount=amount,
-                timeout_express='60s',)
+                timeout_express='60s',
+            )
             # 获取二维码链接
             code_url = trade.get('qr_code', '')
             request.session['code_url'] = code_url
@@ -204,15 +215,16 @@ def pay_request(request):
             info = {
                 'title': '请求成功！',
                 'subtitle': '支付宝扫描下方二维码付款，付款完成记得按确认哟！',
-                'status': 'success', }
+                'status': 'success',
+            }
             context['info'] = info
         except:
-            alipay.api_alipay_trade_cancel(
-                out_trade_no=out_trade_no)
+            alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
             info = {
                 'title': '糟糕，当面付插件可能出现问题了',
                 'subtitle': '如果一直失败,请后台联系站长',
-                'status': 'error', }
+                'status': 'error',
+            }
             context['info'] = info
     return JsonResponse(context)
 
@@ -245,14 +257,15 @@ def pay_query(request):
         # 将充值记录和捐赠绑定
         Donate.objects.create(user=user, money=amount)
         # 后台数据库增加记录
-        PayRecord.objects.create(username=user, info_code=trade_num,
-                                 amount=amount, money_code=code)
+        PayRecord.objects.create(
+            username=user, info_code=trade_num, amount=amount, money_code=code)
         del request.session['out_trade_no']
         # 返回充值信息
         info = {
             'title': '充值成功！',
             'subtitle': '请去商品界面购买商品！',
-            'status': 'success', }
+            'status': 'success',
+        }
         context['info'] = info
 
     # 如果三次还没成功择关闭订单
@@ -261,7 +274,8 @@ def pay_query(request):
         info = {
             'title': '支付查询失败！',
             'subtitle': '亲，确认支付了么？',
-            'status': 'error', }
+            'status': 'error',
+        }
         context['info'] = info
     return JsonResponse(context)
 
@@ -276,10 +290,12 @@ def traffic_query(request):
     user_id = request.user.ss_user.user_id
     last_week = get_date_list(7)
     labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
-    trafficdata = [TrafficLog.getTrafficByDay(
-        node_id, user_id, t) for t in last_week]
-    title = '节点 {} 当月共消耗：{} GB'.format(
-        node_name, TrafficLog.getUserTraffic(node_id, user_id))
+    trafficdata = [
+        TrafficLog.getTrafficByDay(node_id, user_id, t) for t in last_week
+    ]
+    title = '节点 {} 当月共消耗：{} GB'.format(node_name,
+                                       TrafficLog.getUserTraffic(
+                                           node_id, user_id))
     configs = {
         'title': title,
         'labels': labels,
@@ -302,108 +318,6 @@ def get_qrcode(request, content):
     # 构造图片reponse
     response = HttpResponse(image_stream, content_type="image/png")
     return response
-
-
-@csrf_exempt
-def pay_notify(request):
-    '''
-    保存91pay的回掉信息入数据库
-    '''
-    if request.method == 'POST':
-        data = request.POST
-        try:
-            code = MoneyCode.objects.create(number=data['money'])
-            PayRecord.objects.create(username=data['pay_id'],
-                                     info_code=data['pay_no'],
-                                     amount=data['money'], money_code=code,
-                                     type=data['type'])
-            return HttpResponse('ok')
-        except:
-            return HttpResponse('error')
-    else:
-        return HttpResponse('error')
-
-
-@login_required
-def pay91_request(request):
-    '''
-    91pay请求逻辑
-    '''
-    try:
-        data = request.POST
-        context = {}
-        # 获取金额数量
-        amount = data['paynum']
-        type = data['type']
-        # 生成订单号
-        pay_id = '{}@{}@{}@{}'.format(
-            request.user.pk, settings.HOST,
-            settings.ALIPAY_NUM,
-            datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H'))
-        res = pay91.pay_request(type, amount, pay_id)
-        request.session['pay_id'] = pay_id
-        # 记录申请记录
-        PayRequest.objects.create(username=request.user.username,
-                                  info_code=res['trade_no'],
-                                  amount=amount, type=res['type'])
-        # 获取二维码链接
-        context['qrcode'] = res['qrcode']
-        info = {
-            'title': '请求成功！',
-            'subtitle': '描下方二维码付款，付款完成记得按确认哟！',
-            'status': 'success', }
-        context['info'] = info
-    except:
-        info = {
-            'title': '糟糕，当面付插件可能出现问题了',
-            'subtitle': '如果一直失败,请后台联系站长',
-            'status': 'error', }
-        context['info'] = info
-    return JsonResponse(context)
-
-
-@login_required
-def pay91_query(request):
-    '''
-    91pay结果查询逻辑
-    rtype:
-        json
-    '''
-    context = {}
-    user = request.user
-    paid = False
-    pay_id = request.session['pay_id']
-    # 等待1秒在查询
-    time.sleep(1)
-    res = PayRecord.objects.filter(username=pay_id)
-    if len(res) == 1:
-        rec = res[0]
-        code = MoneyCode.objects.get(code=rec.money_code)
-        user.balance += code.number
-        user.save()
-        code.user = user.username
-        code.isused = True
-        code.save()
-        # 将充值记录和捐赠绑定
-        Donate.objects.create(user=user, money=rec.amount)
-        # 后台数据库增加记录
-        del request.session['pay_id']
-        paid = True
-        # 返回充值信息
-        info = {
-            'title': '充值成功！',
-            'subtitle': '请去商品界面购买商品！',
-            'status': 'success', }
-        context['info'] = info
-    else:
-        paid = False
-    if paid is False:
-        info = {
-            'title': '支付查询失败！',
-            'subtitle': '亲，确认支付了么？',
-            'status': 'error', }
-        context['info'] = info
-    return JsonResponse(context)
 
 
 @login_required
@@ -447,29 +361,26 @@ def get_invitecode(request):
         return JsonResponse({'msg': 'method error'})
 
 
+@authorized
 @simple_cached_view()
-@require_http_methods(['GET', ])
+@require_http_methods(['GET'])
 def node_api(request, node_id):
     '''
     返回节点信息
     筛选节点是否用光
     '''
-    token = request.GET.get('token', '')
-    if token == settings.TOKEN:
-        node = Node.objects.filter(node_id=node_id).first()
-        if node and node.used_traffic < node.total_traffic:
-            data = (node.traffic_rate,)
-        else:
-            data = None
-        res = {'ret': 1,
-               'data': data}
+    node = Node.objects.filter(node_id=node_id).first()
+    if node and node.used_traffic < node.total_traffic:
+        data = (node.traffic_rate, )
     else:
-        res = {'ret': -1}
+        data = None
+    res = {'ret': 1, 'data': data}
     return JsonResponse(res)
 
 
+@authorized
 @csrf_exempt
-@require_http_methods(['POST', ])
+@require_http_methods(['POST'])
 def node_online_api(request):
     '''
     接受节点在线人数上报
@@ -481,84 +392,78 @@ def node_online_api(request):
         if node:
             NodeOnlineLog.objects.create(
                 node_id=data['node_id'],
-                online_user=data['online_user'], log_time=int(time.time()))
+                online_user=data['online_user'],
+                log_time=int(time.time()))
         else:
             data = None
-        res = {'ret': 1,
-               'data': []}
+        res = {'ret': 1, 'data': []}
     else:
         res = {'ret': -1}
     return JsonResponse(res)
 
 
-@require_http_methods(['GET', ])
+@authorized
+@require_http_methods(['GET'])
 def user_api(request, node_id):
     '''
     返回符合节点要求的用户信息
     '''
-    token = request.GET.get('token', '')
-    if token == settings.TOKEN:
-        data = get_node_user(node_id)
-        res = {'ret': 1,
-               'data': data}
-    else:
-        res = {'ret': -1}
+    data = get_node_user(node_id)
+    res = {'ret': 1, 'data': data}
     return JsonResponse(res)
 
 
+@authorized
 @csrf_exempt
-@require_http_methods(['POST', ])
+@require_http_methods(['POST'])
 def traffic_api(request):
     '''
     接受服务端的用户流量上报
     '''
-    token = request.GET.get('token', '')
-    if token == settings.TOKEN:
-        traffic_rec_list = json.loads(request.body)['data']
-        node_id = json.loads(request.body)['node_id']
-        # 定义循环池
-        node_total_traffic = 0
-        trafficlog_model_list = []
-        log_time = int(time.time())
-        for rec in traffic_rec_list:
-            res = SSUser.objects.filter(pk=rec['user_id']).values_list(
-                'upload_traffic', 'download_traffic')[0]
-            SSUser.objects.filter(pk=rec['user_id']).update(
-                upload_traffic=(res[0] + rec['u']),
-                download_traffic=(res[1] + rec['d']),
-                last_use_time=log_time)
-            traffic = traffic_format(rec['u'] + rec['d'])
-            trafficlog_model_list.append(TrafficLog(
-                node_id=node_id, user_id=rec['user_id'], traffic=traffic,
+    traffic_rec_list = json.loads(request.body)['data']
+    node_id = json.loads(request.body)['node_id']
+    # 定义循环池
+    node_total_traffic = 0
+    trafficlog_model_list = []
+    log_time = int(time.time())
+    for rec in traffic_rec_list:
+        res = SSUser.objects.filter(pk=rec['user_id']).values_list(
+            'upload_traffic', 'download_traffic')[0]
+        SSUser.objects.filter(pk=rec['user_id']).update(
+            upload_traffic=(res[0] + rec['u']),
+            download_traffic=(res[1] + rec['d']),
+            last_use_time=log_time)
+        traffic = traffic_format(rec['u'] + rec['d'])
+        trafficlog_model_list.append(
+            TrafficLog(
+                node_id=node_id,
+                user_id=rec['user_id'],
+                traffic=traffic,
                 download_traffic=rec['d'],
-                upload_traffic=rec['u'], log_time=log_time))
-            node_total_traffic = node_total_traffic + rec['u'] + rec['d']
-        # 节点流量记录
-        node = Node.objects.get(node_id=node_id)
-        node.used_traffic += node_total_traffic
-        node.save()
-        # 个人流量记录
-        TrafficLog.objects.bulk_create(trafficlog_model_list)
-        res = {'ret': 1, 'data': []}
-    else:
-        res = {'ret': -1}
+                upload_traffic=rec['u'],
+                log_time=log_time))
+        node_total_traffic = node_total_traffic + rec['u'] + rec['d']
+    # 节点流量记录
+    node = Node.objects.get(node_id=node_id)
+    node.used_traffic += node_total_traffic
+    node.save()
+    # 个人流量记录
+    TrafficLog.objects.bulk_create(trafficlog_model_list)
+    res = {'ret': 1, 'data': []}
     return JsonResponse(res)
 
 
+@authorized
 @csrf_exempt
-@require_http_methods(['POST', ])
+@require_http_methods(['POST'])
 def alive_ip_api(request):
-    token = request.GET.get('token', '')
-    if token == settings.TOKEN:
-        data = json.loads(request.body)['data']
-        node_id = json.loads(request.body)['node_id']
-        model_list = []
-        for user, ip_list in data.items():
-            user = SSUser.objects.get(pk=user).user
-            for ip in ip_list:
-                model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
-        AliveIp.objects.bulk_create(model_list)
-        res = {'ret': 1, 'data': []}
-    else:
-        res = {'ret': -1}
+    data = json.loads(request.body)['data']
+    node_id = json.loads(request.body)['node_id']
+    model_list = []
+    for user, ip_list in data.items():
+        user = SSUser.objects.get(pk=user).user
+        for ip in ip_list:
+            model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
+    AliveIp.objects.bulk_create(model_list)
+    res = {'ret': 1, 'data': []}
     return JsonResponse(res)
