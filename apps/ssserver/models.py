@@ -252,11 +252,11 @@ class Node(models.Model):
     def get_sub_code(cls, user):
         '''获取该用户的所有节点链接'''
         ss_user = user.ss_user
-        sub_code = ''
+        sub_code_list = []
         node_list = cls.objects.filter(level__lte=user.level, show=1)
         for node in node_list:
-            sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
-        return sub_code
+            sub_code_list.append(node.get_ssr_link(ss_user))
+        return '\n'.join(sub_code_list)
 
     node_id = models.IntegerField(
         '节点id',
