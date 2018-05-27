@@ -360,6 +360,7 @@ def nodeinfo(request):
             node['method'] = obj.method
             node['password'] = obj.password
             node['protocol'] = obj.protocol
+            node['node_color'] = 'warning'
             node['protocol_param'] = '{}:{}'.format(ss_user.port,
                                                     ss_user.password)
             node['obfs'] = obj.obfs
@@ -369,6 +370,7 @@ def nodeinfo(request):
             node['method'] = ss_user.method
             node['password'] = ss_user.password
             node['protocol'] = ss_user.protocol
+            node['node_color'] = 'info'
             node['protocol_param'] = ss_user.protocol_param
             node['obfs'] = ss_user.obfs
             node['obfs_param'] = ss_user.obfs_param
