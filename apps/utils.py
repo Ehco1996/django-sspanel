@@ -97,7 +97,8 @@ def authorized(view_func):
         if token == settings.TOKEN:
             return view_func(request, *args, **kwargs)
         else:
-            return JsonResponse({'ret': -1})
+            return JsonResponse({'ret': -1,
+                                 'msg': 'auth error'})
 
     return wrapper
 
