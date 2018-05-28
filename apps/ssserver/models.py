@@ -258,6 +258,15 @@ class Node(models.Model):
             sub_code_list.append(node.get_ssr_link(ss_user))
         return '\n'.join(sub_code_list)
 
+    @classmethod
+    def get_node_ids(cls, all=False):
+        '''返回所有节点的id'''
+        if all is True:
+            nodes = cls.objects.filter(show=1)
+        else:
+            nodes = cls.objects.all()
+        return [node.node_id for node in nodes]
+
     node_id = models.IntegerField(
         '节点id',
         unique=True,
@@ -447,19 +456,19 @@ class AliveIp(models.Model):
     @classmethod
     def recent_alive(cls, node_id):
         '''
-        返回节点在线的最新记录
+        返回节点最近一分钟的在线ip
         '''
         now = timezone.now()
-        last_now = now - datetime.timedelta(minutes=2)
-        ret = []
-        ip_pool = []
-        _ = cls.objects.filter(
+        last_now = now - datetime.timedelta(minutes=1)
+        seen = []
+        logs = cls.objects.filter(
             node_id=node_id, log_time__range=[str(last_now),
                                               str(now)])
-        for item in _:
-            if item.ip not in ip_pool:
-                ip_pool.append(item.ip)
-                ret.append(item)
+        ret = []
+        for log in logs:
+            if log.ip not in seen:
+                seen.append(log.ip)
+                ret.append(log)
         return ret
 
     node_id = models.IntegerField('节点id', blank=False, null=False)
