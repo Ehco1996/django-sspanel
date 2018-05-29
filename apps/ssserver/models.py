@@ -261,7 +261,7 @@ class Node(models.Model):
     @classmethod
     def get_node_ids(cls, all=False):
         '''返回所有节点的id'''
-        if all is True:
+        if all is False:
             nodes = cls.objects.filter(show=1)
         else:
             nodes = cls.objects.all()
