@@ -13,7 +13,6 @@ urlpatterns = [
     path('pay/query/', views.pay_query, name='pay_query'),
     path('traffic/query/', views.traffic_query, name='traffic_query'),
     path('change/theme/', views.change_theme, name='change_theme'),
-    re_path(r'^qrcode/(?P<content>.+)/$', views.get_qrcode, name='get_qrcode'),
 
     # 邀请码接口
     path('get/invitecode/', views.get_invitecode),

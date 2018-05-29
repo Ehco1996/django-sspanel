@@ -308,19 +308,6 @@ def traffic_query(request):
 
 
 @login_required
-def get_qrcode(request, content):
-    '''返回字符串编码后的二维码图片'''
-    # 加入节点信息等级判断
-    ss_img = qrcode.make(content)
-    buf = BytesIO()
-    ss_img.save(buf)
-    image_stream = buf.getvalue()
-    # 构造图片reponse
-    response = HttpResponse(image_stream, content_type="image/png")
-    return response
-
-
-@login_required
 def change_theme(request):
     '''
     更换用户主题
