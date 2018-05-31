@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.payments import alipay
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
-                        get_node_user, clear_node_user_cache, authorized)
+                        get_node_user, authorized)
 from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
@@ -83,7 +83,6 @@ def change_ss_port(request):
     port = SSUser.randomPord()
     user.port = port
     user.save()
-    clear_node_user_cache()
     registerinfo = {
         'title': '修改成功！',
         'subtitle': '端口修改为：{}！'.format(port),
@@ -174,7 +173,6 @@ def purchase(request):
                 'status': 'success',
             }
             # 删除缓存
-            clear_node_user_cache()
         return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
