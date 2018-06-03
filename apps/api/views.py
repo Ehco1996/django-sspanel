@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.payments import alipay
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
-                        get_node_user, clear_node_user_cache, authorized)
+                        get_node_user, authorized)
 from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
@@ -83,7 +83,6 @@ def change_ss_port(request):
     port = SSUser.randomPord()
     user.port = port
     user.save()
-    clear_node_user_cache()
     registerinfo = {
         'title': '修改成功！',
         'subtitle': '端口修改为：{}！'.format(port),
@@ -174,7 +173,6 @@ def purchase(request):
                 'status': 'success',
             }
             # 删除缓存
-            clear_node_user_cache()
         return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
@@ -308,19 +306,6 @@ def traffic_query(request):
 
 
 @login_required
-def get_qrcode(request, content):
-    '''返回字符串编码后的二维码图片'''
-    # 加入节点信息等级判断
-    ss_img = qrcode.make(content)
-    buf = BytesIO()
-    ss_img.save(buf)
-    image_stream = buf.getvalue()
-    # 构造图片reponse
-    response = HttpResponse(image_stream, content_type="image/png")
-    return response
-
-
-@login_required
 def change_theme(request):
     '''
     更换用户主题
@@ -337,28 +322,23 @@ def change_theme(request):
     return JsonResponse(registerinfo)
 
 
+@authorized
 @csrf_exempt
+@require_http_methods(['POST'])
 def get_invitecode(request):
     '''
     获取邀请码接口
-    只开放给管理员账号（user_id=1）
-    只接受post请求
+    只开放给管理员账号
     返回一个没用过的邀请码
     需要验证token
-    token为 base64(username+port)
     '''
-    if request.method == 'POST':
-        token = request.POST.get('token', '')
-        if token == settings.TOKEN:
-            code = InviteCode.objects.filter(code_id=1, isused=False)
-            if len(code) > 1:
-                return JsonResponse({'msg': code[0].code})
-            else:
-                return JsonResponse({'msg': '邀请码用光啦'})
-        else:
-            return JsonResponse({'msg': 'auth error'})
+    admin_user = User.objects.filter(is_superuser=True).first()
+    code = InviteCode.objects.filter(
+        code_id=admin_user.pk, isused=False).first()
+    if code:
+        return JsonResponse({'msg': code.code})
     else:
-        return JsonResponse({'msg': 'method error'})
+        return JsonResponse({'msg': '邀请码用光啦'})
 
 
 @authorized

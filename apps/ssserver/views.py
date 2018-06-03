@@ -9,7 +9,6 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.sspanel.models import User
 from apps.sspanel.forms import UserForm
-from apps.utils import clear_node_user_cache
 from .forms import ChangeSsPassForm, SSUserForm
 from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
 from .models import (SSUser, TrafficLog, Node,
@@ -81,7 +80,6 @@ def ChangeSsPass(request):
             ss_pass = request.POST.get('password')
             ss_user.password = ss_pass
             ss_user.save()
-            clear_node_user_cache()
             registerinfo = {
                 'title': '修改成功！',
                 'subtitle': '请及时更换客户端密码！',
@@ -117,7 +115,6 @@ def ChangeSsMethod(request):
         methods = [m[0] for m in METHOD_CHOICES]
         protocols = [p[0] for p in PROTOCOL_CHOICES]
         obfss = [o[0] for o in OBFS_CHOICES]
-        clear_node_user_cache()
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,
@@ -145,7 +142,6 @@ def ChangeSsProtocol(request):
         methods = [m[0] for m in METHOD_CHOICES]
         protocols = [p[0] for p in PROTOCOL_CHOICES]
         obfss = [o[0] for o in OBFS_CHOICES]
-        clear_node_user_cache()
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,
@@ -173,7 +169,6 @@ def ChangeSsObfs(request):
         methods = [m[0] for m in METHOD_CHOICES]
         protocols = [p[0] for p in PROTOCOL_CHOICES]
         obfss = [o[0] for o in OBFS_CHOICES]
-        clear_node_user_cache()
         context = {
             'registerinfo': registerinfo,
             'ss_user': ss_user,

@@ -10,10 +10,10 @@ from django.utils.six import BytesIO
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 
-from apps.utils import reverse_traffic, traffic_format, clear_node_user_cache
+from apps.custom_views import Page_List_View
+from apps.utils import reverse_traffic, traffic_format
 from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
 from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Goods, MoneyCode,
@@ -25,7 +25,9 @@ from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
 
 def index(request):
     '''跳转到首页'''
-    return render(request, 'sspanel/index.html')
+
+    return render(request, 'sspanel/index.html',
+                  {'allow_register': settings.ALLOW_REGISET})
 
 
 def sshelp(request):
@@ -58,6 +60,8 @@ def pass_invitecode(request, invitecode):
 
 def register(request):
     '''用户注册时的函数'''
+    if settings.ALLOW_REGISET is False:
+        return HttpResponse('已经关闭注册了喵')
     if request.method == 'POST':
         form = RegisterForm(request.POST)
 
@@ -100,7 +104,6 @@ def register(request):
                 max_port_user = SSUser.objects.order_by('-port').first()
                 port = max_port_user.port + randint(2, 3)
                 SSUser.objects.create(user=user, port=port)
-                clear_node_user_cache()
                 return render(request, 'sspanel/index.html', context=context)
 
     else:
@@ -356,15 +359,17 @@ def nodeinfo(request):
             node['method'] = obj.method
             node['password'] = obj.password
             node['protocol'] = obj.protocol
+            node['node_color'] = 'warning'
             node['protocol_param'] = '{}:{}'.format(ss_user.port,
                                                     ss_user.password)
             node['obfs'] = obj.obfs
             node['obfs_param'] = obj.obfs_param
-        elif obj.custom_method == 1:
+        else:
             node['port'] = ss_user.port
             node['method'] = ss_user.method
             node['password'] = ss_user.password
             node['protocol'] = ss_user.protocol
+            node['node_color'] = 'info'
             node['protocol_param'] = ss_user.protocol_param
             node['obfs'] = ss_user.obfs
             node['obfs_param'] = ss_user.obfs_param
@@ -734,92 +739,6 @@ def node_create(request):
             request, 'backend/nodecreate.html', context={
                 'form': form,
             })
-
-
-class Page_List_View(object):
-    '''
-    拥有翻页功能的通用类
-    Args:
-        request ： django request
-        obj： 等待分分页的列表，例如 User.objects.all()
-        page_num： 分页的页数
-    '''
-
-    def __init__(self, request, obj_list, page_num):
-        self.request = request
-        self.obj_list = obj_list
-        self.page_num = page_num
-
-    def get_page_context(self):
-        '''返回分页context'''
-        # 每页显示10条记录
-        paginator = Paginator(self.obj_list, self.page_num)
-        # 构造分页.获取当前页码数量
-        page = self.request.GET.get('page')
-        # 页码为1时，防止异常
-        try:
-            contacts = paginator.page(page)
-            page = int(page)
-        except PageNotAnInteger:
-            contacts = paginator.page(1)
-            page = 1
-        except EmptyPage:
-            contacts = paginator.page(paginator.num_pages)
-        # 获得整个分页页码列表
-        page_list = paginator.page_range
-        # 获得分页后的总页数
-        total = paginator.num_pages
-
-        left = []
-        left_has_more = False
-        right = []
-        right_has_more = False
-        first = False
-        last = False
-        # 开始构造页码列表
-        if page == 1:
-            # 当前页为第1页时
-            right = page_list[page:page + 2]
-            if len(right) > 0:
-                # 当最后一页比总页数小时，我们应该显示省略号
-                if right[-1] < total - 1:
-                    right_has_more = True
-                # 当最后一页比rigth大时候，我们需要显示最后一页
-                if right[-1] < total:
-                    last = True
-        elif page == total:
-            # 当前页为最后一页时
-            left = page_list[(page - 3) if (page - 3) > 0 else 0:page - 1]
-            if left[0] > 2:
-                left_has_more = True
-            if left[0] > 1:
-                first = True
-        else:
-            left = page_list[(page - 2) if (page - 2) > 0 else 0:page - 1]
-            right = page_list[page:page + 2]
-            # 是否需要显示最后一页和最后一页前的省略号
-            if right[-1] < total - 1:
-                right_has_more = True
-            if right[-1] < total:
-                last = True
-            # 是否需要显示第 1 页和第 1 页后的省略号
-            if left[0] > 2:
-                left_has_more = True
-            if left[0] > 1:
-                first = True
-        context = {
-            'contacts': contacts,
-            'page_list': page_list,
-            'left': left,
-            'right': right,
-            'left_has_more': left_has_more,
-            'right_has_more': right_has_more,
-            'first': first,
-            'last': last,
-            'total': total,
-            'page': page,
-        }
-        return context
 
 
 @permission_required('sspanel')
@@ -1225,10 +1144,10 @@ def backend_ticketedit(request, pk):
 
 @permission_required('ssserver')
 def backend_alive_user(request):
-    obj_list = []
-    for node in Node.objects.all():
-        obj_list.extend(AliveIp.recent_alive(node.node_id))
+    user_list = []
+    for node_id in Node.get_node_ids():
+        user_list.extend(AliveIp.recent_alive(node_id))
     page_num = 15
-    context = Page_List_View(request, obj_list, page_num).get_page_context()
+    context = Page_List_View(request, user_list, page_num).get_page_context()
 
     return render(request, 'backend/aliveuser.html', context=context)

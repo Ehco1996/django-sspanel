@@ -1,11 +1,12 @@
-{% extends 'base.html' %} 
-{% block main %}
+{% extends 'base.html' %} {% block main %}
 <div class="columns">
     <div class="column is-one-third">
         <div class="notification is-danger">
             <button class="delete"></button>
             <p class="title is-4">
-                好像发现了一个<br/> <br/>了不得的地方！
+                好像发现了一个
+                <br/>
+                <br/>了不得的地方！
             </p>
         </div>
     </div>
@@ -13,30 +14,40 @@
         <div class="notification is-success">
             <button class="delete"></button>
             <p class="title is-4">
-                是啊是啊！<br/><br/>要进去瞧瞧么？</p>
+                是啊是啊！
+                <br/>
+                <br/>要进去瞧瞧么？</p>
         </div>
     </div>
     <div class="column is-one-third">
         <div class="notification is-link">
             <button class="delete"></button>
             <p class="title is-4">
-                当然要去！<br/><br/>魔王总要救公主！</p>
+                当然要去！
+                <br/>
+                <br/>魔王总要救公主！</p>
         </div>
     </div>
 </div>
-<br/> 
-{% if user.is_authenticated %}
+<br/> {% if user.is_authenticated %}
 <div class="box">
     <p class="title">欢迎小主: {{ user.username }}</p>
     <p class="subtitle">点击下方按钮进入用户中心 </p>
-    <button class="button"><a href="{% url 'sspanel:userinfo' %}">进入</a></button>
-    
+    <button class="button">
+        <a href="{% url 'sspanel:userinfo' %}">进入</a>
+    </button>
+
 </div>
 {% else %}
 <div class="column box ">
-    <h1 class="title"> 注册注册！</h1>
+    {% if allow_register is True %}
+    <h1 class="title"> 注册注册</h1>
     <h2 class="subtitle">没有账号？快去注册一个吧！</h2>
     <a class="button is-primary is-outlined" href="{% url 'sspanel:register' %}">注册</a>
+    {% else %}
+    <h1 class="title"> 抱歉抱歉！</h1>
+    <h2 class="subtitle">暂时关闭注册了呢~</h2>
+    {% endif %}
 </div>
 <br/>
 <div class="column box ">

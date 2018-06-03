@@ -93,21 +93,20 @@ def simple_cached_view(key=None, ttl=None):
 def authorized(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        token = request.GET.get('token', '')
+        if request.method == 'GET':
+            token = request.GET.get('token', '')
+        else:
+            # TODO 临时解决方案
+            token = request.GET.get('token', '')
+            if not token:
+                token = request.POST.get('token', '')
         if token == settings.TOKEN:
             return view_func(request, *args, **kwargs)
         else:
-            return JsonResponse({'ret': -1})
+            return JsonResponse({'ret': -1,
+                                 'msg': 'auth error'})
 
     return wrapper
-
-
-def clear_node_user_cache():
-    from apps.ssserver.models import Node
-    node_ids = Node.objects.filter(show=1).values_list('node_id', flat=True)
-    for node_id in node_ids:
-        key = cache_keys.key_of_node_user(node_id)
-        cache.delete(key)
 
 
 def get_node_user(node_id):
@@ -115,10 +114,6 @@ def get_node_user(node_id):
     返回所有当前节点可以使用的用户信息
     '''
     from apps.ssserver.models import Node, SSUser
-    key = cache_keys.key_of_node_user(node_id)
-    data = cache.get(key)
-    if data:
-        return data
     node = Node.objects.filter(node_id=node_id).first()
     if node:
         data = []
@@ -141,5 +136,4 @@ def get_node_user(node_id):
                 'protocol_param': user.protocol_param,
             }
             data.append(cfg)
-        cache.set(key, data, DEFUALT_CACHE_TTL)
         return data
