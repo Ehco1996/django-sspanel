@@ -1,5 +1,4 @@
 import time
-import json
 import datetime
 
 import qrcode
@@ -365,20 +364,14 @@ def node_online_api(request):
     '''
     接受节点在线人数上报
     '''
-    token = request.GET.get('token', '')
-    if token == settings.TOKEN:
-        data = json.loads(request.body)
-        node = Node.objects.filter(node_id=data['node_id']).first()
-        if node:
-            NodeOnlineLog.objects.create(
-                node_id=data['node_id'],
-                online_user=data['online_user'],
-                log_time=int(time.time()))
-        else:
-            data = None
-        res = {'ret': 1, 'data': []}
-    else:
-        res = {'ret': -1}
+    data = request.json
+    node = Node.objects.filter(node_id=data['node_id']).first()
+    if node:
+        NodeOnlineLog.objects.create(
+            node_id=data['node_id'],
+            online_user=data['online_user'],
+            log_time=int(time.time()))
+    res = {'ret': 1, 'data': []}
     return JsonResponse(res)
 
 
@@ -400,8 +393,9 @@ def traffic_api(request):
     '''
     接受服务端的用户流量上报
     '''
-    traffic_rec_list = json.loads(request.body)['data']
-    node_id = json.loads(request.body)['node_id']
+    data = request.json
+    node_id = data['node_id']
+    traffic_rec_list = data['data']
     # 定义循环池
     node_total_traffic = 0
     trafficlog_model_list = []
@@ -437,11 +431,11 @@ def traffic_api(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def alive_ip_api(request):
-    data = json.loads(request.body)['data']
-    node_id = json.loads(request.body)['node_id']
+    data = request.json
+    node_id = data['node_id']
     model_list = []
-    for user, ip_list in data.items():
-        user = SSUser.objects.get(pk=user).user
+    for user_id, ip_list in data['data'].items():
+        user_id = SSUser.objects.get(pk=user_id).user
         for ip in ip_list:
             model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
     AliveIp.objects.bulk_create(model_list)

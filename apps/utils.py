@@ -1,4 +1,5 @@
 import time
+import json
 import random
 import hashlib
 from functools import wraps
@@ -96,13 +97,14 @@ def authorized(view_func):
         if request.method == 'GET':
             token = request.GET.get('token', '')
         else:
-            token = request.POST.get('token', '')
+            data = json.loads(request.body)
+            token = data.get('token', '')
+            request.json = data
         if token == settings.TOKEN:
             return view_func(request, *args, **kwargs)
         else:
             return JsonResponse({'ret': -1,
                                  'msg': 'auth error'})
-
     return wrapper
 
 
