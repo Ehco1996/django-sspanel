@@ -96,10 +96,7 @@ def authorized(view_func):
         if request.method == 'GET':
             token = request.GET.get('token', '')
         else:
-            # TODO 临时解决方案
-            token = request.GET.get('token', '')
-            if not token:
-                token = request.POST.get('token', '')
+            token = request.POST.get('token', '')
         if token == settings.TOKEN:
             return view_func(request, *args, **kwargs)
         else:
