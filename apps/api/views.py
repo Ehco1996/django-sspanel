@@ -435,7 +435,7 @@ def alive_ip_api(request):
     node_id = data['node_id']
     model_list = []
     for user_id, ip_list in data['data'].items():
-        user_id = SSUser.objects.get(pk=user_id).user
+        user = SSUser.objects.get(pk=user_id).user
         for ip in ip_list:
             model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
     AliveIp.objects.bulk_create(model_list)
