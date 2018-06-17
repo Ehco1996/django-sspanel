@@ -274,7 +274,7 @@ class Node(models.Model):
     port = models.IntegerField(
         '节点端口', null=True, blank=True, help_text='单端口多用户时需要')
     password = models.CharField(
-        '节点密码', max_length=32, null=True, blank=True, help_text='单端口多用户时需要')
+        '节点密码', max_length=32, default='password', help_text='单端口多用户时需要')
     country = models.CharField(
         '国家', default='CN', max_length=2, choices=COUNTRIES_CHOICES)
     custom_method = models.SmallIntegerField(
