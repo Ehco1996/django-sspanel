@@ -57,84 +57,36 @@ class SSUser(models.Model):
             return max(port_list) + 1
 
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='ss_user',
-        verbose_name='用户名')
-
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ss_user', verbose_name='用户名')
     last_check_in_time = models.DateTimeField(
-        '最后签到时间',
-        null=True,
-        # 默认设置为时间戳开始的那天
-        default=datetime.datetime.fromtimestamp(0),
-        editable=False,
-    )
-
-    # sspanel 数据库表字段
-    password = models.CharField(
-        'sspanel密码',
-        max_length=32,
-        # 当密码少于6位时报错
-        validators=[
-            validators.MinLengthValidator(6),
-        ],
-        default=get_short_random_string,
-        db_column='passwd',
-    )
+        verbose_name='最后签到时间', null=True, default=datetime.datetime.fromtimestamp(0), editable=False)
+    password = models.CharField(verbose_name='sspanel密码', max_length=32, default=get_short_random_string,
+                                db_column='passwd', validators=[validators.MinLengthValidator(6), ])
     port = models.IntegerField(
-        '端口',
-        db_column='port',
-        unique=True,
-    )
+        verbose_name='端口', db_column='port', unique=True,)
     last_use_time = models.IntegerField(
-        '最后使用时间', default=0, editable=False, help_text='时间戳', db_column='t')
-    upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
-    download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
+        verbose_name='最后使用时间', default=0, editable=False, help_text='时间戳', db_column='t')
+    upload_traffic = models.BigIntegerField(
+        verbose_name='上传流量', default=0, db_column='u')
+    download_traffic = models.BigIntegerField(
+        verbose_name='下载流量', default=0, db_column='d')
     transfer_enable = models.BigIntegerField(
-        '总流量', default=settings.DEFAULT_TRAFFIC, db_column='transfer_enable')
+        verbose_name='总流量', default=settings.DEFAULT_TRAFFIC, db_column='transfer_enable')
     switch = models.BooleanField(
-        '保留字段switch',
-        default=True,
-        db_column='switch',
-    )
+        verbose_name='保留字段switch', default=True, db_column='switch')
     enable = models.BooleanField(
-        '开启与否',
-        default=True,
-        db_column='enable',
-    )
-
+        verbose_name='开启与否', default=True, db_column='enable')
     method = models.CharField(
-        '加密类型',
-        default=settings.DEFAULT_METHOD,
-        max_length=32,
-        choices=METHOD_CHOICES,
-    )
-
+        verbose_name='加密类型', default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES,)
     protocol = models.CharField(
-        '协议',
-        default=settings.DEFAULT_PROTOCOL,
-        max_length=32,
-        choices=PROTOCOL_CHOICES,
-    )
-
+        verbose_name='协议', default=settings.DEFAULT_PROTOCOL, max_length=32, choices=PROTOCOL_CHOICES)
     protocol_param = models.CharField(
-        '协议参数', max_length=128, null=True, blank=True)
-
+        verbose_name='协议参数', max_length=128, null=True, blank=True)
     obfs = models.CharField(
-        '混淆',
-        default=settings.DEFAULT_OBFS,
-        max_length=32,
-        choices=OBFS_CHOICES,
-    )
-
+        verbose_name='混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES)
     obfs_param = models.CharField(
-        '混淆参数', max_length=128, null=True, blank=True)
-
-    # 等级字段 和 sspanel.user 的level 同步
-    level = models.PositiveIntegerField(
-        '用户等级',
-        default=0,
-    )
+        verbose_name='混淆参数', max_length=128, null=True, blank=True)
+    level = models.PositiveIntegerField(verbose_name='用户等级', default=0,)
 
     def __str__(self):
         return self.user.username
@@ -392,11 +344,8 @@ class NodeInfoLog(models.Model):
     '''节点负载记录'''
 
     node_id = models.IntegerField('节点id', blank=False, null=False)
-
     uptime = models.FloatField('更新时间', blank=False, null=False)
-
     load = models.CharField('负载', max_length=32, blank=False, null=False)
-
     log_time = models.IntegerField('日志时间', blank=False, null=False)
 
     def __str__(self):
@@ -425,9 +374,7 @@ class NodeOnlineLog(models.Model):
         return count
 
     node_id = models.IntegerField('节点id', blank=False, null=False)
-
     online_user = models.IntegerField('在线人数', blank=False, null=False)
-
     log_time = models.IntegerField('日志时间', blank=False, null=False)
 
     def __str__(self):
@@ -471,18 +418,9 @@ class AliveIp(models.Model):
                 ret.append(log)
         return ret
 
-    node_id = models.IntegerField('节点id', blank=False, null=False)
-
-    ip = models.CharField(
-        '设备ip',
-        max_length=128,
-    )
-
-    user = models.CharField(
-        '用户名',
-        max_length=128,
-    )
-
+    node_id = models.IntegerField(verbose_name='节点id', blank=False, null=False)
+    ip = models.CharField(verbose_name='设备ip', max_length=128)
+    user = models.CharField(verbose_name='用户名', max_length=128)
     log_time = models.DateTimeField('日志时间', auto_now=True)
 
     class Meta:

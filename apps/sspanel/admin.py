@@ -17,7 +17,7 @@ class PurchaseHistoryAdmin(admin.ModelAdmin):
 
 
 class InviteCodeAdmin(admin.ModelAdmin):
-    list_display = ['code', 'time_created', 'isused', 'type']
+    list_display = ['code', 'time_created', 'isused', 'code_type']
     search_fields = ['code']
 
 

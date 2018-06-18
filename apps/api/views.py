@@ -104,7 +104,7 @@ def gen_invite_code(request):
         num = u.invitecode_num - len(InviteCode.objects.filter(code_id=u.pk))
     if num > 0:
         for i in range(num):
-            code = InviteCode(type=0, code_id=u.pk)
+            code = InviteCode(code_type=0, code_id=u.pk)
             code.save()
         registerinfo = {
             'title': '成功',

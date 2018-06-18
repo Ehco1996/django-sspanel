@@ -43,7 +43,8 @@ def ssclient(request):
 
 def ssinvite(request):
     '''跳转到邀请码界面'''
-    codelist = InviteCode.objects.filter(type=1, isused=False, code_id=1)[:20]
+    codelist = InviteCode.objects.filter(
+        code_type=1, isused=False, code_id=1)[:20]
 
     context = {
         'codelist': codelist,
@@ -593,12 +594,12 @@ def affiliate(request):
     '''推广页面'''
     if request.user.is_superuser is not True:
         invidecodes = InviteCode.objects.filter(
-            code_id=request.user.pk, type=0)
+            code_id=request.user.pk, code_type=0)
         inviteNum = request.user.invitecode_num - len(invidecodes)
     else:
         # 如果是管理员，特殊处理
         invidecodes = InviteCode.objects.filter(
-            code_id=request.user.pk, type=0, isused=False)
+            code_id=request.user.pk, code_type=0, isused=False)
         inviteNum = 5
     context = {
         'invitecodes': invidecodes,
@@ -818,7 +819,7 @@ def user_status(request):
 @permission_required('sspanel')
 def backend_invite(request):
     '''邀请码生成'''
-    code_list = InviteCode.objects.filter(type=0, isused=False, code_id=1)
+    code_list = InviteCode.objects.filter(code_type=0, isused=False, code_id=1)
     return render(request, 'backend/invitecode.html', {
         'code_list': code_list,
     })
@@ -833,7 +834,7 @@ def gen_invite_code(request):
         code = InviteCode(type=type)
         code.save()
 
-    code_list = InviteCode.objects.filter(type=0, isused=False)
+    code_list = InviteCode.objects.filter(code_type=0, isused=False)
     registerinfo = {
         'title': '成功',
         'subtitle': '添加邀请码{}个'.format(Num),
