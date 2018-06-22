@@ -13,8 +13,8 @@ from os.path import dirname, abspath
 import django
 
 
-def reday():
-    '''reday for cmds'''
+def ready():
+    '''ready for cmds'''
     path = dirname((abspath(dirname(__file__))))
     sys.path.insert(0, path)
     env = os.getenv('DJANGO_ENV', 'development')
@@ -22,4 +22,4 @@ def reday():
     django.setup()
 
 
-reday()
+ready()
