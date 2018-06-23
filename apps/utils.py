@@ -10,7 +10,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 
 from apps.constants import DEFUALT_CACHE_TTL
-from apps.cache_keys import CacheKey as cache_keys
+from apps.cachext import make_default_key
 
 
 def get_random_string(length=12,
@@ -73,11 +73,10 @@ def reverse_traffic(str):
 
 def simple_cached_view(key=None, ttl=None):
     def decorator(func):
-        cache_key = key if key else func.__name__
-        cache_ttl = ttl if ttl else DEFUALT_CACHE_TTL
-
         @wraps(func)
         def cached_view(*agrs, **kwagrs):
+            cache_key = key if key else make_default_key(func, *agrs, **kwagrs)
+            cache_ttl = ttl if ttl else DEFUALT_CACHE_TTL
             resp = cache.get(cache_key)
             if resp:
                 return resp
@@ -85,7 +84,6 @@ def simple_cached_view(key=None, ttl=None):
                 resp = func(*agrs, **kwagrs)
                 cache.set(cache_key, resp, cache_ttl)
                 return resp
-
         return cached_view
 
     return decorator

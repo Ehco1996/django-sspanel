@@ -1,11 +1,9 @@
 import time
 import datetime
 
-import qrcode
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
-from django.utils.six import BytesIO
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -13,13 +11,13 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.payments import alipay
+from apps.constants import NODE_USER_INFO_TTL
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
                         get_node_user, authorized)
 from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
-                                 Goods, User, MoneyCode, Donate, PayRequest,
-                                 PayRecord)
+                                 Goods, User, MoneyCode, Donate, PayRecord)
 
 
 @permission_required('sspanel')
@@ -376,6 +374,7 @@ def node_online_api(request):
 
 
 @authorized
+@simple_cached_view(ttl=NODE_USER_INFO_TTL)
 @require_http_methods(['GET'])
 def user_api(request, node_id):
     '''
