@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.utils import timezone
+
 from apps.sspanel.models import User
-from apps.ssserver.models import TrafficLog, NodeOnlineLog, AliveIp
+from apps.ssserver.models import (Node, NodeInfoLog, NodeOnlineLog,
+                                  TrafficLog, AliveIp)
 
 
 def check_user_state():
@@ -22,7 +24,7 @@ def check_user_state():
                 .format(timezone.now().strftime('%Y-%m-%d'),
                         user.username).encode('utf8')
             print(logs)
-    print('Time:{} CHECKED'.format(timezone.now()))
+    print('Time: {} CHECKED'.format(timezone.now()))
 
 
 def auto_reset_traffic():
@@ -66,3 +68,11 @@ def clean_online_ip_log():
     log = str(res)
     print('Today: {} all online ip log removed!:{}'.format(timezone.now(),
                                                            log))
+
+
+def reset_node_traffic():
+    '''月初重置节点使用流量'''
+    for node in Node.objects.all():
+        node.used_traffic = 0
+        node.save()
+    print('all node traffic removed!')
