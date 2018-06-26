@@ -1,4 +1,5 @@
+import os
 
 RAVEN_CONFIG = {
-    'dsn': '',
+    'dsn': os.environ.get('SENTRY_DSN'),
 }
