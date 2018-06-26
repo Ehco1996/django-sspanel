@@ -1,0 +1,4 @@
+
+RAVEN_CONFIG = {
+    'dsn': '',
+}
