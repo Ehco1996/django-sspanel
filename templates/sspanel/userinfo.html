@@ -239,8 +239,7 @@
         $.getJSON(url, function (results) {
             swal(results.title, results.subtitle, results.status)
             var box = $("#id-checkin-box")
-            box.empty()
-            box.append('今天已经签到过了ಠ౪ಠ')
+            box.html('<p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>')
         })
     }
     CheckButton.click(Checkin)

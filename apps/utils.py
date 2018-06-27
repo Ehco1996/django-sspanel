@@ -134,3 +134,13 @@ def get_node_user(node_id):
             }
             data.append(cfg)
         return data
+
+
+def global_settings(request):
+    from django.conf import settings
+
+    global_variable = {
+        "USE_SMTP": settings.USE_SMTP
+    }
+
+    return global_variable

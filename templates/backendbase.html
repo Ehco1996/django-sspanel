@@ -186,10 +186,11 @@
     </footer>
 </body>
 <!--整站消息提醒功能 -->
-{% if registerinfo %}
+{% if messages %}
 <script>
-    swal("{{ registerinfo.title }}", '{{ registerinfo.subtitle }}', '{{ registerinfo.status }}');
-
-</script> {% endif %}
-
+    {% for message in messages %}
+    swal("{{ message.extra_tags }}", '{{ message }}', '{{ message.level_tag }}');
+    {% endfor %}
+</script>
+{% endif %}
 </html>

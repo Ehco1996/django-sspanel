@@ -5,10 +5,12 @@ from random import randint
 
 from django.db.models import Q
 from django.conf import settings
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.six import BytesIO
-from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 
@@ -70,28 +72,18 @@ def register(request):
             # 获取用户填写的邀请码
             code = request.POST.get('invitecode')
             # 数据库查询邀请码
-            code_query = InviteCode.objects.filter(code=code, isused=False)
+            code_query = InviteCode.objects.filter(code=code, isused=False).first()
             # 判断邀请码是否存在并返回信息
-            if len(code_query) == 0:
-                registerinfo = {
-                    'title': '邀请码失效',
-                    'subtitle': '请重新获取邀请码',
-                    'status': 'error',
-                }
+            if not code_query:
+                messages.error(request, "请重新获取邀请码", extra_tags="邀请码失效")
                 context = {
-                    'registerinfo': registerinfo,
                     'form': form,
                 }
                 return render(
                     request, 'sspanel/register.html', context=context)
 
             else:
-                registerinfo = {
-                    'title': '注册成功！',
-                    'subtitle': '请登录使用吧！',
-                    'status': 'success',
-                }
-                context = {'registerinfo': registerinfo}
+                messages.success(request, "请登录使用吧！", extra_tags="注册成功！")
                 form.save()
                 # 改变表邀请码状态
                 code = code_query[0]
@@ -105,7 +97,7 @@ def register(request):
                 max_port_user = SSUser.objects.order_by('-port').first()
                 port = max_port_user.port + randint(2, 3)
                 SSUser.objects.create(user=user, port=port)
-                return render(request, 'sspanel/index.html', context=context)
+                return HttpResponseRedirect(reverse('sspanel:index'))
 
     else:
         form = RegisterForm()
@@ -125,42 +117,18 @@ def user_login(request):
             user = authenticate(username=username, password=password)
             if user is not None and user.is_active:
                 login(request, user)
-                anno = Announcement.objects.all().first()
-                min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
-                max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-                remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
-                registerinfo = {
-                    'title': '登录成功！',
-                    'subtitle': '自动跳转到用户中心',
-                    'status': 'success',
-                }
-                context = {
-                    'registerinfo': registerinfo,
-                    'anno': anno,
-                    'remain_traffic': remain_traffic,
-                    'min_traffic': min_traffic,
-                    'max_traffic': max_traffic,
-                    'sub_link': user.get_sub_link(),
-                    'sub_code': Node.get_sub_code(user),
-                }
-                return render(
-                    request, 'sspanel/userinfo.html', context=context)
+                messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
+                return HttpResponseRedirect(reverse('sspanel:userinfo'))
             else:
                 form = LoginForm()
-                registerinfo = {
-                    'title': '登录失败！',
-                    'subtitle': '请重新填写信息！',
-                    'status': 'error',
-                }
+                messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
                 context = {
-                    'registerinfo': registerinfo,
                     'form': form,
                 }
                 return render(request, 'sspanel/login.html', context=context)
     else:
         context = {
             'form': LoginForm(),
-            'USE_SMTP': settings.USE_SMTP,
         }
 
         return render(request, 'sspanel/login.html', context=context)
@@ -169,16 +137,8 @@ def user_login(request):
 def user_logout(request):
     '''用户登出函数'''
     logout(request)
-    registerinfo = {
-        'title': '注销成功',
-        'subtitle': '欢迎下次再来',
-        'status': 'success',
-    }
-    context = {
-        'registerinfo': registerinfo,
-    }
-
-    return render(request, 'sspanel/index.html', context=context)
+    messages.success(request, "欢迎下次再来", extra_tags="注销成功")
+    return HttpResponseRedirect(reverse("sspanel:index"))
 
 
 @login_required
@@ -229,7 +189,6 @@ def checkin(request):
             'subtitle': '距离上次签到不足一天',
             'status': 'error',
         }
-
     result = json.dumps(registerinfo, ensure_ascii=False)
     return HttpResponse(result, content_type='application/json')
 
@@ -450,13 +409,8 @@ def charge(request):
         code_query = MoneyCode.objects.filter(code=input_code)
         # 判断充值码是否存在
         if len(code_query) == 0:
-            registerinfo = {
-                'title': '充值码失效',
-                'subtitle': '请重新获取充值码',
-                'status': 'error',
-            }
+            messages.error(request, "请重新获取充值码", extra_tags="充值码失效")
             context = {
-                'registerinfo': registerinfo,
                 'ss_user': user,
                 'codelist': MoneyCode.objects.filter(user=user),
             }
@@ -468,13 +422,8 @@ def charge(request):
             # 判断充值码是否被使用
             if code.isused is True:
                 # 当被使用的是时候
-                registerinfo = {
-                    'title': '充值码失效',
-                    'subtitle': '请重新获取充值码',
-                    'status': 'error',
-                }
+                messages.error(request, "请重新获取充值码", extra_tags="充值码失效")
                 context = {
-                    'registerinfo': registerinfo,
                     'ss_user': user,
                     'codelist': MoneyCode.objects.filter(user=user),
                 }
@@ -491,13 +440,8 @@ def charge(request):
                 Donate.objects.create(user=user, money=code.number)
                 # 检索充值记录
                 codelist = MoneyCode.objects.filter(user=user)
-                registerinfo = {
-                    'title': '充值成功！',
-                    'subtitle': '请去商店购买商品！',
-                    'status': 'success',
-                }
+                messages.success(request, "请去商店购买商品！", extra_tags="充值成功！")
                 context = {
-                    'registerinfo': registerinfo,
                     'ss_user': user,
                     'codelist': codelist,
                 }
@@ -528,15 +472,9 @@ def ticket_create(request):
         body = request.POST.get('body', '')
         Ticket.objects.create(user=request.user, title=title, body=body)
         ticket = Ticket.objects.filter(user=request.user)
-        registerinfo = {
-            'title': '添加成功',
-            'subtitle': '数据更新成功！',
-            'status': 'success',
-        }
-
+        messages.success(request, "数据更新成功！", extra_tags="添加成功")
         context = {
             'ticket': ticket,
-            'registerinfo': registerinfo,
         }
         return render(request, 'sspanel/ticket.html', context=context)
     else:
@@ -548,14 +486,8 @@ def ticket_delete(request, pk):
     '''删除指定'''
     ticket = Ticket.objects.get(pk=pk)
     ticket.delete()
-    registerinfo = {
-        'title': '删除成功',
-        'subtitle': '该工单已经删除',
-        'status': 'success',
-    }
-
+    messages.success(request, "该工单已经删除", extra_tags="删除成功")
     context = {
-        'registerinfo': registerinfo,
         'ticket': Ticket.objects.filter(user=request.user)
     }
     return render(request, 'sspanel/ticket.html', context=context)
@@ -572,13 +504,8 @@ def ticket_edit(request, pk):
         ticket.title = title
         ticket.body = body
         ticket.save()
-        registerinfo = {
-            'title': '修改成功',
-            'subtitle': '数据更新成功',
-            'status': 'success',
-        }
+        messages.success(request, "数据更新成功", extra_tags="修改成功")
         context = {
-            'registerinfo': registerinfo,
             'ticket': Ticket.objects.filter(user=request.user)
         }
         return render(request, 'sspanel/ticket.html', context=context)
@@ -648,12 +575,8 @@ def node_delete(request, node_id):
     node = Node.objects.filter(node_id=node_id)
     node.delete()
     nodes = Node.objects.all()
-    registerinfo = {
-        'title': '删除节点',
-        'subtitle': '成功啦',
-        'status': 'success',
-    }
-    context = {'nodes': nodes, 'registerinfo': registerinfo}
+    messages.success(request, "成功啦", extra_tags="删除节点")
+    context = {'nodes': nodes}
     return render(request, 'backend/nodeinfo.html', context=context)
 
 
@@ -670,26 +593,15 @@ def node_edit(request, node_id):
             node.total_traffic = reverse_traffic(
                 form.cleaned_data['human_total_traffic'])
             node.save()
-            registerinfo = {
-                'title': '修改成功',
-                'subtitle': '数据更新成功',
-                'status': 'success',
-            }
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
             context = {
                 'nodes': nodes,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/nodeinfo.html', context=context)
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error',
-            }
-
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'form': form,
-                'registerinfo': registerinfo,
                 'node': node,
             }
             return render(request, 'backend/nodeedit.html', context=context)
@@ -711,26 +623,15 @@ def node_create(request):
         if form.is_valid():
             form.save()
             nodes = Node.objects.all()
-            registerinfo = {
-                'title': '添加成功',
-                'subtitle': '数据更新成功！',
-                'status': 'success',
-            }
+            messages.success(request, "数据更新成功！", extra_tags="添加成功")
             context = {
                 'nodes': nodes,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/nodeinfo.html', context=context)
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error',
-            }
-
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'form': form,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/nodecreate.html', context=context)
 
@@ -748,13 +649,7 @@ def backend_userlist(request):
     obj = User.objects.all().order_by('-date_joined')
     page_num = 15
     context = Page_List_View(request, obj, page_num).get_page_context()
-    try:
-        registerinfo = request.session['registerinfo']
-        del request.session['registerinfo']
-        context.update({'registerinfo': registerinfo})
-    except:
-        pass
-    return render(request, 'backend/userlist.html', context=context)
+    return render(request, 'backend/userlist.html')
 
 
 @permission_required('sspanel')
@@ -767,14 +662,8 @@ def user_delete(request, pk):
     page_num = 15
     context = Page_List_View(request, obj, page_num).get_page_context()
 
-    registerinfo = {
-        'title': '删除用户',
-        'subtitle': '成功啦',
-        'status': 'success',
-    }
-
-    context['registerinfo'] = registerinfo
-    return render(request, 'backend/userlist.html', context=context)
+    messages.success(request, "成功啦", extra_tags="删除用户")
+    return render(request, 'backend/userlist.html')
 
 
 @permission_required('sspanel')
@@ -829,24 +718,13 @@ def backend_invite(request):
 def gen_invite_code(request):
 
     Num = request.GET.get('num')
-    type = request.GET.get('type')
+    code_type = request.GET.get('type')
     for i in range(int(Num)):
-        code = InviteCode(type=type)
-        code.save()
-
-    code_list = InviteCode.objects.filter(code_type=0, isused=False)
-    registerinfo = {
-        'title': '成功',
-        'subtitle': '添加邀请码{}个'.format(Num),
-        'status': 'success',
-    }
-
-    context = {
-        'registerinfo': registerinfo,
-        'code_list': code_list,
-    }
-
-    return render(request, 'backend/invitecode.html', context=context)
+        code = InviteCode(code_type=code_type)
+        code.save() 
+    messages.error(request, "请重新获取邀请码", extra_tags="邀请码失效")
+    messages.success(request, '添加邀请码{}个'.format(Num), extra_tags="成功")
+    return HttpResponseRedirect(reverse('sspanel:backend_invite'))
 
 
 @permission_required('sspanel')
@@ -856,10 +734,6 @@ def backend_charge(request):
     obj = MoneyCode.objects.all()
     page_num = 10
     context = Page_List_View(request, obj, page_num).get_page_context()
-    registerinfo = request.session.get('registerinfo')
-    if registerinfo:
-        context['registerinfo'] = registerinfo
-        del request.session['registerinfo']
     # 获取充值的金额和数量
     Num = request.GET.get('num')
     money = request.GET.get('money')
@@ -867,13 +741,8 @@ def backend_charge(request):
         for i in range(int(Num)):
             code = MoneyCode(number=money)
             code.save()
-        registerinfo = {
-            'title': '成功',
-            'subtitle': '添加{}元充值码{}个'.format(money, Num),
-            'status': 'success'
-        }
-        request.session['registerinfo'] = registerinfo
-        return redirect('/sspanel/backend/charge')
+        messages.success(request, '添加{}元充值码{}个'.format(money, Num), extra_tags="成功")
+        return HttpResponseRedirect(reverse('sspanel:backend_charge'))
     return render(request, 'backend/charge.html', context=context)
 
 
@@ -895,13 +764,8 @@ def good_delete(request, pk):
     good.delete()
     goods = Goods.objects.all()
 
-    registerinfo = {
-        'title': '删除商品',
-        'subtitle': '成功啦',
-        'status': 'success',
-    }
-
-    context = {'goods': goods, 'registerinfo': registerinfo}
+    messages.success(request, "成功啦", extra_tags="删除商品")
+    context = {'goods': goods}
     return render(request, 'backend/shop.html', context=context)
 
 
@@ -919,25 +783,15 @@ def good_edit(request, pk):
         form = GoodsForm(data, instance=good)
         if form.is_valid():
             form.save()
-            registerinfo = {
-                'title': '修改成功',
-                'subtitle': '数据更新成功',
-                'status': 'success',
-            }
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
             context = {
                 'goods': goods,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/shop.html', context=context)
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error',
-            }
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'form': form,
-                'registerinfo': registerinfo,
                 'good': good,
             }
             return render(request, 'backend/goodedit.html', context=context)
@@ -963,25 +817,15 @@ def good_create(request):
         if form.is_valid():
             form.save()
             goods = Goods.objects.all()
-            registerinfo = {
-                'title': '添加成功',
-                'subtitle': '数据更新成功！',
-                'status': 'success',
-            }
+            messages.success(request, "数据更新成功！", extra_tags="添加成功")
             context = {
                 'goods': goods,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/shop.html', context=context)
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error',
-            }
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'form': form,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/goodcreate.html', context=context)
     else:
@@ -1017,12 +861,8 @@ def anno_delete(request, pk):
     anno = Announcement.objects.filter(pk=pk)
     anno.delete()
     anno = Announcement.objects.all()
-    registerinfo = {
-        'title': '删除公告',
-        'subtitle': '成功啦',
-        'status': 'success',
-    }
-    context = {'anno': anno, 'registerinfo': registerinfo}
+    messages.success(request, "成功啦", extra_tags="删除公告")
+    context = {'anno': anno}
     return render(request, 'backend/annolist.html', context=context)
 
 
@@ -1034,25 +874,15 @@ def anno_create(request):
         if form.is_valid():
             form.save()
             anno = Announcement.objects.all()
-            registerinfo = {
-                'title': '添加成功',
-                'subtitle': '数据更新成功',
-                'status': 'success',
-            }
+            messages.success(request, "数据更新成功", extra_tags="添加成功")
             context = {
                 'anno': anno,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/annolist.html', context=context)
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error',
-            }
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'form': form,
-                'registerinfo': registerinfo,
             }
             return render(request, 'backend/annocreate.html', context=context)
     else:
@@ -1072,25 +902,15 @@ def anno_edit(request, pk):
         form = AnnoForm(request.POST, instance=anno)
         if form.is_valid():
             form.save()
-            registerinfo = {
-                'title': '修改成功',
-                'subtitle': '数据更新成功',
-                'status': 'success',
-            }
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
             context = {
-                'registerinfo': registerinfo,
                 'anno': Announcement.objects.all(),
             }
             return render(request, 'backend/annolist.html', context=context)
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error',
-            }
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'form': form,
-                'registerinfo': registerinfo,
                 'anno': anno,
             }
             return render(request, 'backend/annoedit.html', context=context)
@@ -1124,14 +944,9 @@ def backend_ticketedit(request, pk):
         ticket.body = body
         ticket.status = status
         ticket.save()
-        registerinfo = {
-            'title': '修改成功',
-            'subtitle': '数据更新成功',
-            'status': 'success',
-        }
 
+        messages.success(request, "数据更新成功", extra_tags="修改成功")
         context = {
-            'registerinfo': registerinfo,
             'ticket': Ticket.objects.filter(status=1)
         }
         return render(request, 'backend/ticket.html', context=context)
