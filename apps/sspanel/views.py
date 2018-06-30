@@ -71,22 +71,17 @@ def register(request):
             # 获取用户填写的邀请码
             code = request.POST.get('invitecode')
             # 数据库查询邀请码
-            code_query = InviteCode.objects.filter(
+            code = InviteCode.objects.filter(
                 code=code, isused=False).first()
             # 判断邀请码是否存在并返回信息
-            if not code_query:
+            if not code:
                 messages.error(request, "请重新获取邀请码", extra_tags="邀请码失效")
-                context = {
-                    'form': form,
-                }
                 return render(
-                    request, 'sspanel/register.html', context=context)
-
+                    request, 'sspanel/register.html', {'form': form})
             else:
                 messages.success(request, "请登录使用吧！", extra_tags="注册成功！")
                 form.save()
                 # 改变表邀请码状态
-                code = code_query[0]
                 code.isused = True
                 code.save()
                 # 将user和ssuser关联
@@ -98,7 +93,6 @@ def register(request):
                 port = max_port_user.port + randint(2, 3)
                 SSUser.objects.create(user=user, port=port)
                 return HttpResponseRedirect(reverse('sspanel:index'))
-
     else:
         form = RegisterForm()
 
