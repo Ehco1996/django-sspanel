@@ -235,7 +235,7 @@
     // 签到AJAX部分
     var CheckButton = $("#id-checkin")
     var Checkin = function () {
-        url = "{% url 'sspanel:checkin' %}"
+        url = "{% url 'api:checkin' %}"
         $.getJSON(url, function (results) {
             swal(results.title, results.subtitle, results.status)
             var box = $("#id-checkin-box")

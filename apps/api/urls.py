@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path
 from . import views
 
 app_name = "api"
@@ -13,7 +13,7 @@ urlpatterns = [
     path('pay/query/', views.pay_query, name='pay_query'),
     path('traffic/query/', views.traffic_query, name='traffic_query'),
     path('change/theme/', views.change_theme, name='change_theme'),
-
+    path('checkin/', views.checkin, name='checkin'),
     # 邀请码接口
     path('get/invitecode/', views.get_invitecode),
     # web api 接口
