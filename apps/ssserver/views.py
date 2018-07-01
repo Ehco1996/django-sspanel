@@ -77,7 +77,8 @@ def ChangeSsPass(request):
             messages.success(request, "请及时更换客户端密码！", extra_tags="修改成功！")
             return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
         else:
-            return HttpResponseRedirect(reverse("index"))
+            messages.error(request, "新的客户端密码格式不正确！", extra_tags="修改失败！")
+            return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
     else:
         form = ChangeSsPassForm()
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
