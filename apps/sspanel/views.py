@@ -378,25 +378,14 @@ def charge(request):
         # 判断充值码是否存在
         if len(code_query) == 0:
             messages.error(request, "请重新获取充值码", extra_tags="充值码失效")
-            context = {
-                'ss_user': user,
-                'codelist': MoneyCode.objects.filter(user=user),
-            }
-            return render(
-                request, 'sspanel/chargecenter.html', context=context)
-
+            return HttpResponseRedirect(reverse('sspanel:chargecenter'))
         else:
             code = code_query[0]
             # 判断充值码是否被使用
             if code.isused is True:
                 # 当被使用的是时候
                 messages.error(request, "请重新获取充值码", extra_tags="充值码失效")
-                context = {
-                    'ss_user': user,
-                    'codelist': MoneyCode.objects.filter(user=user),
-                }
-                return render(
-                    request, 'sspanel/chargecenter.html', context=context)
+                return HttpResponseRedirect(reverse('sspanel:chargecenter'))
             else:
                 # 充值操作
                 user.balance += code.number
@@ -409,12 +398,7 @@ def charge(request):
                 # 检索充值记录
                 codelist = MoneyCode.objects.filter(user=user)
                 messages.success(request, "请去商店购买商品！", extra_tags="充值成功！")
-                context = {
-                    'ss_user': user,
-                    'codelist': codelist,
-                }
-                return render(
-                    request, 'sspanel/chargecenter.html', context=context)
+                return HttpResponseRedirect(reverse('sspanel:chargecenter'))
 
 
 @login_required
@@ -439,12 +423,8 @@ def ticket_create(request):
         title = request.POST.get('title', '')
         body = request.POST.get('body', '')
         Ticket.objects.create(user=request.user, title=title, body=body)
-        ticket = Ticket.objects.filter(user=request.user)
         messages.success(request, "数据更新成功！", extra_tags="添加成功")
-        context = {
-            'ticket': ticket,
-        }
-        return render(request, 'sspanel/ticket.html', context=context)
+        return HttpResponseRedirect(reverse('sspanel:ticket'))
     else:
         return render(request, 'sspanel/ticketcreate.html')
 
@@ -455,10 +435,7 @@ def ticket_delete(request, pk):
     ticket = Ticket.objects.get(pk=pk)
     ticket.delete()
     messages.success(request, "该工单已经删除", extra_tags="删除成功")
-    context = {
-        'ticket': Ticket.objects.filter(user=request.user)
-    }
-    return render(request, 'sspanel/ticket.html', context=context)
+    return HttpResponseRedirect(reverse('sspanel:ticket'))
 
 
 @login_required
@@ -473,10 +450,7 @@ def ticket_edit(request, pk):
         ticket.body = body
         ticket.save()
         messages.success(request, "数据更新成功", extra_tags="修改成功")
-        context = {
-            'ticket': Ticket.objects.filter(user=request.user)
-        }
-        return render(request, 'sspanel/ticket.html', context=context)
+        return HttpResponseRedirect(reverse('sspanel:ticket'))
     else:
         context = {
             'ticket': ticket,
@@ -542,17 +516,14 @@ def node_delete(request, node_id):
     '''删除节点'''
     node = Node.objects.filter(node_id=node_id)
     node.delete()
-    nodes = Node.objects.all()
     messages.success(request, "成功啦", extra_tags="删除节点")
-    context = {'nodes': nodes}
-    return render(request, 'backend/nodeinfo.html', context=context)
+    return HttpResponseRedirect(reverse('sspanel:backend_node_info'))
 
 
 @permission_required('sspanel')
 def node_edit(request, node_id):
     '''编辑节点'''
     node = Node.objects.get(node_id=node_id)
-    nodes = Node.objects.all()
     # 当为post请求时，修改数据
     if request.method == "POST":
         form = NodeForm(request.POST, instance=node)
@@ -562,10 +533,7 @@ def node_edit(request, node_id):
                 form.cleaned_data['human_total_traffic'])
             node.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
-            context = {
-                'nodes': nodes,
-            }
-            return render(request, 'backend/nodeinfo.html', context=context)
+            return HttpResponseRedirect(reverse('sspanel:backend_node_info'))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
@@ -590,12 +558,8 @@ def node_create(request):
         form = NodeForm(request.POST)
         if form.is_valid():
             form.save()
-            nodes = Node.objects.all()
             messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            context = {
-                'nodes': nodes,
-            }
-            return render(request, 'backend/nodeinfo.html', context=context)
+            return HttpResponseRedirect(reverse('sspanel:backend_node_info'))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
@@ -617,7 +581,7 @@ def backend_userlist(request):
     obj = User.objects.all().order_by('-date_joined')
     page_num = 15
     context = Page_List_View(request, obj, page_num).get_page_context()
-    return render(request, 'backend/userlist.html')
+    return render(request, 'backend/userlist.html', context)
 
 
 @permission_required('sspanel')
@@ -625,13 +589,8 @@ def user_delete(request, pk):
     '''删除user'''
     user = User.objects.filter(pk=pk)
     user.delete()
-
-    obj = User.objects.all()
-    page_num = 15
-    context = Page_List_View(request, obj, page_num).get_page_context()
-
     messages.success(request, "成功啦", extra_tags="删除用户")
-    return render(request, 'backend/userlist.html')
+    return HttpResponseRedirect(reverse('sspanel:user_list'))
 
 
 @permission_required('sspanel')
@@ -690,7 +649,6 @@ def gen_invite_code(request):
     for i in range(int(Num)):
         code = InviteCode(code_type=code_type)
         code.save()
-    messages.error(request, "请重新获取邀请码", extra_tags="邀请码失效")
     messages.success(request, '添加邀请码{}个'.format(Num), extra_tags="成功")
     return HttpResponseRedirect(reverse('sspanel:backend_invite'))
 
@@ -731,11 +689,8 @@ def good_delete(request, pk):
     '''删除商品'''
     good = Goods.objects.filter(pk=pk)
     good.delete()
-    goods = Goods.objects.all()
-
     messages.success(request, "成功啦", extra_tags="删除商品")
-    context = {'goods': goods}
-    return render(request, 'backend/shop.html', context=context)
+    return HttpResponseRedirect(reverse('sspanel:backend_shop'))
 
 
 @permission_required('sspanel')
@@ -743,7 +698,6 @@ def good_edit(request, pk):
     '''商品编辑'''
 
     good = Goods.objects.get(pk=pk)
-    goods = Goods.objects.all()
     # 当为post请求时，修改数据
     if request.method == "POST":
         # 转换为GB
@@ -753,10 +707,7 @@ def good_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
-            context = {
-                'goods': goods,
-            }
-            return render(request, 'backend/shop.html', context=context)
+            return HttpResponseRedirect(reverse('sspanel:backend_shop'))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
@@ -785,12 +736,8 @@ def good_create(request):
         form = GoodsForm(data)
         if form.is_valid():
             form.save()
-            goods = Goods.objects.all()
             messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            context = {
-                'goods': goods,
-            }
-            return render(request, 'backend/shop.html', context=context)
+            return HttpResponseRedirect(reverse('sspanel:backend_shop'))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
@@ -829,10 +776,8 @@ def anno_delete(request, pk):
     '''删除公告'''
     anno = Announcement.objects.filter(pk=pk)
     anno.delete()
-    anno = Announcement.objects.all()
     messages.success(request, "成功啦", extra_tags="删除公告")
-    context = {'anno': anno}
-    return render(request, 'backend/annolist.html', context=context)
+    return HttpResponseRedirect(reverse('sspanel:backend_anno'))
 
 
 @permission_required('sspanel')
@@ -842,12 +787,8 @@ def anno_create(request):
         form = AnnoForm(request.POST)
         if form.is_valid():
             form.save()
-            anno = Announcement.objects.all()
             messages.success(request, "数据更新成功", extra_tags="添加成功")
-            context = {
-                'anno': anno,
-            }
-            return render(request, 'backend/annolist.html', context=context)
+            return HttpResponseRedirect(reverse('sspanel:backend_anno'))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
@@ -872,10 +813,7 @@ def anno_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
-            context = {
-                'anno': Announcement.objects.all(),
-            }
-            return render(request, 'backend/annolist.html', context=context)
+            return HttpResponseRedirect(reverse('sspanel:backend_anno'))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
@@ -915,10 +853,7 @@ def backend_ticketedit(request, pk):
         ticket.save()
 
         messages.success(request, "数据更新成功", extra_tags="修改成功")
-        context = {
-            'ticket': Ticket.objects.filter(status=1)
-        }
-        return render(request, 'backend/ticket.html', context=context)
+        return HttpResponseRedirect(reverse('sspanel:backend_ticket'))
     # 当请求不是post时，渲染
     else:
         context = {

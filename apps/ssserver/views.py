@@ -1,10 +1,12 @@
 import json
 import base64
 
+from django.urls import reverse
 from django.conf import settings
 from django.utils import timezone
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponseRedirect
 from django.shortcuts import HttpResponse, redirect, render
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.sspanel.models import User
@@ -35,21 +37,13 @@ def User_edit(request, pk):
             if len(passwd) > 0:
                 ss_user.user.set_password(passwd)
                 ss_user.user.save()
-            registerinfo = {
-                'title': '修改成功',
-                'subtitle': '数据更新成功',
-                'status': 'success', }
-            request.session['registerinfo'] = registerinfo
-            return redirect('/sspanel/backend/userlist/')
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
+            return HttpResponseRedirect(reverse("sspanel:user_list"))
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error', }
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'ssform': ssform,
                 'userform': userform,
-                'registerinfo': registerinfo,
                 'ss_user': ss_user,
             }
             return render(request, 'backend/useredit.html', context=context)
@@ -80,19 +74,10 @@ def ChangeSsPass(request):
             ss_pass = request.POST.get('password')
             ss_user.password = ss_pass
             ss_user.save()
-            registerinfo = {
-                'title': '修改成功！',
-                'subtitle': '请及时更换客户端密码！',
-                'status': 'success',
-            }
-            context = {
-                'registerinfo': registerinfo,
-                'ss_user': ss_user,
-            }
-            return render(request,
-                          'sspanel/userinfoedit.html', context=context)
+            messages.success(request, "请及时更换客户端密码！", extra_tags="修改成功！")
+            return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
         else:
-            return redirect('/')
+            return HttpResponseRedirect(reverse("index"))
     else:
         form = ChangeSsPassForm()
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
@@ -107,22 +92,8 @@ def ChangeSsMethod(request):
         ss_method = request.POST.get('method')
         ss_user.method = ss_method
         ss_user.save()
-        registerinfo = {
-            'title': '修改成功！',
-            'subtitle': '请及时更换客户端配置！',
-            'status': 'success',
-        }
-        methods = [m[0] for m in METHOD_CHOICES]
-        protocols = [p[0] for p in PROTOCOL_CHOICES]
-        obfss = [o[0] for o in OBFS_CHOICES]
-        context = {
-            'registerinfo': registerinfo,
-            'ss_user': ss_user,
-            'methods': methods,
-            'protocols': protocols,
-            'obfss': obfss,
-        }
-        return render(request, 'sspanel/userinfoedit.html', context=context)
+        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 @login_required
@@ -134,22 +105,8 @@ def ChangeSsProtocol(request):
         ss_protocol = request.POST.get('protocol')
         ss_user.protocol = ss_protocol
         ss_user.save()
-        registerinfo = {
-            'title': '修改成功！',
-            'subtitle': '请及时更换客户端配置！',
-            'status': 'success',
-        }
-        methods = [m[0] for m in METHOD_CHOICES]
-        protocols = [p[0] for p in PROTOCOL_CHOICES]
-        obfss = [o[0] for o in OBFS_CHOICES]
-        context = {
-            'registerinfo': registerinfo,
-            'ss_user': ss_user,
-            'methods': methods,
-            'protocols': protocols,
-            'obfss': obfss,
-        }
-        return render(request, 'sspanel/userinfoedit.html', context=context)
+        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 @login_required
@@ -161,22 +118,8 @@ def ChangeSsObfs(request):
         ss_obfs = request.POST.get('obfs')
         ss_user.obfs = ss_obfs
         ss_user.save()
-        registerinfo = {
-            'title': '修改成功！',
-            'subtitle': '请及时更换客户端配置！',
-            'status': 'success',
-        }
-        methods = [m[0] for m in METHOD_CHOICES]
-        protocols = [p[0] for p in PROTOCOL_CHOICES]
-        obfss = [o[0] for o in OBFS_CHOICES]
-        context = {
-            'registerinfo': registerinfo,
-            'ss_user': ss_user,
-            'methods': methods,
-            'protocols': protocols,
-            'obfss': obfss,
-        }
-        return render(request, 'sspanel/userinfoedit.html', context=context)
+        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 def subscribe(request, token):
