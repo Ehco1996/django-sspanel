@@ -1,5 +1,6 @@
 import time
 import datetime
+from random import randint
 
 from decimal import Decimal
 from django.conf import settings
@@ -440,3 +441,28 @@ def alive_ip_api(request):
     AliveIp.objects.bulk_create(model_list)
     res = {'ret': 1, 'data': []}
     return JsonResponse(res)
+
+
+@login_required
+def checkin(request):
+    '''用户签到'''
+    ss_user = request.user.ss_user
+    if not ss_user.get_check_in():
+        # 距离上次签到时间大于一天 增加随机流量
+        ll = randint(settings.MIN_CHECKIN_TRAFFIC,
+                     settings.MAX_CHECKIN_TRAFFIC)
+        ss_user.transfer_enable += ll
+        ss_user.last_check_in_time = timezone.now()
+        ss_user.save()
+        data = {
+            'title': '签到成功！',
+            'subtitle': '获得{}流量！'.format(traffic_format(ll)),
+            'status': 'success',
+        }
+    else:
+        data = {
+            'title': '签到失败！',
+            'subtitle': '距离上次签到不足一天',
+            'status': 'error',
+        }
+    return JsonResponse(data)

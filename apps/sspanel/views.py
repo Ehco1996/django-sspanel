@@ -1,5 +1,4 @@
 import tomd
-import json
 import qrcode
 from random import randint
 
@@ -72,21 +71,17 @@ def register(request):
             # 获取用户填写的邀请码
             code = request.POST.get('invitecode')
             # 数据库查询邀请码
-            code_query = InviteCode.objects.filter(code=code, isused=False).first()
+            code = InviteCode.objects.filter(
+                code=code, isused=False).first()
             # 判断邀请码是否存在并返回信息
-            if not code_query:
+            if not code:
                 messages.error(request, "请重新获取邀请码", extra_tags="邀请码失效")
-                context = {
-                    'form': form,
-                }
                 return render(
-                    request, 'sspanel/register.html', context=context)
-
+                    request, 'sspanel/register.html', {'form': form})
             else:
                 messages.success(request, "请登录使用吧！", extra_tags="注册成功！")
                 form.save()
                 # 改变表邀请码状态
-                code = code_query[0]
                 code.isused = True
                 code.save()
                 # 将user和ssuser关联
@@ -98,7 +93,6 @@ def register(request):
                 port = max_port_user.port + randint(2, 3)
                 SSUser.objects.create(user=user, port=port)
                 return HttpResponseRedirect(reverse('sspanel:index'))
-
     else:
         form = RegisterForm()
 
@@ -165,32 +159,6 @@ def userinfo(request):
         'themes': THEME_CHOICES
     }
     return render(request, 'sspanel/userinfo.html', context=context)
-
-
-@login_required
-def checkin(request):
-    '''用户签到'''
-    ss_user = request.user.ss_user
-    if not ss_user.get_check_in():
-        # 距离上次签到时间大于一天 增加随机流量
-        ll = randint(settings.MIN_CHECKIN_TRAFFIC,
-                     settings.MAX_CHECKIN_TRAFFIC)
-        ss_user.transfer_enable += ll
-        ss_user.last_check_in_time = timezone.now()
-        ss_user.save()
-        registerinfo = {
-            'title': '签到成功！',
-            'subtitle': '获得{}流量！'.format(traffic_format(ll)),
-            'status': 'success',
-        }
-    else:
-        registerinfo = {
-            'title': '签到失败！',
-            'subtitle': '距离上次签到不足一天',
-            'status': 'error',
-        }
-    result = json.dumps(registerinfo, ensure_ascii=False)
-    return HttpResponse(result, content_type='application/json')
 
 
 @login_required
@@ -721,7 +689,7 @@ def gen_invite_code(request):
     code_type = request.GET.get('type')
     for i in range(int(Num)):
         code = InviteCode(code_type=code_type)
-        code.save() 
+        code.save()
     messages.error(request, "请重新获取邀请码", extra_tags="邀请码失效")
     messages.success(request, '添加邀请码{}个'.format(Num), extra_tags="成功")
     return HttpResponseRedirect(reverse('sspanel:backend_invite'))
@@ -741,7 +709,8 @@ def backend_charge(request):
         for i in range(int(Num)):
             code = MoneyCode(number=money)
             code.save()
-        messages.success(request, '添加{}元充值码{}个'.format(money, Num), extra_tags="成功")
+        messages.success(request, '添加{}元充值码{}个'.format(
+            money, Num), extra_tags="成功")
         return HttpResponseRedirect(reverse('sspanel:backend_charge'))
     return render(request, 'backend/charge.html', context=context)
 
