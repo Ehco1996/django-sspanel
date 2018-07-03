@@ -10,5 +10,5 @@ def export_node_host():
 
 if __name__ == '__main__':
     from importlib import import_module
-    import_module('cmdbase', 'commands')
+    import_module('__init__', 'commands')
     export_node_host()

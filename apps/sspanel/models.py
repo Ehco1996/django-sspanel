@@ -6,11 +6,10 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.utils import get_long_random_string, traffic_format
 from apps.constants import THEME_CHOICES
+from apps.utils import get_long_random_string, traffic_format
 
 
 class User(AbstractUser):
@@ -32,19 +31,6 @@ class User(AbstractUser):
         today = datetime.datetime.combine(datetime.date.today(),
                                           datetime.time.min)
         return cls.objects.filter(date_joined__gt=today)
-
-    @classmethod
-    def clean_zombie_user(cls):
-        '''
-        删除僵尸用户
-        '''
-        users = cls.objects.all()
-        for user in users:
-            try:
-                if user.ss_user.last_use_time == 0 and user.balance == 0:
-                    user.delete()
-            except ObjectDoesNotExist:
-                user.delete()
 
     invitecode = models.CharField(verbose_name='邀请码', max_length=40)
     invited_by = models.PositiveIntegerField(verbose_name='邀请人id', default=1)
