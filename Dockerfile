@@ -4,17 +4,33 @@
 # OS Support also exists for jessie & stretch (slim and full).
 # See https://hub.docker.com/r/library/python/ for all supported Python
 # tags from Docker Hub.
-FROM python:3.6
-
-# If you prefer miniconda:
-#FROM continuumio/miniconda3
+# This image uses the latest version of Python 3.6
+FROM python:3.6-slim-stretch
 
 LABEL Name=sspanel Version=0.0.1
-EXPOSE 8080
 
-RUN mkdir -p /src/django-sspanel
-ADD . /src/django-sspanel
+COPY . /src/django-sspanel
+
 WORKDIR /src/django-sspanel
 
-# Using pip:
-RUN pip install -r requirements.txt && python manage.py collectstatic --no-input
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+        build-essential \
+        python3-dev \
+        default-libmysqlclient-dev && \
+    pip install --no-cache-dir -r requirements.txt && \
+    apt-get purge -qq -y build-essential python3-dev && \
+    apt-get autoremove -qq -y --purge && \
+    rm -rf /var/cache/apt /var/lib/apt/lists && \    
+    python3 manage.py collectstatic --no-input && \
+    groupadd -g 555 app && \
+    useradd -r -u 555 -g app app && \
+    chown -R app:app /src 
+
+USER app
+
+EXPOSE 8080
+
+CMD python3 manage.py makemigrations && \
+    python3 manage.py migrate --run-syncdb && \
+    uwsgi uwsgi.ini
