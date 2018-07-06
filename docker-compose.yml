@@ -15,19 +15,14 @@ services:
       - sspanel_network
   web:
     container_name : sspanel-web
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     image: sspanel
     environment:
       MYSQL_PASSWORD: yourpass
       MYSQL_HOST: db
-    command: uwsgi uwsgi.ini
     volumes:
       - .:/src/django-sspanel
-      - static/:/src/django-sspanel/static
-    ports:
-      - 8080:8080
+      - static:/src/django-sspanel/static
     depends_on:
       - db
     networks:
@@ -38,7 +33,7 @@ services:
     container_name : sspanel-nginx
     volumes:
       - ./configs/nginx/:/etc/nginx/conf.d
-      - static/:/src/django-sspanel/static
+      - static:/src/django-sspanel/static
     ports:
       - 80:80
     depends_on:
