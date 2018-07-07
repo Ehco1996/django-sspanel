@@ -45,6 +45,7 @@
                         <p>
                             <strong>付费完成之后请点击确认！</strong>
                         </p>
+                        <p id='id-msg-line'></p>
                         <div class="control">
                             <button id="id-button-query" class="button is-outlined is-danger" href="#">确认</button>
                         </div>
@@ -96,6 +97,7 @@
     var requestButton = $("#id-button-payrequest")
     var payinput = $("#id-input-payinput")
     var codeBox = $("#id-qrcode-box")
+    var msgline = $("#id-msg-line")
     var payrequest = function () {
         url = "{% url 'api:pay_request' %}"
         paynum = payinput.val()
@@ -107,7 +109,7 @@
             $.post(url, data, function (results) {
                 qrcode_url = "{% url 'sspanel:facepay_qrcode' %}"
                 codeBox.attr('class', '')
-                // 获取当前域名
+                // // 获取当前域名
                 var host = window.location.host
                 var protocol = window.location.protocol
                 // 追加二维码图片
@@ -124,8 +126,7 @@
     // 支付查询部分
     queryButton = $("#id-button-query")
     var payquery = function () {
-        codeBox.empty()
-        codeBox.append('后台飞速查询结果中 请稍候....')
+        msgline.html('后台飞速查询结果中 请稍候....')
         url = "{% url 'api:pay_query' %}"
         $.getJSON(url, function (results) {
             info = results.info

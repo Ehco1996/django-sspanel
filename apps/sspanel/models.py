@@ -1,13 +1,17 @@
 import base64
+import time
 import datetime
 
 import markdown
+from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.db import transaction
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from apps.payments import alipay
 from apps.constants import THEME_CHOICES
 from apps.utils import get_long_random_string, traffic_format
 
@@ -236,8 +240,9 @@ class PayRecord(models.Model):
         verbose_name='金额', decimal_places=2, max_digits=10, default=0, null=True, blank=True)
     money_code = models.CharField(
         verbose_name='充值码', max_length=64, unique=True)
-    charge_type = models.CharField(
-        verbose_name='充值类型', max_length=10, default=1, help_text='1：支付宝 2：QQ钱包 3：微信支付')
+    charge_type = models.CharField(verbose_name='充值类型', max_length=10,
+                                   default=1,
+                                   help_text='1：支付宝 2：QQ钱包 3：微信支付')
 
     def __str__(self):
         return self.info_code
@@ -255,13 +260,74 @@ class PayRequest(models.Model):
     info_code = models.CharField(
         verbose_name='流水号', max_length=64, unique=True)
     time = models.DateTimeField('时间', auto_now_add=True)
-    amount = models.DecimalField(
-        verbose_name='金额', decimal_places=2, max_digits=10, default=0, null=True, blank=True)
-    charge_type = models.CharField(
-        verbose_name='充值类型', max_length=10, default=1, help_text='1：支付宝 2：QQ钱包 3：微信支付')
+    qrcode_url = models.CharField(
+        verbose_name='支付连接', max_length=64, null=True)
+    amount = models.DecimalField(verbose_name='金额', decimal_places=2,
+                                 max_digits=10, default=0,
+                                 null=True, blank=True)
+    charge_type = models.CharField(verbose_name='充值类型', max_length=10,
+                                   default=1,
+                                   help_text='1：支付宝 2：QQ钱包 3：微信支付')
 
     def __str__(self):
         return self.username
+
+    @classmethod
+    def make_pay_request(cls, user, amount):
+        '''生成一个支付请求'''
+        info_code = datetime.datetime.fromtimestamp(
+            time.time()).strftime('%Y%m%d%H%M%S%s')
+        try:
+            # 生成订单
+            trade = alipay.api_alipay_trade_precreate(
+                subject=settings.ALIPAY_TRADE_INFO.format(amount),
+                out_trade_no=info_code,
+                total_amount=amount,
+                timeout_express='60s',
+            )
+            qrcode_url = trade.get('qr_code')
+            req = cls.objects.create(
+                username=user.username,
+                info_code=info_code,
+                amount=amount,
+                qrcode_url=qrcode_url,
+            )
+            return req
+        except:
+            alipay.api_alipay_trade_cancel(out_trade_no=info_code)
+            return None
+
+    @classmethod
+    def get_user_recent_pay_req(cls, user):
+        req = cls.objects.filter(
+            username=user.username).order_by('-time').first()
+        return req
+
+    @classmethod
+    def pay_query(cls, user, info_code):
+        '''支付结果查询'''
+        paid = False
+        if PayRecord.objects.filter(info_code=info_code).first() is not None:
+            # 已经为该用户充值过了
+            return True
+        res = alipay.api_alipay_trade_query(out_trade_no=info_code)
+        if res.get("trade_status", "") == "TRADE_SUCCESS":
+            paid = True
+            amount = Decimal(res.get("total_amount"))
+            with transaction.atomic():
+                # 生成对于数量的充值码
+                code = MoneyCode.objects.create(number=amount)
+                # 充值操作
+                user.balance += code.number
+                user.save()
+                code.user = user.username
+                code.isused = True
+                code.save()
+                # 将充值记录和捐赠绑定
+                Donate.objects.create(user=user, money=amount)
+                PayRecord.objects.create(username=user, info_code=info_code,
+                                         amount=amount, money_code=code)
+        return paid
 
     class Meta:
         verbose_name_plural = '支付申请记录'

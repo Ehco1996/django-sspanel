@@ -240,28 +240,19 @@ def donate(request):
 @login_required
 def gen_face_pay_qrcode(request):
     '''生成当面付的二维码'''
-    try:
-        # 从seesion中获取订单的二维码
-        url = request.session.get('code_url', '')
-        # 生成支付宝申请记录
-        PayRequest.objects.create(
-            username=request.user,
-            info_code=request.session['out_trade_no'],
-            amount=request.session['amount'],
-        )
-        # 删除sessions信息
-        del request.session['code_url']
-        del request.session['amount']
+
+    req = PayRequest.get_user_recent_pay_req(request.user)
+    if req:
         # 生成ss二维码
-        img = qrcode.make(url)
+        img = qrcode.make(req.qrcode_url)
         buf = BytesIO()
         img.save(buf)
         image_stream = buf.getvalue()
         # 构造图片reponse
         response = HttpResponse(image_stream, content_type="image/png")
         return response
-    except:
-        return HttpResponse('wrong request')
+    else:
+        return HttpResponse('wrong')
 
 
 @login_required
