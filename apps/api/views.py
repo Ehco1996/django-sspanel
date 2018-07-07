@@ -1,11 +1,10 @@
 import time
 import datetime
+from random import randint
 
-import qrcode
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
-from django.utils.six import BytesIO
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -13,13 +12,14 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.payments import alipay
+from apps.constants import NODE_USER_INFO_TTL
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
                         get_node_user, authorized)
 from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
-                                 Goods, User, MoneyCode, Donate, PayRequest,
-                                 PayRecord)
+                                 Goods, User, MoneyCode, Donate, PayRecord,
+                                 PayRequest)
 
 
 @permission_required('sspanel')
@@ -104,7 +104,7 @@ def gen_invite_code(request):
         num = u.invitecode_num - len(InviteCode.objects.filter(code_id=u.pk))
     if num > 0:
         for i in range(num):
-            code = InviteCode(type=0, code_id=u.pk)
+            code = InviteCode(code_type=0, code_id=u.pk)
             code.save()
         registerinfo = {
             'title': '成功',
@@ -182,99 +182,52 @@ def pay_request(request):
     '''
     当面付请求逻辑
     '''
-    num = int(request.POST.get('num', ''))
-    context = {}
-    if num < 1:
+    amount = int(request.POST.get('num'))
+
+    if amount < 1:
         info = {
             'title': '失败',
             'subtitle': '请保证金额大于1元',
             'status': 'error',
         }
-        context['info'] = info
     else:
-        out_trade_no = datetime.datetime.fromtimestamp(
-            time.time()).strftime('%Y%m%d%H%M%S%s')
-        try:
-            # 获取金额数量
-            amount = num
-            # 生成订单
-            trade = alipay.api_alipay_trade_precreate(
-                subject=settings.ALIPAY_TRADE_INFO.format(amount),
-                out_trade_no=out_trade_no,
-                total_amount=amount,
-                timeout_express='60s',
-            )
-            # 获取二维码链接
-            code_url = trade.get('qr_code', '')
-            request.session['code_url'] = code_url
-            request.session['out_trade_no'] = out_trade_no
-            request.session['amount'] = amount
+        req = PayRequest.make_pay_request(request.user, amount)
+        if req is not None:
             info = {
                 'title': '请求成功！',
                 'subtitle': '支付宝扫描下方二维码付款，付款完成记得按确认哟！',
                 'status': 'success',
             }
-            context['info'] = info
-        except:
-            alipay.api_alipay_trade_cancel(out_trade_no=out_trade_no)
+        else:
             info = {
                 'title': '糟糕，当面付插件可能出现问题了',
                 'subtitle': '如果一直失败,请后台联系站长',
                 'status': 'error',
             }
-            context['info'] = info
-    return JsonResponse(context)
+    return JsonResponse({'info': info})
 
 
 @login_required
 def pay_query(request):
     '''
     当面付结果查询逻辑
-    rtype:
-        json
     '''
-    context = {}
     user = request.user
-    trade_num = request.session['out_trade_no']
-    paid = False
-    # 等待1秒后再查询支付结果
-    time.sleep(1)
-    res = alipay.api_alipay_trade_query(out_trade_no=trade_num)
-    if res.get("trade_status", "") == "TRADE_SUCCESS":
-        paid = True
-        amount = Decimal(res.get("total_amount", 0))
-        # 生成对于数量的充值码
-        code = MoneyCode.objects.create(number=amount)
-        # 充值操作
-        user.balance += code.number
-        user.save()
-        code.user = user.username
-        code.isused = True
-        code.save()
-        # 将充值记录和捐赠绑定
-        Donate.objects.create(user=user, money=amount)
-        # 后台数据库增加记录
-        PayRecord.objects.create(
-            username=user, info_code=trade_num, amount=amount, money_code=code)
-        del request.session['out_trade_no']
-        # 返回充值信息
+    info_code = PayRequest.get_user_recent_pay_req(user).info_code
+    paid = PayRequest.pay_query(user, info_code)
+    if paid:
         info = {
             'title': '充值成功！',
             'subtitle': '请去商品界面购买商品！',
             'status': 'success',
         }
-        context['info'] = info
-
-    # 如果三次还没成功择关闭订单
-    if paid is False:
-        alipay.api_alipay_trade_cancel(out_trade_no=trade_num)
+    else:
         info = {
-            'title': '支付查询失败！',
+            'title': '支付查询失败！请稍候再试',
             'subtitle': '亲，确认支付了么？',
             'status': 'error',
         }
-        context['info'] = info
-    return JsonResponse(context)
+    return JsonResponse({'info': info})
 
 
 @login_required
@@ -376,6 +329,7 @@ def node_online_api(request):
 
 
 @authorized
+@simple_cached_view(ttl=NODE_USER_INFO_TTL)
 @require_http_methods(['GET'])
 def user_api(request, node_id):
     '''
@@ -435,9 +389,34 @@ def alive_ip_api(request):
     node_id = data['node_id']
     model_list = []
     for user_id, ip_list in data['data'].items():
-        user_id = SSUser.objects.get(pk=user_id).user
+        user = SSUser.objects.get(pk=user_id).user
         for ip in ip_list:
             model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
     AliveIp.objects.bulk_create(model_list)
     res = {'ret': 1, 'data': []}
     return JsonResponse(res)
+
+
+@login_required
+def checkin(request):
+    '''用户签到'''
+    ss_user = request.user.ss_user
+    if not ss_user.get_check_in():
+        # 距离上次签到时间大于一天 增加随机流量
+        ll = randint(settings.MIN_CHECKIN_TRAFFIC,
+                     settings.MAX_CHECKIN_TRAFFIC)
+        ss_user.transfer_enable += ll
+        ss_user.last_check_in_time = timezone.now()
+        ss_user.save()
+        data = {
+            'title': '签到成功！',
+            'subtitle': '获得{}流量！'.format(traffic_format(ll)),
+            'status': 'success',
+        }
+    else:
+        data = {
+            'title': '签到失败！',
+            'subtitle': '距离上次签到不足一天',
+            'status': 'error',
+        }
+    return JsonResponse(data)

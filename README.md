@@ -17,7 +17,7 @@ Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
 ## 项目说明
 
-Django_sspenl 是用django作为后端框架，开发的一个Shadowsocks网络分享面板，其具有以下特点：
+该项目是用django作为后端框架，开发的一个shadowsocks多人用户面板，具有以下特点：
 
 * 轻量级css框架
 * 最新版本的Django作为后端

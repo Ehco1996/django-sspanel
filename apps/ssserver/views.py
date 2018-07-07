@@ -1,10 +1,12 @@
 import json
 import base64
 
+from django.urls import reverse
 from django.conf import settings
 from django.utils import timezone
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponseRedirect
 from django.shortcuts import HttpResponse, redirect, render
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.sspanel.models import User
@@ -35,21 +37,13 @@ def User_edit(request, pk):
             if len(passwd) > 0:
                 ss_user.user.set_password(passwd)
                 ss_user.user.save()
-            registerinfo = {
-                'title': '修改成功',
-                'subtitle': '数据更新成功',
-                'status': 'success', }
-            request.session['registerinfo'] = registerinfo
-            return redirect('/sspanel/backend/userlist/')
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
+            return HttpResponseRedirect(reverse("sspanel:user_list"))
         else:
-            registerinfo = {
-                'title': '错误',
-                'subtitle': '数据填写错误',
-                'status': 'error', }
+            messages.error(request, "数据填写错误", extra_tags="错误")
             context = {
                 'ssform': ssform,
                 'userform': userform,
-                'registerinfo': registerinfo,
                 'ss_user': ss_user,
             }
             return render(request, 'backend/useredit.html', context=context)
@@ -80,19 +74,11 @@ def ChangeSsPass(request):
             ss_pass = request.POST.get('password')
             ss_user.password = ss_pass
             ss_user.save()
-            registerinfo = {
-                'title': '修改成功！',
-                'subtitle': '请及时更换客户端密码！',
-                'status': 'success',
-            }
-            context = {
-                'registerinfo': registerinfo,
-                'ss_user': ss_user,
-            }
-            return render(request,
-                          'sspanel/userinfoedit.html', context=context)
+            messages.success(request, "请及时更换客户端密码！", extra_tags="修改成功！")
+            return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
         else:
-            return redirect('/')
+            messages.error(request, "新的客户端密码格式不正确！", extra_tags="修改失败！")
+            return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
     else:
         form = ChangeSsPassForm()
         return render(request, 'sspanel/sspasschanged.html', {'form': form})
@@ -107,22 +93,8 @@ def ChangeSsMethod(request):
         ss_method = request.POST.get('method')
         ss_user.method = ss_method
         ss_user.save()
-        registerinfo = {
-            'title': '修改成功！',
-            'subtitle': '请及时更换客户端配置！',
-            'status': 'success',
-        }
-        methods = [m[0] for m in METHOD_CHOICES]
-        protocols = [p[0] for p in PROTOCOL_CHOICES]
-        obfss = [o[0] for o in OBFS_CHOICES]
-        context = {
-            'registerinfo': registerinfo,
-            'ss_user': ss_user,
-            'methods': methods,
-            'protocols': protocols,
-            'obfss': obfss,
-        }
-        return render(request, 'sspanel/userinfoedit.html', context=context)
+        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 @login_required
@@ -134,22 +106,8 @@ def ChangeSsProtocol(request):
         ss_protocol = request.POST.get('protocol')
         ss_user.protocol = ss_protocol
         ss_user.save()
-        registerinfo = {
-            'title': '修改成功！',
-            'subtitle': '请及时更换客户端配置！',
-            'status': 'success',
-        }
-        methods = [m[0] for m in METHOD_CHOICES]
-        protocols = [p[0] for p in PROTOCOL_CHOICES]
-        obfss = [o[0] for o in OBFS_CHOICES]
-        context = {
-            'registerinfo': registerinfo,
-            'ss_user': ss_user,
-            'methods': methods,
-            'protocols': protocols,
-            'obfss': obfss,
-        }
-        return render(request, 'sspanel/userinfoedit.html', context=context)
+        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 @login_required
@@ -161,94 +119,8 @@ def ChangeSsObfs(request):
         ss_obfs = request.POST.get('obfs')
         ss_user.obfs = ss_obfs
         ss_user.save()
-        registerinfo = {
-            'title': '修改成功！',
-            'subtitle': '请及时更换客户端配置！',
-            'status': 'success',
-        }
-        methods = [m[0] for m in METHOD_CHOICES]
-        protocols = [p[0] for p in PROTOCOL_CHOICES]
-        obfss = [o[0] for o in OBFS_CHOICES]
-        context = {
-            'registerinfo': registerinfo,
-            'ss_user': ss_user,
-            'methods': methods,
-            'protocols': protocols,
-            'obfss': obfss,
-        }
-        return render(request, 'sspanel/userinfoedit.html', context=context)
-
-
-def check_user_state():
-    '''检测用户状态，将所有账号到期的用户状态重置'''
-    users = User.objects.filter(level__gt=0)
-    for user in users:
-        # 判断用户过期
-        if timezone.now() - timezone.timedelta(days=1) > \
-                user.level_expire_time:
-            user.level = 0
-            user.save()
-            user.ss_user.enable = False
-            user.ss_user.upload_traffic = 0
-            user.ss_user.download_traffic = 0
-            user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-            user.ss_user.save()
-            logs = 'time: {} use: {} level timeout ' \
-                .format(timezone.now().strftime('%Y-%m-%d'),
-                        user.username).encode('utf8')
-            print(logs)
-    print('Time:{} CHECKED'.format(timezone.now()))
-
-
-def auto_reset_traffic():
-    '''月初重置所有免费用户流量'''
-    users = User.objects.filter(level=0)
-
-    for user in users:
-        user.ss_user.download_traffic = 0
-        user.ss_user.upload_traffic = 0
-        user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-        user.ss_user.save()
-        logs = 'user {}  traffic reset! '.format(
-            user.username).encode('utf8')
-        print(logs)
-
-
-def clean_traffic_log():
-    '''月初清空所有流量记录'''
-    res = TrafficLog.objects.all().delete()
-    log = str(res)
-    print('all traffic record removed!:{}'.format(log))
-
-
-def clean_online_log():
-    '''月初清空所有在线记录'''
-    res = NodeOnlineLog.objects.all().delete()
-    log = str(res)
-    print('all online record removed!:{}'.format(log))
-
-
-def clean_node_log():
-    '''月初清空所有节点负载记录'''
-    res = NodeInfoLog.objects.all().delete()
-    log = str(res)
-    print('all node info record removed!:{}'.format(log))
-
-
-def clean_online_ip_log():
-    '''清空在线ip记录'''
-    res = AliveIp.objects.all().delete()
-    log = str(res)
-    print('Today: {} all online ip log removed!:{}'.format(timezone.now(),
-                                                           log))
-
-
-def reset_node_traffic():
-    '''月初重置节点使用流量'''
-    for node in Node.objects.all():
-        node.used_traffic = 0
-        node.save()
-    print('all node traffic removed!')
+        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 def subscribe(request, token):
