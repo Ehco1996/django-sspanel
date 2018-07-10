@@ -112,3 +112,6 @@ logs/
 
 # mysql data
 mysql_data/
+
+# tmp config
+user_config/
