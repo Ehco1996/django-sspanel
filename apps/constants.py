@@ -1,9 +1,22 @@
 METHOD_CHOICES = (
+    ('aes-128-gcm', 'aes-128-gcm'),
+    ('aes-192-gcm', 'aes-192-gcm'),
+    ('aes-256-gcm', 'aes-256-gcm'),
+    ('aes-128-cfb', 'aes-128-cfb'),
+    ('aes-192-cfb', 'aes-192-cfb'),
     ('aes-256-cfb', 'aes-256-cfb'),
     ('aes-128-ctr', 'aes-128-ctr'),
+    ('aes-192-ctr', 'aes-192-ctr'),
+    ('aes-256-ctr', 'aes-256-ctr'),
     ('rc4-md5', 'rc4-md5'),
+    ('bf-cfb', 'bf-cfb'),
     ('salsa20', 'salsa20'),
     ('chacha20', 'chacha20'),
+    ('chacha20-ietf', 'chacha20-ietf'),
+    ('camellia-128-cfb', 'camellia-128-cfb'),
+    ('camellia-192-cfb', 'camellia-192-cfb'),
+    ('camellia-256-cfb', 'camellia-256-cfb'),
+    ('chacha20-ietf-poly1305', 'chacha20-ietf-poly1305'),
     ('none', 'none'),
 )
 
