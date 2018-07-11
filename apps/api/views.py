@@ -421,7 +421,7 @@ def traffic_api(request):
     node.save()
     # 个人流量记录
     TrafficLog.objects.bulk_create(trafficlog_model_list)
-    res = {'ret': 1, 'data': []}
+    res = {'ret': 1, 'data': res_data}
     return JsonResponse(res)
 
 
