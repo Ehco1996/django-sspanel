@@ -349,27 +349,24 @@ def traffic_api(request):
     '''
     data = request.json
     node_id = data['node_id']
-    traffic_rec_list = data['data']
-    # 定义循环池
+    traffic_list = data['data']
+    log_time = int(time.time())
+
     node_total_traffic = 0
     trafficlog_model_list = []
-    log_time = int(time.time())
-    for rec in traffic_rec_list:
-        res = SSUser.objects.filter(pk=rec['user_id']).values_list(
-            'upload_traffic', 'download_traffic')[0]
+    for rec in traffic_list:
+        ss_user = SSUser.objects.filter(pk=rec['user_id']).first()
+        # 个人流量更新
         SSUser.objects.filter(pk=rec['user_id']).update(
-            upload_traffic=(res[0] + rec['u']),
-            download_traffic=(res[1] + rec['d']),
+            upload_traffic=(ss_user.upload_traffic + rec['u']),
+            download_traffic=(ss_user.download_traffic + rec['d']),
             last_use_time=log_time)
-        traffic = traffic_format(rec['u'] + rec['d'])
+        # 个人流量记录
         trafficlog_model_list.append(
-            TrafficLog(
-                node_id=node_id,
-                user_id=rec['user_id'],
-                traffic=traffic,
-                download_traffic=rec['d'],
-                upload_traffic=rec['u'],
-                log_time=log_time))
+            TrafficLog(node_id=node_id, user_id=rec['user_id'],
+                       traffic=traffic_format(rec['u'] + rec['d']),
+                       download_traffic=rec['d'], upload_traffic=rec['u'],
+                       log_time=log_time))
         node_total_traffic = node_total_traffic + rec['u'] + rec['d']
     # 节点流量记录
     node = Node.objects.get(node_id=node_id)
@@ -377,8 +374,7 @@ def traffic_api(request):
     node.save()
     # 个人流量记录
     TrafficLog.objects.bulk_create(trafficlog_model_list)
-    res = {'ret': 1, 'data': []}
-    return JsonResponse(res)
+    return JsonResponse({'ret': 1, 'data': []})
 
 
 @authorized

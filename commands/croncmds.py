@@ -24,7 +24,7 @@ def check_user_state():
                 .format(timezone.now().strftime('%Y-%m-%d'),
                         user.username).encode('utf8')
             print(logs)
-    print('Time: {} CHECKED'.format(timezone.now()))
+    print('Time: {} CHECKED'.format(timezone.now()).encode('utf8'))
 
 
 def auto_reset_traffic():
