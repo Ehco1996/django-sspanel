@@ -17,6 +17,7 @@ RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
         build-essential \
         python3-dev \
+	cron \
         default-libmysqlclient-dev && \
     pip install --no-cache-dir -r requirements.txt && \
     apt-get purge -qq -y build-essential python3-dev && \
@@ -33,4 +34,5 @@ EXPOSE 8080
 
 CMD python3 manage.py makemigrations && \
     python3 manage.py migrate --run-syncdb && \
+    python3 manage.py crontab add && \
     uwsgi uwsgi.ini

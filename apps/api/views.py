@@ -11,15 +11,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
-from apps.payments import alipay
 from apps.constants import NODE_USER_INFO_TTL
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
                         get_node_user, authorized)
 from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
-                                 Goods, User, MoneyCode, Donate, PayRecord,
-                                 PayRequest)
+                                 Goods, User, Donate, PayRequest)
 
 
 @permission_required('sspanel')
@@ -142,8 +140,8 @@ def purchase(request):
             ss_user.enable = True
             ss_user.transfer_enable += good.transfer
             user.balance -= good.money
-            if (user.level == good.level
-                    and user.level_expire_time > datetime.datetime.now()):
+            if (user.level == good.level and
+                    user.level_expire_time > datetime.datetime.now()):
                 user.level_expire_time += datetime.timedelta(days=good.days)
             else:
                 user.level_expire_time = datetime.datetime.now() \
@@ -243,9 +241,8 @@ def traffic_query(request):
     trafficdata = [
         TrafficLog.getTrafficByDay(node_id, user_id, t) for t in last_week
     ]
-    title = '节点 {} 当月共消耗：{} GB'.format(node_name,
-                                       TrafficLog.getUserTraffic(
-                                           node_id, user_id))
+    title = '节点 {} 当月共消耗：{} GB'.format(
+        node_name, TrafficLog.getUserTraffic(node_id, user_id))
     configs = {
         'title': title,
         'labels': labels,
@@ -303,7 +300,7 @@ def node_api(request, node_id):
     '''
     node = Node.objects.filter(node_id=node_id).first()
     if node and node.used_traffic < node.total_traffic:
-        data = (node.traffic_rate, )
+        data = (node.traffic_rate,)
     else:
         data = None
     res = {'ret': 1, 'data': data}
@@ -316,6 +313,11 @@ def node_api(request, node_id):
 def node_online_api(request):
     '''
     接受节点在线人数上报
+    JSON DATA:
+    {
+        'node_id': ,
+        'online_user': ,
+    }
     '''
     data = request.json
     node = Node.objects.filter(node_id=data['node_id']).first()
@@ -334,6 +336,25 @@ def node_online_api(request):
 def user_api(request, node_id):
     '''
     返回符合节点要求的用户信息
+    RET JSON:
+    {
+        'ret': 1,
+        'data': [
+            {
+                'port': ,
+                'u': ,
+                'd': ,
+                'transfer_enable': ,
+                'passwd': ,
+                'enable': ,
+                'id': ,
+                'method': ,
+                'obfs': ,
+                'protocol':
+            },
+            ...
+        ]
+    }
     '''
     data = get_node_user(node_id)
     res = {'ret': 1, 'data': data}
@@ -346,6 +367,23 @@ def user_api(request, node_id):
 def traffic_api(request):
     '''
     接受服务端的用户流量上报
+    JSON_DATA:
+    {
+        'node_id': ,
+        'data': [
+            {
+                'user_id': ,
+                'u': ,
+                'd':
+            },
+            ...
+        ]
+    }
+    RES_DATA:
+    {
+        'user_id': 'ok',
+        ...
+    }
     '''
     data = request.json
     node_id = data['node_id']
@@ -354,30 +392,36 @@ def traffic_api(request):
     node_total_traffic = 0
     trafficlog_model_list = []
     log_time = int(time.time())
+
+    res_data = dict()
     for rec in traffic_rec_list:
-        res = SSUser.objects.filter(pk=rec['user_id']).values_list(
-            'upload_traffic', 'download_traffic')[0]
-        SSUser.objects.filter(pk=rec['user_id']).update(
-            upload_traffic=(res[0] + rec['u']),
-            download_traffic=(res[1] + rec['d']),
-            last_use_time=log_time)
-        traffic = traffic_format(rec['u'] + rec['d'])
-        trafficlog_model_list.append(
-            TrafficLog(
-                node_id=node_id,
-                user_id=rec['user_id'],
-                traffic=traffic,
-                download_traffic=rec['d'],
-                upload_traffic=rec['u'],
-                log_time=log_time))
-        node_total_traffic = node_total_traffic + rec['u'] + rec['d']
+        try:
+            res = SSUser.objects.filter(pk=rec['user_id']).values_list(
+                'upload_traffic', 'download_traffic')[0]
+            SSUser.objects.filter(pk=rec['user_id']).update(
+                upload_traffic=(res[0] + rec['u']),
+                download_traffic=(res[1] + rec['d']),
+                last_use_time=log_time)
+            traffic = traffic_format(rec['u'] + rec['d'])
+            trafficlog_model_list.append(
+                TrafficLog(
+                    node_id=node_id,
+                    user_id=rec['user_id'],
+                    traffic=traffic,
+                    download_traffic=rec['d'],
+                    upload_traffic=rec['u'],
+                    log_time=log_time))
+            node_total_traffic = node_total_traffic + rec['u'] + rec['d']
+            res_data[rec['user_id']] = 'ok'
+        except Exception as e:
+            res_data[rec['user_id']] = 'fail'
     # 节点流量记录
     node = Node.objects.get(node_id=node_id)
     node.used_traffic += node_total_traffic
     node.save()
     # 个人流量记录
     TrafficLog.objects.bulk_create(trafficlog_model_list)
-    res = {'ret': 1, 'data': []}
+    res = {'ret': 1, 'data': res_data}
     return JsonResponse(res)
 
 
@@ -385,6 +429,16 @@ def traffic_api(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def alive_ip_api(request):
+    '''
+    JSON_DATA:
+    {
+        'node_id': ,
+        'data': {
+            "(user_id)": [iplist]),
+            ...
+        }
+    }
+    '''
     data = request.json
     node_id = data['node_id']
     model_list = []
@@ -403,8 +457,7 @@ def checkin(request):
     ss_user = request.user.ss_user
     if not ss_user.get_check_in():
         # 距离上次签到时间大于一天 增加随机流量
-        ll = randint(settings.MIN_CHECKIN_TRAFFIC,
-                     settings.MAX_CHECKIN_TRAFFIC)
+        ll = randint(settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC)
         ss_user.transfer_enable += ll
         ss_user.last_check_in_time = timezone.now()
         ss_user.save()
