@@ -215,7 +215,7 @@ def pay_query(request):
     user = request.user
     info_code = PayRequest.get_user_recent_pay_req(user).info_code
     paid = PayRequest.pay_query(user, info_code)
-    if paid:
+    if paid in (True, -1):
         info = {
             'title': '充值成功！',
             'subtitle': '请去商品界面购买商品！',
