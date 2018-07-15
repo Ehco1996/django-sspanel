@@ -20,11 +20,10 @@ def check_user_state():
             user.ss_user.download_traffic = 0
             user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
             user.ss_user.save()
-            logs = 'time: {} user: {} level timeout ' \
-                .format(timezone.now().strftime('%Y-%m-%d'),
-                        user.username).encode('utf8')
-            print(logs)
-    print('Time: {} CHECKED'.format(timezone.now()).encode('utf8'))
+            print('time: {} user: {} level timeout '
+                  .format(timezone.now().strftime('%Y-%m-%d'),
+                          user.username))
+    print('Time: {} CHECKED'.format(timezone.now()))
 
 
 def auto_reset_traffic():
@@ -36,9 +35,7 @@ def auto_reset_traffic():
         user.ss_user.upload_traffic = 0
         user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
         user.ss_user.save()
-        logs = 'user {}  traffic reset! '.format(
-            user.username).encode('utf8')
-        print(logs)
+        print('user {}  traffic reset! '.format(user.username))
 
 
 def clean_traffic_log():
