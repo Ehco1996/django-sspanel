@@ -5,7 +5,8 @@ def pay_redeem():
     print('pay user count is: {}'.format(users.count()))
     for user in users:
         user.balance += 10
-        print(user.username, 'balance + 3 down')
+        user.save()
+        print(user.username, 'balance + 10 down')
 
 
 if __name__ == '__main__':
