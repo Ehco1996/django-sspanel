@@ -99,7 +99,7 @@ ENV/
 # mypy
 .mypy_cache/
 .DS_Store
-.vscode/launch.json
-.vscode/settings.json
+.vscode/
 apps/App_pravite.pem
 apps/Alipay_pub.pem
+*.dat
