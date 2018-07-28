@@ -56,6 +56,16 @@ class SSUser(models.Model):
         except:
             return max(port_list) + 1
 
+    @classmethod
+    def get_vaild_user(cls, level):
+        '''返回指大于等于指定等级的所有合法用户'''
+        users = SSUser.objects.filter(level__gte=level, transfer_enable__gte=0)
+        ret = []
+        for u in users:
+            if (u.transfer_enable - u.upload_traffic - u.download_traffic) > 0:
+                ret.append(u)
+        return ret
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ss_user', verbose_name='用户名')
     last_check_in_time = models.DateTimeField(

@@ -115,8 +115,7 @@ def get_node_user(node_id):
     if node:
         data = []
         level = node.level
-        user_list = SSUser.objects.filter(
-            level__gte=level, transfer_enable__gte=0)
+        user_list = SSUser.get_vaild_user(level)
         for user in user_list:
             cfg = {
                 'port': user.port,
