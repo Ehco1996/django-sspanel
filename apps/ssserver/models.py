@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.core import validators
 from django.core.exceptions import ValidationError
+from django_bulk_update.manager import BulkUpdateManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from apps.utils import get_short_random_string, traffic_format
@@ -65,6 +66,8 @@ class SSUser(models.Model):
             if (u.transfer_enable - u.upload_traffic - u.download_traffic) > 0:
                 ret.append(u)
         return ret
+
+    objects = BulkUpdateManager()
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ss_user', verbose_name='用户名')
@@ -229,14 +232,11 @@ class Node(models.Model):
             nodes = cls.objects.all()
         return [node.node_id for node in nodes]
 
-    node_id = models.IntegerField(
-        '节点id',
-        unique=True,
-    )
+    node_id = models.IntegerField('节点id', unique=True)
     port = models.IntegerField(
         '节点端口', null=True, blank=True, help_text='单端口多用户时需要')
     password = models.CharField(
-        '节点密码', max_length=32, default='password', help_text='单端口多用户时需要')
+        '节点密码', max_length=32, default='password', help_text='单端口时需要')
     country = models.CharField(
         '国家', default='CN', max_length=2, choices=COUNTRIES_CHOICES)
     custom_method = models.SmallIntegerField(
@@ -247,43 +247,22 @@ class Node(models.Model):
     name = models.CharField('名字', max_length=32)
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True)
     server = models.CharField('服务器IP', max_length=128)
-    method = models.CharField(
-        '加密类型',
-        default=settings.DEFAULT_METHOD,
-        max_length=32,
-        choices=METHOD_CHOICES,
-    )
+    method = models.CharField('加密类型', default=settings.DEFAULT_METHOD,
+                              max_length=32, choices=METHOD_CHOICES,)
     traffic_rate = models.FloatField('流量比例', default=1.0)
-    protocol = models.CharField(
-        '协议',
-        default=settings.DEFAULT_PROTOCOL,
-        max_length=32,
-        choices=PROTOCOL_CHOICES,
-    )
+    protocol = models.CharField('协议', default=settings.DEFAULT_PROTOCOL,
+                                max_length=32, choices=PROTOCOL_CHOICES,)
     protocol_param = models.CharField(
         '协议参数', max_length=128, null=True, blank=True)
-    obfs = models.CharField(
-        '混淆',
-        default=settings.DEFAULT_OBFS,
-        max_length=32,
-        choices=OBFS_CHOICES,
-    )
+    obfs = models.CharField('混淆', default=settings.DEFAULT_OBFS,
+                            max_length=32, choices=OBFS_CHOICES,)
     obfs_param = models.CharField(
         '混淆参数', max_length=128, default='', null=True, blank=True)
     level = models.PositiveIntegerField(
-        '节点等级',
-        default=0,
-        validators=[MaxValueValidator(9),
-                    MinValueValidator(0)])
+        '节点等级', default=0,
+        validators=[MaxValueValidator(9), MinValueValidator(0)])
     total_traffic = models.BigIntegerField('总流量', default=settings.GB)
-    human_total_traffic = models.CharField(
-        '节点总流量', max_length=255, default='1GB', blank=True, null=True)
-    used_traffic = models.BigIntegerField(
-        '已用流量',
-        default=0,
-    )
-    human_used_traffic = models.CharField(
-        '已用流量', max_length=255, blank=True, null=True)
+    used_traffic = models.BigIntegerField('已用流量', default=0,)
     order = models.PositiveSmallIntegerField('排序', default=1)
     group = models.CharField('分组名', max_length=32, default='谜之屋')
 
@@ -338,11 +317,21 @@ class Node(models.Model):
         return ss_link
 
     def save(self, *args, **kwargs):
-        self.human_total_traffic = traffic_format(self.total_traffic)
-        self.human_used_traffic = traffic_format(self.used_traffic)
         if self.node_type == 1:
             self.custom_method = 0
         super(Node, self).save(*args, **kwargs)
+
+    def human_total_traffic(self):
+        '''总流量'''
+        return traffic_format(self.total_traffic)
+
+    def human_used_traffic(self):
+        '''已用流量'''
+        return traffic_format(self.used_traffic)
+
+    # verbose_name
+    human_total_traffic.short_description = '总流量'
+    human_used_traffic.short_description = '使用流量'
 
     class Meta:
         ordering = ['-show', 'order']

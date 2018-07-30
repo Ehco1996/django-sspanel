@@ -20,3 +20,4 @@ certifi
 gevent
 raven
 pytz
+django-bulk-update

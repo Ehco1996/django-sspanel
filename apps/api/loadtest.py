@@ -1,10 +1,10 @@
 '''
 api性能测试工具
 '''
-
+import os
+import time
 import logging
 import threading
-import time
 from random import randint
 
 import requests
@@ -17,7 +17,7 @@ class EhcoApi(object):
 
     def __init__(self):
         self.session_pool = requests.Session()
-        self.TOKEN = 'ZWhjbysyMzQ1'
+        self.TOKEN = 'youowntoken'
         self.WEBAPI_URL = 'http://127.0.0.1:8000/api'
 
     def getApi(self, uri):
@@ -51,10 +51,11 @@ class EhcoApi(object):
         res = None
         try:
             payload = {'token': self.TOKEN}
+            payload.update(raw_data)
             url = self.WEBAPI_URL+uri
             res = self.session_pool.post(
-                url, params=payload, json=raw_data, timeout=10)
-            time.sleep(0.01)
+                url, json=payload, timeout=10)
+            time.sleep(0.005)
             try:
                 data = res.json()
             except Exception:
@@ -105,13 +106,13 @@ class TestTrafficApi(object):
         生成流量数据
         '''
         data = []
-        for i in range(randint(1, 100)):
-            data.append({'u': randint(999, 99999),
-                         'd': randint(999, 99999),
+        for i in range(100):
+            data.append({'u': 1024 * 1024,
+                         'd': 1024 * 1024,
                          'user_id': 1})
         return data
 
-    def test_traffic_api(self, data={}, times=100):
+    def test_traffic_api(self, data={}, times=10):
         '''
         测试流量上报接口
         '''
@@ -125,20 +126,19 @@ class TestTrafficApi(object):
 
 
 def main_test(thread_num=10):
-    for i in range(thread_num):
-        user_api_test = TestUserApi()
-        thread = threading.Thread(
-            target=user_api_test.test_user_api)
-        thread.start()
-
     # for i in range(thread_num):
-    #     traffic_api_test = TestTrafficApi()
+    #     user_api_test = TestUserApi()
     #     thread = threading.Thread(
-    #         target=traffic_api_test.test_traffic_api)
+    #         target=user_api_test.test_user_api)
     #     thread.start()
+
+    for i in range(thread_num):
+        traffic_api_test = TestTrafficApi()
+        thread = threading.Thread(
+            target=traffic_api_test.test_traffic_api)
+        thread.start()
 
 
 if __name__ == '__main__':
-    import os
-    print('当前的进程id为：', os.getpid())
-    main_test(20)
+    t1 = time.time()
+    main_test(1)
