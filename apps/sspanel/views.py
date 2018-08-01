@@ -520,9 +520,6 @@ def node_edit(request, node_id):
         form = NodeForm(request.POST, instance=node)
         if form.is_valid():
             form.save()
-            node.total_traffic = reverse_traffic(
-                form.cleaned_data['human_total_traffic'])
-            node.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
             return HttpResponseRedirect(reverse('sspanel:backend_node_info'))
         else:
