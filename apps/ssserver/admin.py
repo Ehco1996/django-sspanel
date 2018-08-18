@@ -18,12 +18,13 @@ class SSUserAdmin(admin.ModelAdmin):
 
 
 class TrafficLogAdmin(admin.ModelAdmin):
+    search_fields = ['user_id', 'node_id']
     list_display = ['user_id', 'node_id', 'traffic', 'log_date', ]
 
 
 class NodeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'node_id', 'level',
-                    'human_used_traffic', 'human_total_traffic', 'order', 'show', ]
+    list_display = ['name', 'node_id', 'level', 'traffic_rate', 'order',
+                    'human_used_traffic', 'human_total_traffic', 'show']
 
 
 class NodeOnlineAdmin(admin.ModelAdmin):

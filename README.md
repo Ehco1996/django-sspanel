@@ -1,10 +1,6 @@
 # django-sspanel
 用diango开发的全新的shadowsocks网络面板
 
-**预览地址:**  [link](http://118.24.21.77)
-
-账号：`admin`  密码：`zxczxczxc123`
-
 专用后端：[地址：](https://github.com/Ehco1996/shadowsocksr)
 
 Telegram group : [invite link](https://t.me/Ehcobreakwa11)

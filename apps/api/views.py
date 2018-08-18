@@ -3,6 +3,7 @@ import datetime
 from random import randint
 
 from decimal import Decimal
+from django.db.models import F
 from django.conf import settings
 from django.utils import timezone
 from django.http import JsonResponse
@@ -215,7 +216,7 @@ def pay_query(request):
     user = request.user
     info_code = PayRequest.get_user_recent_pay_req(user).info_code
     paid = PayRequest.pay_query(user, info_code)
-    if paid:
+    if paid in (True, -1):
         info = {
             'title': '充值成功！',
             'subtitle': '请去商品界面购买商品！',
@@ -237,7 +238,7 @@ def traffic_query(request):
     '''
     node_id = request.POST.get('node_id', 0)
     node_name = request.POST.get('node_name', '')
-    user_id = request.user.ss_user.user_id
+    user_id = request.user.ss_user.pk
     last_week = get_date_list(7)
     labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
     trafficdata = [
@@ -349,36 +350,39 @@ def traffic_api(request):
     '''
     data = request.json
     node_id = data['node_id']
-    traffic_rec_list = data['data']
-    # 定义循环池
+    traffic_list = data['data']
+    log_time = int(time.time())
+
     node_total_traffic = 0
     trafficlog_model_list = []
-    log_time = int(time.time())
-    for rec in traffic_rec_list:
-        res = SSUser.objects.filter(pk=rec['user_id']).values_list(
-            'upload_traffic', 'download_traffic')[0]
-        SSUser.objects.filter(pk=rec['user_id']).update(
-            upload_traffic=(res[0] + rec['u']),
-            download_traffic=(res[1] + rec['d']),
-            last_use_time=log_time)
-        traffic = traffic_format(rec['u'] + rec['d'])
+    ssuer_model_list = []
+
+    for rec in traffic_list:
+        # 个人流量增量
+        ssuer_model_list.append(
+            SSUser(pk=rec['user_id'],
+                   upload_traffic=(F('upload_traffic') + rec['u']),
+                   download_traffic=(F('download_traffic') + rec['d']),
+                   last_use_time=log_time))
+        # 个人流量记录
         trafficlog_model_list.append(
-            TrafficLog(
-                node_id=node_id,
-                user_id=rec['user_id'],
-                traffic=traffic,
-                download_traffic=rec['d'],
-                upload_traffic=rec['u'],
-                log_time=log_time))
-        node_total_traffic = node_total_traffic + rec['u'] + rec['d']
+            TrafficLog(node_id=node_id, user_id=rec['user_id'],
+                       traffic=traffic_format(rec['u'] + rec['d']),
+                       download_traffic=rec['d'], upload_traffic=rec['u'],
+                       log_time=log_time))
+        # 节点流量增量
+        node_incr = rec['u'] + rec['d']
+        node_total_traffic += node_incr
     # 节点流量记录
-    node = Node.objects.get(node_id=node_id)
-    node.used_traffic += node_total_traffic
-    node.save()
-    # 个人流量记录
+    Node.objects.filter(node_id=node_id).update(
+        used_traffic=F('used_traffic')+node_total_traffic)
+    # 流量记录
     TrafficLog.objects.bulk_create(trafficlog_model_list)
-    res = {'ret': 1, 'data': []}
-    return JsonResponse(res)
+    SSUser.objects.bulk_update(ssuer_model_list, update_fields=[
+                               'upload_traffic', 'download_traffic',
+                               'last_use_time'])
+
+    return JsonResponse({'ret': 1, 'data': []})
 
 
 @authorized

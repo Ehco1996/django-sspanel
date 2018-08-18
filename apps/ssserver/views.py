@@ -147,35 +147,52 @@ def subscribe(request, token):
 @login_required
 def node_config(request):
     '''返回节点json配置'''
-    user = request.user
+    user = request.user.ss_user
     node_list = Node.objects.filter(level__lte=user.level, show=1)
     data = {'configs': []}
     for node in node_list:
-        if node.custom_method == 0:
+        if node.node_type == 1:
+            #  单端口模式
             data['configs'].append({
                 "remarks": node.name,
+                "server_port": node.port,
+                "remarks_base64": base64.b64encode(
+                    bytes(node.name, 'utf8')).decode('ascii'),
                 "enable": True,
-                "password": user.ss_user.password,
+                "password": node.password,
                 "method": node.method,
                 "server": node.server,
                 "obfs": node.obfs,
+                'obfs_param': node.obfs_param,
                 "protocol": node.protocol,
-                "server_port": user.ss_user.port,
+                'protocol_param': '{}:{}'.format(user.port,
+                                                 user.password),
+            })
+        elif node.custom_method == 1:
+            data['configs'].append({
+                "remarks": node.name,
+                "server_port": user.port,
                 "remarks_base64": base64.b64encode(
                     bytes(node.name, 'utf8')).decode('ascii'),
+                "enable": True,
+                "password": user.password,
+                "method": user.method,
+                "server": node.server,
+                "obfs": user.obfs,
+                "protocol": user.protocol,
             })
         else:
             data['configs'].append({
                 "remarks": node.name,
-                "enable": True,
-                "password": user.ss_user.password,
-                "method": user.ss_user.method,
-                "server": node.server,
-                "obfs": user.ss_user.obfs,
-                "protocol": user.ss_user.protocol,
-                "server_port": user.ss_user.port,
+                "server_port": user.port,
                 "remarks_base64": base64.b64encode(
-                    bytes(node.name, 'utf8')).decode('ascii')
+                    bytes(node.name, 'utf8')).decode('ascii'),
+                "enable": True,
+                "password": user.password,
+                "method": node.method,
+                "server": node.server,
+                "obfs": node.obfs,
+                "protocol": node.protocol,
             })
     response = StreamingHttpResponse(json.dumps(data, ensure_ascii=False))
     response['Content-Type'] = 'application/octet-stream'

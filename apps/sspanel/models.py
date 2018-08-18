@@ -309,7 +309,7 @@ class PayRequest(models.Model):
         paid = False
         if PayRecord.objects.filter(info_code=info_code).first() is not None:
             # 已经为该用户充值过了
-            return True
+            return -1
         res = alipay.api_alipay_trade_query(out_trade_no=info_code)
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             paid = True

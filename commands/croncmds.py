@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.utils import timezone
 
-from apps.sspanel.models import User
+from apps.sspanel.models import User, PayRequest
 from apps.ssserver.models import (Node, NodeInfoLog, NodeOnlineLog,
                                   TrafficLog, AliveIp)
 
@@ -20,10 +20,9 @@ def check_user_state():
             user.ss_user.download_traffic = 0
             user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
             user.ss_user.save()
-            logs = 'time: {} user: {} level timeout ' \
-                .format(timezone.now().strftime('%Y-%m-%d'),
-                        user.username).encode('utf8')
-            print(logs)
+            print('time: {} user: {} level timeout '
+                  .format(timezone.now().strftime('%Y-%m-%d'),
+                          user.username))
     print('Time: {} CHECKED'.format(timezone.now()))
 
 
@@ -36,9 +35,7 @@ def auto_reset_traffic():
         user.ss_user.upload_traffic = 0
         user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
         user.ss_user.save()
-        logs = 'user {}  traffic reset! '.format(
-            user.username).encode('utf8')
-        print(logs)
+        print('user {}  traffic reset! '.format(user.username))
 
 
 def clean_traffic_log():
@@ -76,3 +73,15 @@ def reset_node_traffic():
         node.used_traffic = 0
         node.save()
     print('all node traffic removed!')
+
+
+def check_pay_request():
+    '''定时检查支付请求'''
+    # 每次检查新的五条记录
+    querys = PayRequest.objects.order_by('-time')[:5]
+    for req in querys:
+        user = User.objects.filter(username=req.username).first()
+        paid = PayRequest.pay_query(user, req.info_code)
+        if paid is True:
+            print('用户：{} 掉单，已经补偿'.format(user.username))
+    print('{} 检查过支付请求'.format(timezone.now().strftime("%Y-%m-%d %H:%M")))
