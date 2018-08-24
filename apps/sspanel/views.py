@@ -3,13 +3,14 @@ import qrcode
 from random import randint
 
 from django.db.models import Q
-from django.conf import settings
 from django.urls import reverse
+from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
-from django.utils.six import BytesIO
-from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.contrib import messages
+from django.utils.six import BytesIO
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 
@@ -68,31 +69,35 @@ def register(request):
         form = RegisterForm(request.POST)
 
         if form.is_valid():
-            # 获取用户填写的邀请码
-            code = request.POST.get('invitecode')
-            # 数据库查询邀请码
-            code = InviteCode.objects.filter(
-                code=code, isused=False).first()
-            # 判断邀请码是否存在并返回信息
-            if not code:
-                messages.error(request, "请重新获取邀请码", extra_tags="邀请码失效")
-                return render(
-                    request, 'sspanel/register.html', {'form': form})
-            else:
-                messages.success(request, "请登录使用吧！", extra_tags="注册成功！")
-                form.save()
-                # 改变表邀请码状态
-                code.isused = True
-                code.save()
-                # 将user和ssuser关联
-                user = User.objects.get(username=request.POST.get('username'))
-                # 绑定邀请人
-                user.invited_by = code.code_id
-                user.save()
-                max_port_user = SSUser.objects.order_by('-port').first()
-                port = max_port_user.port + randint(2, 3)
-                SSUser.objects.create(user=user, port=port)
-                return HttpResponseRedirect(reverse('sspanel:index'))
+            with transaction.atomic():
+                # 获取用户填写的邀请码
+                code = request.POST.get('invitecode')
+                # 数据库查询邀请码
+                code = InviteCode.objects.filter(
+                    code=code, isused=False).first()
+                # 判断邀请码是否存在并返回信息
+                if not code:
+                    messages.error(request, "请重新获取邀请码",
+                                   extra_tags="邀请码失效")
+                    return render(
+                        request, 'sspanel/register.html', {'form': form})
+                else:
+                    messages.success(request, "请登录使用吧！",
+                                     extra_tags="注册成功！")
+                    form.save()
+                    # 改变表邀请码状态
+                    code.isused = True
+                    code.save()
+                    # 将user和ssuser关联
+                    user = User.objects.get(
+                        username=request.POST.get('username'))
+                    # 绑定邀请人
+                    user.invited_by = code.code_id
+                    user.save()
+                    max_port_user = SSUser.objects.order_by('-port').first()
+                    port = max_port_user.port + randint(2, 3)
+                    SSUser.objects.create(user=user, port=port)
+                    return HttpResponseRedirect(reverse('sspanel:index'))
     else:
         form = RegisterForm()
 
