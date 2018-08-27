@@ -124,6 +124,7 @@ def get_node_user(node_id):
                 'transfer_enable': user.transfer_enable,
                 'passwd': user.password,
                 'enable': user.enable,
+                'user_id': user.pk,
                 'id': user.pk,
                 'method': user.method,
                 'obfs': user.obfs,
