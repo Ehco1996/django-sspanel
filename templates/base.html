@@ -11,7 +11,7 @@
 <body>
     <nav class="navbar is-info is-spaced">
         <div class="navbar-brand">
-            <a class="navbar-item" href="{% url 'sspanel:index' %}">
+            <a class="navbar-item" href="{% url 'index' %}">
                 <img src="{% static 'img/logo/logo.png' %}" alt="谜之屋logo" width="112" height="28">
             </a>
             <div class="navbar-burger burger" data-target="navMenuColorprimary-example">
@@ -22,7 +22,7 @@
         </div>
         <div id="navMenuColorprimary-example" class="navbar-menu">
             <div class="navbar-end">
-                <a class="navbar-item" href="{% url 'sspanel:index' %}">首页</a>
+                <a class="navbar-item" href="{% url 'index' %}">首页</a>
                 <a class="navbar-item" href="{% url 'sspanel:sshelp' %}">使用说明</a>
                 <a class="navbar-item" href="{% url 'sspanel:ssinvite' %}">邀请码</a>
                 {% if user.is_authenticated %}

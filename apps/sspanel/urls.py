@@ -5,7 +5,6 @@ from .import views
 app_name = "sspanel"
 urlpatterns = [
     # 网站用户面板
-    path('index/', views.index, name='index'),
     path('sshelp/', views.sshelp, name='sshelp'),
     path('ssclient/', views.ssclient, name='ssclient'),
     path('ssinvite/', views.ssinvite, name='ssinvite'),

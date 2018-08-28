@@ -97,7 +97,7 @@ def register(request):
                     max_port_user = SSUser.objects.order_by('-port').first()
                     port = max_port_user.port + randint(2, 3)
                     SSUser.objects.create(user=user, port=port)
-                    return HttpResponseRedirect(reverse('sspanel:index'))
+                    return HttpResponseRedirect(reverse('index'))
     else:
         form = RegisterForm()
 
@@ -137,7 +137,7 @@ def user_logout(request):
     '''用户登出函数'''
     logout(request)
     messages.success(request, "欢迎下次再来", extra_tags="注销成功")
-    return HttpResponseRedirect(reverse("sspanel:index"))
+    return HttpResponseRedirect(reverse("index"))
 
 
 @login_required
