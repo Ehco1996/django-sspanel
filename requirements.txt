@@ -21,3 +21,4 @@ gevent
 raven
 pytz
 django-bulk-update
+pendulum

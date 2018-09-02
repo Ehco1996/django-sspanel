@@ -1,7 +1,8 @@
-import base64
 import time
+import base64
 import datetime
 
+import pendulum
 import markdown
 from decimal import Decimal
 from django.db import models
@@ -226,6 +227,19 @@ class PurchaseHistory(models.Model):
     class Meta:
         verbose_name_plural = '购买记录'
         ordering = ('-purchtime', )
+
+    @classmethod
+    def cost_statistics(cls, good_id, start, end):
+        start = pendulum.parse(start, tz=timezone.get_current_timezone())
+        end = pendulum.parse(end, tz=timezone.get_current_timezone())
+        query = cls.objects.filter(
+            good__id=good_id, purchtime__gte=start, purchtime__lte=end)
+        for obj in query:
+            print(obj.user, obj.good)
+        count = query.count()
+        amount = count * obj.money
+        print('{} ~ {} 时间内 商品: {} 共销售 {} 次 总金额 {} 元'.format(
+            start.date(), end.date(), obj.good, count, amount))
 
 
 class PayRecord(models.Model):

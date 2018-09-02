@@ -2,7 +2,7 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))))
-    
+
 LOGIN_URL = "/sspanel/login"
 
 INSTALLED_APPS = [
@@ -76,7 +76,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 # session 设置
 SESSION_COOKIE_AGE = 60 * 60  # 60分钟
