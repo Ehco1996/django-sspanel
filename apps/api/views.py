@@ -12,15 +12,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
-from apps.payments import alipay
 from apps.constants import NODE_USER_INFO_TTL
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
                         get_node_user, authorized)
 from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
-                                 Goods, User, MoneyCode, Donate, PayRecord,
-                                 PayRequest)
+                                 Goods, User, Donate, PayRequest)
 
 
 @permission_required('sspanel')
