@@ -1,7 +1,7 @@
 import time
-import datetime
 from random import randint
 
+import pendulum
 from decimal import Decimal
 from django.db.models import F
 from django.conf import settings
@@ -141,12 +141,12 @@ def purchase(request):
             ss_user.enable = True
             ss_user.transfer_enable += good.transfer
             user.balance -= good.money
-            if (user.level == good.level
-                    and user.level_expire_time > datetime.datetime.now()):
-                user.level_expire_time += datetime.timedelta(days=good.days)
+            now = pendulum.now()
+            days = pendulum.duration(days=good.days)
+            if (user.level == good.level and user.level_expire_time > now):
+                user.level_expire_time += days
             else:
-                user.level_expire_time = datetime.datetime.now() \
-                    + datetime.timedelta(days=good.days)
+                user.level_expire_time = now + days
             user.level = good.level
             user.save()
             ss_user.save()
@@ -158,13 +158,14 @@ def purchase(request):
                 purchtime=timezone.now())
             record.save()
             # 增加返利记录
-            inviter = User.objects.get(pk=user.invited_by)
-            rebaterecord = RebateRecord(
-                user_id=inviter.pk,
-                money=good.money * Decimal(settings.INVITE_PERCENT))
-            inviter.balance += rebaterecord.money
-            inviter.save()
-            rebaterecord.save()
+            inviter = User.objects.filter(pk=user.invited_by).first()
+            if inviter:
+                rebaterecord = RebateRecord(
+                    user_id=inviter.pk,
+                    money=good.money * Decimal(settings.INVITE_PERCENT))
+                inviter.balance += rebaterecord.money
+                inviter.save()
+                rebaterecord.save()
             registerinfo = {
                 'title': '购买成功',
                 'subtitle': '请在用户中心检查最新信息',
