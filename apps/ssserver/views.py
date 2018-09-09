@@ -139,7 +139,12 @@ def subscribe(request, token):
         for node in node_list:
             sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
-        return HttpResponse(sub_code)
+        resp_ok = StreamingHttpResponse(sub_code)
+        resp_ok['Content-Type'] = 'application/octet-stream; charset=utf-8'
+        resp_ok['Content-Disposition'] = 'attachment; filename=' + token + '.txt'
+        resp_ok['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        resp_ok['Content-Length'] = len(sub_code)
+        return resp_ok
     except:
         return HttpResponse('ERROR')
 
