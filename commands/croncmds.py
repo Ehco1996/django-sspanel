@@ -35,36 +35,35 @@ def auto_reset_traffic():
         user.ss_user.upload_traffic = 0
         user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
         user.ss_user.save()
-        print('user {}  traffic reset! '.format(user.username))
+    print('Time {} all free user traffic reset! '.format(timezone.now()))
 
 
 def clean_traffic_log():
     '''清空所有流量记录'''
     res = TrafficLog.objects.all().delete()
     log = str(res)
-    print('all traffic record removed!:{}'.format(log))
+    print('Time: {} all traffic record removed!:{}'.format(timezone.now(), log))
 
 
 def clean_online_log():
     '''清空所有在线记录'''
     res = NodeOnlineLog.objects.all().delete()
     log = str(res)
-    print('all online record removed!:{}'.format(log))
+    print('Time {} all online record removed!:{}'.format(timezone.now(), log))
 
 
 def clean_node_log():
     '''清空所有节点负载记录'''
     res = NodeInfoLog.objects.all().delete()
     log = str(res)
-    print('all node info record removed!:{}'.format(log))
+    print('Time {} all node info record removed!:{}'.format(timezone.now(), log))
 
 
 def clean_online_ip_log():
     '''清空在线ip记录'''
     res = AliveIp.objects.all().delete()
     log = str(res)
-    print('Today: {} all online ip log removed!:{}'.format(timezone.now(),
-                                                           log))
+    print('Time: {} all online ip log removed!:{}'.format(timezone.now(), log))
 
 
 def reset_node_traffic():
@@ -72,7 +71,7 @@ def reset_node_traffic():
     for node in Node.objects.all():
         node.used_traffic = 0
         node.save()
-    print('all node traffic removed!')
+    print('Time: {} all node traffic removed!'.format(timezone.now()))
 
 
 def check_pay_request():
