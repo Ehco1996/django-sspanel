@@ -98,7 +98,7 @@ class SSUser(models.Model):
     obfs = models.CharField(
         verbose_name='混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES)
     obfs_param = models.CharField(
-        verbose_name='混淆参数', max_length=128, null=True, blank=True)
+        verbose_name='混淆参数', max_length=255, null=True, blank=True)
     level = models.PositiveIntegerField(verbose_name='用户等级', default=0,)
 
     def __str__(self):
@@ -257,7 +257,7 @@ class Node(models.Model):
     obfs = models.CharField('混淆', default=settings.DEFAULT_OBFS,
                             max_length=32, choices=OBFS_CHOICES,)
     obfs_param = models.CharField(
-        '混淆参数', max_length=128, default='', null=True, blank=True)
+        '混淆参数', max_length=255, default='', null=True, blank=True)
     level = models.PositiveIntegerField(
         '节点等级', default=0,
         validators=[MaxValueValidator(9), MinValueValidator(0)])
