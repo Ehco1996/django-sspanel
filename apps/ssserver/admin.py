@@ -17,6 +17,12 @@ class SSUserAdmin(admin.ModelAdmin):
     list_filter = ['level', 'enable', ]
 
 
+class SUserAdmin(admin.ModelAdmin):
+    list_display = ['user', 'port', ]
+    search_fields = ['user__username', 'user__email', 'port', 'user_id']
+    list_filter = ['enable', ]
+
+
 class TrafficLogAdmin(admin.ModelAdmin):
     search_fields = ['user_id', 'node_id']
     list_display = ['user_id', 'node_id', 'traffic', 'log_date', ]
@@ -42,6 +48,7 @@ class AliveIpAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(models.SSUser, SSUserAdmin)
+admin.site.register(models.Suser, SUserAdmin)
 admin.site.register(models.TrafficLog, TrafficLogAdmin)
 admin.site.register(models.Node, NodeAdmin)
 admin.site.register(models.NodeOnlineLog, NodeOnlineAdmin)

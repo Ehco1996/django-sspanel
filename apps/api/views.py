@@ -30,7 +30,7 @@ def userData(request):
 
     data = [
         NodeOnlineLog.totalOnlineUser(),
-        len(User.todayRegister()),
+        User.todayRegister().count(),
         SSUser.userTodyChecked(),
         SSUser.userNeverChecked(),
         SSUser.userNeverUsed(),

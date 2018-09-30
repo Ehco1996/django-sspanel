@@ -96,7 +96,9 @@ def register(request):
                     user.save()
                     max_port_user = SSUser.objects.order_by('-port').first()
                     port = max_port_user.port + randint(2, 3)
-                    SSUser.objects.create(user=user, port=port)
+                    ss_user = SSUser.objects.create(user=user, port=port)
+                    # TODO delete
+                    ss_user.sync_to_suser()
                     return HttpResponseRedirect(reverse('index'))
     else:
         form = RegisterForm()

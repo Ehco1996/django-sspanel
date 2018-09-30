@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django_bulk_update.manager import BulkUpdateManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from apps.sspanel.models import User
 from apps.utils import get_short_random_string, traffic_format
 from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
                             COUNTRIES_CHOICES, NODE_TIME_OUT)
@@ -148,10 +149,79 @@ class SSUser(models.Model):
         self.level = self.user.level
         super(SSUser, self).save(*args, **kwargs)
 
+    def sync_to_suser(self):
+        u = Suser.objects.create(user_id=self.user.pk,
+                                 last_check_in_time=self.last_check_in_time,
+                                 password=self.password, port=self.port,
+                                 last_use_time=self.last_use_time,
+                                 upload_traffic=self.upload_traffic,
+                                 download_traffic=self.download_traffic,
+                                 transfer_enable=self.transfer_enable,
+                                 switch=self.switch, enable=self.enable,
+                                 method=self.method, protocol=self.protocol,
+                                 protocol_param=self.protocol_param,
+                                 obfs=self.obfs, obfs_param=self.obfs_param)
+        return u
+
     class Meta:
         verbose_name_plural = 'SS用户'
         ordering = ('-last_check_in_time', )
         db_table = 'user'
+
+
+class Suser(models.Model):
+    '''与user通过user_id作为虚拟外键关联'''
+
+    objects = BulkUpdateManager()
+
+    user_id = models.IntegerField(
+        verbose_name='user_id', db_column='user_id', unique=True, db_index=True)
+    last_check_in_time = models.DateTimeField(
+        verbose_name='最后签到时间', null=True, default=datetime.datetime.fromtimestamp(0), editable=False)
+    password = models.CharField(verbose_name='ss密码', max_length=32, default=get_short_random_string,
+                                db_column='passwd', validators=[validators.MinLengthValidator(6), ])
+    port = models.IntegerField(
+        verbose_name='端口', db_column='port', unique=True,)
+    last_use_time = models.IntegerField(
+        verbose_name='最后使用时间', default=0, editable=False, help_text='时间戳', db_column='t')
+    upload_traffic = models.BigIntegerField(
+        verbose_name='上传流量', default=0, db_column='u')
+    download_traffic = models.BigIntegerField(
+        verbose_name='下载流量', default=0, db_column='d')
+    transfer_enable = models.BigIntegerField(
+        verbose_name='总流量', default=settings.DEFAULT_TRAFFIC, db_column='transfer_enable')
+    switch = models.BooleanField(
+        verbose_name='保留字段switch', default=True, db_column='switch')
+    enable = models.BooleanField(
+        verbose_name='开启与否', default=True, db_column='enable')
+    method = models.CharField(
+        verbose_name='加密类型', default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES,)
+    protocol = models.CharField(
+        verbose_name='协议', default=settings.DEFAULT_PROTOCOL, max_length=32, choices=PROTOCOL_CHOICES)
+    protocol_param = models.CharField(
+        verbose_name='协议参数', max_length=128, null=True, blank=True)
+    obfs = models.CharField(
+        verbose_name='混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES)
+    obfs_param = models.CharField(
+        verbose_name='混淆参数', max_length=255, null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Ss用户'
+        ordering = ('-last_check_in_time', )
+        db_table = 's_user'
+
+    def __str__(self):
+        return self.user.username
+
+    @property
+    def user(self):
+        return User.objects.get(pk=self.user_id)
+
+    def clean(self):
+        '''保证端口在1024<50000之间'''
+        if self.port:
+            if not 1024 < self.port < 50000:
+                raise ValidationError('端口必须在1024和50000之间')
 
 
 class TrafficLog(models.Model):
