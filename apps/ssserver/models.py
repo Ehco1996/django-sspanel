@@ -8,7 +8,6 @@ from django.conf import settings
 from django.utils import timezone
 from django.core import validators
 from django.core.exceptions import ValidationError
-from django_bulk_update.manager import BulkUpdateManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from apps.sspanel.models import User
@@ -67,8 +66,6 @@ class SSUser(models.Model):
             if (u.transfer_enable - u.upload_traffic - u.download_traffic) > 0:
                 ret.append(u)
         return ret
-
-    objects = BulkUpdateManager()
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ss_user', verbose_name='用户名')
@@ -171,8 +168,6 @@ class SSUser(models.Model):
 
 class Suser(models.Model):
     '''与user通过user_id作为虚拟外键关联'''
-
-    objects = BulkUpdateManager()
 
     user_id = models.IntegerField(
         verbose_name='user_id', db_column='user_id', unique=True, db_index=True)

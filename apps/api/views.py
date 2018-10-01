@@ -354,33 +354,29 @@ def traffic_api(request):
 
     node_total_traffic = 0
     trafficlog_model_list = []
-    ssuer_model_list = []
 
     for rec in traffic_list:
+        user_id = rec['user_id']
+        u = rec['u']
+        d = rec['d']
         # 个人流量增量
-        ssuer_model_list.append(
-            SSUser(pk=rec['user_id'],
-                   upload_traffic=(F('upload_traffic') + rec['u']),
-                   download_traffic=(F('download_traffic') + rec['d']),
-                   last_use_time=log_time))
+        SSUser.objects.filter(user_id=user_id).update(
+            download_traffic=F("download_traffic")+d,
+            upload_traffic=F('upload_traffic') + u,
+            last_use_time=log_time)
         # 个人流量记录
         trafficlog_model_list.append(
-            TrafficLog(node_id=node_id, user_id=rec['user_id'],
-                       traffic=traffic_format(rec['u'] + rec['d']),
-                       download_traffic=rec['d'], upload_traffic=rec['u'],
+            TrafficLog(node_id=node_id, user_id=user_id,
+                       traffic=traffic_format(u + d),
+                       download_traffic=u, upload_traffic=d,
                        log_time=log_time))
         # 节点流量增量
-        node_incr = rec['u'] + rec['d']
-        node_total_traffic += node_incr
+        node_total_traffic += (u+d)
     # 节点流量记录
     Node.objects.filter(node_id=node_id).update(
         used_traffic=F('used_traffic')+node_total_traffic)
     # 流量记录
     TrafficLog.objects.bulk_create(trafficlog_model_list)
-    SSUser.objects.bulk_update(ssuer_model_list, update_fields=[
-                               'upload_traffic', 'download_traffic',
-                               'last_use_time'])
-
     return JsonResponse({'ret': 1, 'data': []})
 
 
