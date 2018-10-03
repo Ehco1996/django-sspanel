@@ -41,28 +41,30 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-    def get_expire_time(self):
+    @property
+    def expire_time(self):
         '''返回等级到期时间'''
         return self.level_expire_time
 
-    def get_sub_link(self):
+    @property
+    def sub_link(self):
         '''生成该用户的订阅地址'''
         token = base64.b64encode(bytes(self.username, 'utf-8')).decode('ascii')
         sub_link = settings.HOST + 'server/subscribe/' + token + '/'
         return sub_link
 
-    @classmethod
-    def proUser(cls):
-        '''付费用户数量'''
-        return len(cls.objects.filter(level__gt=0))
+    @property
+    def ss_user(self):
+        from apps.ssserver.models import Suser
+        return Suser.objects.get(user_id=self.id)
 
     @classmethod
-    def userNum(cls):
+    def get_user_num(cls):
         '''返回用户总数'''
-        return len(cls.objects.all())
+        return cls.objects.all().count()
 
     @classmethod
-    def todayRegister(cls):
+    def get_today_register_user(cls):
         '''返回今日注册的用户'''
         today = datetime.datetime.combine(datetime.date.today(),
                                           datetime.time.min)

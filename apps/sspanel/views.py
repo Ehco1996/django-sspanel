@@ -151,8 +151,6 @@ def userinfo(request):
     min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
     max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
     remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
-    # 订阅地址
-    sub_link = user.get_sub_link()
     # 节点导入链接
     sub_code = Node.get_sub_code(user)
     context = {
@@ -161,7 +159,7 @@ def userinfo(request):
         'remain_traffic': remain_traffic,
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
-        'sub_link': sub_link,
+        'sub_link': user.sub_link,
         'sub_code': sub_code,
         'themes': THEME_CHOICES
     }
@@ -308,13 +306,11 @@ def nodeinfo(request):
             node['online'] = False
             node['count'] = 0
         nodelists.append(node)
-    # 订阅地址
-    sub_link = user.get_sub_link()
     context = {
         'nodelists': nodelists,
         'ss_user': ss_user,
         'user': user,
-        'sub_link': sub_link,
+        'sub_link': user.sub_link
     }
     return render(request, 'sspanel/nodeinfo.html', context=context)
 
@@ -493,7 +489,7 @@ def rebate_record(request):
 def backend_index(request):
     '''跳转到后台界面'''
     context = {
-        'userNum': User.userNum(),
+        'userNum': User.get_user_num(),
     }
 
     return render(request, 'backend/index.html', context=context)
@@ -604,7 +600,7 @@ def user_search(request):
 def user_status(request):
     '''站内用户分析'''
     # 查询今日注册的用户
-    todayRegistered = User.todayRegister().values()
+    todayRegistered = User.get_today_register_user().values()
     for t in todayRegistered:
         try:
             t['inviter'] = User.objects.get(pk=t['invited_by'])
@@ -616,7 +612,7 @@ def user_status(request):
     # 查询流量用的最多的用户
     coreUser = SSUser.coreUser()
     context = {
-        'userNum': User.userNum(),
+        'userNum': User.get_user_num(),
         'todayChecked': SSUser.userTodyChecked(),
         'aliveUser': NodeOnlineLog.totalOnlineUser(),
         'todayRegistered': todayRegistered[:10],
