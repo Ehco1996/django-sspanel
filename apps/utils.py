@@ -5,6 +5,7 @@ import hashlib
 from functools import wraps
 from datetime import datetime, timedelta
 
+import pendulum
 from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
@@ -136,9 +137,11 @@ def get_node_user(node_id):
         return data
 
 
-def global_settings(request):
-    from django.conf import settings
+def get_current_time():
+    return pendulum.now(tz=settings.TIME_ZONE)
 
+
+def global_settings(request):
     global_variable = {
         "USE_SMTP": settings.USE_SMTP
     }

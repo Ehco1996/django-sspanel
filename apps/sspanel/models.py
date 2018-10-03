@@ -20,6 +20,37 @@ from apps.utils import get_long_random_string, traffic_format
 class User(AbstractUser):
     '''SS账户模型'''
 
+    invitecode = models.CharField(verbose_name='邀请码', max_length=40)
+    invited_by = models.PositiveIntegerField(verbose_name='邀请人id', default=1)
+    balance = models.DecimalField(verbose_name='余额', decimal_places=2,
+                                  max_digits=10, default=0, editable=True,
+                                  null=True, blank=True,)
+    invitecode_num = models.PositiveIntegerField(
+        verbose_name='可生成的邀请码数量', default=settings.INVITE_NUM)
+    level = models.PositiveIntegerField(verbose_name='用户等级', default=0,
+                                        validators=[MaxValueValidator(9),
+                                                    MinValueValidator(0), ])
+    level_expire_time = models.DateTimeField(verbose_name='等级有效期',
+                                             default=timezone.now)
+    theme = models.CharField(verbose_name='主题', choices=THEME_CHOICES,
+                             default=settings.DEFAULT_THEME, max_length=10)
+
+    class Meta(AbstractUser.Meta):
+        verbose_name = '用户'
+
+    def __str__(self):
+        return self.username
+
+    def get_expire_time(self):
+        '''返回等级到期时间'''
+        return self.level_expire_time
+
+    def get_sub_link(self):
+        '''生成该用户的订阅地址'''
+        token = base64.b64encode(bytes(self.username, 'utf-8')).decode('ascii')
+        sub_link = settings.HOST + 'server/subscribe/' + token + '/'
+        return sub_link
+
     @classmethod
     def proUser(cls):
         '''付费用户数量'''
@@ -36,37 +67,6 @@ class User(AbstractUser):
         today = datetime.datetime.combine(datetime.date.today(),
                                           datetime.time.min)
         return cls.objects.filter(date_joined__gt=today)
-
-    invitecode = models.CharField(verbose_name='邀请码', max_length=40)
-    invited_by = models.PositiveIntegerField(verbose_name='邀请人id', default=1)
-    balance = models.DecimalField(verbose_name='余额', decimal_places=2,
-                                  max_digits=10, default=0, editable=True,
-                                  null=True, blank=True,)
-    invitecode_num = models.PositiveIntegerField(
-        verbose_name='可生成的邀请码数量', default=settings.INVITE_NUM)
-    level = models.PositiveIntegerField(verbose_name='用户等级', default=0,
-                                        validators=[MaxValueValidator(9),
-                                                    MinValueValidator(0), ])
-    level_expire_time = models.DateTimeField(verbose_name='等级有效期',
-                                             default=timezone.now)
-    theme = models.CharField(verbose_name='主题', choices=THEME_CHOICES,
-                             default=settings.DEFAULT_THEME, max_length=10)
-
-    def __str__(self):
-        return self.username
-
-    def get_expire_time(self):
-        '''返回等级到期时间'''
-        return self.level_expire_time
-
-    def get_sub_link(self):
-        '''生成该用户的订阅地址'''
-        token = base64.b64encode(bytes(self.username, 'utf-8')).decode('ascii')
-        sub_link = settings.HOST + 'server/subscribe/' + token + '/'
-        return sub_link
-
-    class Meta(AbstractUser.Meta):
-        verbose_name = '用户'
 
 
 class InviteCode(models.Model):

@@ -3,15 +3,17 @@ import base64
 import datetime
 from random import choice
 
+import pendulum
 from django.db import models
+from django.db.models import F
 from django.conf import settings
 from django.utils import timezone
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.sspanel.models import User
-from apps.utils import get_short_random_string, traffic_format
+from apps.utils import (get_short_random_string,
+                        traffic_format, get_current_time)
 from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
                             COUNTRIES_CHOICES, NODE_TIME_OUT)
 
@@ -172,7 +174,7 @@ class Suser(models.Model):
     user_id = models.IntegerField(
         verbose_name='user_id', db_column='user_id', unique=True, db_index=True)
     last_check_in_time = models.DateTimeField(
-        verbose_name='最后签到时间', null=True, default=datetime.datetime.fromtimestamp(0), editable=False)
+        verbose_name='最后签到时间', null=True, editable=False)
     password = models.CharField(verbose_name='ss密码', max_length=32, default=get_short_random_string,
                                 db_column='passwd', validators=[validators.MinLengthValidator(6), ])
     port = models.IntegerField(
@@ -208,15 +210,85 @@ class Suser(models.Model):
     def __str__(self):
         return self.user.username
 
-    @property
-    def user(self):
-        return User.objects.get(pk=self.user_id)
-
     def clean(self):
         '''保证端口在1024<50000之间'''
         if self.port:
             if not 1024 < self.port < 50000:
                 raise ValidationError('端口必须在1024和50000之间')
+
+    @property
+    def user(self):
+        from apps.sspanel.models import User
+        return User.objects.get(pk=self.user_id)
+
+    @property
+    def today_checked(self):
+        return self.last_check_in_time.day == pendulum.now().day
+
+    @property
+    def last_use_time(self):
+        t = pendulum.from_timestamp(
+            self.last_check_in_time, tz=settings.TIME_ZONE)
+        return t
+
+    @property
+    def used_traffic(self):
+        return traffic_format(self.download_traffic + self.upload_traffic)
+
+    @property
+    def totla_transfer(self):
+        return traffic_format(self.transfer_enable)
+
+    @property
+    def unused_traffic(self):
+        return traffic_format(
+            self.transfer_enable - self.upload_traffic - self.download_traffic)
+
+    @property
+    def used_percentage(self):
+        try:
+            return '{:.2f}'.format(
+                (self.download_traffic + self.upload_traffic) /
+                self.transfer_enable * 100)
+        except ZeroDivisionError:
+            return '100'
+
+    @classmethod
+    def get_today_checked_user_num(cls):
+        now = get_current_time()
+        midnight = pendulum.datetime(year=now.year, day=now.day, tz=now.tz)
+        query = cls.objects.filter(last_check_in_time__gte=midnight)
+        return query.count()
+
+    @classmethod
+    def get_never_checked_user_num(cls):
+        return cls.objects.filter(last_check_in_time=None).count()
+
+    @classmethod
+    def get_user_by_traffic(cls, num=10):
+        '''返回流量用的最多的前num名用户'''
+        return cls.objects.all().order_by('-download_traffic').limit(num)
+
+    @classmethod
+    def get_vaild_user(cls, level):
+        '''返回指大于等于指定等级的所有合法用户'''
+        from apps.sspanel.models import User
+        user_ids = User.objects.filter(level__gte=level).values_list('id')
+        users = cls.objects.filter(transfer_enable__gte=(
+            F('upload_traffic')+F('download_traffic')), user_id__in=user_ids)
+        return users
+
+    @classmethod
+    def get_random_port(cls):
+        users = cls.objects.all().values_list('prot')
+        port_list = []
+        for user in users:
+            port_list.append(user[0])
+        all_ports = [i for i in range(1025, max(port_list) + 1)]
+        try:
+            return choice(list(set(all_ports).difference(set(port_list))))
+        except IndexError:
+            return max(port_list) + 1
 
 
 class TrafficLog(models.Model):
