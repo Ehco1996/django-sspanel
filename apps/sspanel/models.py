@@ -198,7 +198,8 @@ class Goods(models.Model):
     def __str__(self):
         return self.name
 
-    def get_transfer(self):
+    @property
+    def total_transfer(self):
         '''增加的流量'''
         return traffic_format(self.transfer)
 

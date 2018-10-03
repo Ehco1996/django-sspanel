@@ -1,15 +1,14 @@
-# from django.conf.urls import url
 from django.urls import path
 from .import views
 
 
 app_name = "ssserver"
 urlpatterns = [
-    path('changesspass/', views.ChangeSsPass, name='changesspass'),
-    path('user/edit/<int:pk>/', views.User_edit, name='user_edit'),
-    path('changessmethod/', views.ChangeSsMethod, name='changessmethod'),
-    path('changessprotocol/', views.ChangeSsProtocol, name='changessprotocol'),
-    path('changessobfs/', views.ChangeSsObfs, name='changessobfs'),
+    path('user/edit/<int:user_id>/', views.user_edit, name='user_edit'),
+    path('changesspass/', views.change_ss_pass, name='changesspass'),
+    path('changessmethod/', views.change_ss_method, name='changessmethod'),
+    path('changessprotocol/', views.change_ss_protocol, name='changessprotocol'),
+    path('changessobfs/', views.change_ss_obfs, name='changessobfs'),
     path('subscribe/<token>/', views.subscribe, name='subscribe'),
     path('node/config/', views.node_config, name='node_config'),
 ]

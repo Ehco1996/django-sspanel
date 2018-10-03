@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from apps.constants import NODE_USER_INFO_TTL
 from apps.utils import (get_date_list, traffic_format, simple_cached_view,
                         get_node_user, authorized)
-from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
+from apps.ssserver.models import (Suser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
                                  Goods, User, Donate, PayRequest)
@@ -31,9 +31,9 @@ def userData(request):
     data = [
         NodeOnlineLog.totalOnlineUser(),
         User.get_today_register_user().count(),
-        SSUser.userTodyChecked(),
-        SSUser.userNeverChecked(),
-        SSUser.userNeverUsed(),
+        Suser.get_today_checked_user_num(),
+        Suser.get_never_checked_user_num(),
+        Suser.get_never_used_num(),
     ]
     return JsonResponse({'data': data})
 
@@ -78,7 +78,7 @@ def change_ss_port(request):
     '''
     user = request.user.ss_user
     # 找到端口池中最大的端口
-    port = SSUser.randomPord()
+    port = Suser.get_random_port()
     user.port = port
     user.save()
     registerinfo = {
@@ -171,7 +171,6 @@ def purchase(request):
                 'subtitle': '请在用户中心检查最新信息',
                 'status': 'success',
             }
-            # 删除缓存
         return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
@@ -360,7 +359,7 @@ def traffic_api(request):
         u = rec['u']
         d = rec['d']
         # 个人流量增量
-        SSUser.objects.filter(user_id=user_id).update(
+        Suser.objects.filter(user_id=user_id).update(
             download_traffic=F("download_traffic")+d,
             upload_traffic=F('upload_traffic') + u,
             last_use_time=log_time)
@@ -388,9 +387,10 @@ def alive_ip_api(request):
     node_id = data['node_id']
     model_list = []
     for user_id, ip_list in data['data'].items():
-        user = SSUser.objects.get(pk=user_id).user
+        user = User.objects.get(id=user_id)
         for ip in ip_list:
-            model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
+            model_list.append(
+                AliveIp(node_id=node_id, user=user.username, ip=ip))
     AliveIp.objects.bulk_create(model_list)
     res = {'ret': 1, 'data': []}
     return JsonResponse(res)
@@ -400,7 +400,7 @@ def alive_ip_api(request):
 def checkin(request):
     '''用户签到'''
     ss_user = request.user.ss_user
-    if not ss_user.get_check_in():
+    if not ss_user.today_is_checked:
         # 距离上次签到时间大于一天 增加随机流量
         ll = randint(settings.MIN_CHECKIN_TRAFFIC,
                      settings.MAX_CHECKIN_TRAFFIC)

@@ -18,156 +18,6 @@ from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
                             COUNTRIES_CHOICES, NODE_TIME_OUT)
 
 
-class SSUser(models.Model):
-    @classmethod
-    def userTodyChecked(cls):
-        '''返回今日签到人数'''
-        return len([o for o in cls.objects.all() if o.get_check_in()])
-
-    @classmethod
-    def userNeverChecked(cls):
-        '''返回从未签到过人数'''
-        return len([
-            o for o in cls.objects.all() if o.last_check_in_time.year == 1970
-        ])
-
-    @classmethod
-    def userNeverUsed(cls):
-        '''返回从未使用过的人数'''
-        return len([o for o in cls.objects.all() if o.last_use_time == 0])
-
-    @classmethod
-    def coreUser(cls):
-        '''返回流量用的最多的前十名用户'''
-        rec = {}
-        for u in cls.objects.filter(download_traffic__gt=0):
-            rec[u] = u.upload_traffic + u.download_traffic
-        # 按照流量倒序排序，切片取出前十名
-        rec = sorted(rec.items(), key=lambda rec: rec[1], reverse=True)[:10]
-        return [(r[0], r[0].get_traffic()) for r in rec]
-
-    @classmethod
-    def randomPord(cls):
-        '''随机端口'''
-        users = cls.objects.all()
-        port_list = []
-        for user in users:
-            port_list.append(user.port)
-        all_ports = [i for i in range(1025, max(port_list) + 1)]
-        try:
-            return choice(list(set(all_ports).difference(set(port_list))))
-        except:
-            return max(port_list) + 1
-
-    @classmethod
-    def get_vaild_user(cls, level):
-        '''返回指大于等于指定等级的所有合法用户'''
-        users = SSUser.objects.filter(level__gte=level, transfer_enable__gte=0)
-        ret = []
-        for u in users:
-            if (u.transfer_enable - u.upload_traffic - u.download_traffic) > 0:
-                ret.append(u)
-        return ret
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ss_user', verbose_name='用户名')
-    last_check_in_time = models.DateTimeField(
-        verbose_name='最后签到时间', null=True, default=datetime.datetime.fromtimestamp(0), editable=False)
-    password = models.CharField(verbose_name='sspanel密码', max_length=32, default=get_short_random_string,
-                                db_column='passwd', validators=[validators.MinLengthValidator(6), ])
-    port = models.IntegerField(
-        verbose_name='端口', db_column='port', unique=True,)
-    last_use_time = models.IntegerField(
-        verbose_name='最后使用时间', default=0, editable=False, help_text='时间戳', db_column='t')
-    upload_traffic = models.BigIntegerField(
-        verbose_name='上传流量', default=0, db_column='u')
-    download_traffic = models.BigIntegerField(
-        verbose_name='下载流量', default=0, db_column='d')
-    transfer_enable = models.BigIntegerField(
-        verbose_name='总流量', default=settings.DEFAULT_TRAFFIC, db_column='transfer_enable')
-    switch = models.BooleanField(
-        verbose_name='保留字段switch', default=True, db_column='switch')
-    enable = models.BooleanField(
-        verbose_name='开启与否', default=True, db_column='enable')
-    method = models.CharField(
-        verbose_name='加密类型', default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES,)
-    protocol = models.CharField(
-        verbose_name='协议', default=settings.DEFAULT_PROTOCOL, max_length=32, choices=PROTOCOL_CHOICES)
-    protocol_param = models.CharField(
-        verbose_name='协议参数', max_length=128, null=True, blank=True)
-    obfs = models.CharField(
-        verbose_name='混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES)
-    obfs_param = models.CharField(
-        verbose_name='混淆参数', max_length=255, null=True, blank=True)
-    level = models.PositiveIntegerField(verbose_name='用户等级', default=0,)
-
-    def __str__(self):
-        return self.user.username
-
-    def get_last_use_time(self):
-        '''返回上一次的使用到时间'''
-        return timezone.datetime.fromtimestamp(self.last_use_time)
-
-    def get_traffic(self):
-        '''返回用户使用的总流量'''
-        return traffic_format(self.download_traffic + self.upload_traffic)
-
-    def get_transfer(self):
-        '''返回用户的总流量'''
-        return traffic_format(self.transfer_enable)
-
-    def get_unused_traffic(self):
-        '''返回用户的剩余流量'''
-        return traffic_format(
-            self.transfer_enable - self.upload_traffic - self.download_traffic)
-
-    def get_used_percentage(self):
-        '''返回用户的为使用流量百分比'''
-        try:
-            return '{:.2f}'.format(
-                (self.download_traffic + self.upload_traffic) /
-                self.transfer_enable * 100)
-        except ZeroDivisionError:
-            return '100'
-
-    def get_check_in(self):
-        '''返回当天是否签到'''
-        # 获取当天日期
-        check_day = self.last_check_in_time.day
-        now_day = datetime.datetime.now().day
-        return check_day == now_day
-
-    def clean(self):
-        '''保证端口在1024<50000之间'''
-        if self.port:
-            if not 1024 < self.port < 50000:
-                raise ValidationError('端口必须在1024和50000之间')
-
-    # 重写一下save函数，保证user与ss_user的level字段同步
-    def save(self, *args, **kwargs):
-        self.level = self.user.level
-        super(SSUser, self).save(*args, **kwargs)
-
-    def sync_to_suser(self):
-        u = Suser.objects.create(user_id=self.user.pk,
-                                 last_check_in_time=self.last_check_in_time,
-                                 password=self.password, port=self.port,
-                                 last_use_time=self.last_use_time,
-                                 upload_traffic=self.upload_traffic,
-                                 download_traffic=self.download_traffic,
-                                 transfer_enable=self.transfer_enable,
-                                 switch=self.switch, enable=self.enable,
-                                 method=self.method, protocol=self.protocol,
-                                 protocol_param=self.protocol_param,
-                                 obfs=self.obfs, obfs_param=self.obfs_param)
-        return u
-
-    class Meta:
-        verbose_name_plural = 'SS用户'
-        ordering = ('-last_check_in_time', )
-        db_table = 'user'
-
-
 class Suser(models.Model):
     '''与user通过user_id作为虚拟外键关联'''
 
@@ -222,13 +72,14 @@ class Suser(models.Model):
         return User.objects.get(pk=self.user_id)
 
     @property
-    def today_checked(self):
-        return self.last_check_in_time.day == pendulum.now().day
+    def today_is_checked(self):
+        if self.last_check_in_time:
+            return self.last_check_in_time.day == pendulum.now().day
+        return False
 
     @property
-    def last_use_time(self):
-        t = pendulum.from_timestamp(
-            self.last_check_in_time, tz=settings.TIME_ZONE)
+    def user_last_use_time(self):
+        t = pendulum.from_timestamp(self.last_use_time, tz=settings.TIME_ZONE)
         return t
 
     @property
@@ -256,7 +107,8 @@ class Suser(models.Model):
     @classmethod
     def get_today_checked_user_num(cls):
         now = get_current_time()
-        midnight = pendulum.datetime(year=now.year, day=now.day, tz=now.tz)
+        midnight = pendulum.datetime(
+            year=now.year, month=now.month, day=now.day, tz=now.tz)
         query = cls.objects.filter(last_check_in_time__gte=midnight)
         return query.count()
 
@@ -265,9 +117,14 @@ class Suser(models.Model):
         return cls.objects.filter(last_check_in_time=None).count()
 
     @classmethod
+    def get_never_used_num(cls):
+        '''返回从未使用过的人数'''
+        return cls.objects.filter(last_use_time=0).count()
+
+    @classmethod
     def get_user_by_traffic(cls, num=10):
         '''返回流量用的最多的前num名用户'''
-        return cls.objects.all().order_by('-download_traffic').limit(num)
+        return cls.objects.all().order_by('-download_traffic')[:10]
 
     @classmethod
     def get_vaild_user(cls, level):
@@ -280,7 +137,7 @@ class Suser(models.Model):
 
     @classmethod
     def get_random_port(cls):
-        users = cls.objects.all().values_list('prot')
+        users = cls.objects.all().values_list('port')
         port_list = []
         for user in users:
             port_list.append(user[0])

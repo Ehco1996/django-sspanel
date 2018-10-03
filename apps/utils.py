@@ -111,12 +111,12 @@ def get_node_user(node_id):
     '''
     返回所有当前节点可以使用的用户信息
     '''
-    from apps.ssserver.models import Node, SSUser
+    from apps.ssserver.models import Node, Suser
     node = Node.objects.filter(node_id=node_id).first()
     if node:
         data = []
         level = node.level
-        user_list = SSUser.get_vaild_user(level)
+        user_list = Suser.get_vaild_user(level)
         for user in user_list:
             cfg = {
                 'port': user.port,
@@ -125,8 +125,8 @@ def get_node_user(node_id):
                 'transfer_enable': user.transfer_enable,
                 'passwd': user.password,
                 'enable': user.enable,
-                'user_id': user.pk,
-                'id': user.pk,
+                'user_id': user.user_id,
+                'id': user.user_id,
                 'method': user.method,
                 'obfs': user.obfs,
                 'obfs_param': user.obfs_param,

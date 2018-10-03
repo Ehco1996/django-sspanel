@@ -6,7 +6,6 @@ from django.db.models import Q
 from django.urls import reverse
 from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
 from django.shortcuts import render
 from django.contrib import messages
 from django.utils.six import BytesIO
@@ -14,10 +13,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 
+from apps.utils import traffic_format
 from apps.custom_views import Page_List_View
-from apps.utils import reverse_traffic, traffic_format
 from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
-from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
+from apps.ssserver.models import Suser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Goods, MoneyCode,
                      PurchaseHistory, PayRequest, Announcement, Ticket,
                      RebateRecord)
@@ -94,11 +93,9 @@ def register(request):
                     # 绑定邀请人
                     user.invited_by = code.code_id
                     user.save()
-                    max_port_user = SSUser.objects.order_by('-port').first()
+                    max_port_user = Suser.objects.order_by('-port').first()
                     port = max_port_user.port + randint(2, 3)
-                    ss_user = SSUser.objects.create(user=user, port=port)
-                    # TODO delete
-                    ss_user.sync_to_suser()
+                    Suser.objects.create(user_id=user.id, port=port)
                     return HttpResponseRedirect(reverse('index'))
     else:
         form = RegisterForm()
@@ -147,10 +144,10 @@ def userinfo(request):
     '''用户中心'''
     user = request.user
     # 获取公告
-    anno = Announcement.objects.all().first()
+    anno = Announcement.objects.first()
     min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
     max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-    remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
+    remain_traffic = 100 - eval(user.ss_user.used_percentage)
     # 节点导入链接
     sub_code = Node.get_sub_code(user)
     context = {
@@ -604,16 +601,16 @@ def user_status(request):
     for t in todayRegistered:
         try:
             t['inviter'] = User.objects.get(pk=t['invited_by'])
-        except:
+        except User.DoesNotExist:
             t['inviter'] = 'ehco'
     todayRegisteredNum = len(todayRegistered)
     # 查询消费水平前十的用户
     richUser = Donate.richPeople()
     # 查询流量用的最多的用户
-    coreUser = SSUser.coreUser()
+    coreUser = Suser.get_user_by_traffic(num=10)
     context = {
         'userNum': User.get_user_num(),
-        'todayChecked': SSUser.userTodyChecked(),
+        'todayChecked': Suser.get_today_checked_user_num(),
         'aliveUser': NodeOnlineLog.totalOnlineUser(),
         'todayRegistered': todayRegistered[:10],
         'todayRegisteredNum': todayRegisteredNum,

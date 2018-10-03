@@ -17,21 +17,21 @@
 <div class="column is-12">
     <div class="box">
         <form class="form" method="post">
-            {% csrf_token %} 
-            {{ ssform.non_field_errors }} 
-            {% for field in ssform %} 
-                {{ field.label_tag }} 
-                    {{ field}} 
-                    {{ field.errors}} 
+            {% csrf_token %}
+            {{ ssform.non_field_errors }}
+            {% for field in ssform %}
+                {{ field.label_tag }}
+                    {{ field}}
+                    {{ field.errors}}
                     {% if field.help_text %}
                     <p class="help is-danger">{{ field.help_text|safe }}</p>
-                    {% endif %} 
+                    {% endif %}
             {% endfor %}
-            <br> {{ userform.non_field_errors }} 
-            {% for field in userform %} {{ field.label_tag }} {{ field}} {{ field.errors}} 
+            <br> {{ userform.non_field_errors }}
+            {% for field in userform %} {{ field.label_tag }} {{ field}} {{ field.errors}}
                 {% if field.help_text %}
                 <p class="help is-danger">{{ field.help_text|safe }}</p>
-                {% endif %} 
+                {% endif %}
             {% endfor %}
             <label>用户密码:</label>
             <input type="text" name="resetpass" class="input" maxlength="32" placeholder="不修改请留空">

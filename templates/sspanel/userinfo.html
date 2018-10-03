@@ -56,7 +56,7 @@
                 </div>
                 <hr>
                 <div id="id-checkin-box">
-                    {% if user.ss_user.get_check_in %}
+                    {% if user.ss_user.today_is_checked %}
                     <p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>
                     {% else %}
                     <p class="subtitle is-5 is-spaced"> 今天还没有签到，点一下可以获得{{ min_traffic }}~{{ max_traffic }}流量</p>
@@ -147,7 +147,7 @@
                         <div class="columns">
                             <div class="column is-4">
                                 <li>总量:
-                                    <code>{{ user.ss_user.get_transfer }}</code>
+                                    <code>{{ user.ss_user.totla_transfer }}</code>
                                 </li>
                             </div>
                             <div class="column">
@@ -157,7 +157,7 @@
                         <div class="columns">
                             <div class="column is-4">
                                 <li>剩余:
-                                    <code>{{ user.ss_user.get_unused_traffic }} </code>
+                                    <code>{{ user.ss_user.used_traffic }} </code>
                                 </li>
                             </div>
                             <div class="column">
@@ -168,10 +168,10 @@
                         <div class="columns">
                             <div class="column is-4">
                                 <li>使用:
-                                    <code>{{ user.ss_user.get_used_percentage }}%</code> </li>
+                                    <code>{{ user.ss_user.used_percentage }}%</code> </li>
                             </div>
                             <div class="column">
-                                <progress class="progress is-danger" value="{{  user.ss_user.get_used_percentage }}" max="100"></progress>
+                                <progress class="progress is-danger" value="{{  user.ss_user.used_percentage }}" max="100"></progress>
                             </div>
                         </div>
                     </div>
@@ -204,7 +204,7 @@
                             <code>{{ user.expire_time }} </code>
                         </li>
                         <li>上次使用时间:
-                            <code>{{ user.ss_user.get_last_use_time|date:"m月d日G点" }}</code>
+                            <code>{{ user.ss_user.user_last_use_time|date:"m月d日G点" }}</code>
                         </li>
 
                     </div>

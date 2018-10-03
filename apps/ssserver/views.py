@@ -3,31 +3,28 @@ import base64
 
 from django.urls import reverse
 from django.conf import settings
-from django.utils import timezone
-from django.http import StreamingHttpResponse, HttpResponseRedirect
-from django.shortcuts import HttpResponse, redirect, render
 from django.contrib import messages
+from django.shortcuts import HttpResponse, render
+from django.http import StreamingHttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required, permission_required
 
+from .models import Suser, Node
 from apps.sspanel.models import User
 from apps.sspanel.forms import UserForm
-from .forms import ChangeSsPassForm, SSUserForm
-from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-from .models import (SSUser, TrafficLog, Node,
-                     NodeInfoLog, NodeOnlineLog, AliveIp)
+from .forms import ChangeSsPassForm, SuserForm
 
 
 @permission_required('ssesrver')
-def User_edit(request, pk):
+def user_edit(request, user_id):
     '''编辑ss_user的信息'''
-    ss_user = SSUser.objects.get(pk=pk)
+    ss_user = Suser.objects.get(user_id=user_id)
     # 当为post请求时，修改数据
     if request.method == "POST":
         # 对总流量部分进行修改，转换单GB
         data = request.POST.copy()
         data['transfer_enable'] = int(eval(
             data['transfer_enable']) * settings.GB)
-        ssform = SSUserForm(data, instance=ss_user)
+        ssform = SuserForm(data, instance=ss_user)
         userform = UserForm(data, instance=ss_user.user)
         if ssform.is_valid() and userform.is_valid():
             ssform.save()
@@ -51,7 +48,7 @@ def User_edit(request, pk):
     else:
         # 特别初始化总流量字段
         data = {'transfer_enable': ss_user.transfer_enable // settings.GB}
-        ssform = SSUserForm(initial=data, instance=ss_user)
+        ssform = SuserForm(initial=data, instance=ss_user)
         userform = UserForm(instance=ss_user.user)
         context = {
             'ssform': ssform,
@@ -62,7 +59,7 @@ def User_edit(request, pk):
 
 
 @login_required
-def ChangeSsPass(request):
+def change_ss_pass(request):
     '''改变用户ss连接密码'''
     ss_user = request.user.ss_user
 
@@ -85,7 +82,7 @@ def ChangeSsPass(request):
 
 
 @login_required
-def ChangeSsMethod(request):
+def change_ss_method(request):
     '''改变用户ss加密'''
     ss_user = request.user.ss_user
 
@@ -98,7 +95,7 @@ def ChangeSsMethod(request):
 
 
 @login_required
-def ChangeSsProtocol(request):
+def change_ss_protocol(request):
     '''改变用户ss协议'''
     ss_user = request.user.ss_user
 
@@ -111,7 +108,7 @@ def ChangeSsProtocol(request):
 
 
 @login_required
-def ChangeSsObfs(request):
+def change_ss_obfs(request):
     '''改变用户ss连接混淆'''
     ss_user = request.user.ss_user
 
@@ -141,7 +138,8 @@ def subscribe(request, token):
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
         resp_ok = StreamingHttpResponse(sub_code)
         resp_ok['Content-Type'] = 'application/octet-stream; charset=utf-8'
-        resp_ok['Content-Disposition'] = 'attachment; filename=' + token + '.txt'
+        resp_ok['Content-Disposition'] = 'attachment; filename={}.txt'.format(
+            token)
         resp_ok['Cache-Control'] = 'no-store, no-cache, must-revalidate'
         resp_ok['Content-Length'] = len(sub_code)
         return resp_ok

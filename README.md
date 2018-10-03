@@ -11,6 +11,12 @@ Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
 ![](http://opj9lh0x4.bkt.clouddn.com/17-12-20/62343859.jpg)
 
+## 重大升级说明
+如果要升级到dev最新的代码
+请按wiki里的步骤升级
+
+https://github.com/Ehco1996/django-sspanel/wiki/%E9%87%8D%E5%A4%A7%E6%9B%B4%E6%96%B0%E6%AD%A5%E9%AA%A4
+
 ## 项目说明
 
 该项目是用django作为后端框架，开发的一个shadowsocks多人用户面板，具有以下特点：
