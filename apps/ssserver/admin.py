@@ -3,14 +3,15 @@ from . import models
 
 
 class SUserAdmin(admin.ModelAdmin):
-    list_display = ['user', 'port', 'used_traffic', 'totla_transfer']
-    search_fields = ['user__username', 'user_id']
+    list_display = ['user', 'user_id', 'port',
+                    'used_traffic', 'totla_transfer']
+    search_fields = ['user_id', 'port']
     list_filter = ['enable', ]
 
 
 class TrafficLogAdmin(admin.ModelAdmin):
     search_fields = ['user_id', 'node_id']
-    list_display = ['user_id', 'node_id', 'traffic', 'log_date', ]
+    list_display = ['user', 'user_id', 'node_id', 'traffic', 'log_date', ]
 
 
 class NodeAdmin(admin.ModelAdmin):

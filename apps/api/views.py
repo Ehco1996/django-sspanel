@@ -13,8 +13,8 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.constants import NODE_USER_INFO_TTL
-from apps.utils import (get_date_list, traffic_format, simple_cached_view,
-                        get_node_user, authorized)
+from apps.utils import (
+    traffic_format, simple_cached_view, get_node_user, authorized)
 from apps.ssserver.models import (Suser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
@@ -236,22 +236,23 @@ def traffic_query(request):
     '''
     node_id = request.POST.get('node_id', 0)
     node_name = request.POST.get('node_name', '')
-    user_id = request.user.ss_user.pk
-    last_week = get_date_list(7)
+    user_id = request.user.pk
+    now = pendulum.now()
+    last_week = [now.subtract(days=i).date() for i in range(7)]
     labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
-    trafficdata = [
-        TrafficLog.getTrafficByDay(node_id, user_id, t) for t in last_week
+    traffic_data = [
+        TrafficLog.get_traffic_by_date(node_id, user_id, t) for t in last_week
     ]
-    title = '节点 {} 当月共消耗：{} GB'.format(node_name,
-                                       TrafficLog.getUserTraffic(
-                                           node_id, user_id))
+    total = TrafficLog.get_user_traffic(node_id, user_id)
+    title = '节点 {} 当月共消耗：{}'.format(node_name, total)
+
     configs = {
         'title': title,
         'labels': labels,
-        'data': trafficdata,
+        'data': traffic_data,
         'data_title': node_name,
         'x_label': '日期 最近七天',
-        'y_label': '流量 单位：GB'
+        'y_label': '流量 单位：MB'
     }
     return JsonResponse(configs)
 

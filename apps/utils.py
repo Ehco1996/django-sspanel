@@ -3,7 +3,6 @@ import json
 import random
 import hashlib
 from functools import wraps
-from datetime import datetime, timedelta
 
 import pendulum
 from django.conf import settings
@@ -33,15 +32,6 @@ def get_long_random_string():
 
 def get_short_random_string():
     return get_random_string(12)
-
-
-def get_date_list(dela):
-    '''
-    返回从当前日期开始回溯指定天数的日期列表
-    '''
-    t = datetime.today()
-    date_list = [t - timedelta(days=i) for i in range(dela)]
-    return list(reversed(date_list))
 
 
 def traffic_format(traffic):

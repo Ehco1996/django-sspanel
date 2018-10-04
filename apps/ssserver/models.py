@@ -151,44 +151,17 @@ class Suser(models.Model):
 class TrafficLog(models.Model):
     '''用户流量记录'''
 
-    @classmethod
-    def totalTraffic(cls, node_id):
-        '''返回该节点使用总流量 单位GB'''
-        traffics = cls.objects.filter(node_id=node_id)
-        total_traffic = sum(
-            [u.upload_traffic + u.download_traffic for u in traffics])
-        return round(total_traffic / settings.GB, 2)
-
-    @classmethod
-    def getUserTraffic(cls, node_id, user_id):
-        '''返回指定用户对应节点的流量 单位GB'''
-        traffics = cls.objects.filter(node_id=node_id, user_id=user_id)
-        total_traffic = sum(
-            [u.upload_traffic + u.download_traffic for u in traffics])
-        return round(total_traffic / settings.GB, 2)
-
-    @classmethod
-    def getTrafficByDay(cls, node_id, user_id, date):
-        '''返回指定用户对应节点对应日期的流量 单位GB'''
-        traffics = cls.objects.filter(
-            node_id=node_id,
-            user_id=user_id,
-            log_date__year=date.year,
-            log_date__month=date.month,
-            log_date__day=date.day)
-        total_traffic = sum(
-            [u.upload_traffic + u.download_traffic for u in traffics])
-        return round(total_traffic / settings.GB, 2)
-
-    user_id = models.IntegerField('用户id', blank=False, null=False)
-    node_id = models.IntegerField('节点id', blank=False, null=False)
+    user_id = models.IntegerField(
+        '用户id', blank=False, null=False, db_index=True)
+    node_id = models.IntegerField(
+        '节点id', blank=False, null=False, db_index=True)
     upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
     download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
     rate = models.FloatField('流量比例', default=1.0, null=False)
     traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
-    log_date = models.DateTimeField(
-        '记录日期', default=timezone.now, blank=False, null=False)
+    log_date = models.DateField(
+        '记录日期', default=timezone.now, blank=False, null=False, db_index=True)
 
     def __str__(self):
         return self.traffic
@@ -197,6 +170,26 @@ class TrafficLog(models.Model):
         verbose_name_plural = '流量记录'
         ordering = ('-log_time', )
         db_table = 'user_traffic_log'
+
+    @property
+    def user(self):
+        from apps.sspanel.models import User
+        return User.objects.get(pk=self.user_id)
+
+    @property
+    def used_traffic(self):
+        return self.download_traffic + self.upload_traffic
+
+    @classmethod
+    def get_user_traffic(cls, node_id, user_id):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id)
+        return traffic_format(sum([l.used_traffic for l in logs]))
+
+    @classmethod
+    def get_traffic_by_date(cls, node_id, user_id, date):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id,
+                                  log_date=date)
+        return round(sum([l.used_traffic for l in logs]) / settings.MB, 1)
 
 
 class Node(models.Model):
