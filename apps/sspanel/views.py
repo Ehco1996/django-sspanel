@@ -147,7 +147,7 @@ def userinfo(request):
     anno = Announcement.objects.first()
     min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
     max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-    remain_traffic = 100 - eval(user.ss_user.used_percentage)
+    remain_traffic = '{:.2f}'.format(100 - user.ss_user.used_percentage)
     # 节点导入链接
     sub_code = Node.get_sub_code(user)
     context = {

@@ -98,11 +98,10 @@ class Suser(models.Model):
     @property
     def used_percentage(self):
         try:
-            return '{:.2f}'.format(
-                (self.download_traffic + self.upload_traffic) /
-                self.transfer_enable * 100)
+            used = self.download_traffic + self.upload_traffic
+            return used / self.transfer_enable * 100
         except ZeroDivisionError:
-            return '100'
+            return 100
 
     @classmethod
     def get_today_checked_user_num(cls):
