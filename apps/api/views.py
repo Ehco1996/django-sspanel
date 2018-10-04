@@ -238,7 +238,7 @@ def traffic_query(request):
     node_name = request.POST.get('node_name', '')
     user_id = request.user.pk
     now = pendulum.now()
-    last_week = [now.subtract(days=i).date() for i in range(7)]
+    last_week = reversed([now.subtract(days=i).date() for i in range(7)])
     labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
     traffic_data = [
         TrafficLog.get_traffic_by_date(node_id, user_id, t) for t in last_week
