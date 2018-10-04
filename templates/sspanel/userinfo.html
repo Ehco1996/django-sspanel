@@ -157,7 +157,7 @@
                         <div class="columns">
                             <div class="column is-4">
                                 <li>剩余:
-                                    <code>{{ user.ss_user.used_traffic }} </code>
+                                    <code>{{ remain_traffic }}% </code>
                                 </li>
                             </div>
                             <div class="column">
@@ -168,7 +168,7 @@
                         <div class="columns">
                             <div class="column is-4">
                                 <li>使用:
-                                    <code>{{ user.ss_user.used_percentage }}%</code> </li>
+                                    <code>{{ user.ss_user.used_traffic }}</code> </li>
                             </div>
                             <div class="column">
                                 <progress class="progress is-danger" value="{{  user.ss_user.used_percentage }}" max="100"></progress>
