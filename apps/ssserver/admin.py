@@ -23,19 +23,14 @@ class NodeOnlineAdmin(admin.ModelAdmin):
     list_display = ['node_id', 'online_user']
 
 
-class NodeInfoAdmin(admin.ModelAdmin):
-    list_display = ['node_id', 'load']
-
-
 class AliveIpAdmin(admin.ModelAdmin):
     list_display = ['node_id', 'user', 'ip', 'log_time']
     list_filter = ['node_id', 'log_time']
 
 
 # Register your models here.
-admin.site.register(models.Suser, SUserAdmin)
-admin.site.register(models.TrafficLog, TrafficLogAdmin)
 admin.site.register(models.Node, NodeAdmin)
-admin.site.register(models.NodeOnlineLog, NodeOnlineAdmin)
-admin.site.register(models.NodeInfoLog, NodeInfoAdmin)
+admin.site.register(models.Suser, SUserAdmin)
 admin.site.register(models.AliveIp, AliveIpAdmin)
+admin.site.register(models.TrafficLog, TrafficLogAdmin)
+admin.site.register(models.NodeOnlineLog, NodeOnlineAdmin)

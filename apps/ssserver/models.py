@@ -4,11 +4,11 @@ import datetime
 from random import choice
 
 import pendulum
-from django.db import models
 from django.db.models import F
 from django.conf import settings
 from django.utils import timezone
 from django.core import validators
+from django.db import models, connection
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -147,50 +147,6 @@ class Suser(models.Model):
             return max(port_list) + 1
 
 
-class TrafficLog(models.Model):
-    '''用户流量记录'''
-
-    user_id = models.IntegerField(
-        '用户id', blank=False, null=False, db_index=True)
-    node_id = models.IntegerField(
-        '节点id', blank=False, null=False, db_index=True)
-    upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
-    download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
-    rate = models.FloatField('流量比例', default=1.0, null=False)
-    traffic = models.CharField('流量记录', max_length=32, null=False)
-    log_time = models.IntegerField('日志时间', blank=False, null=False)
-    log_date = models.DateField(
-        '记录日期', default=timezone.now, blank=False, null=False, db_index=True)
-
-    def __str__(self):
-        return self.traffic
-
-    class Meta:
-        verbose_name_plural = '流量记录'
-        ordering = ('-log_time', )
-        db_table = 'user_traffic_log'
-
-    @property
-    def user(self):
-        from apps.sspanel.models import User
-        return User.objects.get(pk=self.user_id)
-
-    @property
-    def used_traffic(self):
-        return self.download_traffic + self.upload_traffic
-
-    @classmethod
-    def get_user_traffic(cls, node_id, user_id):
-        logs = cls.objects.filter(node_id=node_id, user_id=user_id)
-        return traffic_format(sum([l.used_traffic for l in logs]))
-
-    @classmethod
-    def get_traffic_by_date(cls, node_id, user_id, date):
-        logs = cls.objects.filter(node_id=node_id, user_id=user_id,
-                                  log_date=date)
-        return round(sum([l.used_traffic for l in logs]) / settings.MB, 1)
-
-
 class Node(models.Model):
     '''线路节点'''
     SHOW_CHOICES = ((1, '显示'), (-1, '不显示'))
@@ -325,21 +281,54 @@ class Node(models.Model):
         db_table = 'ss_node'
 
 
-class NodeInfoLog(models.Model):
-    '''节点负载记录'''
+class TrafficLog(models.Model):
+    '''用户流量记录'''
 
-    node_id = models.IntegerField('节点id', blank=False, null=False)
-    uptime = models.FloatField('更新时间', blank=False, null=False)
-    load = models.CharField('负载', max_length=32, blank=False, null=False)
+    user_id = models.IntegerField(
+        '用户id', blank=False, null=False, db_index=True)
+    node_id = models.IntegerField(
+        '节点id', blank=False, null=False, db_index=True)
+    upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
+    download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
+    rate = models.FloatField('流量比例', default=1.0, null=False)
+    traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
+    log_date = models.DateField(
+        '记录日期', default=timezone.now, blank=False, null=False, db_index=True)
 
     def __str__(self):
-        return str(self.node_id)
+        return self.traffic
 
     class Meta:
-        verbose_name_plural = '节点日志'
-        db_table = 'ss_node_info_log'
+        verbose_name_plural = '流量记录'
         ordering = ('-log_time', )
+        db_table = 'user_traffic_log'
+
+    @property
+    def user(self):
+        from apps.sspanel.models import User
+        return User.objects.get(pk=self.user_id)
+
+    @property
+    def used_traffic(self):
+        return self.download_traffic + self.upload_traffic
+
+    @classmethod
+    def get_user_traffic(cls, node_id, user_id):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id)
+        return traffic_format(sum([l.used_traffic for l in logs]))
+
+    @classmethod
+    def get_traffic_by_date(cls, node_id, user_id, date):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id,
+                                  log_date=date)
+        return round(sum([l.used_traffic for l in logs]) / settings.MB, 1)
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
 
 class NodeOnlineLog(models.Model):
@@ -357,6 +346,12 @@ class NodeOnlineLog(models.Model):
             if o:
                 count += o[0].get_online_user()
         return count
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
     node_id = models.IntegerField('节点id', blank=False, null=False)
     online_user = models.IntegerField('在线人数', blank=False, null=False)
@@ -402,6 +397,12 @@ class AliveIp(models.Model):
                 seen.append(log.ip)
                 ret.append(log)
         return ret
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
     node_id = models.IntegerField(verbose_name='节点id', blank=False, null=False)
     ip = models.CharField(verbose_name='设备ip', max_length=128)
