@@ -2,8 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
-from .models import Announcement, Goods, User
 from apps.ssserver.models import Node
+from apps.sspanel.models import Announcement, Goods, User, InviteCode
 
 
 class RegisterForm(UserCreationForm):
@@ -38,11 +38,17 @@ class RegisterForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        t = User.objects.filter(email=email)
-        if len(t) != 0:
+        if User.objects.filter(email=email).first():
             raise forms.ValidationError('该邮箱已经注册过了')
         else:
             return email
+
+    def clean_invitecode(self):
+        code = self.cleaned_data.get('invitecode')
+        if InviteCode.objects.filter(code=code, isused=False).first():
+            return code
+        else:
+            raise forms.ValidationError('该邀请码失效')
 
     class Meta(UserCreationForm.Meta):
         model = User

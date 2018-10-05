@@ -150,7 +150,7 @@ def subscribe(request, token):
 @login_required
 def node_config(request):
     '''返回节点json配置'''
-    user = request.user.ss_user
+    user = request.user
     node_list = Node.objects.filter(level__lte=user.level, show=1)
     data = {'configs': []}
     for node in node_list:

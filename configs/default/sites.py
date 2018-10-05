@@ -6,7 +6,7 @@ ALLOW_REGISET = True
 
 # 默认的theme
 # 可选列表在 apps/constants.py 里的THEME_CHOICES里
-DEFAULT_THEME = 'superhero'
+DEFAULT_THEME = 'default'
 
 # 域名设置
 ALLOWED_HOSTS = ['*']

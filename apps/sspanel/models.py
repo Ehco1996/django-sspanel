@@ -38,6 +38,10 @@ class User(AbstractUser):
     class Meta(AbstractUser.Meta):
         verbose_name = '用户'
 
+    def delete(self):
+        self.ss_user.delete()
+        return super(User, self).delete()
+
     def __str__(self):
         return self.username
 
@@ -69,6 +73,26 @@ class User(AbstractUser):
         today = datetime.datetime.combine(datetime.date.today(),
                                           datetime.time.min)
         return cls.objects.filter(date_joined__gt=today)
+
+    @classmethod
+    def add_new_user(cls, cleaned_data):
+        from apps.ssserver.models import Suser
+        with transaction.atomic():
+            username = cleaned_data['username']
+            email = cleaned_data['email']
+            password = cleaned_data['password1']
+            invitecode = cleaned_data['invitecode']
+            user = cls.objects.create_user(username, email, password)
+            code = InviteCode.objects.get(code=invitecode)
+            code.isused = True
+            code.save()
+            # 将user和ssuser关联
+            Suser.objects.create(user_id=user.id, port=Suser.get_random_port())
+            # 绑定邀请人
+            user.invited_by = code.code_id
+            user.invitecode = invitecode
+            user.save()
+            return user
 
 
 class InviteCode(models.Model):

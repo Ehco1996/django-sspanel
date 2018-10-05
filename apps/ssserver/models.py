@@ -140,6 +140,8 @@ class Suser(models.Model):
         port_list = []
         for user in users:
             port_list.append(user[0])
+        if len(port_list) == 0:
+            return 1025
         all_ports = [i for i in range(1025, max(port_list) + 1)]
         try:
             return choice(list(set(all_ports).difference(set(port_list))))
