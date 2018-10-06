@@ -172,17 +172,18 @@ def node_config(request):
                                                  user.password),
             })
         elif node.custom_method == 1:
+            ss_user = user.ss_user
             data['configs'].append({
                 "remarks": node.name,
-                "server_port": user.port,
+                "server_port": ss_user.port,
                 "remarks_base64": base64.b64encode(
                     bytes(node.name, 'utf8')).decode('ascii'),
                 "enable": True,
-                "password": user.password,
-                "method": user.method,
+                "password": ss_user.password,
+                "method": ss_user.method,
                 "server": node.server,
-                "obfs": user.obfs,
-                "protocol": user.protocol,
+                "obfs": ss_user.obfs,
+                "protocol": ss_user.protocol,
             })
         else:
             data['configs'].append({
