@@ -151,6 +151,7 @@ def subscribe(request, token):
 def node_config(request):
     '''返回节点json配置'''
     user = request.user
+    ss_user = user.ss_user
     node_list = Node.objects.filter(level__lte=user.level, show=1)
     data = {'configs': []}
     for node in node_list:
@@ -172,7 +173,6 @@ def node_config(request):
                                                  user.password),
             })
         elif node.custom_method == 1:
-            ss_user = user.ss_user
             data['configs'].append({
                 "remarks": node.name,
                 "server_port": ss_user.port,
@@ -188,11 +188,11 @@ def node_config(request):
         else:
             data['configs'].append({
                 "remarks": node.name,
-                "server_port": user.port,
+                "server_port": ss_user.port,
                 "remarks_base64": base64.b64encode(
                     bytes(node.name, 'utf8')).decode('ascii'),
                 "enable": True,
-                "password": user.password,
+                "password": ss_user.password,
                 "method": node.method,
                 "server": node.server,
                 "obfs": node.obfs,
