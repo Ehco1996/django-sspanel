@@ -169,7 +169,7 @@ def node_config(request):
                 "obfs": node.obfs,
                 'obfs_param': node.obfs_param,
                 "protocol": node.protocol,
-                'protocol_param': '{}:{}'.format(user.port,
+                'protocol_param': '{}:{}'.format(ss_user.port,
                                                  user.password),
             })
         elif node.custom_method == 1:
