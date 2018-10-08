@@ -32,8 +32,9 @@ def user_edit(request, user_id):
             # 修改账户密码
             passwd = request.POST.get('resetpass')
             if len(passwd) > 0:
-                ss_user.user.set_password(passwd)
-                ss_user.user.save()
+                user = ss_user.user
+                user.set_password(passwd)
+                user.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
             return HttpResponseRedirect(reverse("sspanel:user_list"))
         else:

@@ -14,11 +14,12 @@ def check_user_state():
                 user.level_expire_time:
             user.level = 0
             user.save()
-            user.ss_user.enable = False
-            user.ss_user.upload_traffic = 0
-            user.ss_user.download_traffic = 0
-            user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-            user.ss_user.save()
+            ss_user = user.ss_user
+            ss_user.enable = False
+            ss_user.upload_traffic = 0
+            ss_user.download_traffic = 0
+            ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
+            ss_user.save()
             print('time: {} user: {} level timeout '
                   .format(timezone.now().strftime('%Y-%m-%d'),
                           user.username))
@@ -30,10 +31,11 @@ def auto_reset_traffic():
     users = User.objects.filter(level=0)
 
     for user in users:
-        user.ss_user.download_traffic = 0
-        user.ss_user.upload_traffic = 0
-        user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-        user.ss_user.save()
+        ss_user = user.ss_user
+        ss_user.download_traffic = 0
+        ss_user.upload_traffic = 0
+        ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
+        ss_user.save()
     print('Time {} all free user traffic reset! '.format(timezone.now()))
 
 
