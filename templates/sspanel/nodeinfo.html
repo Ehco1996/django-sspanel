@@ -22,15 +22,15 @@
                 <div class="card-header">
                     {% if list.online == True %}
                     <p class="card-header-title">
-                        <span class="tag is-primary is-rounded">{{ list.ss_type_info }}</span>
-                        <span class="tag is-{{ list.node_color}} is-rounded">{{ list.node_type }}</span>
+                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ list.ss_type_info }}</span>
+                        <span class="tag is-{{ list.node_color}} is-rounded is-hidden-mobile">{{ list.node_type }}</span>
                         <span class="tag is-success is-rounded">在线</span>
                         &nbsp;&nbsp;{{ list.name }}
                     </p>
                     {% else %}
                     <p class="card-header-title">
-                        <span class="tag is-primary is-rounded">{{ list.ss_type_info }}</span>
-                        <span class="tag is-{{ list.node_color }} is-rounded">{{ list.node_type }}</span>
+                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ list.ss_type_info }}</span>
+                        <span class="tag is-{{ list.node_color }} is-rounded is-hidden-mobile">{{ list.node_type }}</span>
                         <span class="tag is-danger is-rounded">掉线</span>
                         &nbsp;&nbsp;{{ list.name }}
                     </p>
