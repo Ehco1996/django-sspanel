@@ -22,10 +22,9 @@
                 <div class="card-header">
                     {% if list.online == True %}
                     <p class="card-header-title">
-                        <div class="tags">
-                            <span class="tag is-primary is-rounded">{{ list.ss_type_info }}</span>
-                            <span class="tag is-{{ list.node_color}}">{{ list.node_type }}</span>
-                            <span class="tag is-success">在线</span></div>
+                        <span class="tag is-primary is-rounded">{{ list.ss_type_info }}</span>
+                        <span class="tag is-{{ list.node_color}} is-rounded">{{ list.node_type }}</span>
+                        <span class="tag is-success is-rounded">在线</span>
                         &nbsp;&nbsp;{{ list.name }}
                     </p>
                     {% else %}
