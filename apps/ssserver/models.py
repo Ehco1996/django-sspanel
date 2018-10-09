@@ -157,6 +157,8 @@ class Node(models.Model):
 
     CUSTOM_METHOD_CHOICES = ((0, '否'), (1, '是'))
 
+    SS_TYPE_CHOICES = ((0, 'SS'), (1, 'SSR'), (2, 'SS/SSR'))
+
     @classmethod
     def get_sub_code(cls, user):
         '''获取该用户的所有节点链接'''
@@ -178,7 +180,7 @@ class Node(models.Model):
 
     node_id = models.IntegerField('节点id', unique=True)
     port = models.IntegerField(
-        '节点端口', null=True, blank=True, help_text='单端口多用户时需要')
+        '节点端口', default=443, blank=True, help_text='单端口多用户时需要')
     password = models.CharField(
         '节点密码', max_length=32, default='password', help_text='单端口时需要')
     country = models.CharField(
@@ -188,6 +190,8 @@ class Node(models.Model):
     show = models.SmallIntegerField('是否显示', choices=SHOW_CHOICES, default=1)
     node_type = models.SmallIntegerField(
         '节点类型', choices=NODE_TYPE_CHOICES, default=0)
+    ss_type = models.SmallIntegerField(
+        'SS类型', choices=SS_TYPE_CHOICES, default=2)
     name = models.CharField('名字', max_length=32)
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True)
     server = models.CharField('服务器IP', max_length=128)
@@ -197,11 +201,11 @@ class Node(models.Model):
     protocol = models.CharField('协议', default=settings.DEFAULT_PROTOCOL,
                                 max_length=32, choices=PROTOCOL_CHOICES,)
     protocol_param = models.CharField(
-        '协议参数', max_length=128, null=True, blank=True)
+        '协议参数', max_length=128, default="", blank=True)
     obfs = models.CharField('混淆', default=settings.DEFAULT_OBFS,
                             max_length=32, choices=OBFS_CHOICES,)
     obfs_param = models.CharField(
-        '混淆参数', max_length=255, default='', null=True, blank=True)
+        '混淆参数', max_length=255, default="", blank=True)
     level = models.PositiveIntegerField(
         '节点等级', default=0,
         validators=[MaxValueValidator(9), MinValueValidator(0)])

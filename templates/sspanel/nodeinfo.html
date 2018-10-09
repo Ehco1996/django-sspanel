@@ -22,12 +22,19 @@
                 <div class="card-header">
                     {% if list.online == True %}
                     <p class="card-header-title">
-                        <span class="tag is-{{ list.node_color}}">{{ list.node_type }}</span>&nbsp&nbsp
-                        <span class="tag is-success">在线</span>&nbsp&nbsp{{ list.name }}</p>
+                        <div class="tags">
+                            <span class="tag is-primary is-rounded">{{ list.ss_type_info }}</span>
+                            <span class="tag is-{{ list.node_color}}">{{ list.node_type }}</span>
+                            <span class="tag is-success">在线</span></div>
+                        &nbsp;&nbsp;{{ list.name }}
+                    </p>
                     {% else %}
                     <p class="card-header-title">
-                        <span class="tag is-{{ list.node_color }}">{{ list.node_type }}</span>&nbsp&nbsp
-                        <span class="tag is-danger">掉线</span>&nbsp&nbsp {{ list.name }}</p>
+                        <span class="tag is-primary is-rounded">{{ list.ss_type_info }}</span>
+                        <span class="tag is-{{ list.node_color }} is-rounded">{{ list.node_type }}</span>
+                        <span class="tag is-danger is-rounded">掉线</span>
+                        &nbsp;&nbsp;{{ list.name }}
+                    </p>
                     {% endif %}
                     <p class="card-header-icon">地区：
                         <span class="icon">
@@ -86,6 +93,7 @@
                                         <td class="notification">加密方式:</td>
                                         <td class="notification">{{ list.method }}</td>
                                     </tr>
+                                    {% if list.ss_type == 1 or list.ss_type == 2 %}
                                     <tr>
                                         <td class="notification">协议:</td>
                                         <td class="notification">{{ list.protocol }}</td>
@@ -94,6 +102,7 @@
                                         <td class="notification">协议参数:</td>
                                         <td class="notification">{{ list.protocol_param }}</td>
                                     </tr>
+                                    {% endif %}
                                     <tr>
                                         <td class="notification">混淆:</td>
                                         <td class="notification">{{ list.obfs }}</td>
@@ -106,8 +115,10 @@
                                 <p class="subtitle">配置链接：</p>
                                 <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
                                 <br>
+                                {% if list.ss_type == 1 or list.ss_type == 2 %}
                                 <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
                                 <br>
+                                {% endif %}
                                 <br>
                                 <p class="subtitle">订阅链接</p>
                                 <strong>点击按钮复制链接至客户端的订阅处</strong>
@@ -135,11 +146,13 @@
                                 <button class="delete" aria-label="close"></button>
                             </header>
                             <section class="modal-card-body">
+                                {% if list.ss_type == 1 or list.ss_type == 2 %}
                                 <div class="box">
                                     <!-- SSR配置 ... -->
                                     <p class="subtitle">SSR版本(推荐使用)：</p>
                                     <img src="" id="id-ssr-{{ list.node_id }}" width="256" height="256">
                                 </div>
+                                {% endif %}
                                 {% if list.node_type == "多端口"%}
                                 <p class="subtitle">用原版SS要在节点编辑界面将
                                     <strong>混淆</strong>改成

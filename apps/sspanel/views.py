@@ -281,6 +281,8 @@ def nodeinfo(request):
         else:
             node['online'] = False
             node['count'] = 0
+        # 添加ss_type
+        node['ss_type_info'] = obj.get_ss_type_display()
         nodelists.append(node)
     context = {
         'nodelists': nodelists,
@@ -459,8 +461,11 @@ def rebate_record(request):
     }
     return render(request, 'sspanel/rebaterecord.html', context=context)
 
-
+# ==================================
 # 网站后台界面
+# ==================================
+
+
 @permission_required('sspanel')
 def backend_index(request):
     '''跳转到后台界面'''
