@@ -137,7 +137,6 @@ def userinfo(request):
         'import_code': Node.get_import_code(user),
         'themes': THEME_CHOICES
     }
-    print(Node.get_import_code(user))
     return render(request, 'sspanel/userinfo.html', context=context)
 
 
