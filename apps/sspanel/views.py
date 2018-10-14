@@ -127,8 +127,6 @@ def userinfo(request):
     min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
     max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
     remain_traffic = '{:.2f}'.format(100 - user.ss_user.used_percentage)
-    # 节点导入链接
-    sub_code = Node.get_sub_code(user)
     context = {
         'user': user,
         'anno': anno,
@@ -136,9 +134,10 @@ def userinfo(request):
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
         'sub_link': user.sub_link,
-        'sub_code': sub_code,
+        'import_code': Node.get_import_code(user),
         'themes': THEME_CHOICES
     }
+    print(Node.get_import_code(user))
     return render(request, 'sspanel/userinfo.html', context=context)
 
 

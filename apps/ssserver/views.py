@@ -135,7 +135,7 @@ def subscribe(request, token):
         # 生成订阅链接部分
         sub_code = 'MAX={}\n'.format(len(node_list))
         for node in node_list:
-            sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
+            sub_code = sub_code + node.get_node_link(ss_user) + "\n"
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
         resp_ok = StreamingHttpResponse(sub_code)
         resp_ok['Content-Type'] = 'application/octet-stream; charset=utf-8'

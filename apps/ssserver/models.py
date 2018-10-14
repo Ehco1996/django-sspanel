@@ -160,13 +160,13 @@ class Node(models.Model):
     SS_TYPE_CHOICES = ((0, 'SS'), (1, 'SSR'), (2, 'SS/SSR'))
 
     @classmethod
-    def get_sub_code(cls, user):
-        '''获取该用户的所有节点链接'''
+    def get_import_code(cls, user):
+        '''获取该用户的所有节点的导入信息'''
         ss_user = user.ss_user
         sub_code_list = []
         node_list = cls.objects.filter(level__lte=user.level, show=1)
         for node in node_list:
-            sub_code_list.append(node.get_ssr_link(ss_user))
+            sub_code_list.append(node.get_node_link(ss_user))
         return '\n'.join(sub_code_list)
 
     @classmethod
@@ -263,6 +263,13 @@ class Node(models.Model):
                                                  'utf8')).decode('utf8')
         ss_link = 'ss://{}#{}'.format(ss_pass, self.name)
         return ss_link
+
+    def get_node_link(self, ss_user):
+        '''获取当前的节点链接'''
+        if self.ss_type == 0:
+            return self.get_ss_link(ss_user)
+        else:
+            return self.get_ssr_link(ss_user)
 
     def save(self, *args, **kwargs):
         if self.node_type == 1:
