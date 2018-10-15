@@ -66,17 +66,17 @@
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'ssserver:user_edit' contact.ss_user.pk %}">编辑</a>
+                        <a class="button is-info" href="{% url 'ssserver:user_edit' contact.ss_user.user_id %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button" data-target="modal-{{ contact.pk }}">删除</a>
                     </p>
                 </td>
-                <td>#{{ contact.pk}}</td>
+                <td>#{{ contact.id}}</td>
                 <td>{{ contact.username }}</td>
                 <td>{{ contact.email }}</td>
                 <td>{{ contact.ss_user.port }}</td>
-                <td>{{ contact.ss_user.get_traffic }} / {{ contact.ss_user.get_transfer }}</td>
+                <td>{{ contact.ss_user.used_traffic }} / {{ contact.ss_user.totla_transfer }}</td>
             </tr>
             <div class="modal user_delete" id="modal-{{ contact.pk }}">
                 <div class="modal-background"></div>

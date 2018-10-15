@@ -13,9 +13,9 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.constants import NODE_USER_INFO_TTL
-from apps.utils import (get_date_list, traffic_format, simple_cached_view,
-                        get_node_user, authorized)
-from apps.ssserver.models import (SSUser, TrafficLog, Node, NodeOnlineLog,
+from apps.utils import (
+    traffic_format, simple_cached_view, get_node_user, authorized)
+from apps.ssserver.models import (Suser, TrafficLog, Node, NodeOnlineLog,
                                   AliveIp)
 from apps.sspanel.models import (InviteCode, PurchaseHistory, RebateRecord,
                                  Goods, User, Donate, PayRequest)
@@ -30,10 +30,10 @@ def userData(request):
 
     data = [
         NodeOnlineLog.totalOnlineUser(),
-        len(User.todayRegister()),
-        SSUser.userTodyChecked(),
-        SSUser.userNeverChecked(),
-        SSUser.userNeverUsed(),
+        User.get_today_register_user().count(),
+        Suser.get_today_checked_user_num(),
+        Suser.get_never_checked_user_num(),
+        Suser.get_never_used_num(),
     ]
     return JsonResponse({'data': data})
 
@@ -78,7 +78,7 @@ def change_ss_port(request):
     '''
     user = request.user.ss_user
     # 找到端口池中最大的端口
-    port = SSUser.randomPord()
+    port = Suser.get_random_port()
     user.port = port
     user.save()
     registerinfo = {
@@ -171,7 +171,6 @@ def purchase(request):
                 'subtitle': '请在用户中心检查最新信息',
                 'status': 'success',
             }
-            # 删除缓存
         return JsonResponse(registerinfo)
     else:
         return HttpResponse('errors')
@@ -237,22 +236,23 @@ def traffic_query(request):
     '''
     node_id = request.POST.get('node_id', 0)
     node_name = request.POST.get('node_name', '')
-    user_id = request.user.ss_user.pk
-    last_week = get_date_list(7)
+    user_id = request.user.pk
+    now = pendulum.now()
+    last_week = [now.subtract(days=i).date() for i in range(6, -1, -1)]
     labels = ['{}-{}'.format(t.month, t.day) for t in last_week]
-    trafficdata = [
-        TrafficLog.getTrafficByDay(node_id, user_id, t) for t in last_week
+    traffic_data = [
+        TrafficLog.get_traffic_by_date(node_id, user_id, t) for t in last_week
     ]
-    title = '节点 {} 当月共消耗：{} GB'.format(node_name,
-                                       TrafficLog.getUserTraffic(
-                                           node_id, user_id))
+    total = TrafficLog.get_user_traffic(node_id, user_id)
+    title = '节点 {} 当月共消耗：{}'.format(node_name, total)
+
     configs = {
         'title': title,
         'labels': labels,
-        'data': trafficdata,
+        'data': traffic_data,
         'data_title': node_name,
         'x_label': '日期 最近七天',
-        'y_label': '流量 单位：GB'
+        'y_label': '流量 单位：MB'
     }
     return JsonResponse(configs)
 
@@ -354,33 +354,29 @@ def traffic_api(request):
 
     node_total_traffic = 0
     trafficlog_model_list = []
-    ssuer_model_list = []
 
     for rec in traffic_list:
+        user_id = rec['user_id']
+        u = rec['u']
+        d = rec['d']
         # 个人流量增量
-        ssuer_model_list.append(
-            SSUser(pk=rec['user_id'],
-                   upload_traffic=(F('upload_traffic') + rec['u']),
-                   download_traffic=(F('download_traffic') + rec['d']),
-                   last_use_time=log_time))
+        Suser.objects.filter(user_id=user_id).update(
+            download_traffic=F("download_traffic")+d,
+            upload_traffic=F('upload_traffic') + u,
+            last_use_time=log_time)
         # 个人流量记录
         trafficlog_model_list.append(
-            TrafficLog(node_id=node_id, user_id=rec['user_id'],
-                       traffic=traffic_format(rec['u'] + rec['d']),
-                       download_traffic=rec['d'], upload_traffic=rec['u'],
+            TrafficLog(node_id=node_id, user_id=user_id,
+                       traffic=traffic_format(u + d),
+                       download_traffic=u, upload_traffic=d,
                        log_time=log_time))
         # 节点流量增量
-        node_incr = rec['u'] + rec['d']
-        node_total_traffic += node_incr
+        node_total_traffic += (u+d)
     # 节点流量记录
     Node.objects.filter(node_id=node_id).update(
         used_traffic=F('used_traffic')+node_total_traffic)
     # 流量记录
     TrafficLog.objects.bulk_create(trafficlog_model_list)
-    SSUser.objects.bulk_update(ssuer_model_list, update_fields=[
-                               'upload_traffic', 'download_traffic',
-                               'last_use_time'])
-
     return JsonResponse({'ret': 1, 'data': []})
 
 
@@ -392,9 +388,10 @@ def alive_ip_api(request):
     node_id = data['node_id']
     model_list = []
     for user_id, ip_list in data['data'].items():
-        user = SSUser.objects.get(pk=user_id).user
+        user = User.objects.get(id=user_id)
         for ip in ip_list:
-            model_list.append(AliveIp(node_id=node_id, user=user, ip=ip))
+            model_list.append(
+                AliveIp(node_id=node_id, user=user.username, ip=ip))
     AliveIp.objects.bulk_create(model_list)
     res = {'ret': 1, 'data': []}
     return JsonResponse(res)
@@ -404,7 +401,7 @@ def alive_ip_api(request):
 def checkin(request):
     '''用户签到'''
     ss_user = request.user.ss_user
-    if not ss_user.get_check_in():
+    if not ss_user.today_is_checked:
         # 距离上次签到时间大于一天 增加随机流量
         ll = randint(settings.MIN_CHECKIN_TRAFFIC,
                      settings.MAX_CHECKIN_TRAFFIC)

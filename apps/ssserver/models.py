@@ -3,77 +3,29 @@ import base64
 import datetime
 from random import choice
 
-from django.db import models
+import pendulum
+from django.db.models import F
 from django.conf import settings
 from django.utils import timezone
 from django.core import validators
+from django.db import models, connection
 from django.core.exceptions import ValidationError
-from django_bulk_update.manager import BulkUpdateManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.utils import get_short_random_string, traffic_format
+from apps.utils import (get_short_random_string,
+                        traffic_format, get_current_time)
 from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
                             COUNTRIES_CHOICES, NODE_TIME_OUT)
 
 
-class SSUser(models.Model):
-    @classmethod
-    def userTodyChecked(cls):
-        '''返回今日签到人数'''
-        return len([o for o in cls.objects.all() if o.get_check_in()])
+class Suser(models.Model):
+    '''与user通过user_id作为虚拟外键关联'''
 
-    @classmethod
-    def userNeverChecked(cls):
-        '''返回从未签到过人数'''
-        return len([
-            o for o in cls.objects.all() if o.last_check_in_time.year == 1970
-        ])
-
-    @classmethod
-    def userNeverUsed(cls):
-        '''返回从未使用过的人数'''
-        return len([o for o in cls.objects.all() if o.last_use_time == 0])
-
-    @classmethod
-    def coreUser(cls):
-        '''返回流量用的最多的前十名用户'''
-        rec = {}
-        for u in cls.objects.filter(download_traffic__gt=0):
-            rec[u] = u.upload_traffic + u.download_traffic
-        # 按照流量倒序排序，切片取出前十名
-        rec = sorted(rec.items(), key=lambda rec: rec[1], reverse=True)[:10]
-        return [(r[0], r[0].get_traffic()) for r in rec]
-
-    @classmethod
-    def randomPord(cls):
-        '''随机端口'''
-        users = cls.objects.all()
-        port_list = []
-        for user in users:
-            port_list.append(user.port)
-        all_ports = [i for i in range(1025, max(port_list) + 1)]
-        try:
-            return choice(list(set(all_ports).difference(set(port_list))))
-        except:
-            return max(port_list) + 1
-
-    @classmethod
-    def get_vaild_user(cls, level):
-        '''返回指大于等于指定等级的所有合法用户'''
-        users = SSUser.objects.filter(level__gte=level, transfer_enable__gte=0)
-        ret = []
-        for u in users:
-            if (u.transfer_enable - u.upload_traffic - u.download_traffic) > 0:
-                ret.append(u)
-        return ret
-
-    objects = BulkUpdateManager()
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ss_user', verbose_name='用户名')
+    user_id = models.IntegerField(
+        verbose_name='user_id', db_column='user_id', unique=True, db_index=True)
     last_check_in_time = models.DateTimeField(
-        verbose_name='最后签到时间', null=True, default=datetime.datetime.fromtimestamp(0), editable=False)
-    password = models.CharField(verbose_name='sspanel密码', max_length=32, default=get_short_random_string,
+        verbose_name='最后签到时间', null=True, editable=False)
+    password = models.CharField(verbose_name='ss密码', max_length=32, default=get_short_random_string,
                                 db_column='passwd', validators=[validators.MinLengthValidator(6), ])
     port = models.IntegerField(
         verbose_name='端口', db_column='port', unique=True,)
@@ -99,43 +51,14 @@ class SSUser(models.Model):
         verbose_name='混淆', default=settings.DEFAULT_OBFS, max_length=32, choices=OBFS_CHOICES)
     obfs_param = models.CharField(
         verbose_name='混淆参数', max_length=255, null=True, blank=True)
-    level = models.PositiveIntegerField(verbose_name='用户等级', default=0,)
+
+    class Meta:
+        verbose_name_plural = 'Ss用户'
+        ordering = ('-last_check_in_time', )
+        db_table = 's_user'
 
     def __str__(self):
         return self.user.username
-
-    def get_last_use_time(self):
-        '''返回上一次的使用到时间'''
-        return timezone.datetime.fromtimestamp(self.last_use_time)
-
-    def get_traffic(self):
-        '''返回用户使用的总流量'''
-        return traffic_format(self.download_traffic + self.upload_traffic)
-
-    def get_transfer(self):
-        '''返回用户的总流量'''
-        return traffic_format(self.transfer_enable)
-
-    def get_unused_traffic(self):
-        '''返回用户的剩余流量'''
-        return traffic_format(
-            self.transfer_enable - self.upload_traffic - self.download_traffic)
-
-    def get_used_percentage(self):
-        '''返回用户的为使用流量百分比'''
-        try:
-            return '{:.2f}'.format(
-                (self.download_traffic + self.upload_traffic) /
-                self.transfer_enable * 100)
-        except ZeroDivisionError:
-            return '100'
-
-    def get_check_in(self):
-        '''返回当天是否签到'''
-        # 获取当天日期
-        check_day = self.last_check_in_time.day
-        now_day = datetime.datetime.now().day
-        return check_day == now_day
 
     def clean(self):
         '''保证端口在1024<50000之间'''
@@ -143,66 +66,87 @@ class SSUser(models.Model):
             if not 1024 < self.port < 50000:
                 raise ValidationError('端口必须在1024和50000之间')
 
-    # 重写一下save函数，保证user与ss_user的level字段同步
-    def save(self, *args, **kwargs):
-        self.level = self.user.level
-        super(SSUser, self).save(*args, **kwargs)
+    @property
+    def user(self):
+        from apps.sspanel.models import User
+        return User.objects.get(pk=self.user_id)
 
-    class Meta:
-        verbose_name_plural = 'SS用户'
-        ordering = ('-last_check_in_time', )
-        db_table = 'user'
+    @property
+    def today_is_checked(self):
+        if self.last_check_in_time:
+            return self.last_check_in_time.day == pendulum.now().day
+        return False
 
+    @property
+    def user_last_use_time(self):
+        t = pendulum.from_timestamp(self.last_use_time, tz=settings.TIME_ZONE)
+        return t
 
-class TrafficLog(models.Model):
-    '''用户流量记录'''
+    @property
+    def used_traffic(self):
+        return traffic_format(self.download_traffic + self.upload_traffic)
+
+    @property
+    def totla_transfer(self):
+        return traffic_format(self.transfer_enable)
+
+    @property
+    def unused_traffic(self):
+        return traffic_format(
+            self.transfer_enable - self.upload_traffic - self.download_traffic)
+
+    @property
+    def used_percentage(self):
+        try:
+            used = self.download_traffic + self.upload_traffic
+            return used / self.transfer_enable * 100
+        except ZeroDivisionError:
+            return 100
 
     @classmethod
-    def totalTraffic(cls, node_id):
-        '''返回该节点使用总流量 单位GB'''
-        traffics = cls.objects.filter(node_id=node_id)
-        total_traffic = sum(
-            [u.upload_traffic + u.download_traffic for u in traffics])
-        return round(total_traffic / settings.GB, 2)
+    def get_today_checked_user_num(cls):
+        now = get_current_time()
+        midnight = pendulum.datetime(
+            year=now.year, month=now.month, day=now.day, tz=now.tz)
+        query = cls.objects.filter(last_check_in_time__gte=midnight)
+        return query.count()
 
     @classmethod
-    def getUserTraffic(cls, node_id, user_id):
-        '''返回指定用户对应节点的流量 单位GB'''
-        traffics = cls.objects.filter(node_id=node_id, user_id=user_id)
-        total_traffic = sum(
-            [u.upload_traffic + u.download_traffic for u in traffics])
-        return round(total_traffic / settings.GB, 2)
+    def get_never_checked_user_num(cls):
+        return cls.objects.filter(last_check_in_time=None).count()
 
     @classmethod
-    def getTrafficByDay(cls, node_id, user_id, date):
-        '''返回指定用户对应节点对应日期的流量 单位GB'''
-        traffics = cls.objects.filter(
-            node_id=node_id,
-            user_id=user_id,
-            log_date__year=date.year,
-            log_date__month=date.month,
-            log_date__day=date.day)
-        total_traffic = sum(
-            [u.upload_traffic + u.download_traffic for u in traffics])
-        return round(total_traffic / settings.GB, 2)
+    def get_never_used_num(cls):
+        '''返回从未使用过的人数'''
+        return cls.objects.filter(last_use_time=0).count()
 
-    user_id = models.IntegerField('用户id', blank=False, null=False)
-    node_id = models.IntegerField('节点id', blank=False, null=False)
-    upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
-    download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
-    rate = models.FloatField('流量比例', default=1.0, null=False)
-    traffic = models.CharField('流量记录', max_length=32, null=False)
-    log_time = models.IntegerField('日志时间', blank=False, null=False)
-    log_date = models.DateTimeField(
-        '记录日期', default=timezone.now, blank=False, null=False)
+    @classmethod
+    def get_user_by_traffic(cls, num=10):
+        '''返回流量用的最多的前num名用户'''
+        return cls.objects.all().order_by('-download_traffic')[:10]
 
-    def __str__(self):
-        return self.traffic
+    @classmethod
+    def get_vaild_user(cls, level):
+        '''返回指大于等于指定等级的所有合法用户'''
+        from apps.sspanel.models import User
+        user_ids = User.objects.filter(level__gte=level).values_list('id')
+        users = cls.objects.filter(transfer_enable__gte=(
+            F('upload_traffic')+F('download_traffic')), user_id__in=user_ids)
+        return users
 
-    class Meta:
-        verbose_name_plural = '流量记录'
-        ordering = ('-log_time', )
-        db_table = 'user_traffic_log'
+    @classmethod
+    def get_random_port(cls):
+        users = cls.objects.all().values_list('port')
+        port_list = []
+        for user in users:
+            port_list.append(user[0])
+        if len(port_list) == 0:
+            return 1025
+        all_ports = [i for i in range(1025, max(port_list) + 1)]
+        try:
+            return choice(list(set(all_ports).difference(set(port_list))))
+        except IndexError:
+            return max(port_list) + 1
 
 
 class Node(models.Model):
@@ -213,14 +157,16 @@ class Node(models.Model):
 
     CUSTOM_METHOD_CHOICES = ((0, '否'), (1, '是'))
 
+    SS_TYPE_CHOICES = ((0, 'SS'), (1, 'SSR'), (2, 'SS/SSR'))
+
     @classmethod
-    def get_sub_code(cls, user):
-        '''获取该用户的所有节点链接'''
+    def get_import_code(cls, user):
+        '''获取该用户的所有节点的导入信息'''
         ss_user = user.ss_user
         sub_code_list = []
         node_list = cls.objects.filter(level__lte=user.level, show=1)
         for node in node_list:
-            sub_code_list.append(node.get_ssr_link(ss_user))
+            sub_code_list.append(node.get_node_link(ss_user))
         return '\n'.join(sub_code_list)
 
     @classmethod
@@ -234,7 +180,7 @@ class Node(models.Model):
 
     node_id = models.IntegerField('节点id', unique=True)
     port = models.IntegerField(
-        '节点端口', null=True, blank=True, help_text='单端口多用户时需要')
+        '节点端口', default=443, blank=True, help_text='单端口多用户时需要')
     password = models.CharField(
         '节点密码', max_length=32, default='password', help_text='单端口时需要')
     country = models.CharField(
@@ -244,6 +190,8 @@ class Node(models.Model):
     show = models.SmallIntegerField('是否显示', choices=SHOW_CHOICES, default=1)
     node_type = models.SmallIntegerField(
         '节点类型', choices=NODE_TYPE_CHOICES, default=0)
+    ss_type = models.SmallIntegerField(
+        'SS类型', choices=SS_TYPE_CHOICES, default=2)
     name = models.CharField('名字', max_length=32)
     info = models.CharField('节点说明', max_length=1024, blank=True, null=True)
     server = models.CharField('服务器IP', max_length=128)
@@ -253,11 +201,11 @@ class Node(models.Model):
     protocol = models.CharField('协议', default=settings.DEFAULT_PROTOCOL,
                                 max_length=32, choices=PROTOCOL_CHOICES,)
     protocol_param = models.CharField(
-        '协议参数', max_length=128, null=True, blank=True)
+        '协议参数', max_length=128, default="", blank=True)
     obfs = models.CharField('混淆', default=settings.DEFAULT_OBFS,
                             max_length=32, choices=OBFS_CHOICES,)
     obfs_param = models.CharField(
-        '混淆参数', max_length=255, default='', null=True, blank=True)
+        '混淆参数', max_length=255, default="", blank=True)
     level = models.PositiveIntegerField(
         '节点等级', default=0,
         validators=[MaxValueValidator(9), MinValueValidator(0)])
@@ -316,6 +264,13 @@ class Node(models.Model):
         ss_link = 'ss://{}#{}'.format(ss_pass, self.name)
         return ss_link
 
+    def get_node_link(self, ss_user):
+        '''获取当前的节点链接'''
+        if self.ss_type == 0:
+            return self.get_ss_link(ss_user)
+        else:
+            return self.get_ssr_link(ss_user)
+
     def save(self, *args, **kwargs):
         if self.node_type == 1:
             self.custom_method = 0
@@ -339,21 +294,54 @@ class Node(models.Model):
         db_table = 'ss_node'
 
 
-class NodeInfoLog(models.Model):
-    '''节点负载记录'''
+class TrafficLog(models.Model):
+    '''用户流量记录'''
 
-    node_id = models.IntegerField('节点id', blank=False, null=False)
-    uptime = models.FloatField('更新时间', blank=False, null=False)
-    load = models.CharField('负载', max_length=32, blank=False, null=False)
+    user_id = models.IntegerField(
+        '用户id', blank=False, null=False, db_index=True)
+    node_id = models.IntegerField(
+        '节点id', blank=False, null=False, db_index=True)
+    upload_traffic = models.BigIntegerField('上传流量', default=0, db_column='u')
+    download_traffic = models.BigIntegerField('下载流量', default=0, db_column='d')
+    rate = models.FloatField('流量比例', default=1.0, null=False)
+    traffic = models.CharField('流量记录', max_length=32, null=False)
     log_time = models.IntegerField('日志时间', blank=False, null=False)
+    log_date = models.DateField(
+        '记录日期', default=timezone.now, blank=False, null=False, db_index=True)
 
     def __str__(self):
-        return str(self.node_id)
+        return self.traffic
 
     class Meta:
-        verbose_name_plural = '节点日志'
-        db_table = 'ss_node_info_log'
+        verbose_name_plural = '流量记录'
         ordering = ('-log_time', )
+        db_table = 'user_traffic_log'
+
+    @property
+    def user(self):
+        from apps.sspanel.models import User
+        return User.objects.get(pk=self.user_id)
+
+    @property
+    def used_traffic(self):
+        return self.download_traffic + self.upload_traffic
+
+    @classmethod
+    def get_user_traffic(cls, node_id, user_id):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id)
+        return traffic_format(sum([l.used_traffic for l in logs]))
+
+    @classmethod
+    def get_traffic_by_date(cls, node_id, user_id, date):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id,
+                                  log_date=date)
+        return round(sum([l.used_traffic for l in logs]) / settings.MB, 1)
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
 
 class NodeOnlineLog(models.Model):
@@ -371,6 +359,12 @@ class NodeOnlineLog(models.Model):
             if o:
                 count += o[0].get_online_user()
         return count
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
     node_id = models.IntegerField('节点id', blank=False, null=False)
     online_user = models.IntegerField('在线人数', blank=False, null=False)
@@ -416,6 +410,12 @@ class AliveIp(models.Model):
                 seen.append(log.ip)
                 ret.append(log)
         return ret
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
     node_id = models.IntegerField(verbose_name='节点id', blank=False, null=False)
     ip = models.CharField(verbose_name='设备ip', max_length=128)

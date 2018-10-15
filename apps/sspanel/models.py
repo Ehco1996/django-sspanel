@@ -20,23 +20,6 @@ from apps.utils import get_long_random_string, traffic_format
 class User(AbstractUser):
     '''SS账户模型'''
 
-    @classmethod
-    def proUser(cls):
-        '''付费用户数量'''
-        return len(cls.objects.filter(level__gt=0))
-
-    @classmethod
-    def userNum(cls):
-        '''返回用户总数'''
-        return len(cls.objects.all())
-
-    @classmethod
-    def todayRegister(cls):
-        '''返回今日注册的用户'''
-        today = datetime.datetime.combine(datetime.date.today(),
-                                          datetime.time.min)
-        return cls.objects.filter(date_joined__gt=today)
-
     invitecode = models.CharField(verbose_name='邀请码', max_length=40)
     invited_by = models.PositiveIntegerField(verbose_name='邀请人id', default=1)
     balance = models.DecimalField(verbose_name='余额', decimal_places=2,
@@ -52,21 +35,64 @@ class User(AbstractUser):
     theme = models.CharField(verbose_name='主题', choices=THEME_CHOICES,
                              default=settings.DEFAULT_THEME, max_length=10)
 
+    class Meta(AbstractUser.Meta):
+        verbose_name = '用户'
+
+    def delete(self):
+        self.ss_user.delete()
+        return super(User, self).delete()
+
     def __str__(self):
         return self.username
 
-    def get_expire_time(self):
+    @property
+    def expire_time(self):
         '''返回等级到期时间'''
         return self.level_expire_time
 
-    def get_sub_link(self):
+    @property
+    def sub_link(self):
         '''生成该用户的订阅地址'''
         token = base64.b64encode(bytes(self.username, 'utf-8')).decode('ascii')
         sub_link = settings.HOST + 'server/subscribe/' + token + '/'
         return sub_link
 
-    class Meta(AbstractUser.Meta):
-        verbose_name = '用户'
+    @property
+    def ss_user(self):
+        from apps.ssserver.models import Suser
+        return Suser.objects.get(user_id=self.id)
+
+    @classmethod
+    def get_user_num(cls):
+        '''返回用户总数'''
+        return cls.objects.all().count()
+
+    @classmethod
+    def get_today_register_user(cls):
+        '''返回今日注册的用户'''
+        today = datetime.datetime.combine(datetime.date.today(),
+                                          datetime.time.min)
+        return cls.objects.filter(date_joined__gt=today)
+
+    @classmethod
+    def add_new_user(cls, cleaned_data):
+        from apps.ssserver.models import Suser
+        with transaction.atomic():
+            username = cleaned_data['username']
+            email = cleaned_data['email']
+            password = cleaned_data['password1']
+            invitecode = cleaned_data['invitecode']
+            user = cls.objects.create_user(username, email, password)
+            code = InviteCode.objects.get(code=invitecode)
+            code.isused = True
+            code.save()
+            # 将user和ssuser关联
+            Suser.objects.create(user_id=user.id, port=Suser.get_random_port())
+            # 绑定邀请人
+            user.invited_by = code.code_id
+            user.invitecode = invitecode
+            user.save()
+            return user
 
 
 class InviteCode(models.Model):
@@ -196,7 +222,8 @@ class Goods(models.Model):
     def __str__(self):
         return self.name
 
-    def get_transfer(self):
+    @property
+    def total_transfer(self):
         '''增加的流量'''
         return traffic_format(self.transfer)
 

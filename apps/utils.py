@@ -3,8 +3,8 @@ import json
 import random
 import hashlib
 from functools import wraps
-from datetime import datetime, timedelta
 
+import pendulum
 from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
@@ -32,15 +32,6 @@ def get_long_random_string():
 
 def get_short_random_string():
     return get_random_string(12)
-
-
-def get_date_list(dela):
-    '''
-    返回从当前日期开始回溯指定天数的日期列表
-    '''
-    t = datetime.today()
-    date_list = [t - timedelta(days=i) for i in range(dela)]
-    return list(reversed(date_list))
 
 
 def traffic_format(traffic):
@@ -110,12 +101,12 @@ def get_node_user(node_id):
     '''
     返回所有当前节点可以使用的用户信息
     '''
-    from apps.ssserver.models import Node, SSUser
+    from apps.ssserver.models import Node, Suser
     node = Node.objects.filter(node_id=node_id).first()
     if node:
         data = []
         level = node.level
-        user_list = SSUser.get_vaild_user(level)
+        user_list = Suser.get_vaild_user(level)
         for user in user_list:
             cfg = {
                 'port': user.port,
@@ -124,8 +115,8 @@ def get_node_user(node_id):
                 'transfer_enable': user.transfer_enable,
                 'passwd': user.password,
                 'enable': user.enable,
-                'user_id': user.pk,
-                'id': user.pk,
+                'user_id': user.user_id,
+                'id': user.user_id,
                 'method': user.method,
                 'obfs': user.obfs,
                 'obfs_param': user.obfs_param,
@@ -136,9 +127,11 @@ def get_node_user(node_id):
         return data
 
 
-def global_settings(request):
-    from django.conf import settings
+def get_current_time():
+    return pendulum.now(tz=settings.TIME_ZONE)
 
+
+def global_settings(request):
     global_variable = {
         "USE_SMTP": settings.USE_SMTP
     }

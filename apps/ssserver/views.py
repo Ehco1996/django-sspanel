@@ -3,31 +3,28 @@ import base64
 
 from django.urls import reverse
 from django.conf import settings
-from django.utils import timezone
-from django.http import StreamingHttpResponse, HttpResponseRedirect
-from django.shortcuts import HttpResponse, redirect, render
 from django.contrib import messages
+from django.shortcuts import HttpResponse, render
+from django.http import StreamingHttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required, permission_required
 
+from .models import Suser, Node
 from apps.sspanel.models import User
 from apps.sspanel.forms import UserForm
-from .forms import ChangeSsPassForm, SSUserForm
-from .models import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES
-from .models import (SSUser, TrafficLog, Node,
-                     NodeInfoLog, NodeOnlineLog, AliveIp)
+from .forms import ChangeSsPassForm, SuserForm
 
 
 @permission_required('ssesrver')
-def User_edit(request, pk):
+def user_edit(request, user_id):
     '''编辑ss_user的信息'''
-    ss_user = SSUser.objects.get(pk=pk)
+    ss_user = Suser.objects.get(user_id=user_id)
     # 当为post请求时，修改数据
     if request.method == "POST":
         # 对总流量部分进行修改，转换单GB
         data = request.POST.copy()
         data['transfer_enable'] = int(eval(
             data['transfer_enable']) * settings.GB)
-        ssform = SSUserForm(data, instance=ss_user)
+        ssform = SuserForm(data, instance=ss_user)
         userform = UserForm(data, instance=ss_user.user)
         if ssform.is_valid() and userform.is_valid():
             ssform.save()
@@ -35,8 +32,9 @@ def User_edit(request, pk):
             # 修改账户密码
             passwd = request.POST.get('resetpass')
             if len(passwd) > 0:
-                ss_user.user.set_password(passwd)
-                ss_user.user.save()
+                user = ss_user.user
+                user.set_password(passwd)
+                user.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
             return HttpResponseRedirect(reverse("sspanel:user_list"))
         else:
@@ -51,7 +49,7 @@ def User_edit(request, pk):
     else:
         # 特别初始化总流量字段
         data = {'transfer_enable': ss_user.transfer_enable // settings.GB}
-        ssform = SSUserForm(initial=data, instance=ss_user)
+        ssform = SuserForm(initial=data, instance=ss_user)
         userform = UserForm(instance=ss_user.user)
         context = {
             'ssform': ssform,
@@ -62,7 +60,7 @@ def User_edit(request, pk):
 
 
 @login_required
-def ChangeSsPass(request):
+def change_ss_pass(request):
     '''改变用户ss连接密码'''
     ss_user = request.user.ss_user
 
@@ -85,7 +83,7 @@ def ChangeSsPass(request):
 
 
 @login_required
-def ChangeSsMethod(request):
+def change_ss_method(request):
     '''改变用户ss加密'''
     ss_user = request.user.ss_user
 
@@ -98,7 +96,7 @@ def ChangeSsMethod(request):
 
 
 @login_required
-def ChangeSsProtocol(request):
+def change_ss_protocol(request):
     '''改变用户ss协议'''
     ss_user = request.user.ss_user
 
@@ -111,7 +109,7 @@ def ChangeSsProtocol(request):
 
 
 @login_required
-def ChangeSsObfs(request):
+def change_ss_obfs(request):
     '''改变用户ss连接混淆'''
     ss_user = request.user.ss_user
 
@@ -137,11 +135,12 @@ def subscribe(request, token):
         # 生成订阅链接部分
         sub_code = 'MAX={}\n'.format(len(node_list))
         for node in node_list:
-            sub_code = sub_code + node.get_ssr_link(ss_user) + "\n"
+            sub_code = sub_code + node.get_node_link(ss_user) + "\n"
         sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
         resp_ok = StreamingHttpResponse(sub_code)
         resp_ok['Content-Type'] = 'application/octet-stream; charset=utf-8'
-        resp_ok['Content-Disposition'] = 'attachment; filename=' + token + '.txt'
+        resp_ok['Content-Disposition'] = 'attachment; filename={}.txt'.format(
+            token)
         resp_ok['Cache-Control'] = 'no-store, no-cache, must-revalidate'
         resp_ok['Content-Length'] = len(sub_code)
         return resp_ok
@@ -152,7 +151,8 @@ def subscribe(request, token):
 @login_required
 def node_config(request):
     '''返回节点json配置'''
-    user = request.user.ss_user
+    user = request.user
+    ss_user = user.ss_user
     node_list = Node.objects.filter(level__lte=user.level, show=1)
     data = {'configs': []}
     for node in node_list:
@@ -170,30 +170,30 @@ def node_config(request):
                 "obfs": node.obfs,
                 'obfs_param': node.obfs_param,
                 "protocol": node.protocol,
-                'protocol_param': '{}:{}'.format(user.port,
+                'protocol_param': '{}:{}'.format(ss_user.port,
                                                  user.password),
             })
         elif node.custom_method == 1:
             data['configs'].append({
                 "remarks": node.name,
-                "server_port": user.port,
+                "server_port": ss_user.port,
                 "remarks_base64": base64.b64encode(
                     bytes(node.name, 'utf8')).decode('ascii'),
                 "enable": True,
-                "password": user.password,
-                "method": user.method,
+                "password": ss_user.password,
+                "method": ss_user.method,
                 "server": node.server,
-                "obfs": user.obfs,
-                "protocol": user.protocol,
+                "obfs": ss_user.obfs,
+                "protocol": ss_user.protocol,
             })
         else:
             data['configs'].append({
                 "remarks": node.name,
-                "server_port": user.port,
+                "server_port": ss_user.port,
                 "remarks_base64": base64.b64encode(
                     bytes(node.name, 'utf8')).decode('ascii'),
                 "enable": True,
-                "password": user.password,
+                "password": ss_user.password,
                 "method": node.method,
                 "server": node.server,
                 "obfs": node.obfs,

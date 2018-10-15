@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import SSUser
+from .models import Suser
 
 
 class ChangeSsPassForm(forms.Form):
@@ -25,15 +25,14 @@ class ChangeSsPassForm(forms.Form):
             self.cleaned_data = super(ChangeSsPassForm, self).clean()
 
 
-class SSUserForm(ModelForm):
+class SuserForm(ModelForm):
     class Meta:
-        model = SSUser
-        fields = ['user', 'port', 'password',
+        model = Suser
+        fields = ['port', 'password',
                   'upload_traffic', 'download_traffic',
                   'transfer_enable', 'enable']
         widgets = {
             'enable': forms.CheckboxInput(attrs={'class': 'checkbox'}),
-            'user': forms.Select(attrs={'class': 'input', }),
             'port': forms.NumberInput(attrs={'class': 'input'}),
             'password': forms.TextInput(attrs={'class': 'input'}),
             'upload_traffic': forms.NumberInput(attrs={'class': 'input'}),

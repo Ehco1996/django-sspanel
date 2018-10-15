@@ -2,8 +2,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.sspanel.models import User, PayRequest
-from apps.ssserver.models import (Node, NodeInfoLog, NodeOnlineLog,
-                                  TrafficLog, AliveIp)
+from apps.ssserver.models import Node, NodeOnlineLog, TrafficLog, AliveIp
 
 
 def check_user_state():
@@ -15,11 +14,12 @@ def check_user_state():
                 user.level_expire_time:
             user.level = 0
             user.save()
-            user.ss_user.enable = False
-            user.ss_user.upload_traffic = 0
-            user.ss_user.download_traffic = 0
-            user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-            user.ss_user.save()
+            ss_user = user.ss_user
+            ss_user.enable = False
+            ss_user.upload_traffic = 0
+            ss_user.download_traffic = 0
+            ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
+            ss_user.save()
             print('time: {} user: {} level timeout '
                   .format(timezone.now().strftime('%Y-%m-%d'),
                           user.username))
@@ -31,39 +31,33 @@ def auto_reset_traffic():
     users = User.objects.filter(level=0)
 
     for user in users:
-        user.ss_user.download_traffic = 0
-        user.ss_user.upload_traffic = 0
-        user.ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-        user.ss_user.save()
+        ss_user = user.ss_user
+        ss_user.download_traffic = 0
+        ss_user.upload_traffic = 0
+        ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
+        ss_user.save()
     print('Time {} all free user traffic reset! '.format(timezone.now()))
 
 
 def clean_traffic_log():
     '''清空所有流量记录'''
-    res = TrafficLog.objects.all().delete()
-    log = str(res)
-    print('Time: {} all traffic record removed!:{}'.format(timezone.now(), log))
+    count = TrafficLog.objects.count()
+    TrafficLog.truncate()
+    print('Time: {} traffic record removed!:{}'.format(timezone.now(), count))
 
 
 def clean_online_log():
     '''清空所有在线记录'''
-    res = NodeOnlineLog.objects.all().delete()
-    log = str(res)
-    print('Time {} all online record removed!:{}'.format(timezone.now(), log))
-
-
-def clean_node_log():
-    '''清空所有节点负载记录'''
-    res = NodeInfoLog.objects.all().delete()
-    log = str(res)
-    print('Time {} all node info record removed!:{}'.format(timezone.now(), log))
+    count = TrafficLog.objects.count()
+    NodeOnlineLog.truncate()
+    print('Time {} online record removed!:{}'.format(timezone.now(), count))
 
 
 def clean_online_ip_log():
     '''清空在线ip记录'''
-    res = AliveIp.objects.all().delete()
-    log = str(res)
-    print('Time: {} all online ip log removed!:{}'.format(timezone.now(), log))
+    count = TrafficLog.objects.count()
+    AliveIp.truncate()
+    print('Time: {} online ip log removed!:{}'.format(timezone.now(), count))
 
 
 def reset_node_traffic():

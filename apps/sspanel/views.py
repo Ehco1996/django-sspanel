@@ -1,12 +1,9 @@
 import tomd
 import qrcode
-from random import randint
 
 from django.db.models import Q
 from django.urls import reverse
 from django.conf import settings
-from django.db import transaction
-from django.utils import timezone
 from django.shortcuts import render
 from django.contrib import messages
 from django.utils.six import BytesIO
@@ -14,10 +11,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 
+from apps.utils import traffic_format
 from apps.custom_views import Page_List_View
-from apps.utils import reverse_traffic, traffic_format
 from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
-from apps.ssserver.models import SSUser, Node, NodeOnlineLog, AliveIp
+from apps.ssserver.models import Suser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Goods, MoneyCode,
                      PurchaseHistory, PayRequest, Announcement, Ticket,
                      RebateRecord)
@@ -67,37 +64,18 @@ def register(request):
         return HttpResponse('已经关闭注册了喵')
     if request.method == 'POST':
         form = RegisterForm(request.POST)
-
         if form.is_valid():
-            with transaction.atomic():
-                # 获取用户填写的邀请码
-                code = request.POST.get('invitecode')
-                # 数据库查询邀请码
-                code = InviteCode.objects.filter(
-                    code=code, isused=False).first()
-                # 判断邀请码是否存在并返回信息
-                if not code:
-                    messages.error(request, "请重新获取邀请码",
-                                   extra_tags="邀请码失效")
-                    return render(
-                        request, 'sspanel/register.html', {'form': form})
-                else:
-                    messages.success(request, "请登录使用吧！",
-                                     extra_tags="注册成功！")
-                    form.save()
-                    # 改变表邀请码状态
-                    code.isused = True
-                    code.save()
-                    # 将user和ssuser关联
-                    user = User.objects.get(
-                        username=request.POST.get('username'))
-                    # 绑定邀请人
-                    user.invited_by = code.code_id
-                    user.save()
-                    max_port_user = SSUser.objects.order_by('-port').first()
-                    port = max_port_user.port + randint(2, 3)
-                    SSUser.objects.create(user=user, port=port)
-                    return HttpResponseRedirect(reverse('index'))
+            user = User.add_new_user(form.cleaned_data)
+            if not user:
+                messages.error(request, "服务出现了点小问题",
+                               extra_tags="请尝试或者联系站长~")
+                return render(
+                    request, 'sspanel/register.html', {'form': form})
+            else:
+                messages.success(request, "请登录使用吧！",
+                                 extra_tags="注册成功！")
+
+                return HttpResponseRedirect(reverse('index'))
     else:
         form = RegisterForm()
 
@@ -145,22 +123,18 @@ def userinfo(request):
     '''用户中心'''
     user = request.user
     # 获取公告
-    anno = Announcement.objects.all().first()
+    anno = Announcement.objects.first()
     min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
     max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-    remain_traffic = 100 - eval(user.ss_user.get_used_percentage())
-    # 订阅地址
-    sub_link = user.get_sub_link()
-    # 节点导入链接
-    sub_code = Node.get_sub_code(user)
+    remain_traffic = '{:.2f}'.format(100 - user.ss_user.used_percentage)
     context = {
         'user': user,
         'anno': anno,
         'remain_traffic': remain_traffic,
         'min_traffic': min_traffic,
         'max_traffic': max_traffic,
-        'sub_link': sub_link,
-        'sub_code': sub_code,
+        'sub_link': user.sub_link,
+        'import_code': Node.get_import_code(user),
         'themes': THEME_CHOICES
     }
     return render(request, 'sspanel/userinfo.html', context=context)
@@ -305,14 +279,14 @@ def nodeinfo(request):
         else:
             node['online'] = False
             node['count'] = 0
+        # 添加ss_type
+        node['ss_type_info'] = obj.get_ss_type_display()
         nodelists.append(node)
-    # 订阅地址
-    sub_link = user.get_sub_link()
     context = {
         'nodelists': nodelists,
         'ss_user': ss_user,
         'user': user,
-        'sub_link': sub_link,
+        'sub_link': user.sub_link
     }
     return render(request, 'sspanel/nodeinfo.html', context=context)
 
@@ -485,13 +459,16 @@ def rebate_record(request):
     }
     return render(request, 'sspanel/rebaterecord.html', context=context)
 
-
+# ==================================
 # 网站后台界面
+# ==================================
+
+
 @permission_required('sspanel')
 def backend_index(request):
     '''跳转到后台界面'''
     context = {
-        'userNum': User.userNum(),
+        'userNum': User.get_user_num(),
     }
 
     return render(request, 'backend/index.html', context=context)
@@ -580,7 +557,7 @@ def backend_userlist(request):
 @permission_required('sspanel')
 def user_delete(request, pk):
     '''删除user'''
-    user = User.objects.filter(pk=pk)
+    user = User.objects.get(pk=pk)
     user.delete()
     messages.success(request, "成功啦", extra_tags="删除用户")
     return HttpResponseRedirect(reverse('sspanel:user_list'))
@@ -602,20 +579,20 @@ def user_search(request):
 def user_status(request):
     '''站内用户分析'''
     # 查询今日注册的用户
-    todayRegistered = User.todayRegister().values()
+    todayRegistered = User.get_today_register_user().values()
     for t in todayRegistered:
         try:
             t['inviter'] = User.objects.get(pk=t['invited_by'])
-        except:
+        except User.DoesNotExist:
             t['inviter'] = 'ehco'
     todayRegisteredNum = len(todayRegistered)
     # 查询消费水平前十的用户
     richUser = Donate.richPeople()
     # 查询流量用的最多的用户
-    coreUser = SSUser.coreUser()
+    coreUser = Suser.get_user_by_traffic(num=10)
     context = {
-        'userNum': User.userNum(),
-        'todayChecked': SSUser.userTodyChecked(),
+        'userNum': User.get_user_num(),
+        'todayChecked': Suser.get_today_checked_user_num(),
         'aliveUser': NodeOnlineLog.totalOnlineUser(),
         'todayRegistered': todayRegistered[:10],
         'todayRegisteredNum': todayRegisteredNum,

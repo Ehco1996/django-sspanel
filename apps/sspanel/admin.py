@@ -5,8 +5,8 @@ from . import models
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['username', 'level', 'balance', 'level_expire_time']
-    search_fields = ['username', 'email', 'pk']
+    list_display = ['username', 'id', 'level', 'balance', 'level_expire_time']
+    search_fields = ['username', 'email', 'id']
     list_filter = ['level', ]
 
 

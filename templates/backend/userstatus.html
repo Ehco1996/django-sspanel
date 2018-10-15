@@ -58,8 +58,8 @@
                     <tbody>
                         {% for u in coreUser %}
                         <tr>
-                            <td>{{ u.0 }}</td>
-                            <td>{{ u.1 }} GB</td>
+                            <td>{{ u.user.username }}</td>
+                            <td>{{ u.used_traffic }} GB</td>
                         </tr>
                         {% endfor %}
                     </tbody>
