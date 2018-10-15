@@ -50,7 +50,7 @@ https://github.com/Ehco1996/django-sspanel/wiki/%E9%87%8D%E5%A4%A7%E6%9B%B4%E6%9
 
 * 节点信息：
 
-![](http://opj9lh0x4.bkt.clouddn.com/18-1-20/12404617.jpg)
+![](http://opj9lh0x4.bkt.clouddn.com/18-10-15/57273903.jpg)
 
 * 流量查询:
 
