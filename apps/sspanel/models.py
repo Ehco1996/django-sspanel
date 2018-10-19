@@ -9,6 +9,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
+from requests import PreparedRequest
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -53,9 +54,12 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         '''生成该用户的订阅地址'''
-        token = base64.b64encode(bytes(self.username, 'utf-8')).decode('ascii')
-        sub_link = settings.HOST + 'server/subscribe/' + token + '/'
-        return sub_link
+        p = PreparedRequest()
+        token = base64.b64encode(self.username.encode()).decode()
+        url = settings.HOST + 'server/subscribe/'
+        params = {'token': token}
+        p.prepare_url(url, params)
+        return p.url
 
     @property
     def ss_user(self):
