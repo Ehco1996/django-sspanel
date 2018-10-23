@@ -79,7 +79,7 @@ USE_L10N = True
 USE_TZ = True
 
 # session 设置
-SESSION_COOKIE_AGE = 60 * 60  # 60分钟
+SESSION_COOKIE_AGE = 60 * 60 * 24  # 一天
 SESSION_SAVE_EVERY_REQUEST = True
 
 STATIC_URL = '/static/'
