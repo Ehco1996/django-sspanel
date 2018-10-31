@@ -1,3 +1,4 @@
+import pendulum
 from django.conf import settings
 from django.utils import timezone
 
@@ -40,9 +41,10 @@ def auto_reset_traffic():
 
 
 def clean_traffic_log():
-    '''清空所有流量记录'''
-    count = TrafficLog.objects.count()
-    TrafficLog.truncate()
+    '''清空七天前的所有流量记录'''
+    dt = pendulum.now().subtract(days=7).date()
+    query = TrafficLog.objects.filter(log_date__lt=dt)
+    count, res = query.delete()
     print('Time: {} traffic record removed!:{}'.format(timezone.now(), count))
 
 
