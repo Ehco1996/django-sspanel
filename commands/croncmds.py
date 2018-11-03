@@ -27,7 +27,7 @@ def check_user_state():
             print('time: {} user: {} level timeout '
                   .format(timezone.now().strftime('%Y-%m-%d'),
                           user.username))
-    if expire_user and settings.:
+    if expire_user and settings.EXPIRE_EMAIL_NOTICE:
         send_mail('您的{0}账号已到期'.format(settings.TITLE),
                   "您的{0}账号已到期，现被暂停使用。如需继续使用请前往 {1} 充值".format(settings.TITLE, settings.HOST),
                   settings.DEFAULT_FROM_EMAIL,
