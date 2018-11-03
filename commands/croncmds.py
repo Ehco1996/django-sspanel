@@ -4,11 +4,13 @@ from django.utils import timezone
 
 from apps.sspanel.models import User, PayRequest
 from apps.ssserver.models import Node, NodeOnlineLog, TrafficLog, AliveIp
+from django.core.mail import send_mail
 
 
 def check_user_state():
     '''检测用户状态，将所有账号到期的用户状态重置'''
     users = User.objects.filter(level__gt=0)
+    expire_user = []
     for user in users:
         # 判断用户过期
         if timezone.now() - timezone.timedelta(days=1) > \
@@ -21,9 +23,15 @@ def check_user_state():
             ss_user.download_traffic = 0
             ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
             ss_user.save()
+            expire_user.append(user.email)
             print('time: {} user: {} level timeout '
                   .format(timezone.now().strftime('%Y-%m-%d'),
                           user.username))
+    if expire_user and settings.:
+        send_mail('您的{0}账号已到期'.format(settings.TITLE),
+                  "您的{0}账号已到期，现被暂停使用。如需继续使用请前往 {1} 充值".format(settings.TITLE, settings.HOST),
+                  settings.DEFAULT_FROM_EMAIL,
+                  expire_user)
     print('Time: {} CHECKED'.format(timezone.now()))
 
 

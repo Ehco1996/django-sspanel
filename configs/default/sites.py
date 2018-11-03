@@ -48,3 +48,6 @@ HOST = 'http://127.0.0.1:8000/'
 
 # 部分API接口TOKEN
 TOKEN = 'youowntoken'
+
+# 是否开启用户到期邮件通知
+EXPIRE_EMAIL_NOTICE = True
