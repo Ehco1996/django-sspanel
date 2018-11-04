@@ -50,4 +50,4 @@ HOST = 'http://127.0.0.1:8000/'
 TOKEN = 'youowntoken'
 
 # 是否开启用户到期邮件通知
-EXPIRE_EMAIL_NOTICE = True
+EXPIRE_EMAIL_NOTICE = False
