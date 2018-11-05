@@ -513,7 +513,8 @@ def node_edit(request, node_id):
             return render(request, 'backend/nodeedit.html', context=context)
     # 当请求不是post时，渲染form
     else:
-        form = NodeForm(instance=node)
+        form = NodeForm(instance=node, initial={
+                        'total_traffic': node.total_traffic // settings.GB})
         context = {
             'form': form,
             'node': node,
