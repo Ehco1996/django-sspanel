@@ -235,6 +235,40 @@ class Goods(models.Model):
         '''返回增加的天数'''
         return '{}'.format(self.days)
 
+    @classmethod
+    def purchase(cls, user, good_id):
+        '''购买商品 返回是否成功'''
+        good = cls.objects.get(pk=good_id)
+        if user.balance < good.money:
+            return False
+        ss_user = user.ss_user
+        # 验证成功进行提权操作
+        ss_user.enable = True
+        ss_user.transfer_enable += good.transfer
+        user.balance -= good.money
+        now = pendulum.now()
+        days = pendulum.duration(days=good.days)
+        if (user.level == good.level and user.level_expire_time > now):
+            user.level_expire_time += days
+        else:
+            user.level_expire_time = now + days
+        user.level = good.level
+        user.save()
+        ss_user.save()
+        # 增加购买记录
+        PurchaseHistory.objects.create(good=good, user=user, money=good.money,
+                                       purchtime=now)
+        # 增加返利记录
+        inviter = User.objects.filter(pk=user.invited_by).first()
+        if inviter:
+            rebaterecord = RebateRecord(
+                user_id=inviter.pk,
+                money=good.money * Decimal(settings.INVITE_PERCENT))
+            inviter.balance += rebaterecord.money
+            inviter.save()
+            rebaterecord.save()
+        return True
+
     class Meta:
         verbose_name_plural = '商品'
         ordering = [
