@@ -346,7 +346,7 @@ def charge(request):
         # 在数据库里检索充值
         code = MoneyCode.objects.filter(code=input_code).first()
         # 判断充值码是否存在
-        if code:
+        if not code:
             messages.error(request, "请重新获取充值码", extra_tags="充值码失效")
             return HttpResponseRedirect(reverse('sspanel:chargecenter'))
         else:
