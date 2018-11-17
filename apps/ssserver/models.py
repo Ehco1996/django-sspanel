@@ -131,7 +131,7 @@ class Suser(models.Model):
         from apps.sspanel.models import User
         user_ids = User.objects.filter(level__gte=level).values_list('id')
         users = cls.objects.filter(transfer_enable__gte=(
-            F('upload_traffic')+F('download_traffic')), user_id__in=user_ids)
+            F('upload_traffic') + F('download_traffic')), user_id__in=user_ids)
         return users
 
     @classmethod
@@ -284,6 +284,9 @@ class Node(models.Model):
         '''已用流量'''
         return traffic_format(self.used_traffic)
 
+    @classmethod
+    def get_by_node_id(cls, node_id):
+        return cls.objects.get(node_id=node_id)
     # verbose_name
     human_total_traffic.short_description = '总流量'
     human_used_traffic.short_description = '使用流量'
@@ -398,13 +401,12 @@ class AliveIp(models.Model):
         '''
         返回节点最近一分钟的在线ip
         '''
-        now = timezone.now()
-        last_now = now - datetime.timedelta(minutes=1)
-        seen = []
-        logs = cls.objects.filter(
-            node_id=node_id, log_time__range=[str(last_now),
-                                              str(now)])
         ret = []
+        seen = []
+        now = pendulum.now()
+        last_now = now.subtract(minutes=1)
+        time_range = [str(last_now), str(now)]
+        logs = cls.objects.filter(node_id=node_id, log_time__range=time_range)
         for log in logs:
             if log.ip not in seen:
                 seen.append(log.ip)
@@ -416,6 +418,10 @@ class AliveIp(models.Model):
         with connection.cursor() as cursor:
             cursor.execute(
                 'TRUNCATE TABLE {}'.format(cls._meta.db_table))
+
+    @property
+    def node_name(self):
+        return Node.get_by_node_id(self.node_id).name
 
     node_id = models.IntegerField(verbose_name='节点id', blank=False, null=False)
     ip = models.CharField(verbose_name='设备ip', max_length=128)
