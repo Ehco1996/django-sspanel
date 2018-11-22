@@ -1,9 +1,9 @@
 import time
 import base64
-import datetime
 from random import choice
 
 import pendulum
+from django_prometheus.models import ExportModelOperationsMixin
 from django.db.models import F
 from django.conf import settings
 from django.utils import timezone
@@ -18,7 +18,7 @@ from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
                             COUNTRIES_CHOICES, NODE_TIME_OUT)
 
 
-class Suser(models.Model):
+class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
     '''与user通过user_id作为虚拟外键关联'''
 
     user_id = models.IntegerField(
@@ -149,7 +149,7 @@ class Suser(models.Model):
             return max(port_list) + 1
 
 
-class Node(models.Model):
+class Node(ExportModelOperationsMixin('node'), models.Model):
     '''线路节点'''
     SHOW_CHOICES = ((1, '显示'), (-1, '不显示'))
 
@@ -297,7 +297,7 @@ class Node(models.Model):
         db_table = 'ss_node'
 
 
-class TrafficLog(models.Model):
+class TrafficLog(ExportModelOperationsMixin('traffic_log'), models.Model):
     '''用户流量记录'''
 
     user_id = models.IntegerField(
@@ -347,7 +347,7 @@ class TrafficLog(models.Model):
                 'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
 
-class NodeOnlineLog(models.Model):
+class NodeOnlineLog(ExportModelOperationsMixin('node_onlie_log'), models.Model):
     '''节点在线记录'''
 
     @classmethod
@@ -395,7 +395,7 @@ class NodeOnlineLog(models.Model):
         db_table = 'ss_node_online_log'
 
 
-class AliveIp(models.Model):
+class AliveIp(ExportModelOperationsMixin('aliveip_log'), models.Model):
     @classmethod
     def recent_alive(cls, node_id):
         '''

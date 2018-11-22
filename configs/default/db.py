@@ -1,7 +1,7 @@
 # mysql 设置
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django_prometheus.db.backends.mysql',
         'NAME': 'sspanel',
         'USER': 'root',
         'PASSWORD': '',
