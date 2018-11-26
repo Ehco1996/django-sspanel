@@ -4,7 +4,7 @@ django-crontab
 django-jet
 Markdown
 Pillow
-python-alipay-sdk==1.2.1
+python-alipay-sdk
 qrcode
 requests
 tomd
