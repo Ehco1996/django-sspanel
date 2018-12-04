@@ -4,7 +4,7 @@ from alipay import AliPay
 支付宝相关设置
 '''
 # APPID
-APPID = '2016103002422776'
+APPID = ''
 path = os.path.split(os.path.realpath(__file__))[0]
 # Pub pem path
 PUBLIC_KEY_PATH = path + '/Alipay_pub.pem'
