@@ -21,11 +21,11 @@ RUN apt-get update -qq && \
     pip install --no-cache-dir -r requirements.txt && \
     apt-get purge -qq -y build-essential python3-dev && \
     apt-get autoremove -qq -y --purge && \
-    rm -rf /var/cache/apt /var/lib/apt/lists && \    
+    rm -rf /var/cache/apt /var/lib/apt/lists && \
     python3 manage.py collectstatic --no-input && \
     groupadd -g 555 app && \
     useradd -r -u 555 -g app app && \
-    chown -R app:app /src 
+    chown -R a`pp:app /src
 
 USER app
 

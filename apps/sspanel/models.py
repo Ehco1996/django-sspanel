@@ -13,7 +13,7 @@ from requests import PreparedRequest
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.payments import alipay
+from apps.payments import pay
 from apps.constants import THEME_CHOICES
 from apps.utils import get_long_random_string, traffic_format
 
@@ -358,7 +358,7 @@ class PayRequest(models.Model):
             time.time()).strftime('%Y%m%d%H%M%S%s')
         try:
             # 生成订单
-            trade = alipay.api_alipay_trade_precreate(
+            trade = pay.alipay.api_alipay_trade_precreate(
                 subject=settings.ALIPAY_TRADE_INFO.format(amount),
                 out_trade_no=info_code,
                 total_amount=amount,
@@ -373,7 +373,7 @@ class PayRequest(models.Model):
             )
             return req
         except:
-            alipay.api_alipay_trade_cancel(out_trade_no=info_code)
+            pay.alipay.api_alipay_trade_cancel(out_trade_no=info_code)
             return None
 
     @classmethod
@@ -389,7 +389,7 @@ class PayRequest(models.Model):
         if PayRecord.objects.filter(info_code=info_code).first() is not None:
             # 已经为该用户充值过了
             return -1
-        res = alipay.api_alipay_trade_query(out_trade_no=info_code)
+        res = pay.alipay.api_alipay_trade_query(out_trade_no=info_code)
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             paid = True
             amount = Decimal(res.get("total_amount"))
