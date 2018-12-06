@@ -101,7 +101,6 @@
                                         <td class="notification">协议参数:</td>
                                         <td class="notification">{{ list.protocol_param }}</td>
                                     </tr>
-                                    {% endif %}
                                     <tr>
                                         <td class="notification">混淆:</td>
                                         <td class="notification">{{ list.obfs }}</td>
@@ -110,6 +109,7 @@
                                         <td class="notification">混淆参数:</td>
                                         <td class="notification">{{ list.obfs_param }}</td>
                                     </tr>
+                                    {% endif %}
                                 </table>
                                 <p class="subtitle">配置链接：</p>
                                 <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>

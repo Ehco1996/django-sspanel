@@ -1,6 +1,7 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.conf import settings
 from django.forms import ModelForm
+from django.contrib.auth.forms import UserCreationForm
 
 from apps.ssserver.models import Node
 from apps.sspanel.models import Announcement, Goods, User, InviteCode
@@ -88,10 +89,17 @@ class LoginForm(forms.Form):
 
 
 class NodeForm(ModelForm):
+    total_traffic = forms.IntegerField(label='节点总流量(GB)')
+
+    def clean(self):
+        data = self.cleaned_data
+        data['total_traffic'] = data['total_traffic'] * settings.GB
+        return data
+
     class Meta:
         model = Node
         fields = '__all__'
-        exclude = ['total_traffic', 'used_traffic']
+        exclude = ['used_traffic', ]
 
 
 class GoodsForm(ModelForm):

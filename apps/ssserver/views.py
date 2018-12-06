@@ -3,8 +3,10 @@ import base64
 
 from django.urls import reverse
 from django.conf import settings
+from django.shortcuts import render
 from django.contrib import messages
-from django.shortcuts import HttpResponse, render
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_http_methods
 from django.http import StreamingHttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required, permission_required
 
@@ -60,6 +62,7 @@ def user_edit(request, user_id):
 
 
 @login_required
+@require_http_methods(['POST'])
 def change_ss_pass(request):
     '''改变用户ss连接密码'''
     ss_user = request.user.ss_user
@@ -83,69 +86,64 @@ def change_ss_pass(request):
 
 
 @login_required
+@require_http_methods(['POST'])
 def change_ss_method(request):
     '''改变用户ss加密'''
     ss_user = request.user.ss_user
-
-    if request.method == 'POST':
-        ss_method = request.POST.get('method')
-        ss_user.method = ss_method
-        ss_user.save()
-        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
-        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
+    ss_method = request.POST.get('method')
+    ss_user.method = ss_method
+    ss_user.save()
+    messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+    return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 @login_required
+@require_http_methods(['POST'])
 def change_ss_protocol(request):
     '''改变用户ss协议'''
     ss_user = request.user.ss_user
-
-    if request.method == 'POST':
-        ss_protocol = request.POST.get('protocol')
-        ss_user.protocol = ss_protocol
-        ss_user.save()
-        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
-        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
+    ss_protocol = request.POST.get('protocol')
+    ss_user.protocol = ss_protocol
+    ss_user.save()
+    messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+    return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
 @login_required
+@require_http_methods(['POST'])
 def change_ss_obfs(request):
     '''改变用户ss连接混淆'''
     ss_user = request.user.ss_user
-
-    if request.method == 'POST':
-        ss_obfs = request.POST.get('obfs')
-        ss_user.obfs = ss_obfs
-        ss_user.save()
-        messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
-        return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
+    ss_obfs = request.POST.get('obfs')
+    ss_user.obfs = ss_obfs
+    ss_user.save()
+    messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+    return HttpResponseRedirect(reverse('sspanel:userinfo_edit'))
 
 
-def subscribe(request, token):
+def subscribe(request):
     '''
     返回ssr订阅链接
     '''
-    user = base64.b64decode(token).decode('utf8')
+    token = request.GET.get('token', '')
+    username = base64.b64decode(token).decode()
     # 验证token
-    try:
-        user = User.objects.get(username=user)
-        ss_user = user.ss_user
-        # 遍历该用户所有的节点
-        node_list = Node.objects.filter(level__lte=user.level, show=1)
-        # 生成订阅链接部分
-        sub_code = 'MAX={}\n'.format(len(node_list))
-        for node in node_list:
-            sub_code = sub_code + node.get_node_link(ss_user) + "\n"
-        sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
-        resp_ok = StreamingHttpResponse(sub_code)
-        resp_ok['Content-Type'] = 'application/octet-stream; charset=utf-8'
-        resp_ok['Content-Disposition'] = 'attachment; filename={}.txt'.format(
-            token)
-        resp_ok['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-        resp_ok['Content-Length'] = len(sub_code)
-        return resp_ok
-    except:
-        return HttpResponse('ERROR')
+    user = get_object_or_404(User, username=username)
+    ss_user = user.ss_user
+    # 遍历该用户所有的节点
+    node_list = Node.objects.filter(level__lte=user.level, show=1)
+    # 生成订阅链接部分
+    sub_code = 'MAX={}\n'.format(len(node_list))
+    for node in node_list:
+        sub_code = sub_code + node.get_node_link(ss_user) + "\n"
+    sub_code = base64.b64encode(bytes(sub_code, 'utf8')).decode('ascii')
+    resp_ok = StreamingHttpResponse(sub_code)
+    resp_ok['Content-Type'] = 'application/octet-stream; charset=utf-8'
+    resp_ok['Content-Disposition'] = 'attachment; filename={}.txt'.format(
+        token)
+    resp_ok['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp_ok['Content-Length'] = len(sub_code)
+    return resp_ok
 
 
 @login_required
@@ -171,7 +169,7 @@ def node_config(request):
                 'obfs_param': node.obfs_param,
                 "protocol": node.protocol,
                 'protocol_param': '{}:{}'.format(ss_user.port,
-                                                 user.password),
+                                                 ss_user.password),
             })
         elif node.custom_method == 1:
             data['configs'].append({

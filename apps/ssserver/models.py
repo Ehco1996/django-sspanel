@@ -1,9 +1,9 @@
 import time
 import base64
-import datetime
 from random import choice
 
 import pendulum
+from django_prometheus.models import ExportModelOperationsMixin
 from django.db.models import F
 from django.conf import settings
 from django.utils import timezone
@@ -18,7 +18,7 @@ from apps.constants import (METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES,
                             COUNTRIES_CHOICES, NODE_TIME_OUT)
 
 
-class Suser(models.Model):
+class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
     '''与user通过user_id作为虚拟外键关联'''
 
     user_id = models.IntegerField(
@@ -131,7 +131,7 @@ class Suser(models.Model):
         from apps.sspanel.models import User
         user_ids = User.objects.filter(level__gte=level).values_list('id')
         users = cls.objects.filter(transfer_enable__gte=(
-            F('upload_traffic')+F('download_traffic')), user_id__in=user_ids)
+            F('upload_traffic') + F('download_traffic')), user_id__in=user_ids)
         return users
 
     @classmethod
@@ -149,7 +149,7 @@ class Suser(models.Model):
             return max(port_list) + 1
 
 
-class Node(models.Model):
+class Node(ExportModelOperationsMixin('node'), models.Model):
     '''线路节点'''
     SHOW_CHOICES = ((1, '显示'), (-1, '不显示'))
 
@@ -284,6 +284,9 @@ class Node(models.Model):
         '''已用流量'''
         return traffic_format(self.used_traffic)
 
+    @classmethod
+    def get_by_node_id(cls, node_id):
+        return cls.objects.get(node_id=node_id)
     # verbose_name
     human_total_traffic.short_description = '总流量'
     human_used_traffic.short_description = '使用流量'
@@ -294,7 +297,7 @@ class Node(models.Model):
         db_table = 'ss_node'
 
 
-class TrafficLog(models.Model):
+class TrafficLog(ExportModelOperationsMixin('traffic_log'), models.Model):
     '''用户流量记录'''
 
     user_id = models.IntegerField(
@@ -344,7 +347,7 @@ class TrafficLog(models.Model):
                 'TRUNCATE TABLE {}'.format(cls._meta.db_table))
 
 
-class NodeOnlineLog(models.Model):
+class NodeOnlineLog(ExportModelOperationsMixin('node_onlie_log'), models.Model):
     '''节点在线记录'''
 
     @classmethod
@@ -392,19 +395,18 @@ class NodeOnlineLog(models.Model):
         db_table = 'ss_node_online_log'
 
 
-class AliveIp(models.Model):
+class AliveIp(ExportModelOperationsMixin('aliveip_log'), models.Model):
     @classmethod
     def recent_alive(cls, node_id):
         '''
         返回节点最近一分钟的在线ip
         '''
-        now = timezone.now()
-        last_now = now - datetime.timedelta(minutes=1)
-        seen = []
-        logs = cls.objects.filter(
-            node_id=node_id, log_time__range=[str(last_now),
-                                              str(now)])
         ret = []
+        seen = []
+        now = pendulum.now()
+        last_now = now.subtract(minutes=1)
+        time_range = [str(last_now), str(now)]
+        logs = cls.objects.filter(node_id=node_id, log_time__range=time_range)
         for log in logs:
             if log.ip not in seen:
                 seen.append(log.ip)
@@ -416,6 +418,10 @@ class AliveIp(models.Model):
         with connection.cursor() as cursor:
             cursor.execute(
                 'TRUNCATE TABLE {}'.format(cls._meta.db_table))
+
+    @property
+    def node_name(self):
+        return Node.get_by_node_id(self.node_id).name
 
     node_id = models.IntegerField(verbose_name='节点id', blank=False, null=False)
     ip = models.CharField(verbose_name='设备ip', max_length=128)

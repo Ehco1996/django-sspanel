@@ -9,6 +9,6 @@ urlpatterns = [
     path('changessmethod/', views.change_ss_method, name='changessmethod'),
     path('changessprotocol/', views.change_ss_protocol, name='changessprotocol'),
     path('changessobfs/', views.change_ss_obfs, name='changessobfs'),
-    path('subscribe/<token>/', views.subscribe, name='subscribe'),
+    path('subscribe/', views.subscribe, name='subscribe'),
     path('node/config/', views.node_config, name='node_config'),
 ]

@@ -43,18 +43,18 @@
         <table class="table is-fullwidth">
             <thead>
                 <tr>
-                    <th>节点ID</th>
+                    <th>节点名</th>
                     <th>用户名</th>
                     <th>IP地址</th>
-                    <th>时间</th>                    
+                    <th>时间</th>
                 </tr>
             </thead>
             {% for contact in contacts %}
             <tr>
-                <td>#{{ contact.node_id }}</td>
+                <td>{{ contact.node_name }}</td>
                 <td>{{ contact.user }}</td>
                 <td>{{ contact.ip }}</td>
-                <td>{{ contact.log_time }}</td>                
+                <td>{{ contact.log_time }}</td>
             </tr>
             {% empty %}
             <p class="subtitle">没有用户在线哟</p>

@@ -344,13 +344,12 @@ def charge(request):
     if request.method == 'POST':
         input_code = request.POST.get('chargecode')
         # 在数据库里检索充值
-        code_query = MoneyCode.objects.filter(code=input_code)
+        code = MoneyCode.objects.filter(code=input_code).first()
         # 判断充值码是否存在
-        if len(code_query) == 0:
+        if not code:
             messages.error(request, "请重新获取充值码", extra_tags="充值码失效")
             return HttpResponseRedirect(reverse('sspanel:chargecenter'))
         else:
-            code = code_query[0]
             # 判断充值码是否被使用
             if code.isused is True:
                 # 当被使用的是时候
@@ -365,8 +364,6 @@ def charge(request):
                 code.save()
                 # 将充值记录和捐赠绑定
                 Donate.objects.create(user=user, money=code.number)
-                # 检索充值记录
-                codelist = MoneyCode.objects.filter(user=user)
                 messages.success(request, "请去商店购买商品！", extra_tags="充值成功！")
                 return HttpResponseRedirect(reverse('sspanel:chargecenter'))
 
@@ -513,7 +510,8 @@ def node_edit(request, node_id):
             return render(request, 'backend/nodeedit.html', context=context)
     # 当请求不是post时，渲染form
     else:
-        form = NodeForm(instance=node)
+        form = NodeForm(instance=node, initial={
+                        'total_traffic': node.total_traffic // settings.GB})
         context = {
             'form': form,
             'node': node,

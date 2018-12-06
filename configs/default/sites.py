@@ -27,7 +27,7 @@ MIN_CHECKIN_TRAFFIC = 10 * MB
 MAX_CHECKIN_TRAFFIC = 200 * MB
 
 # 是否启用支付宝系统
-USE_ALIPAY = True
+USE_ALIPAY = False
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = '谜之屋的{}元充值码'
 
@@ -48,3 +48,6 @@ HOST = 'http://127.0.0.1:8000/'
 
 # 部分API接口TOKEN
 TOKEN = 'youowntoken'
+
+# 是否开启用户到期邮件通知
+EXPIRE_EMAIL_NOTICE = False

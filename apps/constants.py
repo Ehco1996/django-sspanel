@@ -27,6 +27,7 @@ OBFS_CHOICES = (
 COUNTRIES_CHOICES = (
     ('US', '美国'),
     ('CN', '中国'),
+    ('TW', '台湾'),
     ('HK', '香港'),
     ('JP', '日本'),
     ('FR', '法国'),

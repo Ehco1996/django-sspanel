@@ -6,8 +6,8 @@ CRONJOBS = [
      '>>' + BASE_DIR + '/logs/userstate.log'),
     ('0 0 1 * *', 'commands.croncmds.auto_reset_traffic',
      '>>' + BASE_DIR + '/logs/trafficrest.log'),  # 每月月初重置免费用户流量，日志写入logs
-    ('15 12 * * 1', 'commands.croncmds.clean_traffic_log',
-     '>>' + BASE_DIR + '/logs/trafficrest.log'),  # 每周一清空流量记录，日志写入logs
+    ('0 2 * * *', 'commands.croncmds.clean_traffic_log',
+     '>>' + BASE_DIR + '/logs/trafficrest.log'),  # 每天清空流量记录，日志写入logs
     ('30 2 * * *', 'commands.croncmds.clean_online_log',
      '>>' + BASE_DIR + '/logs/node_online.log'),  # 每天凌晨2:30删除节点在线记录，日志写入logs
     ('0 4 1 * *', 'commands.croncmds.reset_node_traffic',

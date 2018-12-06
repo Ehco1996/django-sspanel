@@ -9,10 +9,11 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
+from requests import PreparedRequest
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.payments import alipay
+from apps.payments import pay
 from apps.constants import THEME_CHOICES
 from apps.utils import get_long_random_string, traffic_format
 
@@ -53,9 +54,12 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         '''生成该用户的订阅地址'''
-        token = base64.b64encode(bytes(self.username, 'utf-8')).decode('ascii')
-        sub_link = settings.HOST + 'server/subscribe/' + token + '/'
-        return sub_link
+        p = PreparedRequest()
+        token = base64.b64encode(self.username.encode()).decode()
+        url = settings.HOST + 'server/subscribe/'
+        params = {'token': token}
+        p.prepare_url(url, params)
+        return p.url
 
     @property
     def ss_user(self):
@@ -231,6 +235,40 @@ class Goods(models.Model):
         '''返回增加的天数'''
         return '{}'.format(self.days)
 
+    @classmethod
+    def purchase(cls, user, good_id):
+        '''购买商品 返回是否成功'''
+        good = cls.objects.get(pk=good_id)
+        if user.balance < good.money:
+            return False
+        ss_user = user.ss_user
+        # 验证成功进行提权操作
+        ss_user.enable = True
+        ss_user.transfer_enable += good.transfer
+        user.balance -= good.money
+        now = pendulum.now()
+        days = pendulum.duration(days=good.days)
+        if (user.level == good.level and user.level_expire_time > now):
+            user.level_expire_time += days
+        else:
+            user.level_expire_time = now + days
+        user.level = good.level
+        user.save()
+        ss_user.save()
+        # 增加购买记录
+        PurchaseHistory.objects.create(good=good, user=user, money=good.money,
+                                       purchtime=now)
+        # 增加返利记录
+        inviter = User.objects.filter(pk=user.invited_by).first()
+        if inviter:
+            rebaterecord = RebateRecord(
+                user_id=inviter.pk,
+                money=good.money * Decimal(settings.INVITE_PERCENT))
+            inviter.balance += rebaterecord.money
+            inviter.save()
+            rebaterecord.save()
+        return True
+
     class Meta:
         verbose_name_plural = '商品'
         ordering = [
@@ -320,7 +358,7 @@ class PayRequest(models.Model):
             time.time()).strftime('%Y%m%d%H%M%S%s')
         try:
             # 生成订单
-            trade = alipay.api_alipay_trade_precreate(
+            trade = pay.alipay.api_alipay_trade_precreate(
                 subject=settings.ALIPAY_TRADE_INFO.format(amount),
                 out_trade_no=info_code,
                 total_amount=amount,
@@ -335,7 +373,7 @@ class PayRequest(models.Model):
             )
             return req
         except:
-            alipay.api_alipay_trade_cancel(out_trade_no=info_code)
+            pay.alipay.api_alipay_trade_cancel(out_trade_no=info_code)
             return None
 
     @classmethod
@@ -351,7 +389,7 @@ class PayRequest(models.Model):
         if PayRecord.objects.filter(info_code=info_code).first() is not None:
             # 已经为该用户充值过了
             return -1
-        res = alipay.api_alipay_trade_query(out_trade_no=info_code)
+        res = pay.alipay.api_alipay_trade_query(out_trade_no=info_code)
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             paid = True
             amount = Decimal(res.get("total_amount"))
