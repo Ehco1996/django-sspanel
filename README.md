@@ -11,18 +11,14 @@ Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
 ![](http://opj9lh0x4.bkt.clouddn.com/17-12-20/62343859.jpg)
 
-## 重大升级说明
-如果要升级到dev最新的代码
-请按wiki里的步骤升级
 
-https://github.com/Ehco1996/django-sspanel/wiki/%E9%87%8D%E5%A4%A7%E6%9B%B4%E6%96%B0%E6%AD%A5%E9%AA%A4
 
 ## 项目说明
 
 该项目是用django作为后端框架，开发的一个shadowsocks多人用户面板，具有以下特点：
 
 * 轻量级css框架
-* 最新版本的Django作为后端
+* 最新版本的django作为后端
 * 后端支援（shadowsocksr/shadowsocks）
 * 注册采用邀请系统，告别不良用户
 * 完善的商品购买逻辑
@@ -101,4 +97,4 @@ https://github.com/Ehco1996/django-sspanel/wiki/%E9%87%8D%E5%A4%A7%E6%9B%B4%E6%9
 
 萌新版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B-%E8%90%8C%E6%96%B0%E7%89%88)
 
-Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E5%88%A9%E7%94%A8Dokcer-%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85)
+Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/Docker-%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85)
