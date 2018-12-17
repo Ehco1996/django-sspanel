@@ -1,6 +1,6 @@
 import time
 import base64
-from random import choice
+from random import choice, randint
 
 import pendulum
 from django_prometheus.models import ExportModelOperationsMixin
@@ -74,7 +74,8 @@ class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
     @property
     def today_is_checked(self):
         if self.last_check_in_time:
-            return self.last_check_in_time.day == pendulum.now().day
+            last_check_in_time = pendulum.parse(str(self.last_check_in_time))
+            return last_check_in_time.day == get_current_time().day
         return False
 
     @property
@@ -147,6 +148,17 @@ class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
             return choice(list(set(all_ports).difference(set(port_list))))
         except IndexError:
             return max(port_list) + 1
+
+    @staticmethod
+    def checkin(ss_user):
+        if not ss_user.today_is_checked:
+            traffic = randint(settings.MIN_CHECKIN_TRAFFIC,
+                              settings.MAX_CHECKIN_TRAFFIC)
+            ss_user.transfer_enable = traffic
+            ss_user.last_check_in_time = get_current_time()
+            ss_user.save()
+            return True, traffic
+        return False, 0
 
 
 class Node(ExportModelOperationsMixin('node'), models.Model):

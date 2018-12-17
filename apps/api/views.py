@@ -358,16 +358,11 @@ def alive_ip_api(request):
 def checkin(request):
     '''用户签到'''
     ss_user = request.user.ss_user
-    if not ss_user.today_is_checked:
-        # 距离上次签到时间大于一天 增加随机流量
-        ll = randint(settings.MIN_CHECKIN_TRAFFIC,
-                     settings.MAX_CHECKIN_TRAFFIC)
-        ss_user.transfer_enable += ll
-        ss_user.last_check_in_time = timezone.now()
-        ss_user.save()
+    res, traffic = Suser.checkin(ss_user)
+    if res:
         data = {
             'title': '签到成功！',
-            'subtitle': '获得{}流量！'.format(traffic_format(ll)),
+            'subtitle': '获得{}流量！'.format(traffic_format(traffic)),
             'status': 'success',
         }
     else:
