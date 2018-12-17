@@ -154,7 +154,7 @@ class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
         if not ss_user.today_is_checked:
             traffic = randint(settings.MIN_CHECKIN_TRAFFIC,
                               settings.MAX_CHECKIN_TRAFFIC)
-            ss_user.transfer_enable = traffic
+            ss_user.transfer_enable += traffic
             ss_user.last_check_in_time = get_current_time()
             ss_user.save()
             return True, traffic
