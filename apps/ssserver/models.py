@@ -37,6 +37,8 @@ class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
         verbose_name='下载流量', default=0, db_column='d')
     transfer_enable = models.BigIntegerField(
         verbose_name='总流量', default=settings.DEFAULT_TRAFFIC, db_column='transfer_enable')
+    speed_limit = models.IntegerField(
+        verbose_name='限速', default=0, db_column='speed_limit')
     switch = models.BooleanField(
         verbose_name='保留字段switch', default=True, db_column='switch')
     enable = models.BooleanField(
@@ -223,6 +225,7 @@ class Node(ExportModelOperationsMixin('node'), models.Model):
         validators=[MaxValueValidator(9), MinValueValidator(0)])
     total_traffic = models.BigIntegerField('总流量', default=settings.GB)
     used_traffic = models.BigIntegerField('已用流量', default=0,)
+    speed_limit = models.IntegerField('限速', default=0) 
     order = models.PositiveSmallIntegerField('排序', default=1)
     group = models.CharField('分组名', max_length=32, default='谜之屋')
 
