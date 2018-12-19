@@ -65,7 +65,7 @@ def clean_online_log():
 
 def clean_online_ip_log():
     '''清空在线ip记录'''
-    count = TrafficLog.objects.count()
+    count = AliveIp.objects.count()
     AliveIp.truncate()
     print('Time: {} online ip log removed!:{}'.format(timezone.now(), count))
 
