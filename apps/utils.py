@@ -122,7 +122,14 @@ def get_node_user(node_id):
                 'obfs_param': user.obfs_param,
                 'protocol': user.protocol,
                 'protocol_param': user.protocol_param,
+                'speed_limit_per_user': user.speed_limit
             }
+            if node.speed_limit > 0:
+                if user.speed_limit > 0:
+                    cfg['speed_limit_per_user'] = min(user.speed_limit, node.speed_limit)
+                else:
+                    cfg['speed_limit_per_user'] = node.speed_limit
+
             data.append(cfg)
         return data
 
