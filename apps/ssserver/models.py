@@ -74,7 +74,7 @@ class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
     @property
     def today_is_checked(self):
         if self.last_check_in_time:
-            return self.last_check_in_time.day == pendulum.now().day
+            return self.last_check_in_time.day == timezone.now().day
         return False
 
     @property
