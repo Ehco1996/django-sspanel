@@ -8,6 +8,9 @@
                 </h1>
                 <h2 class="subtitle">
                     来呀伤害呀!
+                    {% if monitor_url %}
+                        <span style="color:lightcoral;margin-left: 5px;"><a href="{{ monitor_url }}" target="_blank">（节点监控）</a></span>
+                    {% endif %}
                 </h2>
             </div>
         </div>

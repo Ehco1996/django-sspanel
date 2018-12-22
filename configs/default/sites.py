@@ -51,3 +51,6 @@ TOKEN = 'youowntoken'
 
 # 是否开启用户到期邮件通知
 EXPIRE_EMAIL_NOTICE = False
+
+#节点监控url 例：https://stats.uptimerobot.com/36A60Hwnl
+MONITOR_URL = '' 
