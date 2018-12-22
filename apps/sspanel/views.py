@@ -286,7 +286,8 @@ def nodeinfo(request):
         'nodelists': nodelists,
         'ss_user': ss_user,
         'user': user,
-        'sub_link': user.sub_link
+        'sub_link': user.sub_link,
+        'monitor_url':settings.MONITOR_URL
     }
     return render(request, 'sspanel/nodeinfo.html', context=context)
 
