@@ -76,8 +76,7 @@ class Suser(ExportModelOperationsMixin('ss_user'), models.Model):
     @property
     def today_is_checked(self):
         if self.last_check_in_time:
-            last_check_in_time = pendulum.parse(str(self.last_check_in_time))
-            return last_check_in_time.day == get_current_time().day
+            return self.last_check_in_time.date() == timezone.now().date()
         return False
 
     @property
@@ -225,7 +224,7 @@ class Node(ExportModelOperationsMixin('node'), models.Model):
         validators=[MaxValueValidator(9), MinValueValidator(0)])
     total_traffic = models.BigIntegerField('总流量', default=settings.GB)
     used_traffic = models.BigIntegerField('已用流量', default=0,)
-    speed_limit = models.IntegerField('限速', default=0) 
+    speed_limit = models.IntegerField('限速', default=0)
     order = models.PositiveSmallIntegerField('排序', default=1)
     group = models.CharField('分组名', max_length=32, default='谜之屋')
 
