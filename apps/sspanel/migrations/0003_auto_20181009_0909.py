@@ -5,14 +5,26 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('sspanel', '0002_payrequest_qrcode_url'),
-    ]
+    dependencies = [("sspanel", "0002_payrequest_qrcode_url")]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='theme',
-            field=models.CharField(choices=[('default', 'default'), ('darkly', 'darkly'), ('flatly', 'flatly'), ('journal', 'journal'), ('materia', 'materia'), ('minty', 'minty'), ('spacelab', 'spacelab'), ('superhero', 'superhero')], default='default', max_length=10, verbose_name='主题'),
-        ),
+            model_name="user",
+            name="theme",
+            field=models.CharField(
+                choices=[
+                    ("default", "default"),
+                    ("darkly", "darkly"),
+                    ("flatly", "flatly"),
+                    ("journal", "journal"),
+                    ("materia", "materia"),
+                    ("minty", "minty"),
+                    ("spacelab", "spacelab"),
+                    ("superhero", "superhero"),
+                ],
+                default="default",
+                max_length=10,
+                verbose_name="主题",
+            ),
+        )
     ]

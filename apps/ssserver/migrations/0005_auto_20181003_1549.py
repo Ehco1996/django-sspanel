@@ -7,23 +7,32 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ssserver', '0004_auto_20180930_1537'),
-    ]
+    dependencies = [("ssserver", "0004_auto_20180930_1537")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='suser',
-            options={'ordering': ('-last_check_in_time',), 'verbose_name_plural': 'Ss用户'},
+            name="suser",
+            options={
+                "ordering": ("-last_check_in_time",),
+                "verbose_name_plural": "Ss用户",
+            },
         ),
         migrations.AlterField(
-            model_name='suser',
-            name='last_check_in_time',
-            field=models.DateTimeField(editable=False, null=True, verbose_name='最后签到时间'),
+            model_name="suser",
+            name="last_check_in_time",
+            field=models.DateTimeField(
+                editable=False, null=True, verbose_name="最后签到时间"
+            ),
         ),
         migrations.AlterField(
-            model_name='suser',
-            name='password',
-            field=models.CharField(db_column='passwd', default=apps.utils.get_short_random_string, max_length=32, validators=[django.core.validators.MinLengthValidator(6)], verbose_name='ss密码'),
+            model_name="suser",
+            name="password",
+            field=models.CharField(
+                db_column="passwd",
+                default=apps.utils.get_short_random_string,
+                max_length=32,
+                validators=[django.core.validators.MinLengthValidator(6)],
+                verbose_name="ss密码",
+            ),
         ),
     ]

@@ -5,16 +5,15 @@ from django.conf import settings
 
 
 # AppId
-APPID = ''
+APPID = ""
 path = os.path.split(os.path.realpath(__file__))[0]
 # Pub pem path
-PUBLIC_KEY_PATH = path + '/Alipay_pub.pem'
+PUBLIC_KEY_PATH = path + "/Alipay_pub.pem"
 # Private pem path
-PRIVATE_KEY_PATH = path + '/App_pravite.pem'
+PRIVATE_KEY_PATH = path + "/App_pravite.pem"
 
 
 class Alipayments:
-
     def __init__(self, app_id, pub_key_path, pri_key_path):
         self.app_id = app_id
         self.pub_key_path = pub_key_path

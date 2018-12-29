@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('sspanel', '0001_initial'),
-    ]
+    dependencies = [("sspanel", "0001_initial")]
 
     operations = [
         migrations.AddField(
-            model_name='payrequest',
-            name='qrcode_url',
-            field=models.CharField(max_length=64, null=True, verbose_name='支付连接'),
-        ),
+            model_name="payrequest",
+            name="qrcode_url",
+            field=models.CharField(max_length=64, null=True, verbose_name="支付连接"),
+        )
     ]

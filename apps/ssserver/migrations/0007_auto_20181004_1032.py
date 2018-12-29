@@ -6,24 +6,24 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ssserver', '0006_auto_20181003_1759'),
-    ]
+    dependencies = [("ssserver", "0006_auto_20181003_1759")]
 
     operations = [
         migrations.AlterField(
-            model_name='trafficlog',
-            name='log_date',
-            field=models.DateField(db_index=True, default=django.utils.timezone.now, verbose_name='记录日期'),
+            model_name="trafficlog",
+            name="log_date",
+            field=models.DateField(
+                db_index=True, default=django.utils.timezone.now, verbose_name="记录日期"
+            ),
         ),
         migrations.AlterField(
-            model_name='trafficlog',
-            name='node_id',
-            field=models.IntegerField(db_index=True, verbose_name='节点id'),
+            model_name="trafficlog",
+            name="node_id",
+            field=models.IntegerField(db_index=True, verbose_name="节点id"),
         ),
         migrations.AlterField(
-            model_name='trafficlog',
-            name='user_id',
-            field=models.IntegerField(db_index=True, verbose_name='用户id'),
+            model_name="trafficlog",
+            name="user_id",
+            field=models.IntegerField(db_index=True, verbose_name="用户id"),
         ),
     ]

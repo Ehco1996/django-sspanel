@@ -8,45 +8,174 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ssserver', '0003_auto_20180730_0916'),
-    ]
+    dependencies = [("ssserver", "0003_auto_20180730_0916")]
 
     operations = [
         migrations.CreateModel(
-            name='Suser',
+            name="Suser",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.IntegerField(db_column='user_id', db_index=True, unique=True, verbose_name='user_id')),
-                ('last_check_in_time', models.DateTimeField(default=datetime.datetime(1970, 1, 1, 8, 0), editable=False, null=True, verbose_name='最后签到时间')),
-                ('password', models.CharField(db_column='passwd', default=apps.utils.get_short_random_string, max_length=32, validators=[django.core.validators.MinLengthValidator(6)], verbose_name='sspanel密码')),
-                ('port', models.IntegerField(db_column='port', unique=True, verbose_name='端口')),
-                ('last_use_time', models.IntegerField(db_column='t', default=0, editable=False, help_text='时间戳', verbose_name='最后使用时间')),
-                ('upload_traffic', models.BigIntegerField(db_column='u', default=0, verbose_name='上传流量')),
-                ('download_traffic', models.BigIntegerField(db_column='d', default=0, verbose_name='下载流量')),
-                ('transfer_enable', models.BigIntegerField(db_column='transfer_enable', default=5368709120, verbose_name='总流量')),
-                ('switch', models.BooleanField(db_column='switch', default=True, verbose_name='保留字段switch')),
-                ('enable', models.BooleanField(db_column='enable', default=True, verbose_name='开启与否')),
-                ('method', models.CharField(choices=[('aes-256-cfb', 'aes-256-cfb'), ('aes-128-ctr', 'aes-128-ctr'), ('rc4-md5', 'rc4-md5'), ('salsa20', 'salsa20'), ('chacha20', 'chacha20'), ('none', 'none')], default='aes-128-ctr', max_length=32, verbose_name='加密类型')),
-                ('protocol', models.CharField(choices=[('auth_sha1_v4', 'auth_sha1_v4'), ('auth_aes128_md5', 'auth_aes128_md5'), ('auth_aes128_sha1', 'auth_aes128_sha1'), ('auth_chain_a', 'auth_chain_a'), ('origin', 'origin')], default='auth_chain_a', max_length=32, verbose_name='协议')),
-                ('protocol_param', models.CharField(blank=True, max_length=128, null=True, verbose_name='协议参数')),
-                ('obfs', models.CharField(choices=[('plain', 'plain'), ('http_simple', 'http_simple'), ('http_simple_compatible', 'http_simple_compatible'), ('http_post', 'http_post'), ('tls1.2_ticket_auth', 'tls1.2_ticket_auth')], default='http_simple', max_length=32, verbose_name='混淆')),
-                ('obfs_param', models.CharField(blank=True, max_length=255, null=True, verbose_name='混淆参数')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "user_id",
+                    models.IntegerField(
+                        db_column="user_id",
+                        db_index=True,
+                        unique=True,
+                        verbose_name="user_id",
+                    ),
+                ),
+                (
+                    "last_check_in_time",
+                    models.DateTimeField(
+                        default=datetime.datetime(1970, 1, 1, 8, 0),
+                        editable=False,
+                        null=True,
+                        verbose_name="最后签到时间",
+                    ),
+                ),
+                (
+                    "password",
+                    models.CharField(
+                        db_column="passwd",
+                        default=apps.utils.get_short_random_string,
+                        max_length=32,
+                        validators=[django.core.validators.MinLengthValidator(6)],
+                        verbose_name="sspanel密码",
+                    ),
+                ),
+                (
+                    "port",
+                    models.IntegerField(
+                        db_column="port", unique=True, verbose_name="端口"
+                    ),
+                ),
+                (
+                    "last_use_time",
+                    models.IntegerField(
+                        db_column="t",
+                        default=0,
+                        editable=False,
+                        help_text="时间戳",
+                        verbose_name="最后使用时间",
+                    ),
+                ),
+                (
+                    "upload_traffic",
+                    models.BigIntegerField(
+                        db_column="u", default=0, verbose_name="上传流量"
+                    ),
+                ),
+                (
+                    "download_traffic",
+                    models.BigIntegerField(
+                        db_column="d", default=0, verbose_name="下载流量"
+                    ),
+                ),
+                (
+                    "transfer_enable",
+                    models.BigIntegerField(
+                        db_column="transfer_enable",
+                        default=5368709120,
+                        verbose_name="总流量",
+                    ),
+                ),
+                (
+                    "switch",
+                    models.BooleanField(
+                        db_column="switch", default=True, verbose_name="保留字段switch"
+                    ),
+                ),
+                (
+                    "enable",
+                    models.BooleanField(
+                        db_column="enable", default=True, verbose_name="开启与否"
+                    ),
+                ),
+                (
+                    "method",
+                    models.CharField(
+                        choices=[
+                            ("aes-256-cfb", "aes-256-cfb"),
+                            ("aes-128-ctr", "aes-128-ctr"),
+                            ("rc4-md5", "rc4-md5"),
+                            ("salsa20", "salsa20"),
+                            ("chacha20", "chacha20"),
+                            ("none", "none"),
+                        ],
+                        default="aes-128-ctr",
+                        max_length=32,
+                        verbose_name="加密类型",
+                    ),
+                ),
+                (
+                    "protocol",
+                    models.CharField(
+                        choices=[
+                            ("auth_sha1_v4", "auth_sha1_v4"),
+                            ("auth_aes128_md5", "auth_aes128_md5"),
+                            ("auth_aes128_sha1", "auth_aes128_sha1"),
+                            ("auth_chain_a", "auth_chain_a"),
+                            ("origin", "origin"),
+                        ],
+                        default="auth_chain_a",
+                        max_length=32,
+                        verbose_name="协议",
+                    ),
+                ),
+                (
+                    "protocol_param",
+                    models.CharField(
+                        blank=True, max_length=128, null=True, verbose_name="协议参数"
+                    ),
+                ),
+                (
+                    "obfs",
+                    models.CharField(
+                        choices=[
+                            ("plain", "plain"),
+                            ("http_simple", "http_simple"),
+                            ("http_simple_compatible", "http_simple_compatible"),
+                            ("http_post", "http_post"),
+                            ("tls1.2_ticket_auth", "tls1.2_ticket_auth"),
+                        ],
+                        default="http_simple",
+                        max_length=32,
+                        verbose_name="混淆",
+                    ),
+                ),
+                (
+                    "obfs_param",
+                    models.CharField(
+                        blank=True, max_length=255, null=True, verbose_name="混淆参数"
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'ss_db_user',
-                'db_table': 's_user',
-                'ordering': ('-last_check_in_time',),
+                "verbose_name_plural": "ss_db_user",
+                "db_table": "s_user",
+                "ordering": ("-last_check_in_time",),
             },
         ),
         migrations.AlterField(
-            model_name='node',
-            name='obfs_param',
-            field=models.CharField(blank=True, default='', max_length=255, null=True, verbose_name='混淆参数'),
+            model_name="node",
+            name="obfs_param",
+            field=models.CharField(
+                blank=True, default="", max_length=255, null=True, verbose_name="混淆参数"
+            ),
         ),
         migrations.AlterField(
-            model_name='ssuser',
-            name='obfs_param',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='混淆参数'),
+            model_name="ssuser",
+            name="obfs_param",
+            field=models.CharField(
+                blank=True, max_length=255, null=True, verbose_name="混淆参数"
+            ),
         ),
     ]

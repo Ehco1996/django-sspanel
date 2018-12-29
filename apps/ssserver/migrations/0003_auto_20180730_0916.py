@@ -5,22 +5,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ssserver', '0002_auto_20180707_2200'),
-    ]
+    dependencies = [("ssserver", "0002_auto_20180707_2200")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='node',
-            name='human_total_traffic',
-        ),
-        migrations.RemoveField(
-            model_name='node',
-            name='human_used_traffic',
-        ),
+        migrations.RemoveField(model_name="node", name="human_total_traffic"),
+        migrations.RemoveField(model_name="node", name="human_used_traffic"),
         migrations.AlterField(
-            model_name='node',
-            name='password',
-            field=models.CharField(default='password', help_text='单端口时需要', max_length=32, verbose_name='节点密码'),
+            model_name="node",
+            name="password",
+            field=models.CharField(
+                default="password",
+                help_text="单端口时需要",
+                max_length=32,
+                verbose_name="节点密码",
+            ),
         ),
     ]
