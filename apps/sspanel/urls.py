@@ -62,6 +62,7 @@ urlpatterns = [
          views.user_delete, name='user_delete'),
     path('backend/user/search/', views.user_search, name='user_search'),
     path('backend/user/status/', views.user_status, name='user_status'),
+    path('backend/add_user/', views.add_user, name='add_user'),
     # 商品充值相关
     path('backend/charge/', views.backend_charge, name='backend_charge'),
     path('backend/shop/', views.backend_shop, name='backend_shop'),

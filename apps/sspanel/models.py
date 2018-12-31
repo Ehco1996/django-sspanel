@@ -98,6 +98,25 @@ class User(AbstractUser):
             user.save()
             return user
 
+    @classmethod
+    def add_user(cls, cleaned_data):
+        from apps.ssserver.models import Suser
+        with transaction.atomic():
+            username = cleaned_data['username']
+            email = cleaned_data['email']
+            password = cleaned_data['password1']
+            user = cls.objects.create_user(username, email, password)
+            code = InviteCode.objects.create(code_type='0')
+            code.isused = True
+            code.save()
+            # 将user和ssuser关联
+            Suser.objects.create(user_id=user.id, port=Suser.get_random_port())
+            # 绑定邀请人
+            user.invited_by = code.code_id
+            user.invitecode = code.code
+            user.save()
+            return user
+
 
 class InviteCode(models.Model):
     '''邀请码'''

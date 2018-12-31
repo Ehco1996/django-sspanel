@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.utils import traffic_format
 from apps.custom_views import Page_List_View
-from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
+from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm, AddUserForm
 from apps.ssserver.models import Suser, Node, NodeOnlineLog, AliveIp
 from .models import (InviteCode, User, Donate, Goods, MoneyCode,
                      PurchaseHistory, PayRequest, Announcement, Ticket,
@@ -456,6 +456,7 @@ def rebate_record(request):
     }
     return render(request, 'sspanel/rebaterecord.html', context=context)
 
+
 # ==================================
 # 网站后台界面
 # ==================================
@@ -511,7 +512,7 @@ def node_edit(request, node_id):
     # 当请求不是post时，渲染form
     else:
         form = NodeForm(instance=node, initial={
-                        'total_traffic': node.total_traffic // settings.GB})
+            'total_traffic': node.total_traffic // settings.GB})
         context = {
             'form': form,
             'node': node,
@@ -611,7 +612,6 @@ def backend_invite(request):
 
 @permission_required('sspanel')
 def gen_invite_code(request):
-
     Num = request.GET.get('num')
     code_type = request.GET.get('type')
     for i in range(int(Num)):
@@ -839,3 +839,26 @@ def backend_alive_user(request):
     context = Page_List_View(request, user_list, page_num).get_page_context()
 
     return render(request, 'backend/aliveuser.html', context=context)
+
+
+@permission_required('ssserver')
+def add_user(request):
+    '''后台添加用户的函数'''
+    if request.method == 'POST':
+        form = AddUserForm(request.POST)
+        if form.is_valid():
+            user = User.add_user(form.cleaned_data)
+            if not user:
+                messages.error(request, "服务出现了点小问题",
+                               extra_tags="请重新尝试~")
+                return render(
+                    request, 'sspanel/add_user.html', {'form': form})
+            else:
+                messages.success(request, "请登录使用吧！",
+                                 extra_tags="添加成功！")
+
+                return HttpResponseRedirect(reverse('sspanel:user_list'))
+    else:
+        form = AddUserForm()
+
+    return render(request, 'sspanel/add_user.html', {'form': form})

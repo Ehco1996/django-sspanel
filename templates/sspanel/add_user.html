@@ -1,0 +1,34 @@
+{% extends 'backendbase.html' %} {% block main %}
+    <div class="column is-12">
+        <section class="hero is-light is-smaill">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">
+                        添加用户：
+                    </h1>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="column is-12">
+        <div class="box">
+            <form class="form" action="{% url 'sspanel:add_user' %}" method="post">
+                {% csrf_token %} {% for field in form %}
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+                {% if field.help_text %}
+                    <p class="help is-danger">{{ field.help_text|safe }}</p>
+                {% endif %} {% endfor %}
+                <hr>
+                <div class="field is-grouped">
+                    <p class="control">
+                        <button type="submit" class="button is-primary is-outlined">添加</button>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock main %}
