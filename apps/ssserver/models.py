@@ -273,23 +273,19 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
 
     def get_ssr_link(self, ss_user):
         """返回ssr链接"""
-        ssr_password = base64.urlsafe_b64encode(bytes(ss_user.password, "utf8")).decode(
-            "utf8"
-        )
-        ssr_remarks = base64.urlsafe_b64encode(bytes(self.name, "utf8")).decode("utf8")
-        ssr_group = base64.urlsafe_b64encode(bytes(self.group, "utf8")).decode("utf8")
+        ssr_password = base64.urlsafe_b64encode(bytes(ss_user.password, "utf8")).decode("utf8").replace('=', '')
+        ssr_remarks = base64.urlsafe_b64encode(bytes(self.name, "utf8")).decode("utf8").replace('=', '')
+        ssr_group = base64.urlsafe_b64encode(bytes(self.group, "utf8")).decode("utf8").replace('=', '')
         if self.node_type == 1:
             # 单端口多用户
             ssr_password = base64.urlsafe_b64encode(
                 bytes(self.password, "utf8")
-            ).decode("utf8")
+            ).decode("utf8").replace('=', '')
             info = "{}:{}".format(ss_user.port, ss_user.password)
-            protocol_param = base64.urlsafe_b64encode(bytes(info, "utf8")).decode(
-                "utf8"
-            )
+            protocol_param = base64.urlsafe_b64encode(bytes(info, "utf8")).decode("utf8").replace('=', '')
             obfs_param = base64.urlsafe_b64encode(
                 bytes(str(self.obfs_param), "utf8")
-            ).decode("utf8")
+            ).decode("utf8").replace('=', '')
             ssr_code = "{}:{}:{}:{}:{}:{}/?obfsparam={}&protoparam={}&remarks={}&group={}".format(
                 self.server,
                 self.port,
@@ -324,7 +320,7 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
                 ssr_remarks,
                 ssr_group,
             )
-        ssr_pass = base64.urlsafe_b64encode(bytes(ssr_code, "utf8")).decode("utf8")
+        ssr_pass = base64.urlsafe_b64encode(bytes(ssr_code, "utf8")).decode("utf8").replace('=', '')
         ssr_link = "ssr://{}".format(ssr_pass)
         return ssr_link
 
