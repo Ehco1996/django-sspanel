@@ -22,7 +22,6 @@ from .models import (
     Goods,
     MoneyCode,
     PurchaseHistory,
-    PayRequest,
     Announcement,
     Ticket,
     RebateRecord,
@@ -211,24 +210,6 @@ def donate(request):
         # 关闭支付宝支付
         context["alipay"] = False
     return render(request, "sspanel/donate.html", context=context)
-
-
-@login_required
-def gen_face_pay_qrcode(request):
-    """生成当面付的二维码"""
-
-    req = PayRequest.get_user_recent_pay_req(request.user)
-    if req:
-        # 生成ss二维码
-        img = qrcode.make(req.qrcode_url)
-        buf = BytesIO()
-        img.save(buf)
-        image_stream = buf.getvalue()
-        # 构造图片reponse
-        response = HttpResponse(image_stream, content_type="image/png")
-        return response
-    else:
-        return HttpResponse("wrong")
 
 
 @login_required

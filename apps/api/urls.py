@@ -9,8 +9,6 @@ urlpatterns = [
     path("random/port/", views.change_ss_port, name="changessport"),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),
-    path("pay/request/", views.pay_request, name="pay_request"),
-    path("pay/query/", views.pay_query, name="pay_query"),
     path("traffic/query/", views.traffic_query, name="traffic_query"),
     path("change/theme/", views.change_theme, name="change_theme"),
     path("checkin/", views.checkin, name="checkin"),
@@ -22,4 +20,6 @@ urlpatterns = [
     path("users/nodes/<int:node_id>", views.user_api, name="get_userinfo"),
     path("traffic/upload", views.traffic_api, name="post_traffic"),
     path("nodes/aliveip", views.alive_ip_api, name="post_aliveip"),
+    # 支付
+    path("orders", views.OrderView.as_view(), name="order"),
 ]

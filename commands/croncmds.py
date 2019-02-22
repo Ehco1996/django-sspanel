@@ -2,7 +2,7 @@ import pendulum
 from django.conf import settings
 from django.utils import timezone
 
-from apps.sspanel.models import User, PayRequest
+from apps.sspanel.models import User, UserOrder
 from apps.ssserver.models import Node, NodeOnlineLog, TrafficLog, AliveIp
 from django.core.mail import send_mail
 
@@ -81,13 +81,7 @@ def reset_node_traffic():
     print("Time: {} all node traffic removed!".format(timezone.now()))
 
 
-def check_pay_request():
-    """定时检查支付请求"""
-    # 每次检查新的五条记录
-    querys = PayRequest.objects.order_by("-time")[:5]
-    for req in querys:
-        user = User.objects.filter(username=req.username).first()
-        paid = PayRequest.pay_query(user, req.info_code)
-        if paid is True:
-            print("用户：{} 掉单，已经补偿".format(user.username))
+def make_up_lost_order():
+    """定时补单"""
+    UserOrder.make_up_lost_orders()
     print("{} 检查过支付请求".format(timezone.now().strftime("%Y-%m-%d %H:%M")))

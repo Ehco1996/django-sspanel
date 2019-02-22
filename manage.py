@@ -3,7 +3,7 @@ import os
 import sys
 
 if __name__ == "__main__":
-    env = os.getenv('DJANGO_ENV', 'development')
+    env = os.getenv("DJANGO_ENV", "development")
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "configs.{}".format(env))
     try:
         from django.core.management import execute_from_command_line

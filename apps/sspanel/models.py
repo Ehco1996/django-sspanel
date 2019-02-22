@@ -518,3 +518,109 @@ class Ticket(models.Model):
     class Meta:
         verbose_name_plural = "工单"
         ordering = ("-time",)
+
+
+class UserOrder(models.Model):
+
+    DEFAULT_ORDER_TIME_OUT = "24h"
+    STATUS_CREATED = 0
+    STATUS_PAID = 1
+    STATUS_FINISHED = 2
+    STATUS_CHOICES = (
+        (STATUS_CREATED, "created"),
+        (STATUS_PAID, "paid"),
+        (STATUS_FINISHED, "finished"),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    status = models.SmallIntegerField(
+        verbose_name="订单状态", db_index=True, choices=STATUS_CHOICES
+    )
+    out_trade_no = models.CharField(
+        verbose_name="流水号", max_length=64, unique=True, db_index=True
+    )
+    qrcode_url = models.CharField(verbose_name="支付连接", max_length=64, null=True)
+    amount = models.DecimalField(
+        verbose_name="金额", decimal_places=2, max_digits=10, default=0
+    )
+    created_at = models.DateTimeField(
+        verbose_name="时间", auto_now_add=True, db_index=True
+    )
+    expired_at = models.DateTimeField(verbose_name="过期时间", db_index=True)
+
+    def __str__(self):
+        return f"<{self.id,self.user}>:{self.amount}"
+
+    class Meta:
+        verbose_name_plural = "用户订单"
+        index_together = ["user", "status"]
+
+    @classmethod
+    def gen_out_trade_no(cls):
+        return datetime.datetime.fromtimestamp(time.time()).strftime("%Y%m%d%H%M%S%s")
+
+    @classmethod
+    def get_not_paid_order(cls, user, amount):
+        return cls.objects.filter(user=user, status=cls.STATUS_CREATED).first()
+
+    @classmethod
+    def get_recent_created_order(cls, user):
+        return cls.objects.filter(user=user).order_by("-created_at").first()
+
+    @classmethod
+    def make_up_lost_orders(cls):
+        now = pendulum.now()
+        for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
+            changed = order.check_order_status()
+            if changed:
+                print(f"补单：{order.user,order.amount}")
+
+    @classmethod
+    def get_or_create_order(cls, user, amount):
+        with transaction.atomic():
+            now = pendulum.now()
+            order = cls.get_not_paid_order(user, amount)
+            if order and order.expired_at > now:
+                return order
+            out_trade_no = cls.gen_out_trade_no()
+            trade = pay.alipay.api_alipay_trade_precreate(
+                subject=settings.ALIPAY_TRADE_INFO.format(amount),
+                out_trade_no=out_trade_no,
+                total_amount=amount,
+                timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
+                notify_url="",
+            )
+            qrcode_url = trade.get("qr_code")
+            order = cls.objects.create(
+                user=user,
+                status=cls.STATUS_CREATED,
+                out_trade_no=out_trade_no,
+                amount=amount,
+                qrcode_url=qrcode_url,
+                expired_at=now.add(hours=24),
+            )
+            return order
+
+    def handle_paid(self):
+        if self.status != self.STATUS_PAID:
+            return
+        with transaction.atomic():
+            self.user.balance += self.amount
+            self.user.save()
+            self.status = self.STATUS_FINISHED
+            self.save()
+            # 将充值记录和捐赠绑定
+            Donate.objects.create(user=self.user, money=self.amount)
+
+    def check_order_status(self):
+        changed = False
+        if self.status != self.STATUS_CREATED:
+            return
+        with transaction.atomic():
+            res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
+            if res.get("trade_status", "") == "TRADE_SUCCESS":
+                self.status = self.STATUS_PAID
+                self.save()
+                changed = True
+        self.handle_paid()
+        return changed
