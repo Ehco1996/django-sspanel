@@ -1,29 +1,20 @@
 import time
-from random import randint
 
 import pendulum
-from decimal import Decimal
+from django.views import View
 from django.db.models import F
 from django.conf import settings
-from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
+
 from apps.constants import NODE_USER_INFO_TTL
 from apps.utils import traffic_format, simple_cached_view, get_node_user, authorized
 from apps.ssserver.models import Suser, TrafficLog, Node, NodeOnlineLog, AliveIp
-from apps.sspanel.models import (
-    InviteCode,
-    PurchaseHistory,
-    RebateRecord,
-    Goods,
-    User,
-    Donate,
-    PayRequest,
-)
+from apps.sspanel.models import InviteCode, Goods, User, Donate, UserOrder
 
 
 @permission_required("sspanel")
@@ -131,47 +122,6 @@ def purchase(request):
             )
     else:
         return HttpResponse("errors")
-
-
-@login_required
-def pay_request(request):
-    """
-    当面付请求逻辑
-    """
-    amount = int(request.POST.get("num"))
-
-    if amount < 1:
-        info = {"title": "失败", "subtitle": "请保证金额大于1元", "status": "error"}
-    else:
-        req = PayRequest.make_pay_request(request.user, amount)
-        if req is not None:
-            info = {
-                "title": "请求成功！",
-                "subtitle": "支付宝扫描下方二维码付款，付款完成记得按确认哟！",
-                "status": "success",
-            }
-        else:
-            info = {
-                "title": "糟糕，当面付插件可能出现问题了",
-                "subtitle": "如果一直失败,请后台联系站长",
-                "status": "error",
-            }
-    return JsonResponse({"info": info})
-
-
-@login_required
-def pay_query(request):
-    """
-    当面付结果查询逻辑
-    """
-    user = request.user
-    info_code = PayRequest.get_user_recent_pay_req(user).info_code
-    paid = PayRequest.pay_query(user, info_code)
-    if paid in (True, -1):
-        info = {"title": "充值成功！", "subtitle": "请去商品界面购买商品！", "status": "success"}
-    else:
-        info = {"title": "支付查询失败！请稍候再试", "subtitle": "亲，确认支付了么？", "status": "error"}
-    return JsonResponse({"info": info})
 
 
 @login_required
@@ -358,3 +308,32 @@ def checkin(request):
     else:
         data = {"title": "签到失败！", "subtitle": "距离上次签到不足一天", "status": "error"}
     return JsonResponse(data)
+
+
+class OrderView(View):
+    def get(self, request):
+        user = request.user
+        order = UserOrder.get_recent_created_order(user)
+        order.check_order_status()
+        if order and order.status == UserOrder.STATUS_FINISHED:
+            info = {"title": "充值成功!", "subtitle": "请去商品界面购买商品！", "status": "success"}
+        else:
+            info = {"title": "支付查询失败!", "subtitle": "亲，确认支付了么？", "status": "error"}
+        return JsonResponse({"info": info})
+
+    def post(self, request):
+        amount = int(request.POST.get("num"))
+
+        if amount < 1:
+            info = {"title": "失败", "subtitle": "请保证金额大于1元", "status": "error"}
+        else:
+            order = UserOrder.get_or_create_order(request.user, amount)
+            info = {
+                "title": "请求成功！",
+                "subtitle": "支付宝扫描下方二维码付款，付款完成记得按确认哟！",
+                "status": "success",
+            }
+        return JsonResponse(
+            {"info": info, "qrcode_url": order.qrcode_url, "order_id": order.id}
+        )
+

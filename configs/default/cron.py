@@ -33,8 +33,8 @@ CRONJOBS = [
         ">>" + BASE_DIR + "/logs/onlineip_reset.log",
     ),  # 每天凌晨1点半清空ip记录
     (
-        "*/30 * * * *",
-        "commands.croncmds.check_pay_request",  # 每隔三十分钟检查一下有没有漏单
-        ">>" + BASE_DIR + "/logs/payrequest.log",
+        "*/5 * * * *",
+        "commands.croncmds.make_up_lost_order",  # 每隔五分钟检查一下有没有漏单
+        ">>" + BASE_DIR + "/logs/check_orders.log",
     ),
 ]

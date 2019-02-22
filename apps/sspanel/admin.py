@@ -46,6 +46,19 @@ class GoodsAdmin(admin.ModelAdmin):
     list_display = ["name", "transfer", "money", "level"]
 
 
+class UserOrderAdmin(admin.ModelAdmin):
+    list_display = [
+        "user",
+        "status",
+        "out_trade_no",
+        "amount",
+        "created_at",
+        "expired_at",
+    ]
+    search_fields = ["user"]
+    list_filter = ["user", "amount", "status"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)
@@ -57,6 +70,6 @@ admin.site.register(models.PayRecord, AlipayAdmin)
 admin.site.register(models.PayRequest, AlipayRequestAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
-
+admin.site.register(models.UserOrder, UserOrderAdmin)
 
 admin.site.unregister(Group)

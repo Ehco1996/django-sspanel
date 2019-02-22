@@ -60,8 +60,6 @@ urlpatterns = [
     path("backend/good/create/", views.good_create, name="good_create"),
     path("backend/good/edit/<int:pk>/", views.good_edit, name="good_edit"),
     path("backend/purchase/history/", views.purchase_history, name="purchase_history"),
-    # 支付宝当面付相关:
-    path("facepay/qrcode/", views.gen_face_pay_qrcode, name="facepay_qrcode"),
     # 公告管理相关
     path("backend/anno/", views.backend_anno, name="backend_anno"),
     path("backend/anno/delete/<int:pk>/", views.anno_delete, name="anno_delete"),
