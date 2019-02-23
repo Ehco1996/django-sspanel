@@ -57,6 +57,7 @@ class UserOrderAdmin(admin.ModelAdmin):
     ]
     search_fields = ["user"]
     list_filter = ["user", "amount", "status"]
+    ordering = ('-created_at',)
 
 
 # Register your models here.
