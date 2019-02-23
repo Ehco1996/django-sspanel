@@ -22,5 +22,5 @@ urlpatterns = [
     path("nodes/aliveip", views.alive_ip_api, name="post_aliveip"),
     # 支付
     path("orders", views.OrderView.as_view(), name="order"),
-    path("callback/alipay", views.AliPayCallBackView.as_view(), name="alipay_callback"),
+    path("callback/alipay", views.ailpay_callback, name="alipay_callback"),
 ]

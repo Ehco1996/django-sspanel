@@ -344,15 +344,15 @@ class OrderView(View):
         )
 
 
-class AliPayCallBackView(View):
-
-    def post(self, request):
-        data = dict(request.POST)
-        signature = data.pop("sign")
-        success = pay.alipay.verify(data, signature)
-        if success and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED"):
-            order = UserOrder.objects.get(out_trade_no=data['out_trade_no'])
-            order.handle_paid()
-            return HttpResponse('success')
-        else:
-            return HttpResponse('failure')
+@csrf_exempt
+@require_http_methods(["POST"])
+def ailpay_callback(request):
+    data = dict(request.POST)
+    signature = data.pop("sign")
+    success = pay.alipay.verify(data, signature)
+    if success and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED"):
+        order = UserOrder.objects.get(out_trade_no=data['out_trade_no'])
+        order.handle_paid()
+        return HttpResponse('success')
+    else:
+        return HttpResponse('failure')
