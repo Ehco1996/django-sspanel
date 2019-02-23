@@ -52,7 +52,7 @@
 <script>
     // 流量记录查询部分
     queryButton = $("#id-button-query")
-    var payquery = function () {
+    var trafficquery = function () {
         url = "{% url 'api:traffic_query' %}"
         var options = $("#id-select-nodes option:selected")
         var data = {
@@ -64,5 +64,5 @@
             genLineChart('traffic', results)
         })
     }
-    queryButton.click(payquery)
+    queryButton.click(trafficquery)
 </script> {% endblock main %}

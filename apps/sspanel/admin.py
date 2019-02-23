@@ -25,18 +25,6 @@ class MoneyCodeAdmin(admin.ModelAdmin):
     list_display = ["user", "code", "isused"]
 
 
-class AlipayAdmin(admin.ModelAdmin):
-    list_display = ["username", "info_code", "amount", "money_code", "time"]
-    search_fields = ["info_code"]
-    list_filter = ["time", "amount"]
-
-
-class AlipayRequestAdmin(admin.ModelAdmin):
-    list_display = ["username", "amount", "info_code", "time"]
-    search_fields = ["info_code"]
-    list_filter = ["time", "amount"]
-
-
 class DonateAdmin(admin.ModelAdmin):
     list_display = ["user", "money", "time"]
     list_filter = ["time", "money"]
@@ -67,8 +55,6 @@ admin.site.register(models.Donate, DonateAdmin)
 admin.site.register(models.MoneyCode, MoneyCodeAdmin)
 admin.site.register(models.Goods, GoodsAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
-admin.site.register(models.PayRecord, AlipayAdmin)
-admin.site.register(models.PayRequest, AlipayRequestAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
 admin.site.register(models.UserOrder, UserOrderAdmin)
