@@ -59,29 +59,8 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-    @property
-    def expire_time(self):
-        """返回等级到期时间"""
-        return self.level_expire_time
-
-    @property
-    def sub_link(self):
-        """生成该用户的订阅地址"""
-        p = PreparedRequest()
-        token = base64.b64encode(self.username.encode()).decode()
-        url = settings.HOST + "server/subscribe/"
-        params = {"token": token}
-        p.prepare_url(url, params)
-        return p.url
-
-    @property
-    def ss_user(self):
-        from apps.ssserver.models import Suser
-
-        return Suser.objects.get(user_id=self.id)
-
     @classmethod
-    def get_user_num(cls):
+    def get_total_user_num(cls):
         """返回用户总数"""
         return cls.objects.all().count()
 
@@ -116,6 +95,27 @@ class User(AbstractUser):
     @classmethod
     def get_by_user_name(cls, username):
         return cls.objects.get(username=username)
+
+    @property
+    def expire_time(self):
+        """返回等级到期时间"""
+        return self.level_expire_time
+
+    @property
+    def sub_link(self):
+        """生成该用户的订阅地址"""
+        p = PreparedRequest()
+        token = base64.b64encode(self.username.encode()).decode()
+        url = settings.HOST + "server/subscribe/"
+        params = {"token": token}
+        p.prepare_url(url, params)
+        return p.url
+
+    @property
+    def ss_user(self):
+        from apps.ssserver.models import Suser
+
+        return Suser.objects.get(user_id=self.id)
 
 
 class InviteCode(models.Model):
@@ -280,6 +280,10 @@ class Goods(models.Model):
     status = models.SmallIntegerField("商品状态", default=1, choices=STATUS_TYPE)
     order = models.PositiveSmallIntegerField("排序", default=1)
 
+    class Meta:
+        verbose_name_plural = "商品"
+        ordering = ["order"]
+
     def __str__(self):
         return self.name
 
@@ -292,45 +296,38 @@ class Goods(models.Model):
         """返回增加的天数"""
         return "{}".format(self.days)
 
-    @classmethod
-    def purchase(cls, user, good_id):
+    def purchase_by_user(self, user):
         """购买商品 返回是否成功"""
-        good = cls.objects.get(pk=good_id)
-        if user.balance < good.money:
+        if user.balance < self.money:
             return False
-        ss_user = user.ss_user
         # 验证成功进行提权操作
-        ss_user.enable = True
-        ss_user.transfer_enable += good.transfer
-        user.balance -= good.money
+        ss_user = user.ss_user
+        user.balance -= self.money
         now = pendulum.now()
-        days = pendulum.duration(days=good.days)
-        if user.level == good.level and user.level_expire_time > now:
+        days = pendulum.duration(days=self.days)
+        if user.level == self.level and user.level_expire_time > now:
             user.level_expire_time += days
+            ss_user.increase_transfer(self.transfer)
         else:
             user.level_expire_time = now + days
-        user.level = good.level
+            ss_user.reset_traffic(self.transfer)
+        user.level = self.level
         user.save()
-        ss_user.save()
         # 增加购买记录
         PurchaseHistory.objects.create(
-            good=good, user=user, money=good.money, purchtime=now
+            good=self, user=user, money=self.money, purchtime=now
         )
         # 增加返利记录
         inviter = User.objects.filter(pk=user.invited_by).first()
         if inviter:
             rebaterecord = RebateRecord(
-                user_id=inviter.pk, money=good.money
+                user_id=inviter.pk, money=self.money
                 * Decimal(settings.INVITE_PERCENT)
             )
             inviter.balance += rebaterecord.money
             inviter.save()
             rebaterecord.save()
         return True
-
-    class Meta:
-        verbose_name_plural = "商品"
-        ordering = ["order"]
 
 
 class PurchaseHistory(models.Model):

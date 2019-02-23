@@ -110,19 +110,18 @@ def gen_invite_code(request):
 
 
 @login_required
+@require_http_methods(["POST"])
 def purchase(request):
-    if request.method == "POST":
-        good_id = request.POST.get("goodId")
-        if Goods.purchase(request.user, good_id) is False:
-            return JsonResponse(
-                {"title": "金额不足！", "status": "error", "subtitle": "请去捐赠界面/联系站长充值"}
-            )
-        else:
-            return JsonResponse(
-                {"title": "购买成功", "status": "success", "subtitle": "请在用户中心检查最新信息"}
-            )
+    good_id = request.POST.get("goodId")
+    good = Goods.objects.get(id=good_id)
+    if not good.purchase_by_user(request.user):
+        return JsonResponse(
+            {"title": "金额不足！", "status": "error", "subtitle": "请去捐赠界面/联系站长充值"}
+        )
     else:
-        return HttpResponse("errors")
+        return JsonResponse(
+            {"title": "购买成功", "status": "success", "subtitle": "请在用户中心检查最新信息"}
+        )
 
 
 @login_required
@@ -302,7 +301,7 @@ def alive_ip_api(request):
 def checkin(request):
     """用户签到"""
     ss_user = request.user.ss_user
-    res, traffic = Suser.checkin(ss_user)
+    res, traffic = ss_user.checkin()
     if res:
         data = {
             "title": "签到成功！",
@@ -312,6 +311,20 @@ def checkin(request):
     else:
         data = {"title": "签到失败！", "subtitle": "距离上次签到不足一天", "status": "error"}
     return JsonResponse(data)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def ailpay_callback(request):
+    data = dict(request.POST)
+    signature = data.pop("sign")
+    success = pay.alipay.verify(data, signature)
+    if success and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED"):
+        order = UserOrder.objects.get(out_trade_no=data['out_trade_no'])
+        order.handle_paid()
+        return HttpResponse('success')
+    else:
+        return HttpResponse('failure')
 
 
 class OrderView(View):
@@ -342,17 +355,3 @@ class OrderView(View):
         return JsonResponse(
             {"info": info, "qrcode_url": order.qrcode_url, "order_id": order.id}
         )
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def ailpay_callback(request):
-    data = dict(request.POST)
-    signature = data.pop("sign")
-    success = pay.alipay.verify(data, signature)
-    if success and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED"):
-        order = UserOrder.objects.get(out_trade_no=data['out_trade_no'])
-        order.handle_paid()
-        return HttpResponse('success')
-    else:
-        return HttpResponse('failure')

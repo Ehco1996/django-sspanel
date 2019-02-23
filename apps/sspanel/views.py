@@ -539,7 +539,7 @@ def user_status(request):
     # 查询流量用的最多的用户
     coreUser = Suser.get_user_by_traffic(num=10)
     context = {
-        "userNum": User.get_user_num(),
+        "userNum": User.get_total_user_num(),
         "todayChecked": Suser.get_today_checked_user_num(),
         "aliveUser": NodeOnlineLog.totalOnlineUser(),
         "todayRegistered": todayRegistered[:10],

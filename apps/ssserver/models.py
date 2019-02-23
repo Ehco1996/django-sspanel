@@ -99,45 +99,6 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
             if not 1024 < self.port < 50000:
                 raise ValidationError("端口必须在1024和50000之间")
 
-    @property
-    def user(self):
-        from apps.sspanel.models import User
-
-        return User.objects.get(pk=self.user_id)
-
-    @property
-    def today_is_checked(self):
-        if self.last_check_in_time:
-            return self.last_check_in_time.date() == timezone.now().date()
-        return False
-
-    @property
-    def user_last_use_time(self):
-        t = pendulum.from_timestamp(self.last_use_time, tz=settings.TIME_ZONE)
-        return t
-
-    @property
-    def used_traffic(self):
-        return traffic_format(self.download_traffic + self.upload_traffic)
-
-    @property
-    def totla_transfer(self):
-        return traffic_format(self.transfer_enable)
-
-    @property
-    def unused_traffic(self):
-        return traffic_format(
-            self.transfer_enable - self.upload_traffic - self.download_traffic
-        )
-
-    @property
-    def used_percentage(self):
-        try:
-            used = self.download_traffic + self.upload_traffic
-            return used / self.transfer_enable * 100
-        except ZeroDivisionError:
-            return 100
-
     @classmethod
     def get_today_checked_user_num(cls):
         now = get_current_time()
@@ -187,17 +148,65 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         except IndexError:
             return max(port_list) + 1
 
-    @staticmethod
-    def checkin(ss_user):
-        if not ss_user.today_is_checked:
+    @property
+    def user(self):
+        from apps.sspanel.models import User
+
+        return User.objects.get(pk=self.user_id)
+
+    @property
+    def today_is_checked(self):
+        if self.last_check_in_time:
+            return self.last_check_in_time.date() == timezone.now().date()
+        return False
+
+    @property
+    def user_last_use_time(self):
+        t = pendulum.from_timestamp(self.last_use_time, tz=settings.TIME_ZONE)
+        return t
+
+    @property
+    def used_traffic(self):
+        return traffic_format(self.download_traffic + self.upload_traffic)
+
+    @property
+    def totla_transfer(self):
+        return traffic_format(self.transfer_enable)
+
+    @property
+    def unused_traffic(self):
+        return traffic_format(
+            self.transfer_enable - self.upload_traffic - self.download_traffic
+        )
+
+    @property
+    def used_percentage(self):
+        try:
+            used = self.download_traffic + self.upload_traffic
+            return used / self.transfer_enable * 100
+        except ZeroDivisionError:
+            return 100
+
+    def checkin(self):
+        if not self.today_is_checked:
             traffic = randint(
                 settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
             )
-            ss_user.transfer_enable += traffic
-            ss_user.last_check_in_time = get_current_time()
-            ss_user.save()
+            self.transfer_enable += traffic
+            self.last_check_in_time = get_current_time()
+            self.save()
             return True, traffic
         return False, 0
+
+    def reset_traffic(self, new_traffic):
+        self.transfer_enable = new_traffic
+        self.upload_traffic = 0
+        self.download_traffic = 0
+        self.save()
+
+    def increase_transfer(self, new_transfer):
+        self.transfer_enable += new_transfer
+        self.save()
 
 
 class Node(ExportModelOperationsMixin("node"), models.Model):
