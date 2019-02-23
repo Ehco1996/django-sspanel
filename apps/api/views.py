@@ -336,4 +336,3 @@ class OrderView(View):
         return JsonResponse(
             {"info": info, "qrcode_url": order.qrcode_url, "order_id": order.id}
         )
-

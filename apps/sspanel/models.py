@@ -580,7 +580,9 @@ class UserOrder(models.Model):
 
     @classmethod
     def get_not_paid_order(cls, user, amount):
-        return cls.objects.filter(user=user, status=cls.STATUS_CREATED).first()
+        return cls.objects.filter(
+            user=user, status=cls.STATUS_CREATED, amount=amount
+        ).first()
 
     @classmethod
     def get_recent_created_order(cls, user):
