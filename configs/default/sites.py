@@ -1,3 +1,6 @@
+# 网站域名设置（请正确填写，不然订阅功能会失效：
+HOST = "http://127.0.0.1:8000/"
+
 # 网站密钥
 SECRET_KEY = "aasdasdas"
 
@@ -30,6 +33,8 @@ MAX_CHECKIN_TRAFFIC = 200 * MB
 USE_ALIPAY = True
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = "谜之屋的{}元充值码"
+# 支付宝回掉接口
+ALIPAY_CALLBACK_URL = f'{HOST}/api/callback/alipay'
 
 # 网站title
 TITLE = "谜之屋"
@@ -43,8 +48,6 @@ INVITE_NUM = 5
 # 网站邀请界面提示语
 INVITEINFO = "邀请码实时更新，如果用完了请关注公众号findyourownway获取"
 
-# 网站域名设置（请正确填写，不然订阅功能会失效：
-HOST = "http://127.0.0.1:8000/"
 
 # 部分API接口TOKEN
 TOKEN = "youowntoken"

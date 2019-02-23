@@ -609,7 +609,7 @@ class UserOrder(models.Model):
                 out_trade_no=out_trade_no,
                 total_amount=amount,
                 timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
-                notify_url="",
+                notify_url=settings.ALIPAY_CALLBACK_URL,
             )
             qrcode_url = trade.get("qr_code")
             order = cls.objects.create(
