@@ -429,7 +429,7 @@ def rebate_record(request):
 @permission_required("sspanel")
 def backend_index(request):
     """跳转到后台界面"""
-    context = {"userNum": User.get_user_num()}
+    context = {"userNum": User.get_total_user_num()}
 
     return render(request, "backend/index.html", context=context)
 
