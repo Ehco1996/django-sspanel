@@ -19,9 +19,6 @@ urlpatterns = [
     # 用户信息
     path("users/userinfo/", views.userinfo, name="userinfo"),
     path("users/userinfoedit/", views.userinfo_edit, name="userinfo_edit"),
-    #  二维码
-    path("qrcode/ssr/<node_id>/", views.get_ssr_qrcode, name="ssrqrcode"),
-    path("qrcode/ss/<node_id>/", views.get_ss_qrcode, name="ssqrcode"),
     # 捐赠/充值
     path("donate/", views.donate, name="donate"),
     path("shop/", views.shop, name="shop"),

@@ -104,8 +104,7 @@ def gen_invite_code(request):
             "status": "success",
         }
     else:
-        registerinfo = {"title": "失败",
-                        "subtitle": "已经不能生成更多的邀请码了", "status": "error"}
+        registerinfo = {"title": "失败", "subtitle": "已经不能生成更多的邀请码了", "status": "error"}
     return JsonResponse(registerinfo)
 
 
@@ -161,8 +160,7 @@ def change_theme(request):
     user = request.user
     user.theme = theme
     user.save()
-    registerinfo = {"title": "修改成功！",
-                    "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
+    registerinfo = {"title": "修改成功！", "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
     return JsonResponse(registerinfo)
 
 
@@ -177,8 +175,7 @@ def get_invitecode(request):
     需要验证token
     """
     admin_user = User.objects.filter(is_superuser=True).first()
-    code = InviteCode.objects.filter(
-        code_id=admin_user.pk, isused=False).first()
+    code = InviteCode.objects.filter(code_id=admin_user.pk, isused=False).first()
     if code:
         return JsonResponse({"msg": code.code})
     else:
@@ -290,8 +287,7 @@ def alive_ip_api(request):
     for user_id, ip_list in data["data"].items():
         user = User.objects.get(id=user_id)
         for ip in ip_list:
-            model_list.append(
-                AliveIp(node_id=node_id, user=user.username, ip=ip))
+            model_list.append(AliveIp(node_id=node_id, user=user.username, ip=ip))
     AliveIp.objects.bulk_create(model_list)
     res = {"ret": 1, "data": []}
     return JsonResponse(res)
@@ -320,11 +316,11 @@ def ailpay_callback(request):
     signature = data.pop("sign")
     success = pay.alipay.verify(data, signature)
     if success and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED"):
-        order = UserOrder.objects.get(out_trade_no=data['out_trade_no'])
+        order = UserOrder.objects.get(out_trade_no=data["out_trade_no"])
         order.handle_paid()
-        return HttpResponse('success')
+        return HttpResponse("success")
     else:
-        return HttpResponse('failure')
+        return HttpResponse("failure")
 
 
 class OrderView(View):
@@ -333,11 +329,9 @@ class OrderView(View):
         order = UserOrder.get_recent_created_order(user)
         order.check_order_status()
         if order and order.status == UserOrder.STATUS_FINISHED:
-            info = {"title": "充值成功!",
-                    "subtitle": "请去商品界面购买商品！", "status": "success"}
+            info = {"title": "充值成功!", "subtitle": "请去商品界面购买商品！", "status": "success"}
         else:
-            info = {"title": "支付查询失败!",
-                    "subtitle": "亲，确认支付了么？", "status": "error"}
+            info = {"title": "支付查询失败!", "subtitle": "亲，确认支付了么？", "status": "error"}
         return JsonResponse({"info": info})
 
     def post(self, request):

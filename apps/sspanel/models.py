@@ -40,8 +40,7 @@ class User(AbstractUser):
         default=0,
         validators=[MaxValueValidator(9), MinValueValidator(0)],
     )
-    level_expire_time = models.DateTimeField(
-        verbose_name="等级有效期", default=timezone.now)
+    level_expire_time = models.DateTimeField(verbose_name="等级有效期", default=timezone.now)
     theme = models.CharField(
         verbose_name="主题",
         choices=THEME_CHOICES,
@@ -67,8 +66,7 @@ class User(AbstractUser):
     @classmethod
     def get_today_register_user(cls):
         """返回今日注册的用户"""
-        today = datetime.datetime.combine(
-            datetime.date.today(), datetime.time.min)
+        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
         return cls.objects.filter(date_joined__gt=today)
 
     @classmethod
@@ -106,7 +104,7 @@ class User(AbstractUser):
         """生成该用户的订阅地址"""
         p = PreparedRequest()
         token = base64.b64encode(self.username.encode()).decode()
-        url = settings.HOST + "server/subscribe/"
+        url = settings.HOST + "/server/subscribe/"
         params = {"token": token}
         p.prepare_url(url, params)
         return p.url
@@ -190,8 +188,7 @@ class Donate(models.Model):
         return sorted(rec.items(), key=lambda rec: rec[1], reverse=True)[:10]
 
     """捐赠记录"""
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name="捐赠人")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="捐赠人")
     time = models.DateTimeField("捐赠时间", editable=False, auto_now_add=True)
     money = models.DecimalField(
         verbose_name="捐赠金额",
@@ -213,8 +210,7 @@ class Donate(models.Model):
 class MoneyCode(models.Model):
     """充值码"""
 
-    user = models.CharField(
-        verbose_name="用户名", max_length=128, blank=True, null=True)
+    user = models.CharField(verbose_name="用户名", max_length=128, blank=True, null=True)
     time = models.DateTimeField("捐赠时间", editable=False, auto_now_add=True)
     code = models.CharField(
         verbose_name="充值码",
@@ -255,10 +251,8 @@ class Goods(models.Model):
     STATUS_TYPE = ((1, "上架"), (-1, "下架"))
 
     name = models.CharField(verbose_name="商品名字", max_length=128, default="待编辑")
-    content = models.CharField(
-        verbose_name="商品描述", max_length=256, default="待编辑")
-    transfer = models.BigIntegerField(
-        verbose_name="增加的流量", default=settings.GB)
+    content = models.CharField(verbose_name="商品描述", max_length=256, default="待编辑")
+    transfer = models.BigIntegerField(verbose_name="增加的流量", default=settings.GB)
     money = models.DecimalField(
         verbose_name="金额",
         decimal_places=2,
@@ -321,8 +315,7 @@ class Goods(models.Model):
         inviter = User.objects.filter(pk=user.invited_by).first()
         if inviter:
             rebaterecord = RebateRecord(
-                user_id=inviter.pk, money=self.money
-                * Decimal(settings.INVITE_PERCENT)
+                user_id=inviter.pk, money=self.money * Decimal(settings.INVITE_PERCENT)
             )
             inviter.balance += rebaterecord.money
             inviter.save()
@@ -333,8 +326,7 @@ class Goods(models.Model):
 class PurchaseHistory(models.Model):
     """购买记录"""
 
-    good = models.ForeignKey(
-        Goods, on_delete=models.CASCADE, verbose_name="商品名")
+    good = models.ForeignKey(Goods, on_delete=models.CASCADE, verbose_name="商品名")
     user = models.CharField(verbose_name="购买者", max_length=128)
     money = models.DecimalField(
         verbose_name="金额",
@@ -398,8 +390,7 @@ class Ticket(models.Model):
 
     TICKET_CHOICE = ((1, "开启"), (-1, "关闭"))
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    time = models.DateTimeField(
-        verbose_name="时间", editable=False, auto_now_add=True)
+    time = models.DateTimeField(verbose_name="时间", editable=False, auto_now_add=True)
     title = models.CharField(verbose_name="标题", max_length=128)
     body = models.TextField(verbose_name="内容主体")
     status = models.SmallIntegerField(
@@ -433,8 +424,7 @@ class UserOrder(models.Model):
     out_trade_no = models.CharField(
         verbose_name="流水号", max_length=64, unique=True, db_index=True
     )
-    qrcode_url = models.CharField(
-        verbose_name="支付连接", max_length=64, null=True)
+    qrcode_url = models.CharField(verbose_name="支付连接", max_length=64, null=True)
     amount = models.DecimalField(
         verbose_name="金额", decimal_places=2, max_digits=10, default=0
     )
@@ -514,8 +504,7 @@ class UserOrder(models.Model):
         if self.status != self.STATUS_CREATED:
             return
         with transaction.atomic():
-            res = pay.alipay.api_alipay_trade_query(
-                out_trade_no=self.out_trade_no)
+            res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
             if res.get("trade_status", "") == "TRADE_SUCCESS":
                 self.status = self.STATUS_PAID
                 self.save()

@@ -1,12 +1,10 @@
 import tomd
-import qrcode
 
 from django.db.models import Q
 from django.urls import reverse
 from django.conf import settings
 from django.shortcuts import render
 from django.contrib import messages
-from django.utils.six import BytesIO
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
@@ -136,50 +134,6 @@ def userinfo(request):
         "themes": THEME_CHOICES,
     }
     return render(request, "sspanel/userinfo.html", context=context)
-
-
-@login_required
-def get_ssr_qrcode(request, node_id):
-    """返回节点配置信息的ssr二维码"""
-
-    # 获取用户对象
-    ss_user = request.user.ss_user
-    user = request.user
-    # 获取节点对象
-    node = Node.objects.get(node_id=node_id)
-    # 加入节点信息等级判断
-    if user.level < node.level:
-        return HttpResponse("哟小伙子，可以啊！但是投机取巧是不对的哦！")
-    ssr_link = node.get_ssr_link(ss_user)
-    ssr_img = qrcode.make(ssr_link)
-    buf = BytesIO()
-    ssr_img.save(buf)
-    image_stream = buf.getvalue()
-    # 构造图片reponse
-    response = HttpResponse(image_stream, content_type="image/png")
-    return response
-
-
-@login_required
-def get_ss_qrcode(request, node_id):
-    """返回节点配置信息的ss二维码"""
-
-    # 获取用户对象
-    ss_user = request.user.ss_user
-    user = request.user
-    # 获取节点对象
-    node = Node.objects.get(node_id=node_id)
-    # 加入节点信息等级判断
-    if user.level < node.level:
-        return HttpResponse("哟小伙子，可以啊！但是投机取巧是不对的哦！")
-    ss_link = node.get_ss_link(ss_user)
-    ss_img = qrcode.make(ss_link)
-    buf = BytesIO()
-    ss_img.save(buf)
-    image_stream = buf.getvalue()
-    # 构造图片reponse
-    response = HttpResponse(image_stream, content_type="image/png")
-    return response
 
 
 @login_required

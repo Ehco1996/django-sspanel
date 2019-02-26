@@ -16,54 +16,59 @@
 
 <div class="column is-12">
     <div class="box nodelist" id="id-nodelist">
-        {% for list in nodelists %}
-        <div class="node-cell" data-id="{{ list.node_id }}">
+        {% for node in nodelists %}
+        <div class="node-cell" data-id="{{ node.node_id }}" data-sslink="{{ node.sslink }}"
+            data-ssrlink="{{ node.ssrlink }}">
             <div class="card">
                 <div class="card-header">
-                    {% if list.online == True %}
+                    {% if node.online == True %}
                     <p class="card-header-title">
-                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ list.ss_type_info }}</span>
-                        <span class="tag is-{{ list.node_color}} is-rounded is-hidden-mobile">{{ list.node_type }}</span>
+                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ node.ss_type_info }}</span>
+                        <span
+                            class="tag is-{{ node.node_color}} is-rounded is-hidden-mobile">{{ node.node_type }}</span>
                         <span class="tag is-success is-rounded">在线</span>
-                        &nbsp;&nbsp;{{ list.name }}
+                        &nbsp;&nbsp;{{ node.name }}
                     </p>
                     {% else %}
                     <p class="card-header-title">
-                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ list.ss_type_info }}</span>
-                        <span class="tag is-{{ list.node_color }} is-rounded is-hidden-mobile">{{ list.node_type }}</span>
+                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ node.ss_type_info }}</span>
+                        <span
+                            class="tag is-{{ node.node_color }} is-rounded is-hidden-mobile">{{ node.node_type }}</span>
                         <span class="tag is-danger is-rounded">掉线</span>
-                        &nbsp;&nbsp;{{ list.name }}
+                        &nbsp;&nbsp;{{ node.name }}
                     </p>
                     {% endif %}
                     <p class="card-header-icon">地区：
                         <span class="icon">
-                            <i class="flag-icon flag-icon-{{ list.country }}"></i>
+                            <i class="flag-icon flag-icon-{{ node.country }}"></i>
                         </span>
                     </p>
-                    <a id="id-icon-{{ list.node_id }}" class="card-header-icon" onclick="$(`#id-card-body-${ {{ list.node_id }} }`).toggle('swing')">
+                    <a id="id-icon-{{ node.node_id }}" class="card-header-icon"
+                        onclick="$(`#id-card-body-${ {{ node.node_id }} }`).toggle('swing')">
                         <span class="icon">
                             <i class="fa fa-ellipsis-v"></i>
                         </span>
                     </a>
                 </div>
-                {% if user.level >= list.level %}
-                <div id="id-card-body-{{ list.node_id }}" hidden="true">
+                {% if user.level >= node.level %}
+                <div id="id-card-body-{{ node.node_id }}" hidden="true">
                     <div class="card-content">
                         <div class="content">
-                            {{ list.info }}
+                            {{ node.info }}
                         </div>
                     </div>
                     <div class="card-footer">
-                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ list.node_id }}" data-target="modal-qrcode-{{ list.name }}">二维码</a>
-                        <a class="card-footer-item modal-button" data-target="modal-config-{{ list.node_id }}">配置</a>
+                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
+                            data-target="modal-qrcode-{{ node.name }}">二维码</a>
+                        <a class="card-footer-item modal-button" data-target="modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
-                                <i class="fa fa-user-o">「{{ list.count }}」</i>
+                                <i class="fa fa-user-o">「{{ node.count }}」</i>
                             </span>
                         </a>
                     </div>
                     <!--配置部分 -->
-                    <div class="modal nodeinfo" id="modal-config-{{ list.node_id }}">
+                    <div class="modal nodeinfo" id="modal-config-{{ node.node_id }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
@@ -78,44 +83,44 @@
                                     </p>
                                     <tr>
                                         <td class="notification">节点ip:</td>
-                                        <td class="notification">{{ list.server }}</td>
+                                        <td class="notification">{{ node.server }}</td>
                                     </tr>
                                     <tr>
                                         <td class="notification">端口:</td>
-                                        <td class="notification">{{ list.port }}</td>
+                                        <td class="notification">{{ node.port }}</td>
                                     </tr>
                                     <tr>
                                         <td class="notification">密码:</td>
-                                        <td class="notification">{{ list.password }}</td>
+                                        <td class="notification">{{ node.password }}</td>
                                     </tr>
                                     <tr>
                                         <td class="notification">加密方式:</td>
-                                        <td class="notification">{{ list.method }}</td>
+                                        <td class="notification">{{ node.method }}</td>
                                     </tr>
-                                    {% if list.ss_type == 1 or list.ss_type == 2 %}
+                                    {% if node.ss_type == 1 or node.ss_type == 2 %}
                                     <tr>
                                         <td class="notification">协议:</td>
-                                        <td class="notification">{{ list.protocol }}</td>
+                                        <td class="notification">{{ node.protocol }}</td>
                                     </tr>
                                     <tr>
                                         <td class="notification">协议参数:</td>
-                                        <td class="notification">{{ list.protocol_param }}</td>
+                                        <td class="notification">{{ node.protocol_param }}</td>
                                     </tr>
                                     <tr>
                                         <td class="notification">混淆:</td>
-                                        <td class="notification">{{ list.obfs }}</td>
+                                        <td class="notification">{{ node.obfs }}</td>
                                     </tr>
                                     <tr>
                                         <td class="notification">混淆参数:</td>
-                                        <td class="notification">{{ list.obfs_param }}</td>
+                                        <td class="notification">{{ node.obfs_param }}</td>
                                     </tr>
                                     {% endif %}
                                 </table>
                                 <p class="subtitle">配置链接：</p>
-                                <a href={{ list.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
+                                <a href={{ node.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
                                 <br>
-                                {% if list.ss_type == 1 or list.ss_type == 2 %}
-                                <a href={{ list.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
+                                {% if node.ss_type == 1 or node.ss_type == 2 %}
+                                <a href={{ node.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
                                 <br>
                                 {% endif %}
                                 <br>
@@ -126,7 +131,8 @@
                                         <input class="input" id="id-sub-link" value="{{ sub_link }}">
                                     </p>
                                     <p class="control">
-                                        <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-sub-link">
+                                        <a class="button is-rounded" id="id-button-clip"
+                                            data-clipboard-target="#id-sub-link">
                                             <i class="fa fa-clipboard" aria-hidden="true"></i>
                                         </a>
                                     </p>
@@ -136,23 +142,23 @@
                         </div>
                     </div>
                     <!--二维码部分 -->
-                    <div class="modal" id="modal-qrcode-{{ list.name }}">
+                    <div class="modal" id="modal-qrcode-{{ node.name }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
                                 <p class="modal-card-title">节点:
-                                    <strong>{{ list.name }}</strong> 配置二维码</p>
+                                    <strong>{{ node.name }}</strong> 配置二维码</p>
                                 <button class="delete" aria-label="close"></button>
                             </header>
                             <section class="modal-card-body">
-                                {% if list.ss_type == 1 or list.ss_type == 2 %}
+                                {% if node.ss_type == 1 or node.ss_type == 2 %}
                                 <div class="box">
                                     <!-- SSR配置 ... -->
                                     <p class="subtitle">SSR版本(推荐使用)：</p>
-                                    <img src="" id="id-ssr-{{ list.node_id }}" width="256" height="256">
+                                    <div id="id-ssr-{{ node.node_id }}"></div>
                                 </div>
                                 {% endif %}
-                                {% if list.node_type == "多端口"%}
+                                {% if node.node_type == "多端口"%}
                                 <p class="subtitle">用原版SS要在节点编辑界面将
                                     <strong>混淆</strong>改成
                                     <code>http_simple_compatible</code>
@@ -160,7 +166,7 @@
                                 <div class="box">
                                     <!-- SS配置 ... -->
                                     <p class="subtitle">SS原版：</p>
-                                    <img src="" id="id-ss-{{ list.node_id }}" width="256" height="256">
+                                    <div id="id-ss-{{ node.node_id }}"></div>
                                 </div>
                                 {% endif %}
                             </section>
@@ -168,12 +174,12 @@
                     </div>
                 </div>
                 {% else %}
-                <div id="id-card-body-{{ list.node_id }}" hidden="true">
+                <div id="id-card-body-{{ node.node_id }}" hidden="true">
                     <div class="card-content">
                         <article class="message is-danger">
                             <div class="message-body">
                                 <p>该线路为VIP线路
-                                    <strong>购买对应商品 提升至等级:「{{list.level}}」后</strong> 才能看见节点配置哟！</p>
+                                    <strong>购买对应商品 提升至等级:「{{node.level}}」后</strong> 才能看见节点配置哟！</p>
                                 <a class="is-link" href="{% url 'sspanel:shop' %}">点我购买！</a>
                             </div>
                         </article>
@@ -200,14 +206,15 @@
         var target = $(event.target)
         var node = target.closest('.node-cell')
         // 找到节点id
-        var nodeId = node.data('id')
-        var ssr = node.find(`#id-ssr-${nodeId}`)
-        var ss = node.find(`#id-ss-${nodeId}`)
-        // 获取当前域名
-        var host = window.location.host
-        var protocol = window.location.protocol
-        // 追加节点二维码
-        ssr.attr("src", `${protocol}//${host}/sspanel/qrcode/ssr/${nodeId}`)
-        ss.attr("src", `${protocol}//${host}/sspanel/qrcode/ss/${nodeId}`)
+        var node_id = node.data('id')
+
+        var ssr = node.find(`#id-ssr-${node_id}`)
+        if (ssr.children().length == 0) { ssr.qrcode(node.data('ssrlink')) }
+
+        var ss = node.find(`#id-ss-${node_id}`)
+        if (ss.children().length == 0) {
+            sslink = encodeURI(node.data('sslink'))
+            ss.qrcode(sslink)
+        }
     })
 </script> {% endblock main %}
