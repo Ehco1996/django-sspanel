@@ -305,7 +305,9 @@ class Goods(models.Model):
         else:
             user.level_expire_time = now + days
             ss_user.reset_traffic(self.transfer)
+        ss_user.enable = True
         user.level = self.level
+        ss_user.save()
         user.save()
         # 增加购买记录
         PurchaseHistory.objects.create(

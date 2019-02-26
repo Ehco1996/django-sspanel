@@ -202,11 +202,9 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         self.transfer_enable = new_traffic
         self.upload_traffic = 0
         self.download_traffic = 0
-        self.save()
 
     def increase_transfer(self, new_transfer):
         self.transfer_enable += new_transfer
-        self.save()
 
 
 class Node(ExportModelOperationsMixin("node"), models.Model):
