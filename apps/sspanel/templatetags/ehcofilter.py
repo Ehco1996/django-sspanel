@@ -5,17 +5,18 @@ register = template.Library()
 
 
 # 增加模板class
-@register.filter(name='add_class')
+@register.filter(name="add_class")
 def add_class(value, arg):
-    return value.as_widget(attrs={'class': arg})
+    return value.as_widget(attrs={"class": arg})
+
 
 # 捐赠名混淆
 
 
-@register.filter(name='mix_name')
+@register.filter(name="mix_name")
 def mix_name(value, arg):
     value = str(value)
-    mix_name = value[0]+'***'+value[-1]
+    mix_name = value[0] + "***" + value[-1]
     return mix_name
 
 

@@ -5,7 +5,6 @@ django-jet
 Markdown
 Pillow
 python-alipay-sdk
-qrcode
 requests
 tomd
 uWSGI

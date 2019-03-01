@@ -22,11 +22,14 @@ services:
       MYSQL_HOST: db
     volumes:
       - .:/src/django-sspanel
-      - static:/src/django-sspanel/static
     depends_on:
       - db
     networks:
       - sspanel_network
+    ports:
+      - 8080:8080
+    working_dir: /src/django-sspanel
+    command: uwsgi uwsgi.ini
   nginx:
     image: nginx
     restart: always
