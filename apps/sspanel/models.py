@@ -450,7 +450,7 @@ class UserOrder(models.Model):
     def get_not_paid_order(cls, user, amount):
         return cls.objects.filter(
             user=user, status=cls.STATUS_CREATED, amount=amount
-        ).first()
+        ).order_by("-created_at").first()
 
     @classmethod
     def get_recent_created_order(cls, user):
@@ -466,11 +466,11 @@ class UserOrder(models.Model):
 
     @classmethod
     def get_or_create_order(cls, user, amount):
+        now = pendulum.now()
+        order = cls.get_not_paid_order(user, amount)
+        if order and order.expired_at > now:
+            return order
         with transaction.atomic():
-            now = pendulum.now()
-            order = cls.get_not_paid_order(user, amount)
-            if order and order.expired_at > now:
-                return order
             out_trade_no = cls.gen_out_trade_no()
             trade = pay.alipay.api_alipay_trade_precreate(
                 subject=settings.ALIPAY_TRADE_INFO.format(amount),
