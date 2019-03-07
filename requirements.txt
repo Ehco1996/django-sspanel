@@ -14,3 +14,4 @@ pycrypto
 gevent
 raven
 pendulum
+django-ratelimit

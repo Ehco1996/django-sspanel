@@ -6,6 +6,7 @@ from django.db.models import F
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
+from ratelimit.decorators import ratelimit
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
@@ -334,6 +335,7 @@ class OrderView(View):
             info = {"title": "支付查询失败!", "subtitle": "亲，确认支付了么？", "status": "error"}
         return JsonResponse({"info": info})
 
+    @ratelimit(key="user", rate="1/1s")
     def post(self, request):
         amount = int(request.POST.get("num"))
 
