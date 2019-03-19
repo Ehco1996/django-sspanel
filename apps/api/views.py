@@ -328,7 +328,7 @@ class OrderView(View):
     def get(self, request):
         user = request.user
         order = UserOrder.get_recent_created_order(user)
-        order.check_order_status()
+        order and order.check_order_status()
         if order and order.status == UserOrder.STATUS_FINISHED:
             info = {"title": "充值成功!", "subtitle": "请去商品界面购买商品！", "status": "success"}
         else:
