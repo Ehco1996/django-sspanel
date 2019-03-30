@@ -25,6 +25,7 @@ from .models import (
     RebateRecord,
 )
 from apps.constants import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES, THEME_CHOICES
+from django.core.mail import send_mail
 
 
 def index(request):
@@ -641,6 +642,7 @@ def anno_create(request):
         form = AnnoForm(request.POST)
         if form.is_valid():
             form.save()
+            send_anno_mail(form.data.get('body'))
             messages.success(request, "数据更新成功", extra_tags="添加成功")
             return HttpResponseRedirect(reverse("sspanel:backend_anno"))
         else:
@@ -661,6 +663,7 @@ def anno_edit(request, pk):
         form = AnnoForm(request.POST, instance=anno)
         if form.is_valid():
             form.save()
+            send_anno_mail(form.data.get('body'))
             messages.success(request, "数据更新成功", extra_tags="修改成功")
             return HttpResponseRedirect(reverse("sspanel:backend_anno"))
         else:
@@ -713,3 +716,16 @@ def backend_alive_user(request):
     context = Page_List_View(request, user_list, page_num).get_page_context()
 
     return render(request, "backend/aliveuser.html", context=context)
+
+def send_anno_mail(body):
+    send_mail_user =[]
+    users = User.objects.all()
+    for user in users:
+        send_mail_user.append(user.email)
+        if send_mail_user and settings.EXPIRE_EMAIL_NOTICE:
+            send_mail(
+                "{0}站内公告".format(settings.TITLE),
+                "{0} \n详情请登录{1}查看.".format(body, settings.HOST),
+                settings.DEFAULT_FROM_EMAIL,
+                send_mail_user,
+            )
