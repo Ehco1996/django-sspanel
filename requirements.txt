@@ -12,6 +12,6 @@ Django
 mysqlclient
 pycrypto
 gevent
-raven
 pendulum
 django-ratelimit
+sentry-sdk>=0.7.8

@@ -1,5 +1,6 @@
 import os
 
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 LOGIN_URL = "/sspanel/login"
@@ -13,7 +14,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_prometheus",
-    "raven.contrib.django.raven_compat",  # sentry support
     "django_crontab",  # 定时任务相关
     "apps.sspanel",  # 前端网站
     "apps.ssserver",
