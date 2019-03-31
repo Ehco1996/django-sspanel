@@ -29,14 +29,19 @@
                 <strong>付完款之后要按红色的确认按钮！</strong>
                 <hr>
                 <div class="content">
-                    <div class="field has-addons">
-                        <div class="control">
-                            <input id="id-input-payinput" class="input" type="number" step="1" placeholder="最低不得小于1元: "
-                                required>
+                    <div class="field is-grouped">
+                        <div class="control has-icons-left">
+                            <div class="control">
+                                <input id="id-input-payinput" class="input" type="number" step="1"
+                                    placeholder="最低不得小于1元: " required>
+                            </div>
+                            <div class="icon  is-left">
+                                <i class="fab fa-alipay"></i>
+                            </div>
                         </div>
-                        <div class="control">
-                            <button class="button is-outlined is-info" id="id-button-payrequest">提交</button>
-                        </div>
+                        <p class="control">
+                            <button class="button is-outlined is-info is-rounded" id="id-button-payrequest">提交</button>
+                        </p>
                     </div>
                     <div id="id-qrcode-box" class="is-hidden">
                         <div id="id-qrcode-canvas"></div>
@@ -44,9 +49,10 @@
                         <p>
                             <strong>付费完成之后请点击确认！</strong>
                         </p>
-                        <p id='id-msg-line'></p>
+                        <p id="id-msg-line"></p>
                         <div class="control">
-                            <button id="id-button-query" class="button is-outlined is-danger" href="#">确认</button>
+                            <button id="id-button-query" class="button is-outlined is-danger is-rounded"
+                                href="#">确认</button>
                         </div>
                     </div>
                 </div>

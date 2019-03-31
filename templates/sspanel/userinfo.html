@@ -22,7 +22,6 @@
                     <span class="icon is-large">
                         <i class="fa fa-home"></i>
                     </span> 欢迎小主: {{ user.username }}</p>
-                <p class="subtitle is-5">这里的功能还比较少...</p>
                 <button class="button is-rounded">
                     <a href="{% url 'sspanel:logout' %}">注销登录</a>
                 </button>
@@ -37,7 +36,7 @@
                 <hr>
                 <div class="field is-grouped">
                     <div class="control has-icons-left">
-                        <div class="select is-rounded is-fullwidth">
+                        <div class="select is-rounded is-fullwidth is-info ">
                             <select name="selects">
                                 <option value="" disabled="" selected="">更换页面主题</option>
                                 <option disabled="">───</option>
@@ -47,11 +46,30 @@
                             </select>
                         </div>
                         <div class="icon is-small is-left">
-                            <i class="fa fa-eercast"></i>
+                            <i class="fa fa-torah"></i>
                         </div>
                     </div>
                     <p class="control">
                         <button class="button is-outlined is-info is-rounded" id="id-button-theme">提交</button>
+                    </p>
+                </div>
+                <div class="field is-grouped">
+                    <div class="control has-icons-left">
+                        <div class="select is-rounded is-fullwidth is-primary">
+                            <select name="selects-sub-types">
+                                <option value="" disabled="" selected="">更换订阅类型</option>
+                                <option disabled="">───</option>
+                                {% for sub_type in  sub_types %}
+                                <option value="{{ sub_type.0 }}">{{ sub_type.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="icon is-small is-left">
+                            <i class="fa fa-rocket"></i>
+                        </div>
+                    </div>
+                    <p class="control">
+                        <button class="button is-outlined is-primary is-rounded" id="id-button-sub">提交</button>
                     </p>
                 </div>
                 <hr>
@@ -109,7 +127,8 @@
                         <br>
                         <div class="buttons">
                             <a class="button is-link is-rounded" href="{{ import_code }}">一键导入</a>
-                            <a class="button is-link is-rounded" href="{% url 'ssserver:node_config' %}" download>配置下载</a>
+                            <a class="button is-link is-rounded" href="{% url 'ssserver:node_config' %}"
+                                download>配置下载</a>
                             <span class="button is-link modal-button is-rounded" data-target="modal-sub">订阅</span>
                         </div>
                     </div>
@@ -129,7 +148,8 @@
                                     <input class="input" id="id-sub-link" value="{{ sub_link }}">
                                 </p>
                                 <p class="control">
-                                    <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-sub-link">
+                                    <a class="button is-rounded" id="id-button-clip"
+                                        data-clipboard-target="#id-sub-link">
                                         <i class="fa fa-clipboard" aria-hidden="true"></i>
                                     </a>
                                 </p>
@@ -145,7 +165,7 @@
 
                     <div class="message-body">
                         <div class="columns">
-                            <div class="column is-4">
+                            <div class="column">
                                 <li>总量:
                                     <code>{{ user.ss_user.totla_transfer }}</code>
                                 </li>
@@ -155,7 +175,7 @@
                             </div>
                         </div>
                         <div class="columns">
-                            <div class="column is-4">
+                            <div class="column">
                                 <li>剩余:
                                     <code>{{ remain_traffic }}% </code>
                                 </li>
@@ -164,14 +184,14 @@
                                 <progress class="progress is-info" value="{{  remain_traffic }}" max="100"></progress>
                             </div>
                         </div>
-
                         <div class="columns">
-                            <div class="column is-4">
+                            <div class="column">
                                 <li>使用:
                                     <code>{{ user.ss_user.used_traffic }}</code> </li>
                             </div>
                             <div class="column">
-                                <progress class="progress is-danger" value="{{  user.ss_user.used_percentage }}" max="100"></progress>
+                                <progress class="progress is-danger" value="{{  user.ss_user.used_percentage }}"
+                                    max="100"></progress>
                             </div>
                         </div>
                     </div>
@@ -200,6 +220,12 @@
                             <code>失效</code>
                         </li>
                         {% endif %}
+                        <li> 主题：
+                            <code>{{ user.theme }} </code>
+                        </li>
+                        <li> 订阅类型：
+                            <code>{{ user_sub_type }} </code>
+                        </li>
                         <li> 等级到期时间：
                             <code>{{ user.expire_time }} </code>
                         </li>
@@ -261,6 +287,24 @@
             swal('错误！', '请选择你要更换的主题', 'error')
         }
     }
-
     ThemeButton.click(changeTheme)
+    // 更换订阅类型
+    var SubButton = $("#id-button-sub")
+    var changeSub = function () {
+        var sub_type = $("select[name=selects-sub-types]").val();
+        if (sub_type) {
+            data = {
+                sub_type: sub_type,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
+            url = "{% url 'api:change_sub_type' %}"
+            $.post(url, data, function (results) {
+                info = results
+                swal(info.title, info.subtitle, info.status)
+            })
+        } else {
+            swal('错误！', '请选择你要更换的订阅类型', 'error')
+        }
+    }
+    SubButton.click(changeSub)
 </script> {% endblock main %}
