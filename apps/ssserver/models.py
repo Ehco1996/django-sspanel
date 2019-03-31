@@ -218,24 +218,10 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
 
     SS_TYPE_CHOICES = ((0, "SS"), (1, "SSR"), (2, "SS/SSR"))
 
-    @classmethod
-    def get_import_code(cls, user):
-        """获取该用户的所有节点的导入信息"""
-        ss_user = user.ss_user
-        sub_code_list = []
-        node_list = cls.objects.filter(level__lte=user.level, show=1)
-        for node in node_list:
-            sub_code_list.append(node.get_node_link(ss_user))
-        return "\n".join(sub_code_list)
-
-    @classmethod
-    def get_node_ids(cls, all=False):
-        """返回所有节点的id"""
-        if all is False:
-            nodes = cls.objects.filter(show=1)
-        else:
-            nodes = cls.objects.all()
-        return [node.node_id for node in nodes]
+    class Meta:
+        ordering = ["-show", "order"]
+        verbose_name_plural = "节点"
+        db_table = "ss_node"
 
     node_id = models.IntegerField("节点id", unique=True)
     port = models.IntegerField("节点端口", default=443, blank=True, help_text="单端口多用户时需要")
@@ -393,14 +379,28 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
     def get_by_node_id(cls, node_id):
         return cls.objects.get(node_id=node_id)
 
+    @classmethod
+    def get_import_code(cls, user):
+        """获取该用户的所有节点的导入信息"""
+        ss_user = user.ss_user
+        sub_code_list = []
+        node_list = cls.objects.filter(level__lte=user.level, show=1)
+        for node in node_list:
+            sub_code_list.append(node.get_node_link(ss_user))
+        return "\n".join(sub_code_list)
+
+    @classmethod
+    def get_node_ids(cls, all=False):
+        """返回所有节点的id"""
+        if all is False:
+            nodes = cls.objects.filter(show=1)
+        else:
+            nodes = cls.objects.all()
+        return [node.node_id for node in nodes]
+
     # verbose_name
     human_total_traffic.short_description = "总流量"
     human_used_traffic.short_description = "使用流量"
-
-    class Meta:
-        ordering = ["-show", "order"]
-        verbose_name_plural = "节点"
-        db_table = "ss_node"
 
 
 class TrafficLog(ExportModelOperationsMixin("traffic_log"), models.Model):

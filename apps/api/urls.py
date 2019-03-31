@@ -11,6 +11,7 @@ urlpatterns = [
     path("shop/", views.purchase, name="purchase"),
     path("traffic/query/", views.traffic_query, name="traffic_query"),
     path("change/theme/", views.change_theme, name="change_theme"),
+    path("change/sub_type/", views.change_sub_type, name="change_sub_type"),
     path("checkin/", views.checkin, name="checkin"),
     # 邀请码接口
     path("get/invitecode/", views.get_invitecode, name="get_invitecode"),

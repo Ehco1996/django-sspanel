@@ -21,6 +21,16 @@ from apps.utils import get_long_random_string, traffic_format
 class User(AbstractUser):
     """SS账户模型"""
 
+    SUB_TYPE_SS = 0
+    SUB_TYPE_SSR = 1
+    SUB_TYPE_ALL = 2
+
+    SUB_TYPES = (
+        (SUB_TYPE_SS, "只订阅SS"),
+        (SUB_TYPE_SSR, "只订阅SSR"),
+        (SUB_TYPE_ALL, "订阅所有"),
+    )
+
     invitecode = models.CharField(verbose_name="邀请码", max_length=40)
     invited_by = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
     balance = models.DecimalField(
@@ -46,6 +56,9 @@ class User(AbstractUser):
         choices=THEME_CHOICES,
         default=settings.DEFAULT_THEME,
         max_length=10,
+    )
+    sub_type = models.SmallIntegerField(
+        verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
 
     class Meta(AbstractUser.Meta):
@@ -448,9 +461,11 @@ class UserOrder(models.Model):
 
     @classmethod
     def get_not_paid_order(cls, user, amount):
-        return cls.objects.filter(
-            user=user, status=cls.STATUS_CREATED, amount=amount
-        ).order_by("-created_at").first()
+        return (
+            cls.objects.filter(user=user, status=cls.STATUS_CREATED, amount=amount)
+            .order_by("-created_at")
+            .first()
+        )
 
     @classmethod
     def get_recent_created_order(cls, user):

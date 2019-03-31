@@ -161,8 +161,18 @@ def change_theme(request):
     user = request.user
     user.theme = theme
     user.save()
-    registerinfo = {"title": "修改成功！", "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
-    return JsonResponse(registerinfo)
+    res = {"title": "修改成功！", "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
+    return JsonResponse(res)
+
+
+@login_required
+def change_sub_type(request):
+    sub_type = request.POST.get("sub_type")
+    user = request.user
+    user.sub_type = sub_type
+    user.save()
+    res = {"title": "修改成功！", "subtitle": "订阅类型更换成功!", "status": "success"}
+    return JsonResponse(res)
 
 
 @authorized
