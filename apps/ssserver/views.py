@@ -122,9 +122,12 @@ def subscribe(request):
     user = get_object_or_404(User, username=username)
     ss_user = user.ss_user
     # 遍历该用户所有的节点
-    node_list = Node.objects.filter(
-        level__lte=user.level, show=1, node_type=user.sub_type
-    )
+    if user.sub_type == User.SUB_TYPE_ALL:
+        node_list = Node.objects.filter(level__lte=user.level, show=1)
+    else:
+        node_list = Node.objects.filter(
+            level__lte=user.level, show=1, node_type=user.sub_type
+        )
     # 生成订阅链接部分
     sub_code = "MAX={}\n".format(len(node_list))
     for node in node_list:
