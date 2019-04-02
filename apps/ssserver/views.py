@@ -1,5 +1,6 @@
 import json
 import base64
+from urllib import parse
 
 from django.urls import reverse
 from django.conf import settings
@@ -7,7 +8,7 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
-from django.http import StreamingHttpResponse, HttpResponseRedirect
+from django.http import StreamingHttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required, permission_required
 
 from .models import Suser, Node
@@ -116,8 +117,12 @@ def subscribe(request):
     """
     返回ssr订阅链接
     """
-    token = request.GET.get("token", "")
-    username = base64.b64decode(token).decode()
+    url = request.build_absolute_uri()
+    token = parse.parse_qs(parse.urlparse(url).query).get("token", [])
+    if token:
+        username = base64.b64decode(token[0]).decode()
+    else:
+        return JsonResponse(status_code=404)
     # 验证token
     user = get_object_or_404(User, username=username)
     ss_user = user.ss_user
