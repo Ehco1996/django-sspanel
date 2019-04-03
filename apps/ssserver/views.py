@@ -120,7 +120,10 @@ def subscribe(request):
     url = request.build_absolute_uri()
     token = parse.parse_qs(parse.urlparse(url).query).get("token", [])
     if token:
-        username = base64.b64decode(token[0]).decode()
+        try:
+            username = base64.b64decode(token[0]).decode()
+        except TypeError:
+            return JsonResponse(status_code=404)
     else:
         return JsonResponse(status_code=404)
     # 验证token

@@ -1,6 +1,7 @@
 import time
 import base64
 import datetime
+from urllib.parse import urlencode
 
 import pendulum
 import markdown
@@ -9,7 +10,6 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
-from requests import PreparedRequest
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -115,12 +115,9 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         """生成该用户的订阅地址"""
-        p = PreparedRequest()
-        token = base64.b64encode(self.username.encode()).decode()
-        url = settings.HOST + "/server/subscribe/"
+        token = base64.urlsafe_b64decode(self.username.encode()).decode()
         params = {"token": token}
-        p.prepare_url(url, params)
-        return p.url
+        return settings.HOST + f"/server/subscribe/?{urlencode(params)}"
 
     @property
     def ss_user(self):
