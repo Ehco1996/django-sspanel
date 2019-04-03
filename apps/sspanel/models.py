@@ -115,7 +115,7 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         """生成该用户的订阅地址"""
-        token = base64.urlsafe_b64decode(self.username.encode()).decode()
+        token = base64.urlsafe_b64encode(self.username.encode()).decode()
         params = {"token": token}
         return settings.HOST + f"/server/subscribe/?{urlencode(params)}"
 

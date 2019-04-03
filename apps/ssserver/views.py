@@ -1,5 +1,6 @@
 import json
 import base64
+import binascii
 from urllib import parse
 
 from django.urls import reverse
@@ -8,7 +9,7 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
-from django.http import StreamingHttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import StreamingHttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.contrib.auth.decorators import login_required, permission_required
 
 from .models import Suser, Node
@@ -122,10 +123,10 @@ def subscribe(request):
     if token:
         try:
             username = base64.b64decode(token[0]).decode()
-        except TypeError:
-            return JsonResponse(status_code=404)
+        except binascii.Error:
+            return HttpResponseNotFound()
     else:
-        return JsonResponse(status_code=404)
+        return HttpResponseNotFound()
     # 验证token
     user = get_object_or_404(User, username=username)
     ss_user = user.ss_user
