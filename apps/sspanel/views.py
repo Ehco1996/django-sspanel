@@ -87,24 +87,18 @@ def user_login(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
-            # 获取表单用户名和密码
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
-            # 进行用户验证
-            user = authenticate(username=username, password=password)
-            if user is not None and user.is_active:
+            user = authenticate(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+            )
+            if user and user.is_active:
                 login(request, user)
                 messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
                 return HttpResponseRedirect(reverse("sspanel:userinfo"))
             else:
-                form = LoginForm()
                 messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
-                context = {"form": form}
-                return render(request, "sspanel/login.html", context=context)
-    else:
-        context = {"form": LoginForm()}
-
-        return render(request, "sspanel/login.html", context=context)
+    context = {"form": LoginForm()}
+    return render(request, "sspanel/login.html", context=context)
 
 
 def user_logout(request):
