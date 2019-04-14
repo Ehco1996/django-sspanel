@@ -6,12 +6,13 @@ from django.db.models import F
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
+from ratelimit.decorators import ratelimit
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.payments import pay
-from apps.constants import NODE_USER_INFO_TTL
+from apps.constants import NODE_USER_INFO_TTL, NODE_USER_CACHE_KEY
 from apps.utils import traffic_format, simple_cached_view, get_node_user, authorized
 from apps.ssserver.models import Suser, TrafficLog, Node, NodeOnlineLog, AliveIp
 from apps.sspanel.models import InviteCode, Goods, User, Donate, UserOrder
@@ -160,8 +161,18 @@ def change_theme(request):
     user = request.user
     user.theme = theme
     user.save()
-    registerinfo = {"title": "修改成功！", "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
-    return JsonResponse(registerinfo)
+    res = {"title": "修改成功！", "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
+    return JsonResponse(res)
+
+
+@login_required
+def change_sub_type(request):
+    sub_type = request.POST.get("sub_type")
+    user = request.user
+    user.sub_type = sub_type
+    user.save()
+    res = {"title": "修改成功！", "subtitle": "订阅类型更换成功!", "status": "success"}
+    return JsonResponse(res)
 
 
 @authorized
@@ -219,7 +230,7 @@ def node_online_api(request):
 
 
 @authorized
-@simple_cached_view(ttl=NODE_USER_INFO_TTL)
+@simple_cached_view(key=NODE_USER_CACHE_KEY, ttl=NODE_USER_INFO_TTL)
 @require_http_methods(["GET"])
 def user_api(request, node_id):
     """
@@ -327,13 +338,14 @@ class OrderView(View):
     def get(self, request):
         user = request.user
         order = UserOrder.get_recent_created_order(user)
-        order.check_order_status()
+        order and order.check_order_status()
         if order and order.status == UserOrder.STATUS_FINISHED:
             info = {"title": "充值成功!", "subtitle": "请去商品界面购买商品！", "status": "success"}
         else:
             info = {"title": "支付查询失败!", "subtitle": "亲，确认支付了么？", "status": "error"}
         return JsonResponse({"info": info})
 
+    @ratelimit(key="user", rate="1/1s")
     def post(self, request):
         amount = int(request.POST.get("num"))
 

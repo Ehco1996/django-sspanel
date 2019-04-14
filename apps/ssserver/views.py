@@ -1,5 +1,7 @@
 import json
 import base64
+import binascii
+from urllib import parse
 
 from django.urls import reverse
 from django.conf import settings
@@ -7,7 +9,7 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
-from django.http import StreamingHttpResponse, HttpResponseRedirect
+from django.http import StreamingHttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.contrib.auth.decorators import login_required, permission_required
 
 from .models import Suser, Node
@@ -116,13 +118,25 @@ def subscribe(request):
     """
     返回ssr订阅链接
     """
-    token = request.GET.get("token", "")
-    username = base64.b64decode(token).decode()
+    url = request.build_absolute_uri()
+    token = parse.parse_qs(parse.urlparse(url).query).get("token", [])
+    if token:
+        try:
+            username = base64.b64decode(token[0]).decode()
+        except binascii.Error:
+            return HttpResponseNotFound()
+    else:
+        return HttpResponseNotFound()
     # 验证token
     user = get_object_or_404(User, username=username)
     ss_user = user.ss_user
     # 遍历该用户所有的节点
-    node_list = Node.objects.filter(level__lte=user.level, show=1)
+    if user.sub_type == User.SUB_TYPE_ALL:
+        node_list = Node.objects.filter(level__lte=user.level, show=1)
+    else:
+        node_list = Node.objects.filter(
+            level__lte=user.level, show=1, node_type=user.sub_type
+        )
     # 生成订阅链接部分
     sub_code = "MAX={}\n".format(len(node_list))
     for node in node_list:

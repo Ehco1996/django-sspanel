@@ -1,6 +1,7 @@
 import time
 import base64
 import datetime
+from urllib.parse import urlencode
 
 import pendulum
 import markdown
@@ -9,17 +10,27 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
-from requests import PreparedRequest
+from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from apps.payments import pay
-from apps.constants import THEME_CHOICES
+from apps.constants import THEME_CHOICES, NODE_USER_CACHE_KEY
 from apps.utils import get_long_random_string, traffic_format
 
 
 class User(AbstractUser):
     """SS账户模型"""
+
+    SUB_TYPE_SS = 0
+    SUB_TYPE_SSR = 1
+    SUB_TYPE_ALL = 2
+
+    SUB_TYPES = (
+        (SUB_TYPE_SS, "只订阅SS"),
+        (SUB_TYPE_SSR, "只订阅SSR"),
+        (SUB_TYPE_ALL, "订阅所有"),
+    )
 
     invitecode = models.CharField(verbose_name="邀请码", max_length=40)
     invited_by = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
@@ -46,6 +57,9 @@ class User(AbstractUser):
         choices=THEME_CHOICES,
         default=settings.DEFAULT_THEME,
         max_length=10,
+    )
+    sub_type = models.SmallIntegerField(
+        verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
 
     class Meta(AbstractUser.Meta):
@@ -102,12 +116,9 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         """生成该用户的订阅地址"""
-        p = PreparedRequest()
-        token = base64.b64encode(self.username.encode()).decode()
-        url = settings.HOST + "/server/subscribe/"
+        token = base64.urlsafe_b64encode(self.username.encode()).decode()
         params = {"token": token}
-        p.prepare_url(url, params)
-        return p.url
+        return settings.HOST + f"/server/subscribe/?{urlencode(params)}"
 
     @property
     def ss_user(self):
@@ -309,6 +320,7 @@ class Goods(models.Model):
         user.level = self.level
         ss_user.save()
         user.save()
+        cache.delete(NODE_USER_CACHE_KEY)
         # 增加购买记录
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
@@ -448,9 +460,11 @@ class UserOrder(models.Model):
 
     @classmethod
     def get_not_paid_order(cls, user, amount):
-        return cls.objects.filter(
-            user=user, status=cls.STATUS_CREATED, amount=amount
-        ).first()
+        return (
+            cls.objects.filter(user=user, status=cls.STATUS_CREATED, amount=amount)
+            .order_by("-created_at")
+            .first()
+        )
 
     @classmethod
     def get_recent_created_order(cls, user):
@@ -466,11 +480,11 @@ class UserOrder(models.Model):
 
     @classmethod
     def get_or_create_order(cls, user, amount):
+        now = pendulum.now()
+        order = cls.get_not_paid_order(user, amount)
+        if order and order.expired_at > now:
+            return order
         with transaction.atomic():
-            now = pendulum.now()
-            order = cls.get_not_paid_order(user, amount)
-            if order and order.expired_at > now:
-                return order
             out_trade_no = cls.gen_out_trade_no()
             trade = pay.alipay.api_alipay_trade_precreate(
                 subject=settings.ALIPAY_TRADE_INFO.format(amount),
