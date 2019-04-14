@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 
-from apps.constants import DEFUALT_CACHE_TTL
+from apps.constants import DEFAULT_CACHE_TTL
 from apps.cachext import make_default_key
 
 
@@ -71,7 +71,7 @@ def simple_cached_view(key=None, ttl=None):
         @wraps(func)
         def cached_view(*agrs, **kwagrs):
             cache_key = key if key else make_default_key(func, *agrs, **kwagrs)
-            cache_ttl = ttl if ttl else DEFUALT_CACHE_TTL
+            cache_ttl = ttl if ttl else DEFAULT_CACHE_TTL
             resp = cache.get(cache_key)
             if resp:
                 return resp

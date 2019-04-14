@@ -12,7 +12,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
 
 from apps.payments import pay
-from apps.constants import NODE_USER_INFO_TTL
+from apps.constants import NODE_USER_INFO_TTL, NODE_USER_CACHE_KEY
 from apps.utils import traffic_format, simple_cached_view, get_node_user, authorized
 from apps.ssserver.models import Suser, TrafficLog, Node, NodeOnlineLog, AliveIp
 from apps.sspanel.models import InviteCode, Goods, User, Donate, UserOrder
@@ -230,7 +230,7 @@ def node_online_api(request):
 
 
 @authorized
-@simple_cached_view(ttl=NODE_USER_INFO_TTL)
+@simple_cached_view(key=NODE_USER_CACHE_KEY, ttl=NODE_USER_INFO_TTL)
 @require_http_methods(["GET"])
 def user_api(request, node_id):
     """
