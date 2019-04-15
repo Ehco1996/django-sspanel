@@ -15,7 +15,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from apps.payments import pay
-from apps.constants import THEME_CHOICES, NODE_USER_CACHE_KEY
+from apps.constants import THEME_CHOICES
 from apps.utils import get_long_random_string, traffic_format
 
 
@@ -320,7 +320,6 @@ class Goods(models.Model):
         user.level = self.level
         ss_user.save()
         user.save()
-        cache.delete(NODE_USER_CACHE_KEY)
         # 增加购买记录
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now

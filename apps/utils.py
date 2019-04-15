@@ -69,14 +69,14 @@ def reverse_traffic(str):
 def simple_cached_view(key=None, ttl=None):
     def decorator(func):
         @wraps(func)
-        def cached_view(*agrs, **kwagrs):
-            cache_key = key if key else make_default_key(func, *agrs, **kwagrs)
+        def cached_view(*args, **kw):
+            cache_key = key if key else make_default_key(func, *args, **kw)
             cache_ttl = ttl if ttl else DEFAULT_CACHE_TTL
             resp = cache.get(cache_key)
             if resp:
                 return resp
             else:
-                resp = func(*agrs, **kwagrs)
+                resp = func(*args, **kw)
                 cache.set(cache_key, resp, cache_ttl)
                 return resp
 
@@ -100,46 +100,6 @@ def authorized(view_func):
             return JsonResponse({"ret": -1, "msg": "auth error"})
 
     return wrapper
-
-
-def get_node_user(node_id):
-    """
-    返回所有当前节点可以使用的用户信息
-    """
-    from apps.ssserver.models import Node, Suser
-
-    node = Node.objects.filter(node_id=node_id).first()
-    if node:
-        data = []
-        level = node.level
-        user_list = Suser.get_vaild_user(level)
-        for user in user_list:
-            cfg = {
-                "port": user.port,
-                "u": user.upload_traffic,
-                "d": user.download_traffic,
-                "transfer_enable": user.transfer_enable,
-                "passwd": user.password,
-                "enable": user.enable,
-                "user_id": user.user_id,
-                "id": user.user_id,
-                "method": user.method,
-                "obfs": user.obfs,
-                "obfs_param": user.obfs_param,
-                "protocol": user.protocol,
-                "protocol_param": user.protocol_param,
-                "speed_limit_per_user": user.speed_limit,
-            }
-            if node.speed_limit > 0:
-                if user.speed_limit > 0:
-                    cfg["speed_limit_per_user"] = min(
-                        user.speed_limit, node.speed_limit
-                    )
-                else:
-                    cfg["speed_limit_per_user"] = node.speed_limit
-
-            data.append(cfg)
-        return data
 
 
 def get_current_time():

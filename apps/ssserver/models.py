@@ -123,7 +123,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         return cls.objects.all().order_by("-download_traffic")[:10]
 
     @classmethod
-    def get_vaild_user(cls, level):
+    def get_users_by_level(cls, level):
         """返回指大于等于指定等级的所有合法用户"""
         from apps.sspanel.models import User
 
@@ -133,6 +133,41 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
             user_id__in=user_ids,
         )
         return users
+
+    @classmethod
+    def get_user_configs_by_node_id(cls, node_id):
+        data = []
+        node = Node.objects.filter(node_id=node_id).first()
+        if not node:
+            return data
+        user_list = cls.get_users_by_level(node.level)
+        for user in user_list:
+            cfg = {
+                "port": user.port,
+                "u": user.upload_traffic,
+                "d": user.download_traffic,
+                "transfer_enable": user.transfer_enable,
+                "passwd": user.password,
+                "enable": user.enable,
+                "user_id": user.user_id,
+                "id": user.user_id,
+                "method": user.method,
+                "obfs": user.obfs,
+                "obfs_param": user.obfs_param,
+                "protocol": user.protocol,
+                "protocol_param": user.protocol_param,
+                "speed_limit_per_user": user.speed_limit,
+            }
+            if node.speed_limit > 0:
+                if user.speed_limit > 0:
+                    cfg["speed_limit_per_user"] = min(
+                        user.speed_limit, node.speed_limit
+                    )
+                else:
+                    cfg["speed_limit_per_user"] = node.speed_limit
+
+            data.append(cfg)
+        return data
 
     @classmethod
     def get_random_port(cls):
