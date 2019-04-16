@@ -1,7 +1,7 @@
-import time
+import hashlib
 import json
 import random
-import hashlib
+import time
 from functools import wraps
 
 import pendulum
@@ -9,8 +9,15 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 
+from apps.cachext import Cached, make_default_key
 from apps.constants import DEFAULT_CACHE_TTL
-from apps.cachext import make_default_key
+
+
+class C(Cached):
+    client = cache
+
+
+cache.cached = C
 
 
 def get_random_string(

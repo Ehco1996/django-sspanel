@@ -12,7 +12,7 @@ from django.db import models, connection
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from apps.utils import get_short_random_string, traffic_format, get_current_time
+from apps.utils import get_short_random_string, traffic_format, get_current_time, cache
 from apps.constants import (
     METHOD_CHOICES,
     PROTOCOL_CHOICES,
@@ -135,6 +135,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         return users
 
     @classmethod
+    @cache.cached(ttl=60 * 60 * 5)
     def get_user_configs_by_node_id(cls, node_id):
         data = []
         node = Node.objects.filter(node_id=node_id).first()
@@ -168,6 +169,14 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
 
             data.append(cfg)
         return data
+
+    @classmethod
+    def clear_get_user_configs_by_node_id_cache(cls):
+        node_ids = Node.get_node_ids_by_show(all=True)
+        keys = []
+        for node_id in node_ids:
+            keys.append(cls.get_user_configs_by_node_id.make_cache_key(cls, node_id))
+        return cache.delete_many(keys)
 
     @classmethod
     def get_random_port(cls):
@@ -425,13 +434,12 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         return "\n".join(sub_code_list)
 
     @classmethod
-    def get_node_ids(cls, all=False):
-        """返回所有节点的id"""
-        if all is False:
-            nodes = cls.objects.filter(show=1)
+    def get_node_ids_by_show(cls, show=1, all=False):
+        if all:
+            nodes = cls.objects.all().values_list("node_id")
         else:
-            nodes = cls.objects.all()
-        return [node.node_id for node in nodes]
+            nodes = cls.objects.filter(show=show).values_list("node_id")
+        return [node[0] for node in nodes]
 
     # verbose_name
     human_total_traffic.short_description = "总流量"

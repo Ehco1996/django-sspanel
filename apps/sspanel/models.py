@@ -10,7 +10,6 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
-from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -320,6 +319,7 @@ class Goods(models.Model):
         user.level = self.level
         ss_user.save()
         user.save()
+        ss_user.clear_get_user_configs_by_node_id_cache()
         # 增加购买记录
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
