@@ -703,7 +703,7 @@ def backend_ticketedit(request, pk):
 @permission_required("ssserver")
 def backend_alive_user(request):
     user_list = []
-    for node_id in Node.get_node_ids():
+    for node_id in Node.get_node_ids_by_show():
         user_list.extend(AliveIp.recent_alive(node_id))
     page_num = 15
     context = Page_List_View(request, user_list, page_num).get_page_context()
