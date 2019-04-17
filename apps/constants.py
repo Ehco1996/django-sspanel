@@ -77,5 +77,3 @@ NODE_TIME_OUT = 75
 
 
 DEFAULT_CACHE_TTL = 60 * 60 * 2
-NODE_USER_INFO_TTL = 60 * 5
-NODE_USER_CACHE_KEY = "cache.get.userF.info"

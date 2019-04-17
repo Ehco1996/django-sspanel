@@ -18,7 +18,9 @@ urlpatterns = [
     # web api 接口
     path("nodes/<int:node_id>", views.node_api, name="get_node_info"),
     path("nodes/online", views.node_online_api, name="post_onlineip"),
-    path("users/nodes/<int:node_id>", views.user_api, name="get_userinfo"),
+    path(
+        "users/nodes/<int:node_id>", views.node_user_configs, name="node_user_configs"
+    ),
     path("traffic/upload", views.traffic_api, name="post_traffic"),
     path("nodes/aliveip", views.alive_ip_api, name="post_aliveip"),
     # 支付
