@@ -138,7 +138,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
     @cache.cached(ttl=60 * 60 * 5)
     def get_user_configs_by_node_id(cls, node_id):
         data = []
-        node = Node.objects.filter(node_id=node_id).first()
+        node = Node.objects.filter(node_id=node_id, show=1).first()
         if not node:
             return data
         user_list = cls.get_users_by_level(node.level)
@@ -171,8 +171,9 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         return data
 
     @classmethod
-    def clear_get_user_configs_by_node_id_cache(cls):
-        node_ids = Node.get_node_ids_by_show(all=True)
+    def clear_get_user_configs_by_node_id_cache(cls, node_ids=None):
+        if not node_ids:
+            node_ids = Node.get_node_ids_by_show(all=True)
         keys = []
         for node_id in node_ids:
             keys.append(cls.get_user_configs_by_node_id.make_cache_key(cls, node_id))

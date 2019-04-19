@@ -14,9 +14,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_prometheus",
-    "django_crontab",  # 定时任务相关
-    "apps.sspanel",  # 前端网站
+    "django_crontab",
+    "apps.sspanel",
     "apps.ssserver",
+    "v2",
 ]
 
 MIDDLEWARE = [
