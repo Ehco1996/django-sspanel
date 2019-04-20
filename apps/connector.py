@@ -9,4 +9,3 @@ def clear_node_user_configs_cache(sender, instance, created, *args, **kwargs):
 def register_connectors():
     post_save.connect(clear_node_user_configs_cache, sender=Node)
     pre_delete.connect(clear_node_user_configs_cache, sender=Node)
-

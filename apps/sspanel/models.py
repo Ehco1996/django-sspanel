@@ -79,8 +79,7 @@ class User(AbstractUser):
     @classmethod
     def get_today_register_user(cls):
         """返回今日注册的用户"""
-        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-        return cls.objects.filter(date_joined__gt=today)
+        return cls.objects.filter(date_joined__gt=pendulum.today())
 
     @classmethod
     def add_new_user(cls, cleaned_data):
@@ -176,30 +175,11 @@ class RebateRecord(models.Model):
 
 
 class Donate(models.Model):
-    @classmethod
-    def totalDonateMoney(cls):
-        """返回捐赠总金额"""
-        return sum([d.money for d in cls.objects.all()])
 
-    @classmethod
-    def totalDonateNums(cls):
-        """返回捐赠总数量"""
-        return len(cls.objects.all())
-
-    @classmethod
-    def richPeople(cls):
-        """返回捐赠金额最多的前10名"""
-        rec = {}
-        for d in cls.objects.all():
-            if d.user not in rec.keys():
-                rec[d.user] = d.money
-            else:
-                rec[d.user] += d.money
-        return sorted(rec.items(), key=lambda rec: rec[1], reverse=True)[:10]
-
-    """捐赠记录"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="捐赠人")
-    time = models.DateTimeField("捐赠时间", editable=False, auto_now_add=True)
+    time = models.DateTimeField(
+        "捐赠时间", editable=False, auto_now_add=True, db_index=True
+    )
     money = models.DecimalField(
         verbose_name="捐赠金额",
         decimal_places=2,
@@ -207,6 +187,7 @@ class Donate(models.Model):
         default=0,
         null=True,
         blank=True,
+        db_index=True,
     )
 
     def __str__(self):
@@ -215,6 +196,26 @@ class Donate(models.Model):
     class Meta:
         verbose_name_plural = "捐赠记录"
         ordering = ("-time",)
+
+    @classmethod
+    def get_donate_money_by_date(cls, date=None):
+        if date:
+            return int(sum([d.money for d in cls.objects.filter(time__gte=date)]))
+        return int(sum([d.money for d in cls.objects.all()]))
+
+    @classmethod
+    def get_donate_count_by_date(cls, date=None):
+        if date:
+            return cls.objects.filter(time__gte=date).count()
+        return cls.objects.all().count()
+
+    @classmethod
+    def get_most_donated_user_by_count(cls, count):
+        return (
+            cls.objects.values("user__username")
+            .annotate(amount=models.Sum("money"))
+            .order_by("-amount")[:count]
+        )
 
 
 class MoneyCode(models.Model):

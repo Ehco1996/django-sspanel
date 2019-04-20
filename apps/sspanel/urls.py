@@ -36,7 +36,7 @@ urlpatterns = [
     path("affiliate/", views.affiliate, name="affiliate"),
     path("rebate/record/", views.rebate_record, name="rebate"),
     # 网站后台面板
-    path("backend/", views.backend_index, name="backend_index"),
+    path("backend/", views.system_status, name="system_status"),
     # 邀请码相关
     path("backend/invite/", views.backend_invite, name="backend_invite"),
     path("invite_gen_code/", views.gen_invite_code, name="geninvitecode"),

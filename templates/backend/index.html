@@ -33,16 +33,14 @@
 <script>
     // 获取后台首页状态
     var getSystemStatus = function () {
-        $.getJSON("{% url 'api:userdata' %}", function (results) {
-            genDoughnutChart('userState', '总用户:{{ userNum }} ', ['在线人数','今日注册', '今日签到', '从未签到', '从未使用'], results.data)
-        })
-
-        $.getJSON("{% url 'api:nodedata' %}", function (results) {
-            genDoughnutChart('nodeState', '节点流量 单位：GB', results.nodeName, results.nodeTraffic)
-        })
-
-        $.getJSON("{% url 'api:donatedata' %}", function (results) {
-            genDoughnutChart('donateState', '收入分析', ['成交数 (笔)', '成交金额 (元)'], results.data)
+        $.getJSON("{% url 'api:system_status' %}", function (res) {
+            genDoughnutChart('userState', '总用户:{{ total_user_num }} ',
+                ['在线人数', '今日注册', '今日签到', '从未签到', '从未使用'],
+                res.user_status)
+            genDoughnutChart('nodeState', '节点流量 单位：GB',
+                res.node_status.names, res.node_status.traffics)
+            genDoughnutChart('donateState', '收入分析',
+                ['总成交数', '总收入', '今日成交数', '今日收入'], res.donate_status)
         })
     }
     getSystemStatus()

@@ -9,7 +9,11 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
-from django.http import StreamingHttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import (
+    StreamingHttpResponse,
+    HttpResponseRedirect,
+    HttpResponseNotFound,
+)
 from django.contrib.auth.decorators import login_required, permission_required
 
 from .models import Suser, Node
@@ -69,6 +73,8 @@ def change_ss_pass(request):
             ss_user.password = ss_pass
             ss_user.save()
             messages.success(request, "请及时更换客户端密码！", extra_tags="修改成功！")
+            # TODO fix this
+            Suser.clear_get_user_configs_by_node_id_cache()
             return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
         else:
             messages.error(request, "新的客户端密码格式不正确！", extra_tags="修改失败！")
@@ -87,6 +93,8 @@ def change_ss_method(request):
     ss_user.method = ss_method
     ss_user.save()
     messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+    # TODO fix this
+    Suser.clear_get_user_configs_by_node_id_cache()
     return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
 
 
@@ -99,6 +107,8 @@ def change_ss_protocol(request):
     ss_user.protocol = ss_protocol
     ss_user.save()
     messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+    # TODO fix this
+    Suser.clear_get_user_configs_by_node_id_cache()
     return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
 
 
@@ -111,6 +121,8 @@ def change_ss_obfs(request):
     ss_user.obfs = ss_obfs
     ss_user.save()
     messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
+    # TODO fix this
+    Suser.clear_get_user_configs_by_node_id_cache()
     return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
 
 

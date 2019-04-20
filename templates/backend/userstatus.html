@@ -17,25 +17,25 @@
     <div class="tile is-ancestor has-text-centered">
         <div class="tile is-parent">
             <article class="tile is-child box">
-                <p class="title">{{ userNum }}</p>
+                <p class="title">{{ total_user_num }}</p>
                 <p class="subtitle">用户总数</p>
             </article>
         </div>
         <div class="tile is-parent">
             <article class="tile is-child box">
-                <p class="title">{{ aliveUser }}</p>
+                <p class="title">{{ alive_user_count }}</p>
                 <p class="subtitle">在线人数</p>
             </article>
         </div>
         <div class="tile is-parent">
             <article class="tile is-child box">
-                <p class="title">{{ todayChecked }}</p>
+                <p class="title">{{ today_checked_user_count }}</p>
                 <p class="subtitle">今日签到</p>
             </article>
         </div>
         <div class="tile is-parent">
             <article class="tile is-child box">
-                <p class="title">{{ todayRegisteredNum }}</p>
+                <p class="title">{{ today_register_user_count }}</p>
                 <p class="subtitle">今日注册</p>
             </article>
         </div>
@@ -56,7 +56,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for u in coreUser %}
+                        {% for u in traffic_users %}
                         <tr>
                             <td>{{ u.user.username }}</td>
                             <td>{{ u.used_traffic }}</td>
@@ -81,10 +81,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for u in richUser %}
+                        {% for u in rich_users_data %}
                         <tr>
-                            <td>{{ u.0 }}</td>
-                            <td>{{ u.1 }} 元</td>
+                            <td>{{ u.user__username }}</td>
+                            <td>{{ u.amount }} 元</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -106,7 +106,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for u in todayRegistered %}
+                        {% for u in today_register_user %}
                         <tr>
                             <td>{{ u.username }}</td>
                             <td>{{ u.inviter }}</td>

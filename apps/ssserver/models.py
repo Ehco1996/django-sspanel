@@ -118,9 +118,8 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         return cls.objects.filter(last_use_time=0).count()
 
     @classmethod
-    def get_user_by_traffic(cls, num=10):
-        """返回流量用的最多的前num名用户"""
-        return cls.objects.all().order_by("-download_traffic")[:10]
+    def get_user_order_by_traffic(cls, count=10):
+        return cls.objects.all().order_by("-download_traffic")[:count]
 
     @classmethod
     def get_users_by_level(cls, level):
@@ -442,6 +441,10 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
             nodes = cls.objects.filter(show=show).values_list("node_id")
         return [node[0] for node in nodes]
 
+    @classmethod
+    def get_active_nodes(cls):
+        return cls.objects.filter(show=1)
+
     # verbose_name
     human_total_traffic.short_description = "总流量"
     human_used_traffic.short_description = "使用流量"
@@ -499,11 +502,9 @@ class NodeOnlineLog(ExportModelOperationsMixin("node_onlie_log"), models.Model):
     """节点在线记录"""
 
     @classmethod
-    def totalOnlineUser(cls):
-        """返回所有节点的在线人数总和"""
+    def get_online_user_count(cls):
         count = 0
-        node_ids = [o["node_id"] for o in Node.objects.filter(show=1).values("node_id")]
-        for node_id in node_ids:
+        for node_id in Node.get_node_ids_by_show():
             o = cls.objects.filter(node_id=node_id).order_by("-log_time")[:1]
             if o:
                 count += o[0].get_online_user()

@@ -377,10 +377,9 @@ def rebate_record(request):
 
 
 @permission_required("sspanel")
-def backend_index(request):
+def system_status(request):
     """跳转到后台界面"""
-    context = {"userNum": User.get_total_user_num()}
-
+    context = {"total_user_num": User.get_total_user_num()}
     return render(request, "backend/index.html", context=context)
 
 
@@ -476,26 +475,22 @@ def user_search(request):
 @permission_required("sspanel")
 def user_status(request):
     """站内用户分析"""
-    # 查询今日注册的用户
-    todayRegistered = User.get_today_register_user().values()
-    for t in todayRegistered:
+    today_register_user = User.get_today_register_user().values()[:10]
+    # find inviter
+    for u in today_register_user:
         try:
-            t["inviter"] = User.objects.get(pk=t["invited_by"])
+            u["inviter"] = User.objects.get(pk=u["invited_by"])
         except User.DoesNotExist:
-            t["inviter"] = "ehco"
-    todayRegisteredNum = len(todayRegistered)
-    # 查询消费水平前十的用户
-    richUser = Donate.richPeople()
-    # 查询流量用的最多的用户
-    coreUser = Suser.get_user_by_traffic(num=10)
+            u["inviter"] = "None"
+
     context = {
-        "userNum": User.get_total_user_num(),
-        "todayChecked": Suser.get_today_checked_user_num(),
-        "aliveUser": NodeOnlineLog.totalOnlineUser(),
-        "todayRegistered": todayRegistered[:10],
-        "todayRegisteredNum": todayRegisteredNum,
-        "richUser": richUser,
-        "coreUser": coreUser,
+        "total_user_num": User.get_total_user_num(),
+        "alive_user_count": NodeOnlineLog.get_online_user_count(),
+        "today_checked_user_count": Suser.get_today_checked_user_num(),
+        "today_register_user_count": len(today_register_user),
+        "traffic_users": Suser.get_user_order_by_traffic(count=10),
+        "rich_users_data": Donate.get_most_donated_user_by_count(10),
+        "today_register_user": today_register_user,
     }
     return render(request, "backend/userstatus.html", context=context)
 

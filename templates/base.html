@@ -73,7 +73,7 @@
                     {% if perms.sspanel %}
                     <a class="navbar-item is-active">管理面板</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_index' %}">网站后台</a>
+                    <a class="navbar-item" href="{% url 'sspanel:system_status' %}">网站后台</a>
                     {% endif %}
                 </div>
                 {% endif %}
@@ -169,7 +169,7 @@
                             </ul>
                             <ul class="menu-list">
                                 <li>
-                                    <a href="{% url 'sspanel:backend_index' %}">网站后台</a>
+                                    <a href="{% url 'sspanel:system_status' %}">网站后台</a>
                                 </li>
                             </ul>
                             {% endif %} {% else %}

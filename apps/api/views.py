@@ -10,6 +10,7 @@ from ratelimit.decorators import ratelimit
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required, permission_required
+from django.utils.decorators import method_decorator
 
 from apps.payments import pay
 from apps.utils import traffic_format, simple_cached_view, authorized
@@ -17,69 +18,47 @@ from apps.ssserver.models import Suser, TrafficLog, Node, NodeOnlineLog, AliveIp
 from apps.sspanel.models import InviteCode, Goods, User, Donate, UserOrder
 
 
-@permission_required("sspanel")
-def userData(request):
-    """
-    返回用户信息：
-    在线人数、今日签到、从未签到、从未使用
-    """
+class SystemStatusView(View):
+    @method_decorator(permission_required("sspanel"))
+    def get(self, request):
+        user_status = [
+            NodeOnlineLog.get_online_user_count(),
+            User.get_today_register_user().count(),
+            Suser.get_today_checked_user_num(),
+            Suser.get_never_checked_user_num(),
+            Suser.get_never_used_num(),
+        ]
+        donate_status = [
+            Donate.get_donate_count_by_date(),
+            Donate.get_donate_money_by_date(),
+            Donate.get_donate_count_by_date(date=pendulum.today()),
+            Donate.get_donate_money_by_date(date=pendulum.today()),
+        ]
 
-    data = [
-        NodeOnlineLog.totalOnlineUser(),
-        User.get_today_register_user().count(),
-        Suser.get_today_checked_user_num(),
-        Suser.get_never_checked_user_num(),
-        Suser.get_never_used_num(),
-    ]
-    return JsonResponse({"data": data})
-
-
-@permission_required("sspanel")
-def nodeData(request):
-    """
-    返回节点信息
-    所有节点名
-    各自消耗的流量
-    """
-    nodeName = [node.name for node in Node.objects.filter(show=1)]
-
-    nodeTraffic = [
-        round(node.used_traffic / settings.GB, 2)
-        for node in Node.objects.filter(show=1)
-    ]
-
-    data = {"nodeName": nodeName, "nodeTraffic": nodeTraffic}
-    return JsonResponse(data)
-
-
-@permission_required("sspanel")
-def donateData(request):
-    """
-    返回捐赠信息
-    捐赠笔数
-    捐赠总金额
-    """
-    data = [Donate.totalDonateNums(), int(Donate.totalDonateMoney())]
-    return JsonResponse({"data": data})
+        active_nodes = Node.get_active_nodes()
+        node_status = {
+            "names": [node.name for node in active_nodes],
+            "traffics": [
+                round(node.used_traffic / settings.GB, 2) for node in active_nodes
+            ],
+        }
+        data = {
+            "user_status": user_status,
+            "donate_status": donate_status,
+            "node_status": node_status,
+        }
+        return JsonResponse(data)
 
 
 @login_required
 def change_ss_port(request):
-    """
-    随机重置用户用端口
-    返回是否成功
-    """
-    user = request.user.ss_user
-    # 找到端口池中最大的端口
+    ss_user = request.user.ss_user
     port = Suser.get_random_port()
-    user.port = port
-    user.save()
-    registerinfo = {
-        "title": "修改成功！",
-        "subtitle": "端口修改为：{}！".format(port),
-        "status": "success",
-    }
-    return JsonResponse(registerinfo)
+    ss_user.port = port
+    ss_user.save()
+    data = {"title": "修改成功！", "subtitle": "端口修改为：{}！".format(port), "status": "success"}
+    Suser.clear_get_user_configs_by_node_id_cache()
+    return JsonResponse(data)
 
 
 @login_required

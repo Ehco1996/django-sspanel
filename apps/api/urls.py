@@ -3,9 +3,7 @@ from . import views
 
 app_name = "api"
 urlpatterns = [
-    path("user/data/", views.userData, name="userdata"),
-    path("node/data/", views.nodeData, name="nodedata"),
-    path("donate/data/", views.donateData, name="donatedata"),
+    path("system_status/", views.SystemStatusView.as_view(), name="system_status"),
     path("random/port/", views.change_ss_port, name="changessport"),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),
