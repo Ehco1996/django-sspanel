@@ -1,21 +1,21 @@
 import time
 
 import pendulum
-from django.views import View
-from django.db.models import F
 from django.conf import settings
+from django.contrib.auth.decorators import login_required, permission_required
+from django.db.models import F
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
-from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required, permission_required
-from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 
 from apps.payments import pay
-from apps.utils import traffic_format, simple_cached_view, authorized
-from apps.ssserver.models import Suser, TrafficLog, Node, NodeOnlineLog, AliveIp
-from apps.sspanel.models import InviteCode, Goods, User, Donate, UserOrder
+from apps.sspanel.models import Donate, Goods, InviteCode, User, UserOrder
+from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, Suser, TrafficLog
+from apps.utils import authorized, handle_json_post, simple_cached_view, traffic_format
 
 
 class SystemStatusView(View):
@@ -47,6 +47,23 @@ class SystemStatusView(View):
             "donate_status": donate_status,
             "node_status": node_status,
         }
+        return JsonResponse(data)
+
+
+class SSUserSettingsView(View):
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(SSUserSettingsView, self).dispatch(*args, **kwargs)
+
+    @method_decorator(handle_json_post)
+    @method_decorator(login_required)
+    def post(self, request):
+        ss_user = request.user.ss_user
+        success = ss_user.update_from_dict(data=request.json)
+        if success:
+            data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}
+        else:
+            data = {"title": "修改失败!", "status": "error", "subtitle": "配置更新失败!"}
         return JsonResponse(data)
 
 

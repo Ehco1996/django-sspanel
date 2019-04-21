@@ -133,7 +133,7 @@ def userinfo(request):
 
 
 @login_required
-def userinfo_edit(request):
+def ss_user_settings(request):
     """跳转到资料编辑界面"""
     ss_user = request.user.ss_user
     methods = [m[0] for m in METHOD_CHOICES]
@@ -146,7 +146,7 @@ def userinfo_edit(request):
         "protocols": protocols,
         "obfss": obfss,
     }
-    return render(request, "sspanel/userinfoedit.html", context=context)
+    return render(request, "sspanel/ss_user_settings.html", context=context)
 
 
 @login_required
@@ -385,7 +385,7 @@ def system_status(request):
 
 @permission_required("sspanel")
 def backend_node_info(request):
-    """节点编辑界面"""
+    """配置编辑界面"""
     nodes = Node.objects.all()
     context = {"nodes": nodes}
     return render(request, "backend/nodeinfo.html", context=context)

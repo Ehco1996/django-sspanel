@@ -109,6 +109,16 @@ def authorized(view_func):
     return wrapper
 
 
+def handle_json_post(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwagrs):
+        if request.method == "POST":
+            request.json = json.loads(request.body)
+        return view_func(request, *args, **kwagrs)
+
+    return wrapper
+
+
 def get_current_time():
     return pendulum.now(tz=settings.TIME_ZONE)
 

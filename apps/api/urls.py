@@ -4,6 +4,9 @@ from . import views
 app_name = "api"
 urlpatterns = [
     path("system_status/", views.SystemStatusView.as_view(), name="system_status"),
+    path(
+        "ss_user/settings/", views.SSUserSettingsView.as_view(), name="ss_user_settings"
+    ),
     path("random/port/", views.change_ss_port, name="changessport"),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),

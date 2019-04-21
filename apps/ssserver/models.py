@@ -1,25 +1,25 @@
-import time
 import base64
+import time
 from random import choice, randint
 
 import pendulum
-from django_prometheus.models import ExportModelOperationsMixin
-from django.db.models import F
 from django.conf import settings
-from django.utils import timezone
 from django.core import validators
-from django.db import models, connection
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import connection, models
+from django.db.models import F
+from django.utils import timezone
+from django_prometheus.models import ExportModelOperationsMixin
 
-from apps.utils import get_short_random_string, traffic_format, get_current_time, cache
 from apps.constants import (
-    METHOD_CHOICES,
-    PROTOCOL_CHOICES,
-    OBFS_CHOICES,
     COUNTRIES_CHOICES,
+    METHOD_CHOICES,
     NODE_TIME_OUT,
+    OBFS_CHOICES,
+    PROTOCOL_CHOICES,
 )
+from apps.utils import cache, get_current_time, get_short_random_string, traffic_format
 
 
 class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
@@ -250,6 +250,19 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
     def increase_transfer(self, new_transfer):
         self.transfer_enable += new_transfer
 
+    def update_from_dict(self, data):
+        clean_fields = ["password", "method", "protocol", "obfs"]
+        for k, v in data.items():
+            if k in clean_fields:
+                setattr(self, k, v)
+        try:
+            self.full_clean()
+            self.save()
+            Suser.clear_get_user_configs_by_node_id_cache()
+            return True
+        except ValidationError:
+            return False
+
 
 class Node(ExportModelOperationsMixin("node"), models.Model):
     """线路节点"""
@@ -261,11 +274,6 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
     CUSTOM_METHOD_CHOICES = ((0, "否"), (1, "是"))
 
     SS_TYPE_CHOICES = ((0, "SS"), (1, "SSR"), (2, "SS/SSR"))
-
-    class Meta:
-        ordering = ["-show", "order"]
-        verbose_name_plural = "节点"
-        db_table = "ss_node"
 
     node_id = models.IntegerField("节点id", unique=True)
     port = models.IntegerField("节点端口", default=443, blank=True, help_text="单端口多用户时需要")
@@ -305,8 +313,39 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
     order = models.PositiveSmallIntegerField("排序", default=1)
     group = models.CharField("分组名", max_length=32, default="谜之屋")
 
+    class Meta:
+        ordering = ["-show", "order"]
+        verbose_name_plural = "节点"
+        db_table = "ss_node"
+
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_by_node_id(cls, node_id):
+        return cls.objects.get(node_id=node_id)
+
+    @classmethod
+    def get_import_code(cls, user):
+        """获取该用户的所有节点的导入信息"""
+        ss_user = user.ss_user
+        sub_code_list = []
+        node_list = cls.objects.filter(level__lte=user.level, show=1)
+        for node in node_list:
+            sub_code_list.append(node.get_node_link(ss_user))
+        return "\n".join(sub_code_list)
+
+    @classmethod
+    def get_node_ids_by_show(cls, show=1, all=False):
+        if all:
+            nodes = cls.objects.all().values_list("node_id")
+        else:
+            nodes = cls.objects.filter(show=show).values_list("node_id")
+        return [node[0] for node in nodes]
+
+    @classmethod
+    def get_active_nodes(cls):
+        return cls.objects.filter(show=1)
 
     def get_ssr_link(self, ss_user):
         """返回ssr链接"""
@@ -419,32 +458,6 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         """已用流量"""
         return traffic_format(self.used_traffic)
 
-    @classmethod
-    def get_by_node_id(cls, node_id):
-        return cls.objects.get(node_id=node_id)
-
-    @classmethod
-    def get_import_code(cls, user):
-        """获取该用户的所有节点的导入信息"""
-        ss_user = user.ss_user
-        sub_code_list = []
-        node_list = cls.objects.filter(level__lte=user.level, show=1)
-        for node in node_list:
-            sub_code_list.append(node.get_node_link(ss_user))
-        return "\n".join(sub_code_list)
-
-    @classmethod
-    def get_node_ids_by_show(cls, show=1, all=False):
-        if all:
-            nodes = cls.objects.all().values_list("node_id")
-        else:
-            nodes = cls.objects.filter(show=show).values_list("node_id")
-        return [node[0] for node in nodes]
-
-    @classmethod
-    def get_active_nodes(cls):
-        return cls.objects.filter(show=1)
-
     # verbose_name
     human_total_traffic.short_description = "总流量"
     human_used_traffic.short_description = "使用流量"
@@ -501,6 +514,17 @@ class TrafficLog(ExportModelOperationsMixin("traffic_log"), models.Model):
 class NodeOnlineLog(ExportModelOperationsMixin("node_onlie_log"), models.Model):
     """节点在线记录"""
 
+    node_id = models.IntegerField("节点id", blank=False, null=False)
+    online_user = models.IntegerField("在线人数", blank=False, null=False)
+    log_time = models.IntegerField("日志时间", blank=False, null=False)
+
+    class Meta:
+        verbose_name_plural = "节点在线记录"
+        db_table = "ss_node_online_log"
+
+    def __str__(self):
+        return "节点：{}".format(self.node_id)
+
     @classmethod
     def get_online_user_count(cls):
         count = 0
@@ -515,13 +539,6 @@ class NodeOnlineLog(ExportModelOperationsMixin("node_onlie_log"), models.Model):
         with connection.cursor() as cursor:
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
-    node_id = models.IntegerField("节点id", blank=False, null=False)
-    online_user = models.IntegerField("在线人数", blank=False, null=False)
-    log_time = models.IntegerField("日志时间", blank=False, null=False)
-
-    def __str__(self):
-        return "节点：{}".format(self.node_id)
-
     def get_oneline_status(self):
         """检测是否在线"""
         if int(time.time()) - self.log_time > NODE_TIME_OUT:
@@ -531,17 +548,23 @@ class NodeOnlineLog(ExportModelOperationsMixin("node_onlie_log"), models.Model):
 
     def get_online_user(self):
         """返回在线人数"""
-        if self.get_oneline_status() is True:
+        if self.get_oneline_status():
             return self.online_user
         else:
             return 0
 
-    class Meta:
-        verbose_name_plural = "节点在线记录"
-        db_table = "ss_node_online_log"
-
 
 class AliveIp(ExportModelOperationsMixin("aliveip_log"), models.Model):
+
+    node_id = models.IntegerField(verbose_name="节点id", blank=False, null=False)
+    ip = models.CharField(verbose_name="设备ip", max_length=128)
+    user = models.CharField(verbose_name="用户名", max_length=128)
+    log_time = models.DateTimeField("日志时间", auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "节点在线IP"
+        ordering = ["-log_time"]
+
     @classmethod
     def recent_alive(cls, node_id):
         """
@@ -567,12 +590,3 @@ class AliveIp(ExportModelOperationsMixin("aliveip_log"), models.Model):
     @property
     def node_name(self):
         return Node.get_by_node_id(self.node_id).name
-
-    node_id = models.IntegerField(verbose_name="节点id", blank=False, null=False)
-    ip = models.CharField(verbose_name="设备ip", max_length=128)
-    user = models.CharField(verbose_name="用户名", max_length=128)
-    log_time = models.DateTimeField("日志时间", auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "节点在线IP"
-        ordering = ["-log_time"]

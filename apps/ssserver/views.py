@@ -8,7 +8,6 @@ from django.conf import settings
 from django.shortcuts import render
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_http_methods
 from django.http import (
     StreamingHttpResponse,
     HttpResponseRedirect,
@@ -19,7 +18,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from .models import Suser, Node
 from apps.sspanel.models import User
 from apps.sspanel.forms import UserForm
-from .forms import ChangeSsPassForm, SuserForm
+from .forms import SuserForm
 
 
 @permission_required("ssesrver")
@@ -56,74 +55,6 @@ def user_edit(request, user_id):
         userform = UserForm(instance=ss_user.user)
         context = {"ssform": ssform, "userform": userform, "ss_user": ss_user}
         return render(request, "backend/useredit.html", context=context)
-
-
-@login_required
-@require_http_methods(["POST"])
-def change_ss_pass(request):
-    """改变用户ss连接密码"""
-    ss_user = request.user.ss_user
-
-    if request.method == "POST":
-        form = ChangeSsPassForm(request.POST)
-
-        if form.is_valid():
-            # 获取用户提交的password
-            ss_pass = request.POST.get("password")
-            ss_user.password = ss_pass
-            ss_user.save()
-            messages.success(request, "请及时更换客户端密码！", extra_tags="修改成功！")
-            # TODO fix this
-            Suser.clear_get_user_configs_by_node_id_cache()
-            return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
-        else:
-            messages.error(request, "新的客户端密码格式不正确！", extra_tags="修改失败！")
-            return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
-    else:
-        form = ChangeSsPassForm()
-        return render(request, "sspanel/sspasschanged.html", {"form": form})
-
-
-@login_required
-@require_http_methods(["POST"])
-def change_ss_method(request):
-    """改变用户ss加密"""
-    ss_user = request.user.ss_user
-    ss_method = request.POST.get("method")
-    ss_user.method = ss_method
-    ss_user.save()
-    messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
-    # TODO fix this
-    Suser.clear_get_user_configs_by_node_id_cache()
-    return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
-
-
-@login_required
-@require_http_methods(["POST"])
-def change_ss_protocol(request):
-    """改变用户ss协议"""
-    ss_user = request.user.ss_user
-    ss_protocol = request.POST.get("protocol")
-    ss_user.protocol = ss_protocol
-    ss_user.save()
-    messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
-    # TODO fix this
-    Suser.clear_get_user_configs_by_node_id_cache()
-    return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
-
-
-@login_required
-@require_http_methods(["POST"])
-def change_ss_obfs(request):
-    """改变用户ss连接混淆"""
-    ss_user = request.user.ss_user
-    ss_obfs = request.POST.get("obfs")
-    ss_user.obfs = ss_obfs
-    ss_user.save()
-    messages.success(request, "请及时更换客户端配置！", extra_tags="修改成功！")
-    # TODO fix this
-    Suser.clear_get_user_configs_by_node_id_cache()
-    return HttpResponseRedirect(reverse("sspanel:userinfo_edit"))
 
 
 def subscribe(request):

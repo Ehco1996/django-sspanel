@@ -18,7 +18,7 @@ urlpatterns = [
     path("trafficlog/", views.trafficlog, name="trafficlog"),
     # 用户信息
     path("users/userinfo/", views.userinfo, name="userinfo"),
-    path("users/userinfoedit/", views.userinfo_edit, name="userinfo_edit"),
+    path("users/settings/", views.ss_user_settings, name="ss_user_settings"),
     # 捐赠/充值
     path("donate/", views.donate, name="donate"),
     path("shop/", views.shop, name="shop"),
