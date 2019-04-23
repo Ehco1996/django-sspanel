@@ -7,6 +7,7 @@ urlpatterns = [
     path(
         "ss_user/settings/", views.SSUserSettingsView.as_view(), name="ss_user_settings"
     ),
+    path("subscribe/", views.SubscribeView.as_view(), name="subscribe"),
     path("random/port/", views.change_ss_port, name="changessport"),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),

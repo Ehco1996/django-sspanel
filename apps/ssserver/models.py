@@ -19,6 +19,7 @@ from apps.constants import (
     OBFS_CHOICES,
     PROTOCOL_CHOICES,
 )
+from apps.encoder import encoder
 from apps.utils import cache, get_current_time, get_short_random_string, traffic_format
 
 
@@ -100,6 +101,10 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
                 raise ValidationError("端口必须在1024和50000之间")
 
     @classmethod
+    def get_user_by_user_id(cls, user_id):
+        return cls.objects.get(user_id=user_id)
+
+    @classmethod
     def get_today_checked_user_num(cls):
         now = get_current_time()
         midnight = pendulum.datetime(
@@ -151,6 +156,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
                 "enable": user.enable,
                 "user_id": user.user_id,
                 "id": user.user_id,
+                "stringpk": user.stringpk,
                 "method": user.method,
                 "obfs": user.obfs,
                 "obfs_param": user.obfs_param,
@@ -230,6 +236,10 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
             return used / self.transfer_enable * 100
         except ZeroDivisionError:
             return 100
+
+    @property
+    def stringpk(self):
+        return encoder.int2string(self.user_id)
 
     def checkin(self):
         if not self.today_is_checked:
@@ -511,7 +521,7 @@ class TrafficLog(ExportModelOperationsMixin("traffic_log"), models.Model):
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
 
-class NodeOnlineLog(ExportModelOperationsMixin("node_onlie_log"), models.Model):
+class NodeOnlineLog(ExportModelOperationsMixin("node_online_log"), models.Model):
     """节点在线记录"""
 
     node_id = models.IntegerField("节点id", blank=False, null=False)

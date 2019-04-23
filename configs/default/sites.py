@@ -34,7 +34,7 @@ USE_ALIPAY = False
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = "谜之屋的{}元充值码"
 # 支付宝回掉接口
-ALIPAY_CALLBACK_URL = f'{HOST}/api/callback/alipay'
+ALIPAY_CALLBACK_URL = f"{HOST}/api/callback/alipay"
 
 # 网站title
 TITLE = "谜之屋"
@@ -54,3 +54,6 @@ TOKEN = "youowntoken"
 
 # 是否开启用户到期邮件通知
 EXPIRE_EMAIL_NOTICE = False
+
+# SHORT_URL_ALPHABET
+DEFAULT_ALPHABET = "qwertyuiopasdfghjklzxcvbnm"

@@ -1,10 +1,11 @@
+import base64
 import time
 
 import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import F
-from django.http import JsonResponse
+from django.http import HttpResponseNotFound, JsonResponse, StreamingHttpResponse
 from django.shortcuts import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -12,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from ratelimit.decorators import ratelimit
 
+from apps.encoder import encoder
 from apps.payments import pay
 from apps.sspanel.models import Donate, Goods, InviteCode, User, UserOrder
 from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, Suser, TrafficLog
@@ -65,6 +67,22 @@ class SSUserSettingsView(View):
         else:
             data = {"title": "修改失败!", "status": "error", "subtitle": "配置更新失败!"}
         return JsonResponse(data)
+
+
+class SubscribeView(View):
+    def get(self, request):
+        token = request.GET.get("token")
+        if not token:
+            return HttpResponseNotFound()
+        user = User.get_by_pk(encoder.string2int(token))
+        sub_links = user.get_sub_links()
+        sub_links = base64.b64encode(bytes(sub_links, "utf8")).decode("ascii")
+        resp = StreamingHttpResponse(sub_links)
+        resp["Content-Type"] = "application/octet-stream; charset=utf-8"
+        resp["Content-Disposition"] = "attachment; filename={}.txt".format(token)
+        resp["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        resp["Content-Length"] = len(sub_links)
+        return resp
 
 
 @login_required

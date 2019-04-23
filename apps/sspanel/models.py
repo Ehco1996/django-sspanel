@@ -1,20 +1,18 @@
-import time
-import base64
 import datetime
+import time
+from decimal import Decimal
 from urllib.parse import urlencode
 
-import pendulum
 import markdown
-from decimal import Decimal
-from django.db import models
+import pendulum
 from django.conf import settings
-from django.utils import timezone
-from django.db import transaction
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models, transaction
+from django.utils import timezone
 
-from apps.payments import pay
 from apps.constants import THEME_CHOICES
+from apps.payments import pay
 from apps.utils import get_long_random_string, traffic_format
 
 
@@ -106,6 +104,10 @@ class User(AbstractUser):
     def get_by_user_name(cls, username):
         return cls.objects.get(username=username)
 
+    @classmethod
+    def get_by_pk(cls, pk):
+        return cls.objects.get(pk=pk)
+
     @property
     def expire_time(self):
         """返回等级到期时间"""
@@ -114,15 +116,30 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         """生成该用户的订阅地址"""
-        token = base64.urlsafe_b64encode(self.username.encode()).decode()
-        params = {"token": token}
-        return settings.HOST + f"/server/subscribe/?{urlencode(params)}"
+        params = {"token": self.ss_user.stringpk}
+        return settings.HOST + f"api/subscribe/?{urlencode(params)}"
 
     @property
     def ss_user(self):
         from apps.ssserver.models import Suser
 
         return Suser.objects.get(user_id=self.id)
+
+    def get_sub_links(self):
+        from apps.ssserver.models import Node
+
+        if self.sub_type == User.SUB_TYPE_ALL:
+            node_list = Node.objects.filter(level__lte=self.level, show=1)
+        else:
+            node_list = Node.objects.filter(
+                level__lte=self.level, show=1, node_type=self.sub_type
+            )
+
+        ss_user = self.ss_user
+        sub_links = "MAX={}\n".format(len(node_list))
+        for node in node_list:
+            sub_links = sub_links + node.get_node_link(ss_user) + "\n"
+        return sub_links
 
 
 class InviteCode(models.Model):

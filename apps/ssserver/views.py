@@ -61,6 +61,7 @@ def subscribe(request):
     """
     返回ssr订阅链接
     """
+    # TODO OFFLINE THIS
     url = request.build_absolute_uri()
     token = parse.parse_qs(parse.urlparse(url).query).get("token", [])
     if token:

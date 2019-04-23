@@ -119,15 +119,15 @@ def userinfo(request):
     remain_traffic = "{:.2f}".format(100 - user.ss_user.used_percentage)
     context = {
         "user": user,
-        "user_sub_type": user.get_sub_type_display(),
         "anno": anno,
         "remain_traffic": remain_traffic,
         "min_traffic": min_traffic,
         "max_traffic": max_traffic,
-        "sub_link": user.sub_link,
         "import_code": Node.get_import_code(user),
         "themes": THEME_CHOICES,
+        "sub_link": user.sub_link,
         "sub_types": User.SUB_TYPES,
+        "user_sub_type": user.get_sub_type_display(),
     }
     return render(request, "sspanel/userinfo.html", context=context)
 
