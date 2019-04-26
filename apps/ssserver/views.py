@@ -57,43 +57,6 @@ def user_edit(request, user_id):
         return render(request, "backend/useredit.html", context=context)
 
 
-def subscribe(request):
-    """
-    返回ssr订阅链接
-    """
-    # TODO OFFLINE THIS
-    url = request.build_absolute_uri()
-    token = parse.parse_qs(parse.urlparse(url).query).get("token", [])
-    if token:
-        try:
-            username = base64.b64decode(token[0]).decode()
-        except binascii.Error:
-            return HttpResponseNotFound()
-    else:
-        return HttpResponseNotFound()
-    # 验证token
-    user = get_object_or_404(User, username=username)
-    ss_user = user.ss_user
-    # 遍历该用户所有的节点
-    if user.sub_type == User.SUB_TYPE_ALL:
-        node_list = Node.objects.filter(level__lte=user.level, show=1)
-    else:
-        node_list = Node.objects.filter(
-            level__lte=user.level, show=1, node_type=user.sub_type
-        )
-    # 生成订阅链接部分
-    sub_code = "MAX={}\n".format(len(node_list))
-    for node in node_list:
-        sub_code = sub_code + node.get_node_link(ss_user) + "\n"
-    sub_code = base64.b64encode(bytes(sub_code, "utf8")).decode("ascii")
-    resp_ok = StreamingHttpResponse(sub_code)
-    resp_ok["Content-Type"] = "application/octet-stream; charset=utf-8"
-    resp_ok["Content-Disposition"] = "attachment; filename={}.txt".format(token)
-    resp_ok["Cache-Control"] = "no-store, no-cache, must-revalidate"
-    resp_ok["Content-Length"] = len(sub_code)
-    return resp_ok
-
-
 @login_required
 def node_config(request):
     """返回节点json配置"""
