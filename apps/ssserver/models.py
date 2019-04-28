@@ -156,7 +156,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
                 "enable": user.enable,
                 "user_id": user.user_id,
                 "id": user.user_id,
-                "stringpk": user.stringpk,
+                "token": user.token,
                 "method": user.method,
                 "obfs": user.obfs,
                 "obfs_param": user.obfs_param,
@@ -238,7 +238,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
             return 100
 
     @property
-    def stringpk(self):
+    def token(self):
         return encoder.int2string(self.user_id)
 
     def checkin(self):

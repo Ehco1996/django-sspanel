@@ -116,7 +116,7 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         """生成该用户的订阅地址"""
-        params = {"token": self.ss_user.stringpk}
+        params = {"token": self.ss_user.token}
         return settings.HOST + f"/api/subscribe/?{urlencode(params)}"
 
     @property
