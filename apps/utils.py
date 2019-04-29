@@ -121,9 +121,3 @@ def handle_json_post(view_func):
 
 def get_current_time():
     return pendulum.now(tz=settings.TIME_ZONE)
-
-
-def global_settings(request):
-    global_variable = {"USE_SMTP": settings.USE_SMTP}
-
-    return global_variable

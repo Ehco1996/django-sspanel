@@ -106,3 +106,7 @@ apps/Alipay_pub.pem
 
 #PyCharm
 .idea/
+
+static/admin/
+static/jet/
+static/range_filter/

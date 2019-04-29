@@ -15,6 +15,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_prometheus",
     "django_crontab",
+    "anymail",
     "apps.sspanel",
     "apps.ssserver",
     "v2",
@@ -45,7 +46,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "apps.utils.global_settings",
             ]
         },
     }

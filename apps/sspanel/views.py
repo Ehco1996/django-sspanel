@@ -97,7 +97,7 @@ def user_login(request):
                 return HttpResponseRedirect(reverse("sspanel:userinfo"))
             else:
                 messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
-    context = {"form": LoginForm()}
+    context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
     return render(request, "sspanel/login.html", context=context)
 
 

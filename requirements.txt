@@ -16,3 +16,4 @@ pendulum
 django-ratelimit
 sentry-sdk>=0.7.8
 short_url
+django-anymail[mailgun]
