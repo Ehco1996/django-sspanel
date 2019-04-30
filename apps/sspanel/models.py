@@ -112,19 +112,19 @@ class User(AbstractUser):
     @classmethod
     def check_and_disable_expired_users(cls):
         now = pendulum.now()
-        expired_users = []
+        expired_user_emails = []
         for user in cls.objects.filter(level__gt=0, level_expire_time__lte=now):
             user.ss_user.reset_to_fresh()
             user.level = 0
             user.save()
             print(f"time: {now} user: {user} level timeout!")
-            expired_users.append(user)
-        if expired_users and settings.EXPIRE_EMAIL_NOTICE:
+            expired_user_emails.append(user.email)
+        if expired_user_emails and settings.EXPIRE_EMAIL_NOTICE:
             send_mail(
                 f"您的{settings.TITLE}账号已到期",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
                 settings.DEFAULT_FROM_EMAIL,
-                expired_users,
+                expired_user_emails,
             )
 
     @property
