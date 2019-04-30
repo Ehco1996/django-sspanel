@@ -259,8 +259,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
 
     def reset_to_fresh(self):
         self.enable = False
-        self.transfer_enable = settings.DEFAULT_TRAFFIC
-        self.reset_traffic(0)
+        self.reset_traffic(settings.DEFAULT_TRAFFIC)
         self.save()
 
     def increase_transfer(self, new_transfer):
