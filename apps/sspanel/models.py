@@ -7,6 +7,7 @@ import markdown
 import pendulum
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
@@ -108,10 +109,23 @@ class User(AbstractUser):
     def get_by_pk(cls, pk):
         return cls.objects.get(pk=pk)
 
-    @property
-    def expire_time(self):
-        """返回等级到期时间"""
-        return self.level_expire_time
+    @classmethod
+    def check_and_disable_expired_users(cls):
+        now = pendulum.now()
+        expired_users = []
+        for user in cls.objects.filter(level__gt=0, level_expire_time__lte=now):
+            user.ss_user.reset_to_fresh()
+            user.level = 0
+            user.save()
+            print(f"time: {now} user: {user} level timeout!")
+            expired_users.append(user)
+        if expired_users and settings.EXPIRE_EMAIL_NOTICE:
+            send_mail(
+                f"您的{settings.TITLE}账号已到期",
+                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
+                settings.DEFAULT_FROM_EMAIL,
+                expired_users,
+            )
 
     @property
     def sub_link(self):

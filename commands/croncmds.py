@@ -1,40 +1,18 @@
+import os
+
 import pendulum
 from django.conf import settings
 from django.utils import timezone
 
 from apps.sspanel.models import User, UserOrder
-from apps.ssserver.models import Node, NodeOnlineLog, TrafficLog, AliveIp
-from django.core.mail import send_mail
+from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, TrafficLog
+
+os.environ["DJANGO_ENV"] = "production"
 
 
 def check_user_state():
     """检测用户状态，将所有账号到期的用户状态重置"""
-    users = User.objects.filter(level__gt=0)
-    expire_user = []
-    for user in users:
-        # 判断用户过期
-        if timezone.now() - timezone.timedelta(days=1) > user.level_expire_time:
-            user.level = 0
-            user.save()
-            ss_user = user.ss_user
-            ss_user.enable = False
-            ss_user.upload_traffic = 0
-            ss_user.download_traffic = 0
-            ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-            ss_user.save()
-            expire_user.append(user.email)
-            print(
-                "time: {} user: {} level timeout ".format(
-                    timezone.now().strftime("%Y-%m-%d"), user.username
-                )
-            )
-    if expire_user and settings.EXPIRE_EMAIL_NOTICE:
-        send_mail(
-            "您的{0}账号已到期".format(settings.TITLE),
-            "您的{0}账号已到期，现被暂停使用。如需继续使用请前往 {1} 充值".format(settings.TITLE, settings.HOST),
-            settings.DEFAULT_FROM_EMAIL,
-            expire_user,
-        )
+    User.check_and_disable_expired_users()
     print("Time: {} CHECKED".format(timezone.now()))
 
 

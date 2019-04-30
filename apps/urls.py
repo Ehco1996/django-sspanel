@@ -13,5 +13,3 @@ urlpatterns = [
     path("sspanel/", include("apps.sspanel.urls", namespace="sspanel")),
     path("server/", include("apps.ssserver.urls", namespace="ssserver")),
 ]
-
-from django.contrib.auth.views import PasswordResetView
