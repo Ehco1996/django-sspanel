@@ -73,9 +73,13 @@ def register(request):
                 messages.error(request, "服务出现了点小问题", extra_tags="请尝试或者联系站长~")
                 return render(request, "sspanel/register.html", {"form": form})
             else:
-                messages.success(request, "请登录使用吧！", extra_tags="注册成功！")
-
-                return HttpResponseRedirect(reverse("index"))
+                messages.success(request, "自动跳转到用户中心", extra_tags="注册成功！")
+                user = authenticate(
+                    username=form.cleaned_data["username"],
+                    password=form.cleaned_data["password1"],
+                )
+                login(request, user)
+                return HttpResponseRedirect(reverse("sspanel:userinfo"))
     else:
         form = RegisterForm()
 
