@@ -1,24 +1,16 @@
-import json
 import base64
-import binascii
-from urllib import parse
+import json
 
-from django.urls import reverse
 from django.conf import settings
-from django.shortcuts import render
 from django.contrib import messages
-from django.shortcuts import get_object_or_404
-from django.http import (
-    StreamingHttpResponse,
-    HttpResponseRedirect,
-    HttpResponseNotFound,
-)
 from django.contrib.auth.decorators import login_required, permission_required
+from django.http import HttpResponseRedirect, StreamingHttpResponse
+from django.shortcuts import render
+from django.urls import reverse
 
-from .models import Suser, Node
-from apps.sspanel.models import User
 from apps.sspanel.forms import UserForm
-from .forms import SuserForm
+from apps.ssserver.forms import SuserForm
+from apps.ssserver.models import Node, Suser
 
 
 @permission_required("ssesrver")

@@ -99,6 +99,7 @@ class User(AbstractUser):
             user.invited_by = code.code_id
             user.invitecode = invitecode
             user.save()
+            Suser.clear_get_user_configs_by_node_id_cache()
             return user
 
     @classmethod
