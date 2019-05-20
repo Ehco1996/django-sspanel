@@ -90,7 +90,7 @@ class User(AbstractUser):
         invitecode = cleaned_data["invitecode"]
         user = cls.objects.create_user(username, email, password)
         code = InviteCode.objects.get(code=invitecode)
-        code.isused = True
+        code.used = True
         code.save()
         # 将user和ssuser关联
         Suser.objects.create(user_id=user.id, port=Suser.get_random_port())
