@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             model_name="user", old_name="invited_by", new_name="inviter_id"
         ),
         migrations.RenameField(
-            model_name="rebaterecord", old_name="rebeattime", new_name="created_at"
+            model_name="rebaterecord", old_name="rebatetime", new_name="created_at"
         ),
         migrations.RemoveField(model_name="user", name="invitecode"),
     ]
