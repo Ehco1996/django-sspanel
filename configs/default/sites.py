@@ -5,7 +5,7 @@ HOST = "http://127.0.0.1:8000/"
 SECRET_KEY = "aasdasdas"
 
 # 是否开启注册
-ALLOW_REGISET = True
+ALLOW_REGISTER = True
 
 # 默认的theme
 # 可选列表在 apps/constants.py 里的THEME_CHOICES里

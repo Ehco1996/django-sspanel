@@ -10,7 +10,7 @@
                 <h2 class="subtitle">
                     如果觉得好用，请推荐给其他小伙伴使用!
                     <p>每当你邀请的人购买了商品，你就能获得
-                        <strong>{{ invitePercent }}%</strong>的返利哟
+                        <strong>{{ invite_percent }}%</strong>的返利哟
                     </p>
                 </h2>
             </div>
@@ -20,7 +20,7 @@
 <div class="column is-12">
     <div class="box ">
         <div class="field has-addons">
-            <a class="button is-outlined is-info" id="id-gen-invitecode">生成{{ inviteNumn }}个邀请码 </a>
+            <a class="button is-outlined is-info" id="id-gen-invitecode">生成{{ invitecode_num }}个邀请码 </a>
         </div>
     </div>
     <div class="box">
@@ -34,11 +34,11 @@
                         <th>是否使用</th>
                     </tr>
                 </thead>
-                {% for code in invitecodes %}
+                {% for code in code_list %}
                 <tr>
-                    <td>{{ code.time_created | date:"m月d日" }}</td>
+                    <td>{{ code.created_at | date:"m月d日" }}</td>
                     <td>{{ code.code }}</td>
-                    <td>{{ code.isused }}</td>
+                    <td>{{ code.used }}</td>
                 </tr>
                 {% endfor %}
             </table>

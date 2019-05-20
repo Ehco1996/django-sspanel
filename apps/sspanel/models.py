@@ -30,8 +30,6 @@ class User(AbstractUser):
         (SUB_TYPE_ALL, "订阅所有"),
     )
 
-    invitecode = models.CharField(verbose_name="邀请码", max_length=40)
-    invited_by = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
     balance = models.DecimalField(
         verbose_name="余额",
         decimal_places=2,
@@ -59,6 +57,7 @@ class User(AbstractUser):
     sub_type = models.SmallIntegerField(
         verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
+    inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
 
     class Meta(AbstractUser.Meta):
         verbose_name = "用户"
@@ -81,26 +80,25 @@ class User(AbstractUser):
         return cls.objects.filter(date_joined__gt=pendulum.today())
 
     @classmethod
+    @transaction.atomic
     def add_new_user(cls, cleaned_data):
         from apps.ssserver.models import Suser
 
-        with transaction.atomic():
-            username = cleaned_data["username"]
-            email = cleaned_data["email"]
-            password = cleaned_data["password1"]
-            invitecode = cleaned_data["invitecode"]
-            user = cls.objects.create_user(username, email, password)
-            code = InviteCode.objects.get(code=invitecode)
-            code.isused = True
-            code.save()
-            # 将user和ssuser关联
-            Suser.objects.create(user_id=user.id, port=Suser.get_random_port())
-            # 绑定邀请人
-            user.invited_by = code.code_id
-            user.invitecode = invitecode
-            user.save()
-            Suser.clear_get_user_configs_by_node_id_cache()
-            return user
+        username = cleaned_data["username"]
+        email = cleaned_data["email"]
+        password = cleaned_data["password1"]
+        invitecode = cleaned_data["invitecode"]
+        user = cls.objects.create_user(username, email, password)
+        code = InviteCode.objects.get(code=invitecode)
+        code.isused = True
+        code.save()
+        # 将user和ssuser关联
+        Suser.objects.create(user_id=user.id, port=Suser.get_random_port())
+        # 绑定邀请人
+        user.inviter_id = code.user_id
+        user.save()
+        Suser.clear_get_user_configs_by_node_id_cache()
+        return user
 
     @classmethod
     def get_by_user_name(cls, username):
@@ -160,12 +158,10 @@ class User(AbstractUser):
 class InviteCode(models.Model):
     """邀请码"""
 
-    INVITE_CODE_TYPE = ((1, "公开"), (0, "不公开"))
+    TYPE_PUBLIC = 1
+    TYPE_PRIVATE = 0
+    INVITE_CODE_TYPE = ((TYPE_PUBLIC, "公开"), (TYPE_PRIVATE, "不公开"))
 
-    code_type = models.IntegerField(
-        verbose_name="类型", choices=INVITE_CODE_TYPE, default=0
-    )
-    code_id = models.PositiveIntegerField(verbose_name="邀请人ID", default=1)
     code = models.CharField(
         verbose_name="邀请码",
         primary_key=True,
@@ -173,26 +169,50 @@ class InviteCode(models.Model):
         max_length=40,
         default=get_long_random_string,
     )
-    time_created = models.DateTimeField(
-        verbose_name="创建时间", editable=False, auto_now_add=True
+    code_type = models.IntegerField(
+        verbose_name="类型", choices=INVITE_CODE_TYPE, default=TYPE_PRIVATE
     )
-    isused = models.BooleanField(verbose_name="是否使用", default=False)
+    user_id = models.PositiveIntegerField(verbose_name="邀请人ID", default=1)
+    used = models.BooleanField(verbose_name="是否使用", default=False)
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
 
     def __str__(self):
-        return str(self.code)
+        return f"<{self.user_id}>-<{self.code}>"
 
     class Meta:
         verbose_name_plural = "邀请码"
-        ordering = ("isused", "-time_created")
+        ordering = ("used", "-created_at")
+
+    @classmethod
+    def calc_num_by_user(cls, user):
+        return user.invitecode_num - cls.list_not_used_by_user_id(user.pk).count()
+
+    @classmethod
+    def create_by_user(cls, user):
+        num = cls.calc_num_by_user(user)
+        if num > 0:
+            models = [cls(code_type=0, user_id=user.pk) for _ in range(num)]
+            cls.objects.bulk_create(models)
+        return num
+
+    @classmethod
+    def list_by_code_type(cls, code_type, num=20):
+        return cls.objects.filter(code_type=code_type, used=False)[:num]
+
+    @classmethod
+    def list_by_user_id(cls, user_id, num=10):
+        return cls.objects.filter(user_id=user_id)[:num]
+
+    @classmethod
+    def list_not_used_by_user_id(cls, user_id):
+        return cls.objects.filter(user_id=user_id, used=False)
 
 
 class RebateRecord(models.Model):
     """返利记录"""
 
     user_id = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
-    rebatetime = models.DateTimeField(
-        verbose_name="返利时间", editable=False, auto_now_add=True
-    )
+
     money = models.DecimalField(
         verbose_name="金额",
         decimal_places=2,
@@ -201,9 +221,19 @@ class RebateRecord(models.Model):
         max_digits=10,
         blank=True,
     )
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
 
     class Meta:
-        ordering = ("-rebatetime",)
+        ordering = ("-created_at",)
+
+    @classmethod
+    def list_by_user_id_with_mixed_username(cls, user_id, num=10):
+        logs = cls.objects.filter(user_id=user_id)[:num]
+        user_ids = [log.user_id for log in logs]
+        username_map = {u.id: u.username for u in User.objects.filter(id__in=user_ids)}
+        for log in logs:
+            setattr(log, "username", username_map[log.user_id])
+        return logs
 
 
 class Donate(models.Model):
@@ -333,6 +363,7 @@ class Goods(models.Model):
         """返回增加的天数"""
         return "{}".format(self.days)
 
+    @transaction.atomic
     def purchase_by_user(self, user):
         """购买商品 返回是否成功"""
         if user.balance < self.money:
@@ -357,9 +388,9 @@ class Goods(models.Model):
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
         )
-        # 增加返利记录
-        inviter = User.objects.filter(pk=user.invited_by).first()
-        if inviter:
+        inviter = User.get_by_pk(user.inviter_id)
+        if inviter != user:
+            # 增加返利记录
             rebaterecord = RebateRecord(
                 user_id=inviter.pk, money=self.money * Decimal(settings.INVITE_PERCENT)
             )

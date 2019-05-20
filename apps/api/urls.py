@@ -15,8 +15,6 @@ urlpatterns = [
     path("change/theme/", views.change_theme, name="change_theme"),
     path("change/sub_type/", views.change_sub_type, name="change_sub_type"),
     path("checkin/", views.checkin, name="checkin"),
-    # 邀请码接口
-    path("get/invitecode/", views.get_invitecode, name="get_invitecode"),
     # web api 接口
     path("nodes/<int:node_id>", views.node_api, name="get_node_info"),
     path("nodes/online", views.node_online_api, name="post_onlineip"),

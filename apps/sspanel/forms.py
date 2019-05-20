@@ -46,7 +46,7 @@ class RegisterForm(UserCreationForm):
 
     def clean_invitecode(self):
         code = self.cleaned_data.get("invitecode")
-        if InviteCode.objects.filter(code=code, isused=False).first():
+        if InviteCode.objects.filter(code=code, used=False).first():
             return code
         else:
             raise forms.ValidationError("该邀请码失效")

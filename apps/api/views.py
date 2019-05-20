@@ -102,16 +102,8 @@ def gen_invite_code(request):
     生成用户的邀请码
     返回是否成功
     """
-    u = request.user
-    if u.is_superuser is True:
-        # 针对管理员特出处理，每次生成5个邀请码
-        num = 5
-    else:
-        num = u.invitecode_num - len(InviteCode.objects.filter(code_id=u.pk))
+    num = InviteCode.create_by_user(request.user)
     if num > 0:
-        for i in range(num):
-            code = InviteCode(code_type=0, code_id=u.pk)
-            code.save()
         registerinfo = {
             "title": "成功",
             "subtitle": "添加邀请码{}个,请刷新页面".format(num),
@@ -186,24 +178,6 @@ def change_sub_type(request):
     user.save()
     res = {"title": "修改成功！", "subtitle": "订阅类型更换成功!", "status": "success"}
     return JsonResponse(res)
-
-
-@authorized
-@csrf_exempt
-@require_http_methods(["POST"])
-def get_invitecode(request):
-    """
-    获取邀请码接口
-    只开放给管理员账号
-    返回一个没用过的邀请码
-    需要验证token
-    """
-    admin_user = User.objects.filter(is_superuser=True).first()
-    code = InviteCode.objects.filter(code_id=admin_user.pk, isused=False).first()
-    if code:
-        return JsonResponse({"msg": code.code})
-    else:
-        return JsonResponse({"msg": "邀请码用光啦"})
 
 
 @authorized
@@ -343,6 +317,7 @@ def ailpay_callback(request):
 
 
 class OrderView(View):
+    @method_decorator(login_required)
     def get(self, request):
         user = request.user
         order = UserOrder.get_recent_created_order(user)
@@ -353,10 +328,10 @@ class OrderView(View):
             info = {"title": "支付查询失败!", "subtitle": "亲，确认支付了么？", "status": "error"}
         return JsonResponse({"info": info})
 
-    @ratelimit(key="user", rate="1/1s")
+    @method_decorator(login_required)
+    @ratelimit(key="user", rate="1/1s", block=True)
     def post(self, request):
         amount = int(request.POST.get("num"))
-
         if amount < 1:
             info = {"title": "失败", "subtitle": "请保证金额大于1元", "status": "error"}
         else:

@@ -7,10 +7,9 @@ urlpatterns = [
     # 网站用户面板
     path("sshelp/", views.sshelp, name="sshelp"),
     path("ssclient/", views.ssclient, name="ssclient"),
-    path("ssinvite/", views.ssinvite, name="ssinvite"),
-    path("passinvite/(<invitecode>)/", views.pass_invitecode, name="passinvitecode"),
+    path("invitecode/", views.InviteCodeView.as_view(), name="invite_code"),
     # 注册/登录
-    path("register/", views.register, name="register"),
+    path("register/", views.RegisterView.as_view(), name="register"),
     path("login/", views.user_login, name="login"),
     path("logout/", views.user_logout, name="logout"),
     # 节点
@@ -33,8 +32,8 @@ urlpatterns = [
     path("ticket/edit/(<int:pk>)/", views.ticket_edit, name="ticket_edit"),
     path("ticket/delete/<int:pk>)/", views.ticket_delete, name="ticket_delete"),
     # 推广相关
-    path("affiliate/", views.affiliate, name="affiliate"),
-    path("rebate/record/", views.rebate_record, name="rebate"),
+    path("aff/invite/", views.AffInviteView.as_view(), name="aff_invite"),
+    path("aff/status/", views.AffStatusView.as_view(), name="aff_status"),
     # 网站后台面板
     path("backend/", views.system_status, name="system_status"),
     # 邀请码相关

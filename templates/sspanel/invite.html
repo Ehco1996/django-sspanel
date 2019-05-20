@@ -24,11 +24,11 @@
                         <th>邀请码:</th>
                     </tr>
                 </thead>
-                {% for code in codelist %}
+                {% for code in code_list %}
                 <tr>
-                    <td>{{ code.time_created|date:"m月d日" }}：</td>
+                    <td>{{ code.created_at|date:"m月d日" }}</td>
                     <td>
-                        <a href="{% url 'sspanel:passinvitecode' code.code %}" code.code }}>
+                        <a href="{% url 'sspanel:register'%}?token={{code.code}}"code.code }}>
                             {{ code.code }}
                         </a>
                     </td>

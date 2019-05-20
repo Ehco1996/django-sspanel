@@ -1,71 +1,42 @@
 import tomd
-
-from django.db.models import Q
-from django.urls import reverse
 from django.conf import settings
-from django.shortcuts import render
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views import View
 
-from apps.utils import traffic_format
+from apps.constants import METHOD_CHOICES, OBFS_CHOICES, PROTOCOL_CHOICES, THEME_CHOICES
 from apps.custom_views import Page_List_View
-from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
-from apps.ssserver.models import Suser, Node, NodeOnlineLog, AliveIp
-from .models import (
-    InviteCode,
-    User,
+from apps.sspanel.forms import AnnoForm, GoodsForm, LoginForm, NodeForm, RegisterForm
+from apps.sspanel.models import (
+    Announcement,
     Donate,
     Goods,
+    InviteCode,
     MoneyCode,
     PurchaseHistory,
-    Announcement,
-    Ticket,
     RebateRecord,
+    Ticket,
+    User,
 )
-from apps.constants import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES, THEME_CHOICES
+from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, Suser
+from apps.utils import traffic_format
 
 
-def index(request):
-    """跳转到首页"""
+class RegisterView(View):
+    def get(self, request):
+        form = RegisterForm(initial={"invitecode": request.GET.get("token")})
+        return render(request, "sspanel/register.html", {"form": form})
 
-    return render(
-        request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISET}
-    )
+    def post(self, request):
+        if settings.ALLOW_REGISTER is False:
+            return HttpResponse("已经关闭注册了喵")
 
-
-def sshelp(request):
-    """跳转到帮助界面"""
-    return render(request, "sspanel/help.html")
-
-
-@login_required
-def ssclient(request):
-    """跳转到客户端界面"""
-    return render(request, "sspanel/client.html")
-
-
-def ssinvite(request):
-    """跳转到邀请码界面"""
-    codelist = InviteCode.objects.filter(code_type=1, isused=False, code_id=1)[:20]
-
-    context = {"codelist": codelist}
-
-    return render(request, "sspanel/invite.html", context=context)
-
-
-def pass_invitecode(request, invitecode):
-    """提供点击邀请码连接之后自动填写邀请码"""
-    form = RegisterForm(initial={"invitecode": invitecode})
-    return render(request, "sspanel/register.html", {"form": form})
-
-
-def register(request):
-    """用户注册时的函数"""
-    if settings.ALLOW_REGISET is False:
-        return HttpResponse("已经关闭注册了喵")
-    if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = User.add_new_user(form.cleaned_data)
@@ -80,10 +51,53 @@ def register(request):
                 )
                 login(request, user)
                 return HttpResponseRedirect(reverse("sspanel:userinfo"))
-    else:
-        form = RegisterForm()
+        return render(request, "sspanel/register.html", {"form": form})
 
-    return render(request, "sspanel/register.html", {"form": form})
+
+class InviteCodeView(View):
+    def get(self, request):
+        code_list = InviteCode.list_by_code_type(InviteCode.TYPE_PUBLIC)
+        return render(request, "sspanel/invite.html", context={"code_list": code_list})
+
+
+class AffInviteView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        context = {
+            "code_list": InviteCode.list_by_user_id(user.pk),
+            "invite_percent": settings.INVITE_PERCENT * 100,
+            "invitecode_num": InviteCode.calc_num_by_user(user),
+        }
+        return render(request, "sspanel/aff_invite.html", context=context)
+
+
+class AffStatusView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        rebate_logs = RebateRecord.list_by_user_id_with_mixed_username(user.pk)
+        context = {"rebate_logs": rebate_logs, "user": user}
+        return render(request, "sspanel/aff_status.html", context=context)
+
+
+def index(request):
+    """跳转到首页"""
+
+    return render(
+        request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
+    )
+
+
+def sshelp(request):
+    """跳转到帮助界面"""
+    return render(request, "sspanel/help.html")
+
+
+@login_required
+def ssclient(request):
+    """跳转到客户端界面"""
+    return render(request, "sspanel/client.html")
 
 
 def user_login(request):
@@ -346,35 +360,6 @@ def ticket_edit(request, pk):
         return render(request, "sspanel/ticketedit.html", context=context)
 
 
-@login_required
-def affiliate(request):
-    """推广页面"""
-    if request.user.is_superuser is not True:
-        invidecodes = InviteCode.objects.filter(code_id=request.user.pk, code_type=0)
-        inviteNum = request.user.invitecode_num - len(invidecodes)
-    else:
-        # 如果是管理员，特殊处理
-        invidecodes = InviteCode.objects.filter(
-            code_id=request.user.pk, code_type=0, isused=False
-        )
-        inviteNum = 5
-    context = {
-        "invitecodes": invidecodes,
-        "invitePercent": settings.INVITE_PERCENT * 100,
-        "inviteNumn": inviteNum,
-    }
-    return render(request, "sspanel/affiliate.html", context=context)
-
-
-@login_required
-def rebate_record(request):
-    """返利记录"""
-    u = request.user
-    records = RebateRecord.objects.filter(user_id=u.pk)[:10]
-    context = {"records": records, "user": request.user}
-    return render(request, "sspanel/rebaterecord.html", context=context)
-
-
 # ==================================
 # 网站后台界面
 # ==================================
@@ -483,7 +468,7 @@ def user_status(request):
     # find inviter
     for u in today_register_user:
         try:
-            u["inviter"] = User.objects.get(pk=u["invited_by"])
+            u["inviter"] = User.objects.get(pk=u["inviter_id"])
         except User.DoesNotExist:
             u["inviter"] = "None"
 

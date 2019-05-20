@@ -24,7 +24,7 @@
             <div class="navbar-end">
                 <a class="navbar-item" href="{% url 'index' %}">首页</a>
                 <a class="navbar-item" href="{% url 'sspanel:sshelp' %}">使用说明</a>
-                <a class="navbar-item" href="{% url 'sspanel:ssinvite' %}">邀请码</a>
+                <a class="navbar-item" href="{% url 'sspanel:invite_code' %}">邀请码</a>
                 {% if user.is_authenticated %}
                 <a class="navbar-item" href="{% url 'sspanel:ssclient' %}">客户端</a>
                 <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
@@ -68,8 +68,8 @@
                     <a class="navbar-item" href="{% url 'sspanel:shop' %}">商品界面</a>
                     <a class="navbar-item" href="{% url 'sspanel:purchaselog' %}">购买记录</a>
                     <a class="navbar-item is-active">邀请相关</a>
-                    <a class="navbar-item" href="{% url 'sspanel:affiliate' %}">邀请管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:rebate' %}">返利记录</a>
+                    <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请管理</a>
+                    <a class="navbar-item" href="{% url 'sspanel:aff_status' %}">返利记录</a>
                     {% if perms.sspanel %}
                     <a class="navbar-item is-active">管理面板</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
@@ -152,10 +152,10 @@
                             </p>
                             <ul class="menu-list">
                                 <li>
-                                    <a href="{% url 'sspanel:affiliate' %}">邀请管理</a>
+                                    <a href="{% url 'sspanel:aff_invite' %}">邀请管理</a>
                                 </li>
                                 <li>
-                                    <a href="{% url 'sspanel:rebate' %}">返利记录</a>
+                                    <a href="{% url 'sspanel:aff_status' %}">返利记录</a>
                                 </li>
                             </ul>
                             {% if perms.sspanel %}

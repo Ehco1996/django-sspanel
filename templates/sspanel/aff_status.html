@@ -37,16 +37,16 @@
             <table class="table is-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>时间</th>
+                        <th>用户名</th>
                         <th>金额</th>
+                        <th>时间</th>
                     </tr>
                 </thead>
-                {% for r in records %}
+                {% for log in rebate_logs %}
                 <tr>
-                    <td>#{{ r.pk }}</td>
-                    <td>{{ r.rebatetime }}</td>
-                    <td>{{ r.money }}元</td>
+                    <td>{{ log.username }}</td>
+                    <td>{{ log.money }}元</td>
+                    <td>{{ log.created_at }}</td>
                 </tr>
                 {% endfor %}
             </table>
