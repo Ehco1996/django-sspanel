@@ -212,7 +212,9 @@ class RebateRecord(models.Model):
     """返利记录"""
 
     user_id = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
-
+    consumer_id = models.PositiveIntegerField(
+        verbose_name="消费者ID", null=True, blank=True
+    )
     money = models.DecimalField(
         verbose_name="金额",
         decimal_places=2,
@@ -227,12 +229,12 @@ class RebateRecord(models.Model):
         ordering = ("-created_at",)
 
     @classmethod
-    def list_by_user_id_with_mixed_username(cls, user_id, num=10):
+    def list_by_user_id_with_consumer_username(cls, user_id, num=10):
         logs = cls.objects.filter(user_id=user_id)[:num]
-        user_ids = [log.user_id for log in logs]
+        user_ids = [log.consumer_id for log in logs]
         username_map = {u.id: u.username for u in User.objects.filter(id__in=user_ids)}
         for log in logs:
-            setattr(log, "username", username_map[log.user_id])
+            setattr(log, "consumer_username", username_map.get(log.consumer_id, ""))
         return logs
 
 
@@ -392,7 +394,9 @@ class Goods(models.Model):
         if inviter != user:
             # 增加返利记录
             rebaterecord = RebateRecord(
-                user_id=inviter.pk, money=self.money * Decimal(settings.INVITE_PERCENT)
+                user_id=inviter.pk,
+                consumer_id=user.pk,
+                money=self.money * Decimal(settings.INVITE_PERCENT),
             )
             inviter.balance += rebaterecord.money
             inviter.save()

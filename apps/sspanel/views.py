@@ -76,7 +76,7 @@ class AffStatusView(View):
     @method_decorator(login_required)
     def get(self, request):
         user = request.user
-        rebate_logs = RebateRecord.list_by_user_id_with_mixed_username(user.pk)
+        rebate_logs = RebateRecord.list_by_user_id_with_consumer_username(user.pk)
         context = {"rebate_logs": rebate_logs, "user": user}
         return render(request, "sspanel/aff_status.html", context=context)
 

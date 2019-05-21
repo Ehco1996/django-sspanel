@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block main %}
+{% extends 'base.html' %} {% block main %}{% load ehcofilter %}
 
 <div class="column is-12">
     <section class="hero is-warning is-smaill">
@@ -44,7 +44,7 @@
                 </thead>
                 {% for log in rebate_logs %}
                 <tr>
-                    <td>{{ log.username }}</td>
+                    <td>{{ log.consumer_username|mix_name:log.consumer_username }}</td>
                     <td>{{ log.money }}元</td>
                     <td>{{ log.created_at }}</td>
                 </tr>
