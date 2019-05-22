@@ -15,34 +15,16 @@
     </section>
 </div>
 <div class="column is-12">
-    <nav class="level box ">
-        <div class="level-item has-text-centered">
-            <div>
-                <p class="heading">用户名:</p>
-                <p class="title">{{ user }}</p>
-            </div>
-        </div>
-        <div class="level-item has-text-centered">
-            <div>
-                <p class="heading">余额：</p>
-                <p class="title">
-                    <code>{{ user.balance }}元</code>
-                </p>
-            </div>
-        </div>
-    </nav>
-    <div class="box">
+    <div class="box" height="100">
         <canvas id="id-ref-canvas"></canvas>
-    </div>
-    <div class="box">
+        <hr>
         <div class="content">
-            <p class="subtitle">我的返利记录</p>
             <table class="table is-striped">
                 <thead>
                     <tr>
                         <th>用户名</th>
                         <th>金额</th>
-                        <th>时间</th>
+                        <th>购买时间</th>
                     </tr>
                 </thead>
                 {% for log in rebate_logs %}
