@@ -1,10 +1,11 @@
 from django import forms
 from django.conf import settings
-from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import ModelForm
 
+from apps.encoder import encoder
+from apps.sspanel.models import Announcement, Goods, InviteCode, User
 from apps.ssserver.models import Node
-from apps.sspanel.models import Announcement, Goods, User, InviteCode
 
 
 class RegisterForm(UserCreationForm):
@@ -19,11 +20,6 @@ class RegisterForm(UserCreationForm):
     email = forms.EmailField(
         label="邮箱", widget=forms.TextInput(attrs={"class": "input is-warning"})
     )
-    invitecode = forms.CharField(
-        label="邀请码",
-        help_text="邀请码必须填写",
-        widget=forms.TextInput(attrs={"class": "input is-success"}),
-    )
     password1 = forms.CharField(
         label="密码",
         help_text="""你的密码不能与其他个人信息太相似。
@@ -37,6 +33,23 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={"class": "input is-danger", "type": "password"}),
     )
 
+    invitecode = forms.CharField(
+        label="邀请码",
+        help_text="邀请码必须填写",
+        widget=forms.TextInput(attrs={"class": "input is-success"}),
+    )
+
+    ref = forms.CharField(
+        label="邀请", widget=forms.TextInput(attrs={"class": "input is-success"})
+    )
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        if "ref" in self.data or "ref" in self.initial.keys():
+            self.fields.pop("invitecode")
+        else:
+            self.fields.pop("ref")
+
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).first():
@@ -44,16 +57,41 @@ class RegisterForm(UserCreationForm):
         else:
             return email
 
-    def clean_invitecode(self):
+    def _post_clean(self):
+        super()._post_clean()
+        if "ref" in self.fields:
+            try:
+                self._clean_ref()
+            except forms.ValidationError as error:
+                self.add_error("ref", error)
+        if "invitecode" in self.fields:
+            try:
+                self._clean_invitecode()
+            except forms.ValidationError as error:
+                self.add_error("invitecode", error)
+
+    def _clean_invitecode(self):
         code = self.cleaned_data.get("invitecode")
-        if InviteCode.objects.filter(code=code, used=False).first():
+        if InviteCode.objects.filter(code=code, used=False).exists():
             return code
         else:
             raise forms.ValidationError("该邀请码失效")
 
+    def _clean_ref(self):
+        ref = self.cleaned_data.get("ref")
+        try:
+            user_id = encoder.string2int(ref)
+        except ValueError:
+            raise forms.ValidationError("ref不正确")
+
+        if User.objects.filter(id=user_id).exists():
+            return ref
+        else:
+            raise forms.ValidationError("ref不正确")
+
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ("username", "email", "password1", "password2", "invitecode")
+        fields = ("username", "email", "password1", "password2", "invitecode", "ref")
 
 
 class LoginForm(forms.Form):

@@ -111,10 +111,10 @@ def authorized(view_func):
 
 def handle_json_post(view_func):
     @wraps(view_func)
-    def wrapper(request, *args, **kwagrs):
+    def wrapper(request, *args, **kw):
         if request.method == "POST":
             request.json = json.loads(request.body)
-        return view_func(request, *args, **kwagrs)
+        return view_func(request, *args, **kw)
 
     return wrapper
 

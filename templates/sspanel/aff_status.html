@@ -32,6 +32,9 @@
         </div>
     </nav>
     <div class="box">
+        <canvas id="id-ref-canvas"></canvas>
+    </div>
+    <div class="box">
         <div class="content">
             <p class="subtitle">我的返利记录</p>
             <table class="table is-striped">
@@ -53,4 +56,12 @@
         </div>
     </div>
 </div>
-{% endblock main %}
+<script>
+    var genRefChart = function () {
+        url = "{% url 'api:user_ref_bar_config' %}"
+        $.get(url, function (results) {
+            genBarChart('id-ref-canvas', results)
+        })
+    }
+    genRefChart()
+</script>{% endblock main %}

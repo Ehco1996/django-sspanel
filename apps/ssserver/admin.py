@@ -3,7 +3,7 @@ from . import models
 
 
 class SUserAdmin(admin.ModelAdmin):
-    list_display = ["user", "user_id", "port", "used_traffic", "totla_transfer"]
+    list_display = ["user", "user_id", "port", "used_traffic", "total_transfer"]
     search_fields = ["user_id", "port"]
     list_filter = ["enable"]
 

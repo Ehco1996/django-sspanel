@@ -13,6 +13,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from apps.constants import THEME_CHOICES
+from apps.encoder import encoder
 from apps.payments import pay
 from apps.utils import get_long_random_string, traffic_format
 
@@ -84,19 +85,21 @@ class User(AbstractUser):
     def add_new_user(cls, cleaned_data):
         from apps.ssserver.models import Suser
 
-        username = cleaned_data["username"]
-        email = cleaned_data["email"]
-        password = cleaned_data["password1"]
-        invitecode = cleaned_data["invitecode"]
-        user = cls.objects.create_user(username, email, password)
-        code = InviteCode.objects.get(code=invitecode)
-        code.used = True
-        code.save()
-        # 将user和ssuser关联
-        Suser.objects.create(user_id=user.id, port=Suser.get_random_port())
+        user = cls.objects.create_user(
+            cleaned_data["username"], cleaned_data["email"], cleaned_data["password1"]
+        )
+        if "invitecode" in cleaned_data:
+            code = InviteCode.objects.get(code=cleaned_data["invitecode"])
+            code.consume()
+            inviter_id = code.user_id
+        elif "ref" in cleaned_data:
+            inviter_id = encoder.string2int(cleaned_data["ref"])
         # 绑定邀请人
-        user.inviter_id = code.user_id
+        UserRefLog.log_ref(inviter_id, pendulum.today())
+        user.inviter_id = inviter_id
         user.save()
+        # 绑定suser
+        Suser.create_by_user_id(user.id)
         Suser.clear_get_user_configs_by_node_id_cache()
         return user
 
@@ -128,9 +131,15 @@ class User(AbstractUser):
 
     @property
     def sub_link(self):
-        """生成该用户的订阅地址"""
+        """订阅地址"""
         params = {"token": self.ss_user.token}
         return settings.HOST + f"/api/subscribe/?{urlencode(params)}"
+
+    @property
+    def ref_link(self):
+        """ref地址"""
+        params = {"ref": self.ss_user.token}
+        return settings.HOST + f"/sspanel/register/?{urlencode(params)}"
 
     @property
     def ss_user(self):
@@ -206,6 +215,10 @@ class InviteCode(models.Model):
     @classmethod
     def list_not_used_by_user_id(cls, user_id):
         return cls.objects.filter(user_id=user_id, used=False)
+
+    def consume(self, code):
+        code.used = True
+        code.save()
 
 
 class RebateRecord(models.Model):
@@ -594,3 +607,37 @@ class UserOrder(models.Model):
                 changed = True
         self.handle_paid()
         return changed
+
+
+class UserRefLog(models.Model):
+    user_id = models.PositiveIntegerField()
+    register_count = models.IntegerField(default=0)
+    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
+
+    class Meta:
+        unique_together = [["user_id", "date"]]
+
+    @classmethod
+    def log_ref(cls, user_id, date):
+        log, _ = cls.objects.get_or_create(user_id=user_id, date=date)
+        log.register_count += 1
+        log.save()
+
+    @classmethod
+    def list_by_user_id_and_date_list(cls, user_id, date_list):
+        return cls.objects.filter(user_id=user_id, date__in=date_list)
+
+    @classmethod
+    def gen_bar_chart_configs(cls, user_id, date_list):
+        """set register_count to 0 if the query date log not exists"""
+        date_list = sorted(date_list)
+        logs = {
+            log.date: log.register_count
+            for log in cls.list_by_user_id_and_date_list(user_id, date_list)
+        }
+        bar_config = {
+            "labels": [f"{date.month}-{date.day}" for date in date_list],
+            "data": [logs.get(date, 0) for date in date_list],
+            "data_title": "每日邀请注册人数",
+        }
+        return bar_config

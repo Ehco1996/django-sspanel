@@ -26,4 +26,10 @@ urlpatterns = [
     # 支付
     path("orders", views.OrderView.as_view(), name="order"),
     path("callback/alipay", views.ailpay_callback, name="alipay_callback"),
+    # user stats
+    path(
+        "user/stats/ref_bar_configs",
+        views.UserRefBarConfigView.as_view(),
+        name="user_ref_bar_config",
+    ),
 ]

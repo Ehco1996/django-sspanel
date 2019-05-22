@@ -15,7 +15,7 @@ from ratelimit.decorators import ratelimit
 
 from apps.encoder import encoder
 from apps.payments import pay
-from apps.sspanel.models import Donate, Goods, InviteCode, User, UserOrder
+from apps.sspanel.models import Donate, Goods, InviteCode, User, UserOrder, UserRefLog
 from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, Suser, TrafficLog
 from apps.utils import authorized, handle_json_post, simple_cached_view, traffic_format
 
@@ -85,6 +85,17 @@ class SubscribeView(View):
         return resp
 
 
+class UserRefBarConfigView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        # 最近10天的
+        date = request.GET.get("date")
+        t = pendulum.parse(date) if date else pendulum.now()
+        date_list = [t.add(days=i).date() for i in range(-7, 3)]
+        bar_configs = UserRefLog.gen_bar_chart_configs(request.user.id, date_list)
+        return JsonResponse(bar_configs)
+
+
 @login_required
 def change_ss_port(request):
     ss_user = request.user.ss_user
@@ -134,6 +145,7 @@ def traffic_query(request):
     """
     流量查请求
     """
+    # TODO fix this use GET
     node_id = request.POST.get("node_id", 0)
     node_name = request.POST.get("node_name", "")
     user_id = request.user.pk

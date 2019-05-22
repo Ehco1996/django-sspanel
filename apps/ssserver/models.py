@@ -101,6 +101,10 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
                 raise ValidationError("端口必须在1024和50000之间")
 
     @classmethod
+    def create_by_user_id(cls, user_id):
+        return cls.objects.create(user_id=user_id, port=cls.get_random_port())
+
+    @classmethod
     def get_user_by_user_id(cls, user_id):
         return cls.objects.get(user_id=user_id)
 
@@ -220,7 +224,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         return traffic_format(self.download_traffic + self.upload_traffic)
 
     @property
-    def totla_transfer(self):
+    def total_transfer(self):
         return traffic_format(self.transfer_enable)
 
     @property

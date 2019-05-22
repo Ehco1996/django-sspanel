@@ -28,7 +28,7 @@
                 <tr>
                     <td>{{ code.created_at|date:"m月d日" }}</td>
                     <td>
-                        <a href="{% url 'sspanel:register'%}?token={{code.code}}"code.code }}>
+                        <a href="{% url 'sspanel:register'%}?invitecode={{code.code}}"code.code }}>
                             {{ code.code }}
                         </a>
                     </td>

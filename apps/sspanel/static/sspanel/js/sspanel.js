@@ -128,6 +128,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+function genRandomRgbaSet(num) {
+  colorData = []
+  for (var i = 0; i < num; i++) {
+    var r = Math.floor(Math.random() * 256);          // Random between 0-255
+    var g = Math.floor(Math.random() * 256);          // Random between 0-255
+    var b = Math.floor(Math.random() * 256);          // Random between 0-255
+    var rgba = 'rgba(' + r + ',' + g + ',' + b + ',' + 0.2 + ')'; // Collect all to a string
+    colorData.push(rgba)
+  }
+  return colorData
+
+}
+
+
+
 var getRandomColor = function () {
   var letters = '0123456789ABCDEF';
   var color = '#';
@@ -230,3 +245,39 @@ var genLineChart = function (chartId, config) {
     }
   })
 }
+var genBarChart = function (chartId, config) {
+  /**
+      charId : 元素id 定位canvas用
+      config : 配置信息 dict类型
+          {
+              title: 图表名字
+              labels :data对应的label
+              data_title: data的标题
+              data: 数据
+          }
+  **/
+  var ctx = $('#' + chartId)
+  var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: config.labels,
+      datasets: [{
+        label: config.data_title,
+        data: config.data,
+        backgroundColor: genRandomRgbaSet(config.data.length),
+      }]
+    },
+    options: {
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true,
+            stepSize: 1,
+            suggestedMax: 7
+          }
+        }]
+      }
+    }
+  })
+}
+

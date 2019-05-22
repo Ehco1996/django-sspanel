@@ -16,7 +16,7 @@ urlpatterns = [
     path("nodeinfo/", views.nodeinfo, name="nodeinfo"),
     path("trafficlog/", views.trafficlog, name="trafficlog"),
     # 用户信息
-    path("users/userinfo/", views.userinfo, name="userinfo"),
+    path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
     path("users/settings/", views.ss_user_settings, name="ss_user_settings"),
     # 捐赠/充值
     path("donate/", views.donate, name="donate"),

@@ -30,14 +30,20 @@ from apps.utils import traffic_format
 
 class RegisterView(View):
     def get(self, request):
-        form = RegisterForm(initial={"invitecode": request.GET.get("token")})
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse("sspanel:userinfo"))
+        ref = request.GET.get("ref")
+        if ref:
+            form = RegisterForm(initial={"ref": ref})
+        else:
+            form = RegisterForm(initial={"invitecode": request.GET.get("invitecode")})
         return render(request, "sspanel/register.html", {"form": form})
 
     def post(self, request):
         if settings.ALLOW_REGISTER is False:
             return HttpResponse("已经关闭注册了喵")
 
-        form = RegisterForm(request.POST)
+        form = RegisterForm(data=request.POST)
         if form.is_valid():
             user = User.add_new_user(form.cleaned_data)
             if not user:
@@ -68,6 +74,7 @@ class AffInviteView(View):
             "code_list": InviteCode.list_by_user_id(user.pk),
             "invite_percent": settings.INVITE_PERCENT * 100,
             "invitecode_num": InviteCode.calc_num_by_user(user),
+            "ref_link": user.ref_link,
         }
         return render(request, "sspanel/aff_invite.html", context=context)
 
@@ -77,8 +84,37 @@ class AffStatusView(View):
     def get(self, request):
         user = request.user
         rebate_logs = RebateRecord.list_by_user_id_with_consumer_username(user.pk)
-        context = {"rebate_logs": rebate_logs, "user": user}
+        bar_config = {
+            "labels": ["z", "v", "x", "x", "z", "v", "x", "x", "z", "v"],
+            "data": [1, 2, 3, 4, 1, 1, 1, 1, 1, 2],
+            "data_title": "每日邀请注册人数",
+        }
+        context = {"rebate_logs": rebate_logs, "user": user, "bar_config": bar_config}
         return render(request, "sspanel/aff_status.html", context=context)
+
+
+class UserInfoView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        # 获取公告
+        anno = Announcement.objects.first()
+        min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
+        max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
+        remain_traffic = "{:.2f}".format(100 - user.ss_user.used_percentage)
+        context = {
+            "user": user,
+            "anno": anno,
+            "remain_traffic": remain_traffic,
+            "min_traffic": min_traffic,
+            "max_traffic": max_traffic,
+            "import_code": Node.get_import_code(user),
+            "themes": THEME_CHOICES,
+            "sub_link": user.sub_link,
+            "sub_types": User.SUB_TYPES,
+            "user_sub_type": user.get_sub_type_display(),
+        }
+        return render(request, "sspanel/userinfo.html", context=context)
 
 
 def index(request):
@@ -124,30 +160,6 @@ def user_logout(request):
     logout(request)
     messages.success(request, "欢迎下次再来", extra_tags="注销成功")
     return HttpResponseRedirect(reverse("index"))
-
-
-@login_required
-def userinfo(request):
-    """用户中心"""
-    user = request.user
-    # 获取公告
-    anno = Announcement.objects.first()
-    min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
-    max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-    remain_traffic = "{:.2f}".format(100 - user.ss_user.used_percentage)
-    context = {
-        "user": user,
-        "anno": anno,
-        "remain_traffic": remain_traffic,
-        "min_traffic": min_traffic,
-        "max_traffic": max_traffic,
-        "import_code": Node.get_import_code(user),
-        "themes": THEME_CHOICES,
-        "sub_link": user.sub_link,
-        "sub_types": User.SUB_TYPES,
-        "user_sub_type": user.get_sub_type_display(),
-    }
-    return render(request, "sspanel/userinfo.html", context=context)
 
 
 @login_required
