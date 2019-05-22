@@ -216,9 +216,9 @@ class InviteCode(models.Model):
     def list_not_used_by_user_id(cls, user_id):
         return cls.objects.filter(user_id=user_id, used=False)
 
-    def consume(self, code):
-        code.used = True
-        code.save()
+    def consume(self):
+        self.used = True
+        self.save()
 
 
 class RebateRecord(models.Model):
