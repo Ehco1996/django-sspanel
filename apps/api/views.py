@@ -85,7 +85,7 @@ class SubscribeView(View):
         return resp
 
 
-class UserRefBarConfigView(View):
+class UserRefChartView(View):
     @method_decorator(login_required)
     def get(self, request):
         # 最近10天的
@@ -94,6 +94,69 @@ class UserRefBarConfigView(View):
         date_list = [t.add(days=i).date() for i in range(-7, 3)]
         bar_configs = UserRefLog.gen_bar_chart_configs(request.user.id, date_list)
         return JsonResponse(bar_configs)
+
+
+class UserTrafficChartView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        node_id = request.GET.get("node_id", 0)
+        user_id = request.user.pk
+        now = pendulum.now()
+        last_week = [now.subtract(days=i).date() for i in range(6, -1, -1)]
+        configs = TrafficLog.gen_line_chart_configs(user_id, node_id, last_week)
+        return JsonResponse(configs)
+
+
+class TrafficReportView(View):
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(TrafficReportView, self).dispatch(*args, **kwargs)
+
+    @method_decorator(authorized)
+    def post(self, request):
+        data = request.json
+        node_id = data["node_id"]
+        traffic_list = data["data"]
+        log_time = int(time.time())
+
+        node_total_traffic = 0
+        trafficlog_model_list = []
+        ss_user_model_list = []
+
+        for rec in traffic_list:
+            user_id = rec["user_id"]
+            u = rec["u"]
+            d = rec["d"]
+            # 个人流量增量
+            ss_user = Suser.get_user_by_user_id(user_id)
+            ss_user.download_traffic += d
+            ss_user.upload_traffic += u
+            ss_user.last_use_time = log_time
+            ss_user_model_list.append(ss_user)
+            # 个人流量记录
+            trafficlog_model_list.append(
+                TrafficLog(
+                    node_id=node_id,
+                    user_id=user_id,
+                    traffic=traffic_format(u + d),
+                    download_traffic=u,
+                    upload_traffic=d,
+                    log_time=log_time,
+                )
+            )
+            # 节点流量增量
+            node_total_traffic += u + d
+        # 节点流量记录
+        Node.objects.filter(node_id=node_id).update(
+            used_traffic=F("used_traffic") + node_total_traffic
+        )
+        # 流量记录
+        TrafficLog.objects.bulk_create(trafficlog_model_list)
+        # 个人流量记录
+        Suser.objects.bulk_update(
+            ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
+        )
+        return JsonResponse({"ret": 1, "data": []})
 
 
 @login_required
@@ -138,35 +201,6 @@ def purchase(request):
         return JsonResponse(
             {"title": "购买成功", "status": "success", "subtitle": "请在用户中心检查最新信息"}
         )
-
-
-@login_required
-def traffic_query(request):
-    """
-    流量查请求
-    """
-    # TODO fix this use GET
-    node_id = request.POST.get("node_id", 0)
-    node_name = request.POST.get("node_name", "")
-    user_id = request.user.pk
-    now = pendulum.now()
-    last_week = [now.subtract(days=i).date() for i in range(6, -1, -1)]
-    labels = ["{}-{}".format(t.month, t.day) for t in last_week]
-    traffic_data = [
-        TrafficLog.get_traffic_by_date(node_id, user_id, t) for t in last_week
-    ]
-    total = TrafficLog.get_user_traffic(node_id, user_id)
-    title = "节点 {} 当月共消耗：{}".format(node_name, total)
-
-    configs = {
-        "title": title,
-        "labels": labels,
-        "data": traffic_data,
-        "data_title": node_name,
-        "x_label": "日期 最近七天",
-        "y_label": "流量 单位：MB",
-    }
-    return JsonResponse(configs)
 
 
 @login_required
@@ -233,53 +267,6 @@ def node_online_api(request):
 def node_user_configs(request, node_id):
     res = {"ret": 1, "data": Suser.get_user_configs_by_node_id(node_id)}
     return JsonResponse(res)
-
-
-@authorized
-@csrf_exempt
-@require_http_methods(["POST"])
-def traffic_api(request):
-    """
-    接受服务端的用户流量上报
-    """
-    data = request.json
-    node_id = data["node_id"]
-    traffic_list = data["data"]
-    log_time = int(time.time())
-
-    node_total_traffic = 0
-    trafficlog_model_list = []
-
-    for rec in traffic_list:
-        user_id = rec["user_id"]
-        u = rec["u"]
-        d = rec["d"]
-        # 个人流量增量
-        Suser.objects.filter(user_id=user_id).update(
-            download_traffic=F("download_traffic") + d,
-            upload_traffic=F("upload_traffic") + u,
-            last_use_time=log_time,
-        )
-        # 个人流量记录
-        trafficlog_model_list.append(
-            TrafficLog(
-                node_id=node_id,
-                user_id=user_id,
-                traffic=traffic_format(u + d),
-                download_traffic=u,
-                upload_traffic=d,
-                log_time=log_time,
-            )
-        )
-        # 节点流量增量
-        node_total_traffic += u + d
-    # 节点流量记录
-    Node.objects.filter(node_id=node_id).update(
-        used_traffic=F("used_traffic") + node_total_traffic
-    )
-    # 流量记录
-    TrafficLog.objects.bulk_create(trafficlog_model_list)
-    return JsonResponse({"ret": 1, "data": []})
 
 
 @authorized

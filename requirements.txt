@@ -8,8 +8,8 @@ python-alipay-sdk
 requests
 tomd
 uWSGI
-Django
-mysqlclient
+Django>=2.2.1
+mysqlclient>=1.3.13
 pycrypto
 gevent
 pendulum

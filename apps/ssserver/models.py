@@ -515,14 +515,42 @@ class TrafficLog(ExportModelOperationsMixin("traffic_log"), models.Model):
         return self.download_traffic + self.upload_traffic
 
     @classmethod
-    def get_user_traffic(cls, node_id, user_id):
+    def calc_user_total_traffic(cls, node_id, user_id):
         logs = cls.objects.filter(node_id=node_id, user_id=user_id)
-        return traffic_format(sum([l.used_traffic for l in logs]))
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return traffic_format(ut + dt)
 
     @classmethod
-    def get_traffic_by_date(cls, node_id, user_id, date):
+    def calc_user_traffic_by_date(cls, user_id, node_id, date):
         logs = cls.objects.filter(node_id=node_id, user_id=user_id, log_date=date)
-        return round(sum([l.used_traffic for l in logs]) / settings.MB, 1)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return (ut + dt) // settings.MB
+
+    @classmethod
+    def gen_line_chart_configs(cls, user_id, node_id, date_list):
+        node = Node.get_by_node_id(node_id)
+        user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
+        date_list = sorted(date_list)
+        line_config = {
+            "title": "节点 {} 当月共消耗：{}".format(node.name, user_total_traffic),
+            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+            "data": [
+                cls.calc_user_traffic_by_date(user_id, node_id, date)
+                for date in date_list
+            ],
+            "data_title": node.name,
+            "x_label": "日期 最近七天",
+            "y_label": "流量 单位：MB",
+        }
+        return line_config
 
     @classmethod
     def truncate(cls):

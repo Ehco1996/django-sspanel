@@ -499,7 +499,8 @@ def user_status(request):
 @permission_required("sspanel")
 def backend_invite(request):
     """邀请码生成"""
-    code_list = InviteCode.objects.filter(code_type=0, isused=False, code_id=1)
+    # TODO 这里加入一些统计功能
+    code_list = InviteCode.objects.filter(code_type=0, used=False, user_id=1)
     return render(request, "backend/invitecode.html", {"code_list": code_list})
 
 

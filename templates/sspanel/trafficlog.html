@@ -52,17 +52,15 @@
 <script>
     // 流量记录查询部分
     queryButton = $("#id-button-query")
-    var trafficquery = function () {
-        url = "{% url 'api:traffic_query' %}"
+    var traffic_query = function () {
+        url = "{% url 'api:user_traffic_chart' %}"
         var options = $("#id-select-nodes option:selected")
         var data = {
             'node_id': options.val(),
-            'node_name': options.text(),
-            'csrfmiddlewaretoken': '{{ csrf_token }}',
         }
-        $.post(url, data, function (results) {
+        $.get(url, data, function (results) {
             genLineChart('traffic', results)
         })
     }
-    queryButton.click(trafficquery)
+    queryButton.click(traffic_query)
 </script> {% endblock main %}
