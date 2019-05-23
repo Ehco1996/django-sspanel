@@ -38,6 +38,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         default=get_short_random_string,
         db_column="passwd",
         validators=[validators.MinLengthValidator(6)],
+        unique=True,
     )
     port = models.IntegerField(verbose_name="端口", db_column="port", unique=True)
     last_use_time = models.IntegerField(
