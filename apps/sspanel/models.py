@@ -12,14 +12,13 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
 
-from apps.constants import THEME_CHOICES
+from apps.constants import METHOD_CHOICES, THEME_CHOICES
 from apps.encoder import encoder
 from apps.payments import pay
-from apps.utils import get_long_random_string, traffic_format
+from apps.utils import get_long_random_string, get_short_random_string, traffic_format
 
 
 class User(AbstractUser):
-    """SS账户模型"""
 
     SUB_TYPE_SS = 0
     SUB_TYPE_SSR = 1
@@ -55,6 +54,7 @@ class User(AbstractUser):
         default=settings.DEFAULT_THEME,
         max_length=10,
     )
+    # TODO Move To UserSsConfig
     sub_type = models.SmallIntegerField(
         verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
@@ -162,6 +162,27 @@ class User(AbstractUser):
         for node in node_list:
             sub_links = sub_links + node.get_node_link(ss_user) + "\n"
         return sub_links
+
+
+class UserSsConfig(models.Model):
+    # TODO migrate this
+
+    user_id = models.IntegerField(unique=True, db_index=True)
+    port = models.IntegerField(unique=True)
+    passwd = models.CharField(max_length=32, default=get_short_random_string)
+    enable = models.BooleanField(default=True)
+    speed_limit = models.IntegerField(default=0)
+    method = models.CharField(
+        default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+    upload_traffic = models.BigIntegerField(verbose_name="上传流量", default=0)
+    download_traffic = models.BigIntegerField(verbose_name="下载流量", default=0)
+    transfer = models.BigIntegerField(
+        verbose_name="总流量", default=settings.DEFAULT_TRAFFIC
+    )
+
+    class Meta:
+        verbose_name_plural = "Shadowsocks配置"
 
 
 class InviteCode(models.Model):
