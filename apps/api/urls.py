@@ -22,6 +22,11 @@ urlpatterns = [
     ),
     path("traffic/upload", views.TrafficReportView.as_view(), name="post_traffic"),
     path("nodes/aliveip", views.alive_ip_api, name="post_aliveip"),
+    path(
+        "ss_user_config/<int:node_id>/",
+        views.SsUserConfigView.as_view(),
+        name="ss_user_config",
+    ),
     # 支付
     path("orders", views.OrderView.as_view(), name="order"),
     path("callback/alipay", views.ailpay_callback, name="alipay_callback"),

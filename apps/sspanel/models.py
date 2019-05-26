@@ -169,7 +169,7 @@ class UserSsConfig(models.Model):
 
     user_id = models.IntegerField(unique=True, db_index=True)
     port = models.IntegerField(unique=True)
-    passwd = models.CharField(max_length=32, default=get_short_random_string)
+    password = models.CharField(max_length=32, default=get_short_random_string)
     enable = models.BooleanField(default=True)
     speed_limit = models.IntegerField(default=0)
     method = models.CharField(

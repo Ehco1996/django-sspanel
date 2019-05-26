@@ -17,7 +17,13 @@ from apps.encoder import encoder
 from apps.payments import pay
 from apps.sspanel.models import Donate, Goods, InviteCode, User, UserOrder, UserRefLog
 from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, Suser, TrafficLog
-from apps.utils import authorized, handle_json_post, simple_cached_view, traffic_format
+from apps.utils import (
+    api_authorized,
+    authorized,
+    handle_json_post,
+    simple_cached_view,
+    traffic_format,
+)
 
 
 class SystemStatusView(View):
@@ -156,6 +162,66 @@ class TrafficReportView(View):
         Suser.objects.bulk_update(
             ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
         )
+        return JsonResponse({"ret": 1, "data": []})
+
+
+class SsUserConfigView(View):
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(SsUserConfigView, self).dispatch(*args, **kwargs)
+
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        res = {"users": Suser.get_user_configs_by_node_id(node_id)}
+        return JsonResponse(res)
+
+    @method_decorator(handle_json_post)
+    @method_decorator(api_authorized)
+    def post(self, request, node_id):
+        data = request.json["data"]
+
+        log_time = int(time.time())
+        node_total_traffic = 0
+        trafficlog_model_list = []
+        ss_user_model_list = []
+
+        for user_data in data:
+            user_id = user_data["user_id"]
+            u = user_data["upload_traffic"]
+            d = user_data["download_traffic"]
+
+            # 个人流量增量
+            ss_user = Suser.get_user_by_user_id(user_id)
+            ss_user.download_traffic += d
+            ss_user.upload_traffic += u
+            ss_user.last_use_time = log_time
+            ss_user_model_list.append(ss_user)
+            # 个人流量记录
+            trafficlog_model_list.append(
+                TrafficLog(
+                    node_id=node_id,
+                    user_id=user_id,
+                    traffic=traffic_format(u + d),
+                    download_traffic=u,
+                    upload_traffic=d,
+                    log_time=log_time,
+                )
+            )
+            # 节点流量增量
+            node_total_traffic += u + d
+
+        # 节点流量记录
+        Node.objects.filter(node_id=node_id).update(
+            used_traffic=F("used_traffic") + node_total_traffic
+        )
+        # 流量记录
+        TrafficLog.objects.bulk_create(trafficlog_model_list)
+        # 个人流量记录
+        Suser.objects.bulk_update(
+            ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
+        )
+        # 节点在线人数
+        NodeOnlineLog.add_log(node_id, len(data), log_time)
         return JsonResponse({"ret": 1, "data": []})
 
 

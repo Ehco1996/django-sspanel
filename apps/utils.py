@@ -109,6 +109,17 @@ def authorized(view_func):
     return wrapper
 
 
+def api_authorized(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        token = request.GET.get("token", "")
+        if token != settings.TOKEN:
+            return JsonResponse({"msg": "auth error"})
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
 def handle_json_post(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kw):

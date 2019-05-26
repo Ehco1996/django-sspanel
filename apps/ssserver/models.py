@@ -168,6 +168,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
                 "protocol": user.protocol,
                 "protocol_param": user.protocol_param,
                 "speed_limit_per_user": user.speed_limit,
+                "password": user.password,
             }
             if node.speed_limit > 0:
                 if user.speed_limit > 0:
@@ -581,6 +582,10 @@ class NodeOnlineLog(ExportModelOperationsMixin("node_online_log"), models.Model)
             if o:
                 count += o[0].get_online_user()
         return count
+
+    @classmethod
+    def add_log(cls, node_id, num, log_time):
+        cls.objects.create(node_id=node_id, online_user=num, log_time=log_time)
 
     @classmethod
     def truncate(cls):
