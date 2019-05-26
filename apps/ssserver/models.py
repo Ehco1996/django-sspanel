@@ -366,7 +366,7 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
 
     @classmethod
     def get_active_nodes(cls):
-        return cls.objects.filter(show=1)
+        return cls.objects.filter(show=1).order_by("ss_type", "order")
 
     def get_ssr_link(self, ss_user):
         """返回ssr链接"""
@@ -479,6 +479,30 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         """已用流量"""
         return traffic_format(self.used_traffic)
 
+    def to_dict_with_extra_info(self, ss_user):
+        data = self.__dict__
+
+        if self.custom_method == 1:
+            data.update(ss_user.__dict__)
+        if self.node_type == 1:
+            data['node_color'] = "warning"
+            data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
+        else:
+            data['node_color'] = "info"
+        log = NodeOnlineLog.get_last_log_by_node_id(self.node_id)
+        if log:
+            data["online"] = log.get_oneline_status()
+            data["count"] = log.get_online_user()
+        else:
+            data["online"] = False
+            data["count"] = 0
+        data["country"] = self.country.lower()
+        data["sslink"] = self.get_ss_link(ss_user)
+        data["ssrlink"] = self.get_ssr_link(ss_user)
+        data["ss_type_info"] = self.get_ss_type_display()
+        data["node_type"] = self.get_node_type_display()[:-3]
+        return data
+
     # verbose_name
     human_total_traffic.short_description = "总流量"
     human_used_traffic.short_description = "使用流量"
@@ -582,6 +606,10 @@ class NodeOnlineLog(ExportModelOperationsMixin("node_online_log"), models.Model)
             if o:
                 count += o[0].get_online_user()
         return count
+
+    @classmethod
+    def get_last_log_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).last()
 
     @classmethod
     def add_log(cls, node_id, num, log_time):

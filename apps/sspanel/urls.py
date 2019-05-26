@@ -13,7 +13,7 @@ urlpatterns = [
     path("login/", views.user_login, name="login"),
     path("logout/", views.user_logout, name="logout"),
     # 节点
-    path("nodeinfo/", views.nodeinfo, name="nodeinfo"),
+    path("nodeinfo/", views.NodeInfoView.as_view(), name="nodeinfo"),
     path("trafficlog/", views.trafficlog, name="trafficlog"),
     # 用户信息
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),

@@ -117,6 +117,21 @@ class UserInfoView(View):
         return render(request, "sspanel/userinfo.html", context=context)
 
 
+class NodeInfoView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        ss_user = user.ss_user
+        node_list = [node.to_dict_with_extra_info(
+            ss_user) for node in Node.get_active_nodes()]
+        context = {
+            "node_list": node_list,
+            "user": user,
+            "sub_link": user.sub_link,
+        }
+        return render(request, "sspanel/nodeinfo.html", context=context)
+
+
 def index(request):
     """跳转到首页"""
 
@@ -190,62 +205,6 @@ def donate(request):
         # 关闭支付宝支付
         context["alipay"] = False
     return render(request, "sspanel/donate.html", context=context)
-
-
-@login_required
-def nodeinfo(request):
-    """跳转到节点信息的页面"""
-
-    nodelists = []
-    ss_user = request.user.ss_user
-    user = request.user
-    # 加入等级的判断
-    nodes = Node.objects.filter(show=1).values()
-    # 循环遍历每一条线路的在线人数
-    for node in nodes:
-        # 生成SSR和SS的链接
-        obj = Node.objects.get(node_id=node["node_id"])
-        node["ssrlink"] = obj.get_ssr_link(ss_user)
-        node["sslink"] = obj.get_ss_link(ss_user)
-        node["country"] = obj.country.lower()
-        node["node_type"] = obj.get_node_type_display()[:-3]
-        if obj.node_type == 1:
-            # 单端口的情况下
-            node["port"] = obj.port
-            node["method"] = obj.method
-            node["password"] = obj.password
-            node["protocol"] = obj.protocol
-            node["node_color"] = "warning"
-            node["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
-            node["obfs"] = obj.obfs
-            node["obfs_param"] = obj.obfs_param
-        else:
-            node["port"] = ss_user.port
-            node["method"] = ss_user.method
-            node["password"] = ss_user.password
-            node["protocol"] = ss_user.protocol
-            node["node_color"] = "info"
-            node["protocol_param"] = ss_user.protocol_param
-            node["obfs"] = ss_user.obfs
-            node["obfs_param"] = ss_user.obfs_param
-            # 得到在线人数
-        log = NodeOnlineLog.objects.filter(node_id=node["node_id"]).last()
-        if log:
-            node["online"] = log.get_oneline_status()
-            node["count"] = log.get_online_user()
-        else:
-            node["online"] = False
-            node["count"] = 0
-        # 添加ss_type
-        node["ss_type_info"] = obj.get_ss_type_display()
-        nodelists.append(node)
-    context = {
-        "nodelists": nodelists,
-        "ss_user": ss_user,
-        "user": user,
-        "sub_link": user.sub_link,
-    }
-    return render(request, "sspanel/nodeinfo.html", context=context)
 
 
 @login_required
