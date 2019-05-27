@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models
 from django.db.models import F
+from django.forms.models import model_to_dict
 from django.utils import timezone
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -152,33 +153,26 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
             return data
         user_list = cls.get_users_by_level(node.level)
         for user in user_list:
-            cfg = {
-                "port": user.port,
-                "u": user.upload_traffic,
-                "d": user.download_traffic,
-                "transfer_enable": user.transfer_enable,
-                "passwd": user.password,
-                "enable": user.enable,
-                "user_id": user.user_id,
-                "id": user.user_id,
-                "token": user.token,
-                "method": user.method,
-                "obfs": user.obfs,
-                "obfs_param": user.obfs_param,
-                "protocol": user.protocol,
-                "protocol_param": user.protocol_param,
-                "speed_limit_per_user": user.speed_limit,
-                "password": user.password,
-            }
-            if node.speed_limit > 0:
-                if user.speed_limit > 0:
-                    cfg["speed_limit_per_user"] = min(
-                        user.speed_limit, node.speed_limit
-                    )
-                else:
-                    cfg["speed_limit_per_user"] = node.speed_limit
+            data.append(
+                {
+                    "id": user.user_id,
+                    "user_id": user.user_id,
+                    "port": user.port,
+                    "u": user.upload_traffic,
+                    "d": user.download_traffic,
+                    "transfer_enable": user.transfer_enable,
+                    "passwd": user.password,
+                    "password": user.password,
+                    "enable": user.enable,
+                    "method": user.method if node.custom_method == 1 else node.method,
+                    "obfs": user.obfs,
+                    "obfs_param": user.obfs_param,
+                    "protocol": user.protocol,
+                    "protocol_param": user.protocol_param,
+                    "speed_limit_per_user": min(user.speed_limit, node.speed_limit),
+                }
+            )
 
-            data.append(cfg)
         return data
 
     @classmethod
@@ -480,15 +474,15 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         return traffic_format(self.used_traffic)
 
     def to_dict_with_extra_info(self, ss_user):
-        data = self.__dict__
-
-        if self.custom_method == 1:
-            data.update(ss_user.__dict__)
+        data = model_to_dict(self)
+        data.update(ss_user.__dict__)
+        if self.custom_method == 0:
+            data["method"] = self.method
         if self.node_type == 1:
-            data['node_color'] = "warning"
+            data["node_color"] = "warning"
             data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
         else:
-            data['node_color'] = "info"
+            data["node_color"] = "info"
         log = NodeOnlineLog.get_last_log_by_node_id(self.node_id)
         if log:
             data["online"] = log.get_oneline_status()
