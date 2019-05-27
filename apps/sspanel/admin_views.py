@@ -134,7 +134,7 @@ def user_search(request):
         Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
     )
     context = {"contacts": contacts}
-    return render(request, "backend/userlist.html", context=context)
+    return render(request, "backend/user_list.html", context=context)
 
 
 @permission_required("sspanel")
