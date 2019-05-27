@@ -4,8 +4,8 @@ import pendulum
 from django.conf import settings
 from django.utils import timezone
 
-from apps.sspanel.models import User, UserOrder
-from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, TrafficLog
+from apps.sspanel.models import User, UserOrder, UserOnLineIpLog
+from apps.ssserver.models import Node, NodeOnlineLog, TrafficLog
 
 os.environ["DJANGO_ENV"] = "production"
 
@@ -46,8 +46,8 @@ def clean_online_log():
 
 def clean_online_ip_log():
     """清空在线ip记录"""
-    count = AliveIp.objects.count()
-    AliveIp.truncate()
+    count = UserOnLineIpLog.objects.count()
+    UserOnLineIpLog.truncate()
     print("Time: {} online ip log removed!:{}".format(timezone.now(), count))
 
 

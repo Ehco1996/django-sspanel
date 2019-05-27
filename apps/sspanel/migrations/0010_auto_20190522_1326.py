@@ -6,22 +6,32 @@ import pendulum
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('sspanel', '0009_auto_20190521_1332'),
-    ]
+    dependencies = [("sspanel", "0009_auto_20190521_1332")]
 
     operations = [
         migrations.CreateModel(
-            name='UserRefLog',
+            name="UserRefLog",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.PositiveIntegerField()),
-                ('register_count', models.IntegerField(default=0)),
-                ('date', models.DateField(db_index=True, default=pendulum.today, verbose_name='记录日期')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("user_id", models.PositiveIntegerField()),
+                ("register_count", models.IntegerField(default=0)),
+                (
+                    "date",
+                    models.DateField(
+                        db_index=True, default=pendulum.today, verbose_name="记录日期"
+                    ),
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='userreflog',
-            unique_together={('user_id', 'date')},
+            name="userreflog", unique_together={("user_id", "date")}
         ),
     ]

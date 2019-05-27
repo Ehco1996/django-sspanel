@@ -5,28 +5,27 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('sspanel', '0008_auto_20190520_1639'),
-    ]
+    dependencies = [("sspanel", "0008_auto_20190520_1639")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='rebaterecord',
-            options={'ordering': ('-created_at',)},
+            name="rebaterecord", options={"ordering": ("-created_at",)}
         ),
         migrations.AddField(
-            model_name='rebaterecord',
-            name='consumer_id',
-            field=models.PositiveIntegerField(blank=True, null=True, verbose_name='消费者ID'),
+            model_name="rebaterecord",
+            name="consumer_id",
+            field=models.PositiveIntegerField(
+                blank=True, null=True, verbose_name="消费者ID"
+            ),
         ),
         migrations.AlterField(
-            model_name='invitecode',
-            name='created_at',
+            model_name="invitecode",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True),
         ),
         migrations.AlterField(
-            model_name='rebaterecord',
-            name='created_at',
+            model_name="rebaterecord",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True),
         ),
     ]

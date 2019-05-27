@@ -21,7 +21,6 @@ urlpatterns = [
         "users/nodes/<int:node_id>", views.node_user_configs, name="node_user_configs"
     ),
     path("traffic/upload", views.TrafficReportView.as_view(), name="post_traffic"),
-    path("nodes/aliveip", views.alive_ip_api, name="post_aliveip"),
     path(
         "ss_user_config/<int:node_id>/",
         views.SsUserConfigView.as_view(),

@@ -1,4 +1,4 @@
- {% extends 'backendbase.html' %} {% block main %}
+{% extends 'backendbase.html' %} {% block main %}
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -17,7 +17,8 @@
     <div class="box">
         <nav class="pagination">
             {% if contacts.has_previous %}
-            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %} {% if contacts.has_next%}
+            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %}
+            {% if contacts.has_next%}
             <a class="pagination-next" href="?page={{ contacts.next_page_number }}">下一页</a> {% endif %} {% if page %}
             <p>页码：</p>
             <ul class="pagination-list">
@@ -43,18 +44,18 @@
         <table class="table is-fullwidth">
             <thead>
                 <tr>
-                    <th>节点名</th>
-                    <th>用户名</th>
+                    <th>节点ID</th>
+                    <th>用户ID</th>
                     <th>IP地址</th>
                     <th>时间</th>
                 </tr>
             </thead>
             {% for contact in contacts %}
             <tr>
-                <td>{{ contact.node_name }}</td>
-                <td>{{ contact.user }}</td>
+                <td>{{ contact.node_id }}</td>
+                <td>{{ contact.user_id }}</td>
                 <td>{{ contact.ip }}</td>
-                <td>{{ contact.log_time }}</td>
+                <td>{{ contact.created_at }}</td>
             </tr>
             {% empty %}
             <p class="subtitle">没有用户在线哟</p>

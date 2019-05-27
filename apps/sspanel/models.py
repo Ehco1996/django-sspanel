@@ -9,13 +9,13 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.utils import timezone
 
-from apps.constants import METHOD_CHOICES, THEME_CHOICES
+from apps.constants import NODE_TIME_OUT, THEME_CHOICES
 from apps.encoder import encoder
 from apps.payments import pay
-from apps.utils import get_long_random_string, get_short_random_string, traffic_format
+from apps.utils import get_long_random_string, traffic_format
 
 
 class User(AbstractUser):
@@ -162,27 +162,6 @@ class User(AbstractUser):
         for node in node_list:
             sub_links = sub_links + node.get_node_link(ss_user) + "\n"
         return sub_links
-
-
-class UserSsConfig(models.Model):
-    # TODO migrate this
-
-    user_id = models.IntegerField(unique=True, db_index=True)
-    port = models.IntegerField(unique=True)
-    password = models.CharField(max_length=32, default=get_short_random_string)
-    enable = models.BooleanField(default=True)
-    speed_limit = models.IntegerField(default=0)
-    method = models.CharField(
-        default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
-    )
-    upload_traffic = models.BigIntegerField(verbose_name="上传流量", default=0)
-    download_traffic = models.BigIntegerField(verbose_name="下载流量", default=0)
-    transfer = models.BigIntegerField(
-        verbose_name="总流量", default=settings.DEFAULT_TRAFFIC
-    )
-
-    class Meta:
-        verbose_name_plural = "Shadowsocks配置"
 
 
 class InviteCode(models.Model):
@@ -662,3 +641,55 @@ class UserRefLog(models.Model):
             "data_title": "每日邀请注册人数",
         }
         return bar_config
+
+
+class UserOnLineIpLog(models.Model):
+
+    user_id = models.IntegerField(db_index=True)
+    node_id = models.IntegerField()
+    ip = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name_plural = "用户在线IP"
+        ordering = ["-created_at"]
+        unique_together = [["node_id", "created_at"]]
+
+    @classmethod
+    def get_recent_log_by_node_id(cls, node_id):
+        now = pendulum.now()
+        ip_set = set()
+        ret = []
+        for log in cls.objects.filter(
+            created_at__range=[now.subtract(seconds=NODE_TIME_OUT), now]
+        ):
+            if log.ip not in ip_set:
+                ret.append(log)
+            ip_set.add(log.ip)
+        return ret
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+
+# class UserSsConfig(models.Model):
+#     # TODO migrate this
+
+#     user_id = models.IntegerField(unique=True, db_index=True)
+#     port = models.IntegerField(unique=True)
+#     password = models.CharField(max_length=32, default=get_short_random_string)
+#     enable = models.BooleanField(default=True)
+#     speed_limit = models.IntegerField(default=0)
+#     method = models.CharField(
+#         default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+#     )
+#     upload_traffic = models.BigIntegerField(verbose_name="上传流量", default=0)
+#     download_traffic = models.BigIntegerField(verbose_name="下载流量", default=0)
+#     transfer = models.BigIntegerField(
+#         verbose_name="总流量", default=settings.DEFAULT_TRAFFIC
+#     )
+
+#     class Meta:
+#         verbose_name_plural = "Shadowsocks配置"

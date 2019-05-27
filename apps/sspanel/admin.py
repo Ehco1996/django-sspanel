@@ -48,6 +48,10 @@ class UserOrderAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
 
 
+class UserOnLineIpLogAdmin(admin.ModelAdmin):
+    list_display = ["user_id", "node_id", "ip", "created_at"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)
@@ -58,5 +62,6 @@ admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
 admin.site.register(models.UserOrder, UserOrderAdmin)
+admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)
 
 admin.site.unregister(Group)

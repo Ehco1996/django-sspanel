@@ -15,8 +15,16 @@ from ratelimit.decorators import ratelimit
 
 from apps.encoder import encoder
 from apps.payments import pay
-from apps.sspanel.models import Donate, Goods, InviteCode, User, UserOrder, UserRefLog
-from apps.ssserver.models import AliveIp, Node, NodeOnlineLog, Suser, TrafficLog
+from apps.sspanel.models import (
+    Donate,
+    Goods,
+    InviteCode,
+    User,
+    UserOrder,
+    UserRefLog,
+    UserOnLineIpLog,
+)
+from apps.ssserver.models import Node, NodeOnlineLog, Suser, TrafficLog
 from apps.utils import (
     api_authorized,
     authorized,
@@ -184,6 +192,7 @@ class SsUserConfigView(View):
         node_total_traffic = 0
         trafficlog_model_list = []
         ss_user_model_list = []
+        online_ip_log_model_list = []
 
         for user_data in data:
             user_id = user_data["user_id"]
@@ -209,6 +218,11 @@ class SsUserConfigView(View):
             )
             # 节点流量增量
             node_total_traffic += u + d
+            # online ip log
+            for ip in user_data.get("ip_list", []):
+                online_ip_log_model_list.append(
+                    UserOnLineIpLog(user_id=user_id, node_id=node_id, ip=ip)
+                )
 
         # 节点流量记录
         Node.objects.filter(node_id=node_id).update(
@@ -216,6 +230,8 @@ class SsUserConfigView(View):
         )
         # 流量记录
         TrafficLog.objects.bulk_create(trafficlog_model_list)
+        # 在线IP
+        UserOnLineIpLog.objects.bulk_create(online_ip_log_model_list)
         # 个人流量记录
         Suser.objects.bulk_update(
             ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
@@ -343,10 +359,9 @@ def alive_ip_api(request):
     node_id = data["node_id"]
     model_list = []
     for user_id, ip_list in data["data"].items():
-        user = User.objects.get(id=user_id)
         for ip in ip_list:
-            model_list.append(AliveIp(node_id=node_id, user=user.username, ip=ip))
-    AliveIp.objects.bulk_create(model_list)
+            model_list.append(UserOnLineIpLog(node_id=node_id, user=user_id, ip=ip))
+    UserOnLineIpLog.objects.bulk_create(model_list)
     res = {"ret": 1, "data": []}
     return JsonResponse(res)
 

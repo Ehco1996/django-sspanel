@@ -628,40 +628,4 @@ class NodeOnlineLog(ExportModelOperationsMixin("node_online_log"), models.Model)
         else:
             return 0
 
-
-class AliveIp(ExportModelOperationsMixin("aliveip_log"), models.Model):
-
-    node_id = models.IntegerField(verbose_name="节点id", blank=False, null=False)
-    ip = models.CharField(verbose_name="设备ip", max_length=128)
-    user = models.CharField(verbose_name="用户名", max_length=128)
-    log_time = models.DateTimeField("日志时间", auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "节点在线IP"
-        ordering = ["-log_time"]
-
-    @classmethod
-    def recent_alive(cls, node_id):
-        """
-        返回节点最近一分钟的在线ip
-        """
-        ret = []
-        seen = []
-        now = pendulum.now()
-        last_now = now.subtract(minutes=1)
-        time_range = [str(last_now), str(now)]
-        logs = cls.objects.filter(node_id=node_id, log_time__range=time_range)
-        for log in logs:
-            if log.ip not in seen:
-                seen.append(log.ip)
-                ret.append(log)
-        return ret
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-    @property
-    def node_name(self):
         return Node.get_by_node_id(self.node_id).name

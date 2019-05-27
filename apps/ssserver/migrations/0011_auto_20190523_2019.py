@@ -7,14 +7,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ssserver', '0010_auto_20181219_1632'),
-    ]
+    dependencies = [("ssserver", "0010_auto_20181219_1632")]
 
     operations = [
         migrations.AlterField(
-            model_name='suser',
-            name='password',
-            field=models.CharField(db_column='passwd', default=apps.utils.get_short_random_string, max_length=32, unique=True, validators=[django.core.validators.MinLengthValidator(6)], verbose_name='ss密码'),
-        ),
+            model_name="suser",
+            name="password",
+            field=models.CharField(
+                db_column="passwd",
+                default=apps.utils.get_short_random_string,
+                max_length=32,
+                unique=True,
+                validators=[django.core.validators.MinLengthValidator(6)],
+                verbose_name="ss密码",
+            ),
+        )
     ]

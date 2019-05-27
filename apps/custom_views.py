@@ -1,16 +1,16 @@
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage
 
 
-class Page_List_View(object):
+class PageListView:
     """
     拥有翻页功能的通用类
     Args:
         request ： django request
-        obj： 等待分分页的列表，例如 User.objects.all()
+        obj_list： 等待分分页的列表
         page_num： 分页的页数
     """
 
-    def __init__(self, request, obj_list, page_num):
+    def __init__(self, request, obj_list, page_num=10):
         self.request = request
         self.obj_list = obj_list
         self.page_num = page_num
@@ -20,14 +20,10 @@ class Page_List_View(object):
         # 每页显示10条记录
         paginator = Paginator(self.obj_list, self.page_num)
         # 构造分页.获取当前页码数量
-        page = self.request.GET.get("page")
+        page = int(self.request.GET.get("page", 1))
         # 页码为1时，防止异常
         try:
             contacts = paginator.page(page)
-            page = int(page)
-        except PageNotAnInteger:
-            contacts = paginator.page(1)
-            page = 1
         except EmptyPage:
             contacts = paginator.page(paginator.num_pages)
         # 获得整个分页页码列表
