@@ -661,7 +661,8 @@ class UserOnLineIpLog(models.Model):
         ip_set = set()
         ret = []
         for log in cls.objects.filter(
-            created_at__range=[now.subtract(seconds=NODE_TIME_OUT), now]
+            node_id=node_id,
+            created_at__range=[now.subtract(seconds=NODE_TIME_OUT), now],
         ):
             if log.ip not in ip_set:
                 ret.append(log)
