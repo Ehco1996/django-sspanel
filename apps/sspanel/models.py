@@ -769,7 +769,7 @@ class SSNodeOnlineLog(models.Model):
 
     @classmethod
     def get_latest_log_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).latest("created_at")
+        return cls.objects.filter(node_id=node_id).order_by("-created_at").first()
 
     @classmethod
     def get_all_node_online_user_count(cls):
