@@ -777,8 +777,8 @@ class SSNodeOnlineLog(models.Model):
 
         node_ids = [node.node_id for node in Node.get_active_nodes()]
         count = 0
-        logs = cls.objects.filter(node_id__in=node_ids).latest("created_at")
-        for log in logs:
+        for node_id in node_ids:
+            log = cls.get_latest_log_by_node_id(node_id)
             count += log.online_user_count
         return count
 
