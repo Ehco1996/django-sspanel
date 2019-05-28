@@ -23,8 +23,10 @@ from apps.sspanel.models import (
     UserOrder,
     UserRefLog,
     UserOnLineIpLog,
+    UserTrafficLog,
+    SSNodeOnlineLog,
 )
-from apps.ssserver.models import Node, NodeOnlineLog, Suser, TrafficLog
+from apps.ssserver.models import Node, Suser
 from apps.utils import (
     api_authorized,
     authorized,
@@ -38,7 +40,7 @@ class SystemStatusView(View):
     @method_decorator(permission_required("sspanel"))
     def get(self, request):
         user_status = [
-            NodeOnlineLog.get_online_user_count(),
+            SSNodeOnlineLog.get_all_node_online_user_count(),
             User.get_today_register_user().count(),
             Suser.get_today_checked_user_num(),
             Suser.get_never_checked_user_num(),
@@ -117,7 +119,7 @@ class UserTrafficChartView(View):
         user_id = request.user.pk
         now = pendulum.now()
         last_week = [now.subtract(days=i).date() for i in range(6, -1, -1)]
-        configs = TrafficLog.gen_line_chart_configs(user_id, node_id, last_week)
+        configs = UserTrafficLog.gen_line_chart_configs(user_id, node_id, last_week)
         return JsonResponse(configs)
 
 
@@ -149,13 +151,11 @@ class TrafficReportView(View):
             ss_user_model_list.append(ss_user)
             # 个人流量记录
             trafficlog_model_list.append(
-                TrafficLog(
+                UserTrafficLog(
                     node_id=node_id,
                     user_id=user_id,
-                    traffic=traffic_format(u + d),
                     download_traffic=u,
                     upload_traffic=d,
-                    log_time=log_time,
                 )
             )
             # 节点流量增量
@@ -165,7 +165,7 @@ class TrafficReportView(View):
             used_traffic=F("used_traffic") + node_total_traffic
         )
         # 流量记录
-        TrafficLog.objects.bulk_create(trafficlog_model_list)
+        UserTrafficLog.objects.bulk_create(trafficlog_model_list)
         # 个人流量记录
         Suser.objects.bulk_update(
             ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
@@ -207,13 +207,11 @@ class SsUserConfigView(View):
             ss_user_model_list.append(ss_user)
             # 个人流量记录
             trafficlog_model_list.append(
-                TrafficLog(
+                UserTrafficLog(
                     node_id=node_id,
                     user_id=user_id,
-                    traffic=traffic_format(u + d),
                     download_traffic=u,
                     upload_traffic=d,
-                    log_time=log_time,
                 )
             )
             # 节点流量增量
@@ -229,7 +227,7 @@ class SsUserConfigView(View):
             used_traffic=F("used_traffic") + node_total_traffic
         )
         # 流量记录
-        TrafficLog.objects.bulk_create(trafficlog_model_list)
+        UserTrafficLog.objects.bulk_create(trafficlog_model_list)
         # 在线IP
         UserOnLineIpLog.objects.bulk_create(online_ip_log_model_list)
         # 个人流量记录
@@ -237,7 +235,7 @@ class SsUserConfigView(View):
             ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
         )
         # 节点在线人数
-        NodeOnlineLog.add_log(node_id, len(data), log_time)
+        SSNodeOnlineLog.add_log(node_id, len(data))
         return JsonResponse({"ret": 1, "data": []})
 
 
@@ -334,12 +332,7 @@ def node_online_api(request):
     """
     data = request.json
     node = Node.objects.filter(node_id=data["node_id"]).first()
-    if node:
-        NodeOnlineLog.objects.create(
-            node_id=data["node_id"],
-            online_user=data["online_user"],
-            log_time=int(time.time()),
-        )
+    node and SSNodeOnlineLog.add_log(data["node_id"], data["online_user"])
     res = {"ret": 1, "data": []}
     return JsonResponse(res)
 

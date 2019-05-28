@@ -658,7 +658,7 @@ class UserOnLineIpLog(models.Model):
     class Meta:
         verbose_name_plural = "用户在线IP"
         ordering = ["-created_at"]
-        unique_together = [["node_id", "created_at"]]
+        index_together = ["node_id", "created_at"]
 
     @classmethod
     def get_recent_log_by_node_id(cls, node_id):
@@ -680,7 +680,110 @@ class UserOnLineIpLog(models.Model):
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
 
-# class UserSsConfig(models.Model):
+class UserTrafficLog(models.Model):
+
+    user_id = models.IntegerField()
+    node_id = models.IntegerField()
+    date = models.DateField(auto_now_add=True, db_index=True)
+    upload_traffic = models.BigIntegerField("上传流量", default=0)
+    download_traffic = models.BigIntegerField("下载流量", default=0)
+
+    class Meta:
+        verbose_name_plural = "流量记录"
+        ordering = ["-date"]
+        index_together = ["user_id", "node_id", "date"]
+
+    @property
+    def total_traffic(self):
+        return traffic_format(self.download_traffic + self.upload_traffic)
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+    @classmethod
+    def calc_user_total_traffic(cls, node_id, user_id):
+        logs = cls.objects.filter(user_id=user_id, node_id=node_id)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return traffic_format(ut + dt)
+
+    @classmethod
+    def calc_user_traffic_by_date(cls, user_id, node_id, date):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id, date=date)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return (ut + dt) // settings.MB
+
+    @classmethod
+    def gen_line_chart_configs(cls, user_id, node_id, date_list):
+        from apps.ssserver.models import Node
+
+        node = Node.get_by_node_id(node_id)
+        user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
+        date_list = sorted(date_list)
+        line_config = {
+            "title": "节点 {} 当月共消耗：{}".format(node.name, user_total_traffic),
+            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+            "data": [
+                cls.calc_user_traffic_by_date(user_id, node_id, date)
+                for date in date_list
+            ],
+            "data_title": node.name,
+            "x_label": "日期 最近七天",
+            "y_label": "流量 单位：MB",
+        }
+        return line_config
+
+
+class SSNodeOnlineLog(models.Model):
+
+    node_id = models.IntegerField()
+    online_user_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name_plural = "节点在线记录"
+        ordering = ["-created_at"]
+        index_together = ["node_id", "created_at"]
+
+    @property
+    def is_online(self):
+        return pendulum.now().subtract(seconds=NODE_TIME_OUT) < self.created_at
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+    @classmethod
+    def add_log(cls, node_id, num):
+        return cls.objects.create(node_id=node_id, online_user_count=num)
+
+    @classmethod
+    def get_latest_log_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).latest("created_at")
+
+    @classmethod
+    def get_all_node_online_user_count(cls):
+        from apps.ssserver.models import Node
+
+        node_ids = [node.node_id for node in Node.get_active_nodes()]
+        count = 0
+        logs = cls.objects.filter(node_id__in=node_ids).latest("created_at")
+        for log in logs:
+            count += log.online_user_count
+        return count
+
+
+# class UserSSConfig(models.Model):
 #     # TODO migrate this
 
 #     user_id = models.IntegerField(unique=True, db_index=True)

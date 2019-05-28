@@ -4,8 +4,14 @@ import pendulum
 from django.conf import settings
 from django.utils import timezone
 
-from apps.sspanel.models import User, UserOrder, UserOnLineIpLog
-from apps.ssserver.models import Node, NodeOnlineLog, TrafficLog
+from apps.sspanel.models import (
+    User,
+    UserOrder,
+    UserOnLineIpLog,
+    UserTrafficLog,
+    SSNodeOnlineLog,
+)
+from apps.ssserver.models import Node
 
 os.environ["DJANGO_ENV"] = "production"
 
@@ -32,15 +38,15 @@ def auto_reset_traffic():
 def clean_traffic_log():
     """清空七天前的所有流量记录"""
     dt = pendulum.now().subtract(days=7).date()
-    query = TrafficLog.objects.filter(log_date__lt=dt)
+    query = UserTrafficLog.objects.filter(log_date__lt=dt)
     count, res = query.delete()
     print("Time: {} traffic record removed!:{}".format(timezone.now(), count))
 
 
 def clean_online_log():
     """清空所有在线记录"""
-    count = TrafficLog.objects.count()
-    NodeOnlineLog.truncate()
+    count = SSNodeOnlineLog.objects.count()
+    SSNodeOnlineLog.truncate()
     print("Time {} online record removed!:{}".format(timezone.now(), count))
 
 

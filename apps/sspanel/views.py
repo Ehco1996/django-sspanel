@@ -126,6 +126,14 @@ class NodeInfoView(View):
         return render(request, "sspanel/nodeinfo.html", context=context)
 
 
+class UserTrafficLog(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        node_list = Node.get_active_nodes()
+        context = {"ss_user": request.user.ss_user, "node_list": node_list}
+        return render(request, "sspanel/user_traffic_log.html", context=context)
+
+
 def index(request):
     """跳转到首页"""
 
@@ -199,16 +207,6 @@ def donate(request):
         # 关闭支付宝支付
         context["alipay"] = False
     return render(request, "sspanel/donate.html", context=context)
-
-
-@login_required
-def trafficlog(request):
-    """跳转到流量记录的页面"""
-
-    ss_user = request.user.ss_user
-    nodes = Node.objects.filter(show=1)
-    context = {"ss_user": ss_user, "nodes": nodes}
-    return render(request, "sspanel/trafficlog.html", context=context)
 
 
 @login_required

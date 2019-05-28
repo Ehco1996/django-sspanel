@@ -474,19 +474,22 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         return traffic_format(self.used_traffic)
 
     def to_dict_with_extra_info(self, ss_user):
+        from apps.sspanel.models import SSNodeOnlineLog
+
         data = model_to_dict(self)
         data.update(ss_user.__dict__)
         if self.custom_method == 0:
             data["method"] = self.method
         if self.node_type == 1:
             data["node_color"] = "warning"
+            data["method"] = self.method
             data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
         else:
             data["node_color"] = "info"
-        log = NodeOnlineLog.get_last_log_by_node_id(self.node_id)
+        log = SSNodeOnlineLog.get_latest_log_by_node_id(self.node_id)
         if log:
-            data["online"] = log.get_oneline_status()
-            data["count"] = log.get_online_user()
+            data["online"] = log.is_online
+            data["count"] = log.online_user_count
         else:
             data["online"] = False
             data["count"] = 0
@@ -500,132 +503,3 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
     # verbose_name
     human_total_traffic.short_description = "总流量"
     human_used_traffic.short_description = "使用流量"
-
-
-class TrafficLog(ExportModelOperationsMixin("traffic_log"), models.Model):
-    """用户流量记录"""
-
-    user_id = models.IntegerField("用户id", blank=False, null=False, db_index=True)
-    node_id = models.IntegerField("节点id", blank=False, null=False, db_index=True)
-    upload_traffic = models.BigIntegerField("上传流量", default=0, db_column="u")
-    download_traffic = models.BigIntegerField("下载流量", default=0, db_column="d")
-    rate = models.FloatField("流量比例", default=1.0, null=False)
-    traffic = models.CharField("流量记录", max_length=32, null=False)
-    log_time = models.IntegerField("日志时间", blank=False, null=False)
-    log_date = models.DateField(
-        "记录日期", default=timezone.now, blank=False, null=False, db_index=True
-    )
-
-    def __str__(self):
-        return self.traffic
-
-    class Meta:
-        verbose_name_plural = "流量记录"
-        ordering = ("-log_time",)
-        db_table = "user_traffic_log"
-
-    @property
-    def user(self):
-        from apps.sspanel.models import User
-
-        return User.objects.get(pk=self.user_id)
-
-    @property
-    def used_traffic(self):
-        return self.download_traffic + self.upload_traffic
-
-    @classmethod
-    def calc_user_total_traffic(cls, node_id, user_id):
-        logs = cls.objects.filter(node_id=node_id, user_id=user_id)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return traffic_format(ut + dt)
-
-    @classmethod
-    def calc_user_traffic_by_date(cls, user_id, node_id, date):
-        logs = cls.objects.filter(node_id=node_id, user_id=user_id, log_date=date)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return (ut + dt) // settings.MB
-
-    @classmethod
-    def gen_line_chart_configs(cls, user_id, node_id, date_list):
-        node = Node.get_by_node_id(node_id)
-        user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
-        date_list = sorted(date_list)
-        line_config = {
-            "title": "节点 {} 当月共消耗：{}".format(node.name, user_total_traffic),
-            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
-            "data": [
-                cls.calc_user_traffic_by_date(user_id, node_id, date)
-                for date in date_list
-            ],
-            "data_title": node.name,
-            "x_label": "日期 最近七天",
-            "y_label": "流量 单位：MB",
-        }
-        return line_config
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-
-class NodeOnlineLog(ExportModelOperationsMixin("node_online_log"), models.Model):
-    """节点在线记录"""
-
-    node_id = models.IntegerField("节点id", blank=False, null=False)
-    online_user = models.IntegerField("在线人数", blank=False, null=False)
-    log_time = models.IntegerField("日志时间", blank=False, null=False)
-
-    class Meta:
-        verbose_name_plural = "节点在线记录"
-        db_table = "ss_node_online_log"
-
-    def __str__(self):
-        return "节点：{}".format(self.node_id)
-
-    @classmethod
-    def get_online_user_count(cls):
-        count = 0
-        for node_id in Node.get_node_ids_by_show():
-            o = cls.objects.filter(node_id=node_id).order_by("-log_time")[:1]
-            if o:
-                count += o[0].get_online_user()
-        return count
-
-    @classmethod
-    def get_last_log_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).last()
-
-    @classmethod
-    def add_log(cls, node_id, num, log_time):
-        cls.objects.create(node_id=node_id, online_user=num, log_time=log_time)
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-    def get_oneline_status(self):
-        """检测是否在线"""
-        if int(time.time()) - self.log_time > NODE_TIME_OUT:
-            return False
-        else:
-            return True
-
-    def get_online_user(self):
-        """返回在线人数"""
-        if self.get_oneline_status():
-            return self.online_user
-        else:
-            return 0
-
-        return Node.get_by_node_id(self.node_id).name

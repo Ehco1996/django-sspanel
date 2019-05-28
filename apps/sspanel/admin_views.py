@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from apps.custom_views import PageListView
-from apps.sspanel.forms import NodeForm
+from apps.sspanel.forms import NodeForm, AnnoForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -21,8 +21,9 @@ from apps.sspanel.models import (
     Ticket,
     User,
     UserOnLineIpLog,
+    SSNodeOnlineLog,
 )
-from apps.ssserver.models import Node, NodeOnlineLog, Suser
+from apps.ssserver.models import Node, Suser
 
 
 class StaffRequiredMixin(LoginRequiredMixin):
@@ -150,7 +151,7 @@ def user_status(request):
 
     context = {
         "total_user_num": User.get_total_user_num(),
-        "alive_user_count": NodeOnlineLog.get_online_user_count(),
+        "alive_user_count": SSNodeOnlineLog.get_all_node_online_user_count(),
         "today_checked_user_count": Suser.get_today_checked_user_num(),
         "today_register_user_count": len(today_register_user),
         "traffic_users": Suser.get_user_order_by_traffic(count=10),

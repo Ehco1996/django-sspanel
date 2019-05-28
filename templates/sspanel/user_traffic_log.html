@@ -36,7 +36,7 @@
             <div class="control">
                 <div class="select">
                     <select id="id-select-nodes" name="nodes">
-                        {% for node in nodes %}
+                        {% for node in node_list %}
                         <option value={{ node.node_id }}>{{ node.name }}</option>
                         {% endfor %}
                     </select>

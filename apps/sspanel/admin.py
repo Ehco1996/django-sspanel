@@ -52,6 +52,15 @@ class UserOnLineIpLogAdmin(admin.ModelAdmin):
     list_display = ["user_id", "node_id", "ip", "created_at"]
 
 
+class UserTrafficLogAdmin(admin.ModelAdmin):
+
+    list_display = ["user_id", "node_id", "total_traffic", "date"]
+
+
+class SSNodeOnlineAdmin(admin.ModelAdmin):
+    list_display = ["node_id", "online_user_count", "created_at"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)
@@ -63,5 +72,7 @@ admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
 admin.site.register(models.UserOrder, UserOrderAdmin)
 admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)
+admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
+admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineAdmin)
 
 admin.site.unregister(Group)

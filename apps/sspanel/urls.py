@@ -14,7 +14,7 @@ urlpatterns = [
     path("logout/", views.user_logout, name="logout"),
     # 节点
     path("nodeinfo/", views.NodeInfoView.as_view(), name="nodeinfo"),
-    path("trafficlog/", views.trafficlog, name="trafficlog"),
+    path("user_traffic_log/", views.UserTrafficLog.as_view(), name="user_traffic_log"),
     # 用户信息
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
     path("users/settings/", views.ss_user_settings, name="ss_user_settings"),

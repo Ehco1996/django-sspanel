@@ -8,11 +8,6 @@ class SUserAdmin(admin.ModelAdmin):
     list_filter = ["enable"]
 
 
-class TrafficLogAdmin(admin.ModelAdmin):
-    search_fields = ["user_id", "node_id"]
-    list_display = ["user", "user_id", "node_id", "traffic", "log_date"]
-
-
 class NodeAdmin(admin.ModelAdmin):
     list_display = [
         "name",
@@ -26,12 +21,7 @@ class NodeAdmin(admin.ModelAdmin):
     ]
 
 
-class NodeOnlineAdmin(admin.ModelAdmin):
-    list_display = ["node_id", "online_user"]
-
-
 # Register your models here.
 admin.site.register(models.Node, NodeAdmin)
 admin.site.register(models.Suser, SUserAdmin)
-admin.site.register(models.TrafficLog, TrafficLogAdmin)
-admin.site.register(models.NodeOnlineLog, NodeOnlineAdmin)
+
