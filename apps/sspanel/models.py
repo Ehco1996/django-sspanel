@@ -113,14 +113,19 @@ class User(AbstractUser):
 
     @classmethod
     def check_and_disable_expired_users(cls):
+        from apps.ssserver.models import Suser
+
         now = pendulum.now()
         expired_user_emails = []
-        for user in cls.objects.filter(level__gt=0, level_expire_time__lte=now):
+        expired_users = cls.objects.filter(level__gt=0, level_expire_time__lte=now)
+        for user in expired_users:
             user.ss_user.reset_to_fresh()
             user.level = 0
             user.save()
             print(f"time: {now} user: {user} level timeout!")
             expired_user_emails.append(user.email)
+        if expired_users:
+            Suser.clear_get_user_configs_by_node_id_cache()
         if expired_user_emails and settings.EXPIRE_EMAIL_NOTICE:
             send_mail(
                 f"您的{settings.TITLE}账号已到期",

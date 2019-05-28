@@ -34,6 +34,7 @@ def user_edit(request, user_id):
                 user.set_password(passwd)
                 user.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
+            Suser.clear_get_user_configs_by_node_id_cache()
             return HttpResponseRedirect(reverse("sspanel:user_list"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
