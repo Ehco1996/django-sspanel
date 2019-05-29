@@ -155,6 +155,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         if not node:
             # FALLBACK TO SSRNODE
             node = Node.get_or_none_by_node_id(node_id)
+        if not node:
             return data
         for ss_user in cls.get_ss_users_by_level(node.level):
             data.append(node.to_dict_with_ss_user(ss_user))
@@ -459,6 +460,7 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         if self.node_type == 1:
             data["method"] = self.method
             data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
+        data["id"] = ss_user.user_id
         return data
 
     def to_dict_with_extra_info(self, ss_user):
