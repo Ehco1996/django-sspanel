@@ -133,7 +133,7 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         return cls.objects.all().order_by("-download_traffic")[:count]
 
     @classmethod
-    def get_users_by_level(cls, level):
+    def get_ss_users_by_level(cls, level):
         """返回指大于等于指定等级的所有合法用户"""
         from apps.sspanel.models import User
 
@@ -147,32 +147,17 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
     @classmethod
     @cache.cached(ttl=60 * 60 * 5)
     def get_user_configs_by_node_id(cls, node_id):
-        data = []
-        node = Node.objects.filter(node_id=node_id, show=1).first()
-        if not node:
-            return data
-        user_list = cls.get_users_by_level(node.level)
-        for user in user_list:
-            data.append(
-                {
-                    "id": user.user_id,
-                    "user_id": user.user_id,
-                    "port": user.port,
-                    "u": user.upload_traffic,
-                    "d": user.download_traffic,
-                    "transfer_enable": user.transfer_enable,
-                    "passwd": user.password,
-                    "password": user.password,
-                    "enable": user.enable,
-                    "method": user.method if node.custom_method == 1 else node.method,
-                    "obfs": user.obfs,
-                    "obfs_param": user.obfs_param,
-                    "protocol": user.protocol,
-                    "protocol_param": user.protocol_param,
-                    "speed_limit_per_user": min(user.speed_limit, node.speed_limit),
-                }
-            )
+        from apps.sspanel.models import SSNode
 
+        # TODO 1. 下线SSR节点后处理这里 2. 优化Cache
+        data = []
+        node = SSNode.get_or_none_by_node_id(node_id)
+        if not node:
+            # FALLBACK TO SSRNODE
+            node = Node.get_or_none_by_node_id(node_id)
+            return data
+        for ss_user in cls.get_ss_users_by_level(node.level):
+            data.append(node.to_dict_with_ss_user(ss_user))
         return data
 
     @classmethod
@@ -278,6 +263,12 @@ class Suser(ExportModelOperationsMixin("ss_user"), models.Model):
         except ValidationError:
             return False
 
+    def get_import_links(self):
+        from apps.sspanel.models import SSNode
+
+        links = [node.get_ss_link(self) for node in SSNode.get_active_nodes()]
+        return "\n".join(links)
+
 
 class Node(ExportModelOperationsMixin("node"), models.Model):
     """线路节点"""
@@ -337,18 +328,12 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         return self.name
 
     @classmethod
-    def get_by_node_id(cls, node_id):
-        return cls.objects.get(node_id=node_id)
+    def get_or_none_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).first()
 
     @classmethod
-    def get_import_code(cls, user):
-        """获取该用户的所有节点的导入信息"""
-        ss_user = user.ss_user
-        sub_code_list = []
-        node_list = cls.objects.filter(level__lte=user.level, show=1)
-        for node in node_list:
-            sub_code_list.append(node.get_node_link(ss_user))
-        return "\n".join(sub_code_list)
+    def get_by_node_id(cls, node_id):
+        return cls.objects.get(node_id=node_id)
 
     @classmethod
     def get_node_ids_by_show(cls, show=1, all=False):
@@ -360,7 +345,7 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
 
     @classmethod
     def get_active_nodes(cls):
-        return cls.objects.filter(show=1).order_by("ss_type", "order")
+        return cls.objects.filter(show=1, ss_type=1).order_by("order")
 
     def get_ssr_link(self, ss_user):
         """返回ssr链接"""
@@ -453,13 +438,6 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         ss_link = "ss://{}#{}".format(ss_pass, self.name)
         return ss_link
 
-    def get_node_link(self, ss_user):
-        """获取当前的节点链接"""
-        if self.ss_type == 0:
-            return self.get_ss_link(ss_user)
-        else:
-            return self.get_ssr_link(ss_user)
-
     def save(self, *args, **kwargs):
         if self.node_type == 1:
             self.custom_method = 0
@@ -473,31 +451,23 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         """已用流量"""
         return traffic_format(self.used_traffic)
 
+    def to_dict_with_ss_user(self, ss_user):
+        data = model_to_dict(self)
+        data.update(model_to_dict(ss_user))
+        if not self.custom_method:
+            data["method"] = self.method
+        if self.node_type == 1:
+            data["method"] = self.method
+            data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
+        return data
+
     def to_dict_with_extra_info(self, ss_user):
         from apps.sspanel.models import SSNodeOnlineLog
 
-        data = model_to_dict(self)
-        data.update(ss_user.__dict__)
-        if self.custom_method == 0:
-            data["method"] = self.method
-        if self.node_type == 1:
-            data["node_color"] = "warning"
-            data["method"] = self.method
-            data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
-        else:
-            data["node_color"] = "info"
-        log = SSNodeOnlineLog.get_latest_log_by_node_id(self.node_id)
-        if log:
-            data["online"] = log.is_online
-            data["count"] = log.online_user_count
-        else:
-            data["online"] = False
-            data["count"] = 0
+        data = self.to_dict_with_ss_user(ss_user)
+        data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
         data["country"] = self.country.lower()
-        data["sslink"] = self.get_ss_link(ss_user)
-        data["ssrlink"] = self.get_ssr_link(ss_user)
-        data["ss_type_info"] = self.get_ss_type_display()
-        data["node_type"] = self.get_node_type_display()[:-3]
+        data["ss_link"] = self.get_ss_link(ss_user)
         return data
 
     # verbose_name

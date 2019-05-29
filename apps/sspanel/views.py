@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -20,6 +20,7 @@ from apps.sspanel.models import (
     RebateRecord,
     Ticket,
     User,
+    SSNode,
 )
 from apps.ssserver.models import Node
 from apps.utils import traffic_format
@@ -105,7 +106,7 @@ class UserInfoView(View):
             "remain_traffic": remain_traffic,
             "min_traffic": min_traffic,
             "max_traffic": max_traffic,
-            "import_code": Node.get_import_code(user),
+            "import_links": user.ss_user.get_import_links(),
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
             "sub_types": User.SUB_TYPES,
@@ -120,18 +121,41 @@ class NodeInfoView(View):
         user = request.user
         ss_user = user.ss_user
         node_list = [
+            node.to_dict_with_extra_info(ss_user) for node in SSNode.get_active_nodes()
+        ]
+
+        # TODO 去掉 SSR节点的兼容
+        ssr_node_list = [
             node.to_dict_with_extra_info(ss_user) for node in Node.get_active_nodes()
         ]
-        context = {"node_list": node_list, "user": user, "sub_link": user.sub_link}
+        context = {
+            "node_list": node_list,
+            "ssr_node_list": ssr_node_list,
+            "user": user,
+            "sub_link": user.sub_link,
+        }
+
         return render(request, "sspanel/nodeinfo.html", context=context)
 
 
 class UserTrafficLog(View):
     @method_decorator(login_required)
     def get(self, request):
-        node_list = Node.get_active_nodes()
+        node_list = SSNode.get_active_nodes()
         context = {"ss_user": request.user.ss_user, "node_list": node_list}
         return render(request, "sspanel/user_traffic_log.html", context=context)
+
+
+class UserSSNodeConfigView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        ss_user = user.ss_user
+        configs = [
+            node.to_dict_with_extra_info(ss_user)
+            for node in SSNode.get_user_active_nodes(user)
+        ]
+        return JsonResponse({"configs": configs})
 
 
 def index(request):

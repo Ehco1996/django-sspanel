@@ -5,23 +5,29 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('sspanel', '0012_auto_20190528_1407'),
-    ]
+    dependencies = [("sspanel", "0012_auto_20190528_1407")]
 
     operations = [
         migrations.CreateModel(
-            name='SSNodeOnlineLog',
+            name="SSNodeOnlineLog",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('node_id', models.IntegerField()),
-                ('online_user_count', models.IntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("node_id", models.IntegerField()),
+                ("online_user_count", models.IntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
             ],
             options={
-                'verbose_name_plural': '节点在线记录',
-                'ordering': ['-created_at'],
-                'index_together': {('node_id', 'created_at')},
+                "verbose_name_plural": "节点在线记录",
+                "ordering": ["-created_at"],
+                "index_together": {("node_id", "created_at")},
             },
-        ),
+        )
     ]

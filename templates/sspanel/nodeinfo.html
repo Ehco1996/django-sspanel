@@ -14,28 +14,24 @@
     </section>
 </div>
 
-<div class="column is-12">
-    <div class="box nodelist" id="id-nodelist">
+<div class="column is-12 is-vcentered">
+
+
+
+    <div class="box" id="id-ss-node-list">
         {% for node in node_list %}
-        <div class="node-cell" data-id="{{ node.node_id }}" data-sslink="{{ node.sslink }}"
-            data-ssrlink="{{ node.ssrlink }}">
-            <div class="card">
+        <div class="node-cell" data-id="{{ node.node_id }}" data-ss_link="{{ node.ss_link }}">
+            <div class="card has-text-centered is-wide">
                 <div class="card-header">
                     {% if node.online == True %}
                     <p class="card-header-title">
-                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ node.ss_type_info }}</span>
-                        <span
-                            class="tag is-{{ node.node_color}} is-rounded is-hidden-mobile">{{ node.node_type }}</span>
-                        <span class="tag is-success is-rounded">在线</span>
-                        &nbsp;&nbsp;{{ node.name }}
+                        <span class="tag is-primary is-rounded is-hidden-mobile">SS</span>
+                        <span class="tag is-success is-rounded">在线</span>&nbsp;{{ node.name }}
                     </p>
                     {% else %}
                     <p class="card-header-title">
-                        <span class="tag is-primary is-rounded is-hidden-mobile">{{ node.ss_type_info }}</span>
-                        <span
-                            class="tag is-{{ node.node_color }} is-rounded is-hidden-mobile">{{ node.node_type }}</span>
-                        <span class="tag is-danger is-rounded">掉线</span>
-                        &nbsp;&nbsp;{{ node.name }}
+                        <span class="tag is-primary is-rounded is-hidden-mobile">SS</span>
+                        <span class="tag is-danger is-rounded">掉线</span>&nbsp;{{ node.name }}
                     </p>
                     {% endif %}
                     <p class="card-header-icon">地区：
@@ -63,7 +59,7 @@
                         <a class="card-footer-item modal-button" data-target="modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
-                                <i class="fa fa-user-o">「{{ node.count }}」</i>
+                                <i class="fa fa-user-o">「{{ node.online_user_count }}」</i>
                             </span>
                         </a>
                     </div>
@@ -77,10 +73,6 @@
                             </header>
                             <section class="modal-card-body">
                                 <table class="table is-fullwidth is-bordered is-striped ">
-                                    <p class="subtitle">用原版SS要在配置编辑界面将
-                                        <strong>混淆</strong>改成
-                                        <code>http_simple_compatible</code>
-                                    </p>
                                     <tr>
                                         <td class="notification">节点ip:</td>
                                         <td class="notification">{{ node.server }}</td>
@@ -97,33 +89,10 @@
                                         <td class="notification">加密方式:</td>
                                         <td class="notification">{{ node.method }}</td>
                                     </tr>
-                                    {% if node.ss_type == 1 or node.ss_type == 2 %}
-                                    <tr>
-                                        <td class="notification">协议:</td>
-                                        <td class="notification">{{ node.protocol }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="notification">协议参数:</td>
-                                        <td class="notification">{{ node.protocol_param }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="notification">混淆:</td>
-                                        <td class="notification">{{ node.obfs }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="notification">混淆参数:</td>
-                                        <td class="notification">{{ node.obfs_param }}</td>
-                                    </tr>
-                                    {% endif %}
                                 </table>
                                 <p class="subtitle">配置链接：</p>
-                                <a href={{ node.sslink }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
-                                <br>
-                                {% if node.ss_type == 1 or node.ss_type == 2 %}
-                                <a href={{ node.ssrlink }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
-                                <br>
-                                {% endif %}
-                                <br>
+                                <a href={{ node.ss_link }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
+                                <hr>
                                 <p class="subtitle">订阅链接</p>
                                 <strong>点击按钮复制链接至客户端的订阅处</strong>
                                 <div class="field is-grouped">
@@ -151,24 +120,9 @@
                                 <button class="delete" aria-label="close"></button>
                             </header>
                             <section class="modal-card-body">
-                                {% if node.ss_type == 1 or node.ss_type == 2 %}
                                 <div class="box">
-                                    <!-- SSR配置 ... -->
-                                    <p class="subtitle">SSR版本(推荐使用)：</p>
-                                    <div id="id-ssr-{{ node.node_id }}"></div>
+                                    <div id="id-qr-code-ss-{{ node.node_id }}"></div>
                                 </div>
-                                {% endif %}
-                                {% if node.node_type == "多端口"%}
-                                <p class="subtitle">用原版SS要在配置编辑界面将
-                                    <strong>混淆</strong>改成
-                                    <code>http_simple_compatible</code>
-                                </p>
-                                <div class="box">
-                                    <!-- SS配置 ... -->
-                                    <p class="subtitle">SS原版：</p>
-                                    <div id="id-ss-{{ node.node_id }}"></div>
-                                </div>
-                                {% endif %}
                             </section>
                         </div>
                     </div>
@@ -188,33 +142,203 @@
                 {% endif %}
             </div>
         </div>
-        <br> {% endfor %}
+        {% if not forloop.last %}<br>{% endif %}
+        {% endfor %}
     </div>
+
+
+    <div class="box" id="id-ssr-node-list">
+        {% for node in ssr_node_list %}
+        <div class="node-cell" data-id="{{ node.node_id }}" data-ssr_link="{{ node.ssr_link }}">
+            <div class="card">
+                <div class="card-header">
+                    {% if node.online == True %}
+                    <p class="card-header-title">
+                        <span class="tag is-primary is-rounded is-hidden-mobile">SSR</span>
+                        <span class="tag is-success is-rounded">在线</span>&nbsp;{{ node.name }}
+                    </p>
+                    {% else %}
+                    <p class="card-header-title">
+                        <span class="tag is-primary is-rounded is-hidden-mobile">SSR</span>
+                        <span class="tag is-danger is-rounded">掉线</span>&nbsp;{{ node.name }}
+                    </p>
+                    {% endif %}
+                    <p class="card-header-icon">地区：
+                        <span class="icon">
+                            <i class="flag-icon flag-icon-{{ node.country }}"></i>
+                        </span>
+                    </p>
+                    <a id="id-icon-{{ node.node_id }}" class="card-header-icon"
+                        onclick="$(`#id-card-body-${ {{ node.node_id }} }`).toggle('swing')">
+                        <span class="icon">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </span>
+                    </a>
+                </div>
+                {% if user.level >= node.level %}
+                <div id="id-card-body-{{ node.node_id }}" hidden="true">
+                    <div class="card-content">
+                        <div class="content">
+                            {{ node.info }}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
+                            data-target="modal-qrcode-{{ node.name }}">二维码</a>
+                        <a class="card-footer-item modal-button" data-target="modal-config-{{ node.node_id }}">配置</a>
+                        <a class="card-footer-item">
+                            <span class="icon">
+                                <i class="fa fa-user-o">「{{ node.online_user_count }}」</i>
+                            </span>
+                        </a>
+                    </div>
+                    <!--配置部分 -->
+                    <div class="modal nodeinfo" id="modal-config-{{ node.node_id }}">
+                        <div class="modal-background"></div>
+                        <div class="modal-card">
+                            <header class="modal-card-head">
+                                <p class="modal-card-title">节点配置信息:</p>
+                                <button class="delete"></button>
+                            </header>
+                            <section class="modal-card-body">
+                                <table class="table is-fullwidth is-bordered is-striped ">
+                                    <tr>
+                                        <td class="notification">节点ip:</td>
+                                        <td class="notification">{{ node.server }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">端口:</td>
+                                        <td class="notification">{{ node.port }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">密码:</td>
+                                        <td class="notification">{{ node.password }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">加密方式:</td>
+                                        <td class="notification">{{ node.method }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">协议:</td>
+                                        <td class="notification">{{ node.protocol }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">协议参数:</td>
+                                        <td class="notification">{{ node.protocol_param }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">混淆:</td>
+                                        <td class="notification">{{ node.obfs }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">混淆参数:</td>
+                                        <td class="notification">{{ node.obfs_param }}</td>
+                                    </tr>
+                                </table>
+                                <p class="subtitle">配置链接：</p>
+                                <a href={{ node.ssr_link }}>手机上用默认浏览器打开点我就可以直接添加配置(SSR版)</a>
+                                <hr>
+                                <p class="subtitle">订阅链接</p>
+                                <strong>点击按钮复制链接至客户端的订阅处</strong>
+                                <div class="field is-grouped">
+                                    <p class="control is-expanded">
+                                        <input class="input" id="id-sub-link" value="{{ sub_link }}">
+                                    </p>
+                                    <p class="control">
+                                        <a class="button is-rounded" id="id-button-clip"
+                                            data-clipboard-target="#id-sub-link">
+                                            <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                        </a>
+                                    </p>
+                                </div>
+                                <span class="copied" hidden="true">Copied!</span>
+                            </section>
+                        </div>
+                    </div>
+                    <!--二维码部分 -->
+                    <div class="modal" id="modal-qrcode-{{ node.name }}">
+                        <div class="modal-background"></div>
+                        <div class="modal-card">
+                            <header class="modal-card-head">
+                                <p class="modal-card-title">节点:
+                                    <strong>{{ node.name }}</strong> 配置二维码</p>
+                                <button class="delete" aria-label="close"></button>
+                            </header>
+                            <section class="modal-card-body">
+                                <div class="box">
+                                    <div id="id-qr-code-ssr-{{ node.node_id }}"></div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div id="id-card-body-{{ node.node_id }}" hidden="true">
+                    <div class="card-content">
+                        <article class="message is-danger">
+                            <div class="message-body">
+                                <p>该线路为VIP线路
+                                    <strong>购买对应商品 提升至等级:「{{node.level}}」后</strong> 才能看见节点配置哟！</p>
+                                <a class="is-link" href="{% url 'sspanel:shop' %}">点我购买！</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% if not forloop.last %}<br>{% endif %}
+        {% endfor %}
+    </div>
+
+
 </div>
 
 
 <script>
+    function toUtf8(str) {
+        var out, i, len, c;
+        out = "";
+        len = str.length;
+        for (i = 0; i < len; i++) {
+            c = str.charCodeAt(i);
+            if ((c >= 0x0001) && (c <= 0x007F)) {
+                out += str.charAt(i);
+            } else if (c > 0x07FF) {
+                out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+            } else {
+                out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+            }
+        }
+        return out;
+    }
     // 点击复制
     var clip = new Clipboard('#id-button-clip');
     clip.on('success', function (e) {
         $('.copied').show();
         $('.copied').fadeOut(1000);
     });
-    var nodeList = $("#id-nodelist")
+    var SSNodeList = $("#id-ss-node-list")
     // 事件委托绑定按钮
-    nodeList.on('click', 'a', function (event) {
+    SSNodeList.on('click', 'a', function (event) {
         var target = $(event.target)
         var node = target.closest('.node-cell')
         // 找到节点id
         var node_id = node.data('id')
+        var ss = node.find(`#id-qr-code-ss-${node_id}`)
+        if (ss.children().length == 0) { ss.qrcode(toUtf8(node.data("ss_link"))) }
+    })
 
-        var ssr = node.find(`#id-ssr-${node_id}`)
-        if (ssr.children().length == 0) { ssr.qrcode(node.data('ssrlink')) }
-
-        var ss = node.find(`#id-ss-${node_id}`)
-        if (ss.children().length == 0) {
-            sslink = encodeURI(node.data('sslink'))
-            ss.qrcode(sslink)
-        }
+    var SSRNodeList = $("#id-ssr-node-list")
+    SSRNodeList.on('click', 'a', function (event) {
+        var target = $(event.target)
+        var node = target.closest('.node-cell')
+        // 找到节点id
+        var node_id = node.data('id')
+        var ssr = node.find(`#id-qr-code-ssr-${node_id}`)
+        if (ssr.children().length == 0) { ssr.qrcode(node.data("ssr_link")) }
     })
 </script> {% endblock main %}

@@ -10,8 +10,8 @@ from apps.sspanel.models import (
     UserOnLineIpLog,
     UserTrafficLog,
     SSNodeOnlineLog,
+    SSNode,
 )
-from apps.ssserver.models import Node
 
 os.environ["DJANGO_ENV"] = "production"
 
@@ -59,7 +59,7 @@ def clean_online_ip_log():
 
 def reset_node_traffic():
     """月初重置节点使用流量"""
-    for node in Node.objects.all():
+    for node in SSNode.objects.all():
         node.used_traffic = 0
         node.save()
     print("Time: {} all node traffic removed!".format(timezone.now()))

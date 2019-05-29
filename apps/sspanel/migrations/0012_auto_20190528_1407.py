@@ -5,33 +5,41 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('sspanel', '0011_useronlineiplog'),
-    ]
+    dependencies = [("sspanel", "0011_useronlineiplog")]
 
     operations = [
-        migrations.AlterUniqueTogether(
-            name='useronlineiplog',
-            unique_together=set(),
-        ),
+        migrations.AlterUniqueTogether(name="useronlineiplog", unique_together=set()),
         migrations.AlterIndexTogether(
-            name='useronlineiplog',
-            index_together={('node_id', 'created_at')},
+            name="useronlineiplog", index_together={("node_id", "created_at")}
         ),
         migrations.CreateModel(
-            name='UserTrafficLog',
+            name="UserTrafficLog",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.IntegerField()),
-                ('node_id', models.IntegerField()),
-                ('date', models.DateField(auto_now_add=True, db_index=True)),
-                ('upload_traffic', models.BigIntegerField(default=0, verbose_name='上传流量')),
-                ('download_traffic', models.BigIntegerField(default=0, verbose_name='下载流量')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("user_id", models.IntegerField()),
+                ("node_id", models.IntegerField()),
+                ("date", models.DateField(auto_now_add=True, db_index=True)),
+                (
+                    "upload_traffic",
+                    models.BigIntegerField(default=0, verbose_name="上传流量"),
+                ),
+                (
+                    "download_traffic",
+                    models.BigIntegerField(default=0, verbose_name="下载流量"),
+                ),
             ],
             options={
-                'verbose_name_plural': '流量记录',
-                'ordering': ['-date'],
-                'index_together': {('user_id', 'node_id', 'date')},
+                "verbose_name_plural": "流量记录",
+                "ordering": ["-date"],
+                "index_together": {("user_id", "node_id", "date")},
             },
         ),
     ]

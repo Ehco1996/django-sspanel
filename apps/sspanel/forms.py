@@ -1,11 +1,9 @@
 from django import forms
-from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
 from apps.encoder import encoder
-from apps.sspanel.models import Announcement, Goods, InviteCode, User
-from apps.ssserver.models import Node
+from apps.sspanel.models import Announcement, Goods, InviteCode, User, SSNode
 
 
 class RegisterForm(UserCreationForm):
@@ -119,18 +117,23 @@ class LoginForm(forms.Form):
             self.cleaned_data = super(LoginForm, self).clean()
 
 
-class NodeForm(ModelForm):
-    total_traffic = forms.IntegerField(label="节点总流量(GB)")
-
-    def clean(self):
-        data = self.cleaned_data
-        data["total_traffic"] = data["total_traffic"] * settings.GB
-        return data
-
+class SSNodeForm(ModelForm):
     class Meta:
-        model = Node
+        model = SSNode
         fields = "__all__"
-        exclude = ["used_traffic"]
+        widgets = {
+            "node_id": forms.NumberInput(attrs={"class": "input"}),
+            "level": forms.NumberInput(attrs={"class": "input"}),
+            "name": forms.TextInput(attrs={"class": "input"}),
+            "info": forms.TextInput(attrs={"class": "input"}),
+            "server": forms.TextInput(attrs={"class": "input"}),
+            "method": forms.Select(attrs={"class": "input"}),
+            "country": forms.Select(attrs={"class": "input"}),
+            "used_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "total_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "custom_method": forms.CheckboxInput(attrs={"class": "checkbox"}),
+        }
 
 
 class GoodsForm(ModelForm):

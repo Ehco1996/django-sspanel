@@ -3,14 +3,14 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Q
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
-from django.http import HttpResponseRedirect, HttpResponseForbidden
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from apps.custom_views import PageListView
-from apps.sspanel.forms import NodeForm, AnnoForm
+from apps.mixin import StaffRequiredMixin
+from apps.sspanel.forms import AnnoForm, GoodsForm, SSNodeForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -18,28 +18,72 @@ from apps.sspanel.models import (
     InviteCode,
     MoneyCode,
     PurchaseHistory,
+    SSNode,
+    SSNodeOnlineLog,
     Ticket,
     User,
     UserOnLineIpLog,
-    SSNodeOnlineLog,
 )
-from apps.ssserver.models import Node, Suser
-
-
-class StaffRequiredMixin(LoginRequiredMixin):
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff:
-            return HttpResponseForbidden()
-        return super().dispatch(request, *args, **kwargs)
+from apps.ssserver.models import Suser
 
 
 class UserOnlineIpLogView(StaffRequiredMixin, View):
     def get(self, request):
         data = []
-        for node in Node.get_active_nodes():
+        for node in SSNode.get_active_nodes():
             data.extend(UserOnLineIpLog.get_recent_log_by_node_id(node.node_id))
         context = PageListView(request, data).get_page_context()
         return render(request, "backend/user_online_ip_log.html", context=context)
+
+
+class SSNodeView(StaffRequiredMixin, View):
+    def get(self, request):
+        form = SSNodeForm()
+        return render(request, "backend/ss_node_detail.html", context={"form": form})
+
+    def post(self, request):
+        form = SSNodeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "数据更新成功！", extra_tags="添加成功")
+            return HttpResponseRedirect(reverse("sspanel:backend_ss_node_list"))
+        else:
+            messages.error(request, "数据填写错误", extra_tags="错误")
+            context = {"form": form}
+            return render(request, "backend/ss_node_detail.html", context=context)
+
+
+class SSNodeListView(StaffRequiredMixin, View):
+    def get(self, request):
+        context = {"ss_node_list": SSNode.objects.all()}
+        return render(request, "backend/ss_node_list.html", context=context)
+
+
+class SSNodeDetailView(StaffRequiredMixin, View):
+    def get(self, request, node_id):
+        ss_node = SSNode.objects.get(node_id=node_id)
+        form = SSNodeForm(instance=ss_node)
+        return render(request, "backend/ss_node_detail.html", context={"form": form})
+
+    def post(self, request, node_id):
+        ss_node = SSNode.objects.get(node_id=node_id)
+        form = SSNodeForm(request.POST, instance=ss_node)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
+            return HttpResponseRedirect(reverse("sspanel:backend_ss_node_list"))
+        else:
+            messages.error(request, "数据填写错误", extra_tags="错误")
+            context = {"form": form, "ss_node": ss_node}
+            return render(request, "backend/ss_node_detail.html", context=context)
+
+
+class SSNodeDeleteView(StaffRequiredMixin, View):
+    def get(self, request, node_id):
+        ss_node = SSNode.get_or_none_by_node_id(node_id)
+        node_id and ss_node.delete()
+        messages.success(request, "成功啦", extra_tags="删除节点")
+        return HttpResponseRedirect(reverse("sspanel:backend_ss_node_list"))
 
 
 @permission_required("sspanel")
@@ -47,66 +91,6 @@ def system_status(request):
     """跳转到后台界面"""
     context = {"total_user_num": User.get_total_user_num()}
     return render(request, "backend/index.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_node_info(request):
-    """配置编辑界面"""
-    nodes = Node.objects.all()
-    context = {"nodes": nodes}
-    return render(request, "backend/nodeinfo.html", context=context)
-
-
-@permission_required("sspanel")
-def node_delete(request, node_id):
-    """删除节点"""
-    node = Node.objects.filter(node_id=node_id)
-    node.delete()
-    messages.success(request, "成功啦", extra_tags="删除节点")
-    return HttpResponseRedirect(reverse("sspanel:backend_node_info"))
-
-
-@permission_required("sspanel")
-def node_edit(request, node_id):
-    """编辑节点"""
-    node = Node.objects.get(node_id=node_id)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        form = NodeForm(request.POST, instance=node)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_node_info"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "node": node}
-            return render(request, "backend/nodeedit.html", context=context)
-    # 当请求不是post时，渲染form
-    else:
-        form = NodeForm(
-            instance=node, initial={"total_traffic": node.total_traffic // settings.GB}
-        )
-        context = {"form": form, "node": node}
-        return render(request, "backend/nodeedit.html", context=context)
-
-
-@permission_required("sspanel")
-def node_create(request):
-    """创建节点"""
-    if request.method == "POST":
-        form = NodeForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_node_info"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form}
-            return render(request, "backend/nodecreate.html", context=context)
-
-    else:
-        form = NodeForm()
-        return render(request, "backend/nodecreate.html", context={"form": form})
 
 
 @permission_required("sspanel")

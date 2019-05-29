@@ -57,8 +57,20 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
     list_display = ["user_id", "node_id", "total_traffic", "date"]
 
 
-class SSNodeOnlineAdmin(admin.ModelAdmin):
+class SSNodeOnlineLogAdmin(admin.ModelAdmin):
     list_display = ["node_id", "online_user_count", "created_at"]
+
+
+class SSNodeAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "node_id",
+        "level",
+        "server",
+        "human_used_traffic",
+        "human_total_traffic",
+        "enable",
+    ]
 
 
 # Register your models here.
@@ -73,6 +85,8 @@ admin.site.register(models.Ticket)
 admin.site.register(models.UserOrder, UserOrderAdmin)
 admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
-admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineAdmin)
+admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineLogAdmin)
+admin.site.register(models.SSNode, SSNodeAdmin)
+
 
 admin.site.unregister(Group)
