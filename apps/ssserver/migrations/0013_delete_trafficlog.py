@@ -5,12 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ssserver', '0012_delete_aliveip'),
-    ]
+    dependencies = [("ssserver", "0012_delete_aliveip")]
 
-    operations = [
-        migrations.DeleteModel(
-            name='TrafficLog',
-        ),
-    ]
+    operations = [migrations.DeleteModel(name="TrafficLog")]

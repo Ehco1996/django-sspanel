@@ -18,6 +18,11 @@ urlpatterns = [
     # 用户信息
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
     path("users/settings/", views.ss_user_settings, name="ss_user_settings"),
+    path(
+        "users/ss_node_config/",
+        views.UserSSNodeConfigView.as_view(),
+        name="ss_node_config",
+    ),
     # 捐赠/充值
     path("donate/", views.donate, name="donate"),
     path("shop/", views.shop, name="shop"),
@@ -47,14 +52,22 @@ urlpatterns = [
     path("backend/invite/", admin_views.backend_invite, name="backend_invite"),
     path("invite_gen_code/", admin_views.gen_invite_code, name="geninvitecode"),
     # 节点相关
-    path("backend/nodeinfo/", admin_views.backend_node_info, name="backend_node_info"),
     path(
-        "backend/node/delete/<int:node_id>/",
-        admin_views.node_delete,
-        name="node_delete",
+        "backend/ss_node_list/",
+        admin_views.SSNodeListView.as_view(),
+        name="backend_ss_node_list",
     ),
-    path("backend/node/edit/<int:node_id>/", admin_views.node_edit, name="node_edit"),
-    path("backend/node/create/", admin_views.node_create, name="node_create"),
+    path("backend/ss_node/", admin_views.SSNodeView.as_view(), name="backend_ss_node"),
+    path(
+        "backend/ss_node_delete/<int:node_id>/",
+        admin_views.SSNodeDeleteView.as_view(),
+        name="backend_ss_node_delete",
+    ),
+    path(
+        "backend/ss_node/<int:node_id>/",
+        admin_views.SSNodeDetailView.as_view(),
+        name="backend_ss_node_detail",
+    ),
     # 用户相关
     path("backend/userlist/", admin_views.backend_userlist, name="user_list"),
     path("backend/user/delete/<int:pk>/", admin_views.user_delete, name="user_delete"),

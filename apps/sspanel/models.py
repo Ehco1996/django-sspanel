@@ -2,17 +2,24 @@ import datetime
 import time
 from decimal import Decimal
 from urllib.parse import urlencode
+import base64
 
 import markdown
 import pendulum
 from django.conf import settings
+from django.forms.models import model_to_dict
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models, transaction
 from django.utils import timezone
 
-from apps.constants import NODE_TIME_OUT, THEME_CHOICES
+from apps.constants import (
+    NODE_TIME_OUT,
+    THEME_CHOICES,
+    METHOD_CHOICES,
+    COUNTRIES_CHOICES,
+)
 from apps.encoder import encoder
 from apps.payments import pay
 from apps.utils import get_long_random_string, traffic_format
@@ -153,19 +160,13 @@ class User(AbstractUser):
         return Suser.objects.get(user_id=self.id)
 
     def get_sub_links(self):
-        from apps.ssserver.models import Node
+        # TODO 暂时只能处理SS节点的订阅
 
-        if self.sub_type == User.SUB_TYPE_ALL:
-            node_list = Node.objects.filter(level__lte=self.level, show=1)
-        else:
-            node_list = Node.objects.filter(
-                level__lte=self.level, show=1, node_type=self.sub_type
-            )
-
+        node_list = SSNode.get_active_nodes()
         ss_user = self.ss_user
-        sub_links = "MAX={}\n".format(len(node_list))
+        sub_links = "MAX={}\n".format(node_list.count())
         for node in node_list:
-            sub_links = sub_links + node.get_node_link(ss_user) + "\n"
+            sub_links += node.get_ss_link(ss_user) + "\n"
         return sub_links
 
 
@@ -724,19 +725,18 @@ class UserTrafficLog(models.Model):
 
     @classmethod
     def gen_line_chart_configs(cls, user_id, node_id, date_list):
-        from apps.ssserver.models import Node
 
-        node = Node.get_by_node_id(node_id)
+        ss_node = SSNode.get_or_none_by_node_id(node_id)
         user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
         date_list = sorted(date_list)
         line_config = {
-            "title": "节点 {} 当月共消耗：{}".format(node.name, user_total_traffic),
+            "title": "节点 {} 当月共消耗：{}".format(ss_node.name, user_total_traffic),
             "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
             "data": [
                 cls.calc_user_traffic_by_date(user_id, node_id, date)
                 for date in date_list
             ],
-            "data_title": node.name,
+            "data_title": ss_node.name,
             "x_label": "日期 最近七天",
             "y_label": "流量 单位：MB",
         }
@@ -773,14 +773,98 @@ class SSNodeOnlineLog(models.Model):
 
     @classmethod
     def get_all_node_online_user_count(cls):
-        from apps.ssserver.models import Node
 
-        node_ids = [node.node_id for node in Node.get_active_nodes()]
+        ss_node_ids = [node.node_id for node in SSNode.get_active_nodes()]
         count = 0
-        for node_id in node_ids:
+        for node_id in ss_node_ids:
             log = cls.get_latest_log_by_node_id(node_id)
             count += log.online_user_count
         return count
+
+    @classmethod
+    def get_latest_online_log_info(cls, node_id):
+        data = {"online": False, "online_user_count": 0}
+        log = cls.get_latest_log_by_node_id(node_id)
+        if log:
+            data["online"] = log.is_online
+            data["online_user_count"] = log.online_user_count
+        return data
+
+
+class SSNode(models.Model):
+
+    node_id = models.IntegerField(unique=True)
+    level = models.PositiveIntegerField(default=0)
+    name = models.CharField("名字", max_length=32)
+    info = models.CharField("节点说明", max_length=1024)
+    country = models.CharField(
+        "国家", default="CN", max_length=5, choices=COUNTRIES_CHOICES
+    )
+    server = models.CharField("服务器地址", max_length=128)
+    method = models.CharField(
+        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+    used_traffic = models.BigIntegerField("已用流量", default=0)
+    total_traffic = models.BigIntegerField("总流量", default=settings.GB)
+    enable = models.BooleanField("是否开启", default=True, db_index=True)
+    custom_method = models.BooleanField("自定义加密", default=False)
+
+    class Meta:
+        verbose_name_plural = "SS节点"
+
+    @classmethod
+    def get_or_none_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).first()
+
+    @classmethod
+    def get_active_nodes(cls):
+        return cls.objects.filter(enable=True)
+
+    @classmethod
+    def increase_used_traffic(cls, node_id, used_traffic):
+        cls.objects.filter(node_id=node_id).update(
+            used_traffic=models.F("used_traffic") + used_traffic
+        )
+
+    @classmethod
+    def get_user_active_nodes(cls, user):
+        return cls.objects.filter(enable=True, level__gte=user.level)
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST + f"/api/ss_user_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def human_total_traffic(self):
+        return traffic_format(self.total_traffic)
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.used_traffic)
+
+    def get_ss_link(self, ss_user):
+        method = ss_user.method if self.custom_method else self.method
+        code = f"{method}:{ss_user.password}@{self.server}:{ss_user.port}"
+        b64_code = base64.urlsafe_b64encode(code.encode()).decode()
+        ss_link = "ss://{}#{}".format(b64_code, self.name)
+        return ss_link
+
+    def to_dict_with_ss_user(self, ss_user):
+        data = model_to_dict(self)
+        data.update(model_to_dict(ss_user))
+        if not self.custom_method:
+            data["method"] = self.method
+        return data
+
+    def to_dict_with_extra_info(self, ss_user):
+        data = self.to_dict_with_ss_user(ss_user)
+        data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
+        data["country"] = self.country.lower()
+        data["ss_link"] = self.get_ss_link(ss_user)
+        return data
 
 
 # class UserSSConfig(models.Model):

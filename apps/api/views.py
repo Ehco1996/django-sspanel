@@ -25,6 +25,7 @@ from apps.sspanel.models import (
     UserOnLineIpLog,
     UserTrafficLog,
     SSNodeOnlineLog,
+    SSNode,
 )
 from apps.ssserver.models import Node, Suser
 from apps.utils import (
@@ -53,7 +54,7 @@ class SystemStatusView(View):
             Donate.get_donate_money_by_date(date=pendulum.today()),
         ]
 
-        active_nodes = Node.get_active_nodes()
+        active_nodes = SSNode.get_active_nodes()
         node_status = {
             "names": [node.name for node in active_nodes],
             "traffics": [
@@ -161,7 +162,7 @@ class TrafficReportView(View):
             # 节点流量增量
             node_total_traffic += u + d
         # 节点流量记录
-        Node.objects.filter(node_id=node_id).update(
+        SSNode.objects.filter(node_id=node_id).update(
             used_traffic=F("used_traffic") + node_total_traffic
         )
         # 流量记录
@@ -223,9 +224,7 @@ class SsUserConfigView(View):
                 )
 
         # 节点流量记录
-        Node.objects.filter(node_id=node_id).update(
-            used_traffic=F("used_traffic") + node_total_traffic
-        )
+        SSNode.increase_used_traffic(node_id, node_total_traffic)
         # 流量记录
         UserTrafficLog.objects.bulk_create(trafficlog_model_list)
         # 在线IP
@@ -314,6 +313,7 @@ def node_api(request, node_id):
     返回节点信息
     筛选节点是否用光
     """
+    # TODO 下线SSR节点后 delete this
     node = Node.objects.filter(node_id=node_id).first()
     if node and node.used_traffic < node.total_traffic:
         data = (node.traffic_rate,)
@@ -330,6 +330,7 @@ def node_online_api(request):
     """
     接受节点在线人数上报
     """
+    # TODO 下线SSR节点后 delete this
     data = request.json
     node = Node.objects.filter(node_id=data["node_id"]).first()
     node and SSNodeOnlineLog.add_log(data["node_id"], data["online_user"])

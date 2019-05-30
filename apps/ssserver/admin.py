@@ -24,4 +24,3 @@ class NodeAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(models.Node, NodeAdmin)
 admin.site.register(models.Suser, SUserAdmin)
-

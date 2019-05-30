@@ -21,19 +21,18 @@
                     <th>操作:</th>
                     <th>节点ID:</th>
                     <th>节点名:</th>
-                    <th>显示:</th>
+                    <th>上线:</th>
                     <th>节点IP:</th>
-                    <th>类型:</th>
                     <th>等级:</th>
                     <th>已用流量:</th>
                     <th>总流量:</th>
                 </tr>
             </thead>
-            {% for node in nodes %}
+            {% for node in ss_node_list %}
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'sspanel:node_edit' node.node_id  %}">编辑</a>
+                        <a class="button is-info" href="{% url 'sspanel:backend_ss_node_detail' node.node_id  %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button" data-target="modal-{{ node.node_id }}">删除</a>
@@ -41,9 +40,8 @@
                 </td>
                 <td>{{ node.node_id }}</td>
                 <td>{{ node.name }}</td>
-                <td>{{ node.get_show_display }}</td>
+                <td>{{ node.enable }}</td>
                 <td>{{ node.server }}</td>
-                <td>{{ node.get_node_type_display }}</td>
                 <td>{{ node.level }}</td>
                 <td>{{ node.human_used_traffic }}</td>
                 <td>{{ node.human_total_traffic }}</td>
@@ -59,19 +57,20 @@
                         <p class="subtitle">确定要删除:
                             <code>{{ node.name }}</code>?</p>
                         <p align="center">
-                            <a class="button is-danger is-outlined" href="{% url 'sspanel:node_delete' node.node_id %}">确定删除</a>
+                            <a class="button is-danger is-outlined"
+                                href="{% url 'sspanel:backend_ss_node_delete'  node.node_id %}">确定删除</a>
                         </p>
                     </section>
                 </div>
             </div>
             {% empty %}
-            <h2 class="subtitle">
+            <h2 class=" subtitle">
                 暂时没有节点，点击下方按钮添加节点
             </h2>
             {% endfor %}
         </table>
         <p align="right">
-            <a class="button is-danger is-outlined" href="{% url 'sspanel:node_create' %}">增加节点</a>
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:backend_ss_node' %}">增加节点</a>
         </p>
     </div>
 </div>
