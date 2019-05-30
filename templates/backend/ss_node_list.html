@@ -26,6 +26,7 @@
                     <th>等级:</th>
                     <th>已用流量:</th>
                     <th>总流量:</th>
+                    <th>对接地址:</th>
                 </tr>
             </thead>
             {% for node in ss_node_list %}
@@ -45,6 +46,11 @@
                 <td>{{ node.level }}</td>
                 <td>{{ node.human_used_traffic }}</td>
                 <td>{{ node.human_total_traffic }}</td>
+                <td>
+                    <p class="control is-expanded">
+                        <input class="input" id="id-api-{node.node_id}" value="{{ node.api_endpoint }}">
+                    </p>
+                </td>
             </tr>
             <div class="modal node_delete" id="modal-{{ node.node_id }}">
                 <div class="modal-background"></div>

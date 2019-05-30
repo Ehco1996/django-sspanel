@@ -778,7 +778,8 @@ class SSNodeOnlineLog(models.Model):
         count = 0
         for node_id in ss_node_ids:
             log = cls.get_latest_log_by_node_id(node_id)
-            count += log.online_user_count
+            if log:
+                count += log.online_user_count
         return count
 
     @classmethod
@@ -828,7 +829,7 @@ class SSNode(models.Model):
 
     @classmethod
     def get_user_active_nodes(cls, user):
-        return cls.objects.filter(enable=True, level__gte=user.level)
+        return cls.objects.filter(enable=True, level__lte=user.level)
 
     @property
     def api_endpoint(self):
@@ -864,6 +865,7 @@ class SSNode(models.Model):
         data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
         data["country"] = self.country.lower()
         data["ss_link"] = self.get_ss_link(ss_user)
+        data["api_point"] = self.api_endpoint
         return data
 
 
