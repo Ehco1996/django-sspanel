@@ -461,6 +461,9 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
             data["method"] = self.method
             data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
         data["id"] = ss_user.user_id
+        data["passwd"] = ss_user.password
+        data["u"] = ss_user.upload_traffic
+        data["d"] = ss_user.download_traffic
         return data
 
     def to_dict_with_extra_info(self, ss_user):
@@ -469,7 +472,7 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         data = self.to_dict_with_ss_user(ss_user)
         data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
         data["country"] = self.country.lower()
-        data["ss_link"] = self.get_ss_link(ss_user)
+        data["ssr_link"] = self.get_ssr_link(ss_user)
         return data
 
     # verbose_name
