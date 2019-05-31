@@ -38,7 +38,7 @@ def auto_reset_traffic():
 def clean_traffic_log():
     """清空七天前的所有流量记录"""
     dt = pendulum.now().subtract(days=7).date()
-    query = UserTrafficLog.objects.filter(log_date__lt=dt)
+    query = UserTrafficLog.objects.filter(date__lt=dt)
     count, res = query.delete()
     print("Time: {} traffic record removed!:{}".format(timezone.now(), count))
 
