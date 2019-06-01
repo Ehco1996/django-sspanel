@@ -1,0 +1,87 @@
+{% extends 'base.html' %} {% block main %}
+<div class="column is-12">
+    <section class="hero is-primary is-small">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    用户资料改写处：
+                </h1>
+                <h2 class="subtitle">
+                    自定义连接信息....
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<hr>
+<div class="column is-12">
+
+    <div class="columns box is-mobile is-centered">
+
+        <div class="column is-half">
+            <span class="tag is-danger is-large">修改连接密码:</span>
+            <hr />
+            <p class="subtitle">当前密码:<code>{{ user_ss_config.password }}</code></p>
+            <form class="form" id="form-password">
+                <input type="text" name="password" class="input is-narrow is-danger" required="" id="password">
+                <hr />
+                <div class="is-grouped">
+                    <button type="submit" class="button is-danger is-outlined ">确认修改</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="column is-half">
+            <span class="tag is-warning is-large">自定义的加密:</span>
+            <hr />
+            <p class="subtitle">当前加密方式:<code>{{ user_ss_config.method }}</code></p>
+            <form class="form" id="form-method">
+                <div class="field is-horizontal">
+                    <div class="field-label">
+                        <label class="label">method:</label>
+                    </div>
+                    <div class="field-body">
+                        <div class="field">
+                            <div class="control">
+                                <div class="select">
+                                    <select name="method">
+                                        {% for m in methods %}
+                                        <option>{{ m }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="is-grouped">
+                    <button type="submit" class="button is-danger is-outlined ">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function changeSsSettings(event) {
+        url = "{% url 'api:user_settings' %}"
+        // pass form to json
+        var form = $("#" + event.target.id)
+        var unindexed_array = form.serializeArray();
+        var data = {};
+        $.map(unindexed_array, function (n, i) {
+            data[n['name']] = n['value'];
+        });
+        $.post(url, JSON.stringify(data), function (results) {
+            swal(results.title, results.subtitle, results.status)
+        })
+        event.preventDefault()
+    }
+    var formIds = ['#form-password', '#form-method', '#form-protocol', '#form-obfs'];
+    formIds.forEach(function (formId) {
+        $(formId).submit(changeSsSettings)
+    });
+</script>
+{% endblock main %}

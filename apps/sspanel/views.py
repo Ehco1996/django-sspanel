@@ -95,18 +95,21 @@ class UserInfoView(View):
     @method_decorator(login_required)
     def get(self, request):
         user = request.user
+        user_ss_config = user.user_ss_config
+        user_traffic = user_ss_config.user_traffic
         # 获取公告
         anno = Announcement.objects.first()
         min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
         max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-        remain_traffic = "{:.2f}".format(100 - user.ss_user.used_percentage)
+        remain_traffic = "{:.2f}".format(100 - user_traffic.used_percentage)
         context = {
             "user": user,
+            "user_traffic": user_traffic,
             "anno": anno,
             "remain_traffic": remain_traffic,
             "min_traffic": min_traffic,
             "max_traffic": max_traffic,
-            "import_links": user.ss_user.get_import_links(),
+            "import_links": user_ss_config.get_import_links(),
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
             "sub_types": User.SUB_TYPES,
@@ -119,15 +122,21 @@ class NodeInfoView(View):
     @method_decorator(login_required)
     def get(self, request):
         user = request.user
-        ss_user = user.ss_user
+        user_ss_config = user.user_ss_config
         node_list = [
-            node.to_dict_with_extra_info(ss_user) for node in SSNode.get_active_nodes()
+            node.to_dict_with_extra_info(user_ss_config)
+            for node in SSNode.get_active_nodes()
         ]
 
         # TODO 去掉 SSR节点的兼容
-        ssr_node_list = [
-            node.to_dict_with_extra_info(ss_user) for node in Node.get_active_nodes()
-        ]
+        ss_user = request.user.ss_user
+        if ss_user:
+            ssr_node_list = [
+                node.to_dict_with_extra_info(ss_user)
+                for node in Node.get_active_nodes()
+            ]
+        else:
+            ssr_node_list = []
         context = {
             "node_list": node_list,
             "ssr_node_list": ssr_node_list,
@@ -142,7 +151,7 @@ class UserTrafficLog(View):
     @method_decorator(login_required)
     def get(self, request):
         node_list = SSNode.get_active_nodes()
-        context = {"ss_user": request.user.ss_user, "node_list": node_list}
+        context = {"user": request.user, "node_list": node_list}
         return render(request, "sspanel/user_traffic_log.html", context=context)
 
 
@@ -150,12 +159,29 @@ class UserSSNodeConfigView(View):
     @method_decorator(login_required)
     def get(self, request):
         user = request.user
-        ss_user = user.ss_user
+        user_ss_config = user.user_ss_config
         configs = [
-            node.to_dict_with_extra_info(ss_user)
+            node.to_dict_with_extra_info(user_ss_config)
             for node in SSNode.get_user_active_nodes(user)
         ]
         return JsonResponse({"configs": configs})
+
+
+class UserSettingView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        methods = [m[0] for m in METHOD_CHOICES]
+        context = {"user_ss_config": request.user.user_ss_config, "methods": methods}
+        return render(request, "sspanel/user_settings.html", context=context)
+
+
+class ShopView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        goods = Goods.objects.filter(status=1)
+        context = {"user": user, "goods": goods}
+        return render(request, "sspanel/shop.html", context=context)
 
 
 def index(request):
@@ -204,23 +230,6 @@ def user_logout(request):
 
 
 @login_required
-def ss_user_settings(request):
-    """跳转到资料编辑界面"""
-    ss_user = request.user.ss_user
-    methods = [m[0] for m in METHOD_CHOICES]
-    protocols = [p[0] for p in PROTOCOL_CHOICES]
-    obfss = [o[0] for o in OBFS_CHOICES]
-
-    context = {
-        "ss_user": ss_user,
-        "methods": methods,
-        "protocols": protocols,
-        "obfss": obfss,
-    }
-    return render(request, "sspanel/ss_user_settings.html", context=context)
-
-
-@login_required
 def donate(request):
     """捐赠界面和支付宝当面付功能"""
     donatelist = Donate.objects.all()[:8]
@@ -231,15 +240,6 @@ def donate(request):
         # 关闭支付宝支付
         context["alipay"] = False
     return render(request, "sspanel/donate.html", context=context)
-
-
-@login_required
-def shop(request):
-    """跳转到商品界面"""
-    ss_user = request.user
-    goods = Goods.objects.filter(status=1)
-    context = {"ss_user": ss_user, "goods": goods}
-    return render(request, "sspanel/shop.html", context=context)
 
 
 @login_required

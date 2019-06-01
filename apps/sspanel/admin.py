@@ -73,6 +73,19 @@ class SSNodeAdmin(admin.ModelAdmin):
     ]
 
 
+class UserSSConfigAdmin(admin.ModelAdmin):
+    list_display = [
+        "user_id",
+        "port",
+        "password",
+        "method",
+        "speed_limit",
+        "human_used_traffic",
+        "human_total_traffic",
+        "enable",
+    ]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)
@@ -87,6 +100,7 @@ admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
 admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
+admin.site.register(models.UserSSConfig, UserSSConfigAdmin)
 
 
 admin.site.unregister(Group)

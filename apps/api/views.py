@@ -27,6 +27,8 @@ from apps.sspanel.models import (
     SSNodeOnlineLog,
     SSNode,
     UserCheckInLog,
+    UserTraffic,
+    UserSSConfig,
 )
 from apps.ssserver.models import Node, Suser
 from apps.utils import (
@@ -44,9 +46,8 @@ class SystemStatusView(View):
         user_status = [
             SSNodeOnlineLog.get_all_node_online_user_count(),
             User.get_today_register_user().count(),
-            Suser.get_today_checked_user_num(),
-            Suser.get_never_checked_user_num(),
-            Suser.get_never_used_num(),
+            UserCheckInLog.get_today_checkin_user_count(),
+            UserTraffic.get_never_used_user_count(),
         ]
         donate_status = [
             Donate.get_donate_count_by_date(),
@@ -70,16 +71,17 @@ class SystemStatusView(View):
         return JsonResponse(data)
 
 
-class SSUserSettingsView(View):
+class UserSettingsView(View):
     @csrf_exempt
     def dispatch(self, *args, **kwargs):
-        return super(SSUserSettingsView, self).dispatch(*args, **kwargs)
+        return super(UserSettingsView, self).dispatch(*args, **kwargs)
 
     @method_decorator(handle_json_post)
     @method_decorator(login_required)
     def post(self, request):
-        ss_user = request.user.ss_user
-        success = ss_user.update_from_dict(data=request.json)
+        config = request.user.user_ss_config
+
+        success = config.update_from_dict(data=request.json)
         if success:
             data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}
         else:
@@ -135,22 +137,22 @@ class TrafficReportView(View):
         data = request.json
         node_id = data["node_id"]
         traffic_list = data["data"]
-        log_time = int(time.time())
+        now = pendulum.now()
 
         node_total_traffic = 0
         trafficlog_model_list = []
-        ss_user_model_list = []
+        user_traffic_model_list = []
 
         for rec in traffic_list:
             user_id = rec["user_id"]
             u = rec["u"]
             d = rec["d"]
             # 个人流量增量
-            ss_user = Suser.get_user_by_user_id(user_id)
-            ss_user.download_traffic += d
-            ss_user.upload_traffic += u
-            ss_user.last_use_time = log_time
-            ss_user_model_list.append(ss_user)
+            user_traffic = UserTraffic.get_by_user_id(user_id)
+            user_traffic.download_traffic += d
+            user_traffic.upload_traffic += u
+            user_traffic.last_use_time = now
+            user_traffic_model_list.append(user_traffic)
             # 个人流量记录
             trafficlog_model_list.append(
                 UserTrafficLog(
@@ -169,32 +171,39 @@ class TrafficReportView(View):
         # 流量记录
         UserTrafficLog.objects.bulk_create(trafficlog_model_list)
         # 个人流量记录
-        Suser.objects.bulk_update(
-            ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
+        UserTraffic.objects.bulk_update(
+            user_traffic_model_list,
+            ["download_traffic", "upload_traffic", "last_use_time"],
         )
         return JsonResponse({"ret": 1, "data": []})
 
 
-class SsUserConfigView(View):
+class UserSSConfigView(View):
     @csrf_exempt
     def dispatch(self, *args, **kwargs):
-        return super(SsUserConfigView, self).dispatch(*args, **kwargs)
+        return super(UserSSConfigView, self).dispatch(*args, **kwargs)
 
     @method_decorator(api_authorized)
     def get(self, request, node_id):
-        res = {"users": Suser.get_user_configs_by_node_id(node_id)}
-        return JsonResponse(res)
+        ss_node = SSNode.get_or_none_by_node_id(node_id)
+        configs = {"users": []}
+        if ss_node:
+            configs["users"] = [
+                ss_node.to_dict_with_user_ss_config(config)
+                for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
+            ]
+        return JsonResponse(configs)
 
     @method_decorator(handle_json_post)
     @method_decorator(api_authorized)
     def post(self, request, node_id):
         data = request.json["data"]
-
-        log_time = int(time.time())
+        log_time = pendulum.now()
         node_total_traffic = 0
         trafficlog_model_list = []
-        ss_user_model_list = []
+        user_traffic_model_list = []
         online_ip_log_model_list = []
+        user_ss_config_model_list = []
 
         for user_data in data:
             user_id = user_data["user_id"]
@@ -202,11 +211,15 @@ class SsUserConfigView(View):
             d = user_data["download_traffic"]
 
             # 个人流量增量
-            ss_user = Suser.get_user_by_user_id(user_id)
-            ss_user.download_traffic += d
-            ss_user.upload_traffic += u
-            ss_user.last_use_time = log_time
-            ss_user_model_list.append(ss_user)
+            user_traffic = UserTraffic.get_by_user_id(user_id)
+            user_traffic.download_traffic += d
+            user_traffic.upload_traffic += u
+            user_traffic.last_use_time = log_time
+            user_traffic_model_list.append(user_traffic)
+            if user_traffic.overflow:
+                user_ss_config = UserSSConfig.get_by_user_id(user_id)
+                user_ss_config.enable = False
+                user_ss_config_model_list.append(user_ss_config)
             # 个人流量记录
             trafficlog_model_list.append(
                 UserTrafficLog(
@@ -231,11 +244,18 @@ class SsUserConfigView(View):
         # 在线IP
         UserOnLineIpLog.objects.bulk_create(online_ip_log_model_list)
         # 个人流量记录
-        Suser.objects.bulk_update(
-            ss_user_model_list, ["download_traffic", "upload_traffic", "last_use_time"]
+        UserTraffic.objects.bulk_update(
+            user_traffic_model_list,
+            ["download_traffic", "upload_traffic", "last_use_time"],
         )
+        # 用户开关
+        UserSSConfig.objects.bulk_update(user_ss_config_model_list, ["enable"])
         # 节点在线人数
         SSNodeOnlineLog.add_log(node_id, len(data))
+        if user_ss_config_model_list:
+            # NOTE save for clear cache
+            ss_node = SSNode.get_or_none_by_node_id(node_id)
+            ss_node.save()
         return JsonResponse({"ret": 1, "data": []})
 
 
@@ -255,15 +275,17 @@ class UserCheckInView(View):
         return JsonResponse(data)
 
 
-@login_required
-def change_ss_port(request):
-    ss_user = request.user.ss_user
-    port = Suser.get_random_port()
-    ss_user.port = port
-    ss_user.save()
-    data = {"title": "修改成功！", "subtitle": "端口修改为：{}！".format(port), "status": "success"}
-    Suser.clear_get_user_configs_by_node_id_cache()
-    return JsonResponse(data)
+class ReSetSSPortView(View):
+    @method_decorator(login_required)
+    def post(self, request):
+        user_ss_config = request.user.user_ss_config
+        port = user_ss_config.reset_random_port()
+        data = {
+            "title": "修改成功！",
+            "subtitle": "端口修改为：{}！".format(port),
+            "status": "success",
+        }
+        return JsonResponse(data)
 
 
 @login_required
@@ -358,6 +380,7 @@ def node_online_api(request):
 @authorized
 @require_http_methods(["GET"])
 def node_user_configs(request, node_id):
+    # TODO TO BE DELETED
     res = {"ret": 1, "data": Suser.get_user_configs_by_node_id(node_id)}
     return JsonResponse(res)
 

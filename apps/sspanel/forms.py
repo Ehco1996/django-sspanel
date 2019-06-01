@@ -3,7 +3,14 @@ from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
 from apps.encoder import encoder
-from apps.sspanel.models import Announcement, Goods, InviteCode, User, SSNode
+from apps.sspanel.models import (
+    Announcement,
+    Goods,
+    InviteCode,
+    User,
+    SSNode,
+    UserSSConfig,
+)
 
 
 class RegisterForm(UserCreationForm):
@@ -156,4 +163,17 @@ class UserForm(ModelForm):
             "balance": forms.NumberInput(attrs={"class": "input"}),
             "level": forms.NumberInput(attrs={"class": "input"}),
             "level_expire_time": forms.DateTimeInput(attrs={"class": "input"}),
+        }
+
+
+class UserSSConfigForm(ModelForm):
+    class Meta:
+        model = UserSSConfig
+        fields = ["port", "password", "speed_limit", "method", "enable"]
+        widgets = {
+            "port": forms.NumberInput(attrs={"class": "input"}),
+            "speed_limit": forms.NumberInput(attrs={"class": "input"}),
+            "password": forms.TextInput(attrs={"class": "input"}),
+            "method": forms.Select(attrs={"class": "input"}),
+            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
         }
