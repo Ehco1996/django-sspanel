@@ -86,6 +86,10 @@ class UserSSConfigAdmin(admin.ModelAdmin):
     ]
 
 
+class UserCheckInAdmin(admin.ModelAdmin):
+    list_display = ["user_id", "increased_traffic", "date"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.InviteCode, InviteCodeAdmin)
@@ -101,6 +105,7 @@ admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
 admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
 admin.site.register(models.UserSSConfig, UserSSConfigAdmin)
+admin.site.register(models.UserCheckInLog, UserCheckInAdmin)
 
 
 admin.site.unregister(Group)

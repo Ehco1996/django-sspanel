@@ -760,6 +760,7 @@ class UserCheckInLog(models.Model):
     increased_traffic = models.BigIntegerField("增加的流量", default=0)
 
     class Meta:
+        verbose_name_plural = "用户签到记录"
         unique_together = [["user_id", "date"]]
 
     @classmethod
@@ -769,10 +770,12 @@ class UserCheckInLog(models.Model):
     @classmethod
     @transaction.atomic
     def checkin(cls, user_id):
-        # TODO 在线USERCONFIG里增加流量
         traffic = random.randint(
             settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
         )
+        user_traffic = UserTraffic.get_by_user_id(user_id)
+        user_traffic.total_traffic += traffic
+        user_traffic.save()
         return cls.add_log(user_id, traffic)
 
     @classmethod
@@ -782,6 +785,10 @@ class UserCheckInLog(models.Model):
     @classmethod
     def get_today_checkin_user_count(cls):
         return cls.objects.filter(date=pendulum.today()).count()
+
+    @property
+    def human_increased_traffic(self):
+        return traffic_format(self.increased_traffic)
 
 
 class SSNodeOnlineLog(models.Model):
