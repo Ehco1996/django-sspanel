@@ -13,7 +13,7 @@ urlpatterns = [
     path("shop/", views.purchase, name="purchase"),
     path("change/theme/", views.change_theme, name="change_theme"),
     path("change/sub_type/", views.change_sub_type, name="change_sub_type"),
-    path("checkin/", views.checkin, name="checkin"),
+    path("checkin/", views.UserCheckInView.as_view(), name="checkin"),
     # web api 接口
     path("nodes/<int:node_id>", views.node_api, name="get_node_info"),
     path("nodes/online", views.node_online_api, name="post_onlineip"),

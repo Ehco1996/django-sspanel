@@ -26,6 +26,7 @@ from apps.sspanel.models import (
     UserTrafficLog,
     SSNodeOnlineLog,
     SSNode,
+    UserCheckInLog,
 )
 from apps.ssserver.models import Node, Suser
 from apps.utils import (
@@ -238,6 +239,22 @@ class SsUserConfigView(View):
         return JsonResponse({"ret": 1, "data": []})
 
 
+class UserCheckInView(View):
+    @method_decorator(login_required)
+    def post(self, request):
+        user = request.user
+        if not user.today_is_checkin:
+            log = UserCheckInLog.checkin(user.pk)
+            data = {
+                "title": "签到成功！",
+                "subtitle": f"获得{traffic_format(log.increased_traffic)}流量！",
+                "status": "success",
+            }
+        else:
+            data = {"title": "签到失败！", "subtitle": "今天已经签到过了", "status": "error"}
+        return JsonResponse(data)
+
+
 @login_required
 def change_ss_port(request):
     ss_user = request.user.ss_user
@@ -358,22 +375,6 @@ def alive_ip_api(request):
     UserOnLineIpLog.objects.bulk_create(model_list)
     res = {"ret": 1, "data": []}
     return JsonResponse(res)
-
-
-@login_required
-def checkin(request):
-    """用户签到"""
-    ss_user = request.user.ss_user
-    res, traffic = ss_user.checkin()
-    if res:
-        data = {
-            "title": "签到成功！",
-            "subtitle": "获得{}流量！".format(traffic_format(traffic)),
-            "status": "success",
-        }
-    else:
-        data = {"title": "签到失败！", "subtitle": "距离上次签到不足一天", "status": "error"}
-    return JsonResponse(data)
 
 
 @csrf_exempt

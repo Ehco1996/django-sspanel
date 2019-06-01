@@ -74,7 +74,7 @@
                 </div>
                 <hr>
                 <div id="id-checkin-box">
-                    {% if user.ss_user.today_is_checked %}
+                    {% if user.today_is_checkin %}
                     <p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>
                     {% else %}
                     <p class="subtitle is-5 is-spaced"> 今天还没有签到，点一下可以获得{{ min_traffic }}~{{ max_traffic }}流量</p>
@@ -262,8 +262,12 @@
     var CheckButton = $("#id-checkin")
     var Checkin = function () {
         url = "{% url 'api:checkin' %}"
-        $.getJSON(url, function (results) {
-            swal(results.title, results.subtitle, results.status)
+        data = {
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        }
+        $.post(url, data, function (results) {
+            info = results
+            swal(info.title, info.subtitle, info.status)
             var box = $("#id-checkin-box")
             box.html('<p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>')
         })

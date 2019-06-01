@@ -3,6 +3,7 @@ import time
 from decimal import Decimal
 from urllib.parse import urlencode
 import base64
+import random
 
 import markdown
 import pendulum
@@ -22,7 +23,7 @@ from apps.constants import (
 )
 from apps.encoder import encoder
 from apps.payments import pay
-from apps.utils import get_long_random_string, traffic_format
+from apps.utils import get_long_random_string, traffic_format, get_short_random_string
 
 
 class User(AbstractUser):
@@ -158,6 +159,10 @@ class User(AbstractUser):
         from apps.ssserver.models import Suser
 
         return Suser.objects.get(user_id=self.id)
+
+    @property
+    def today_is_checkin(self):
+        return UserCheckInLog.get_today_is_checkin_by_user_id(self.pk)
 
     def get_sub_links(self):
         # TODO 暂时只能处理SS节点的订阅
@@ -743,6 +748,32 @@ class UserTrafficLog(models.Model):
         return line_config
 
 
+class UserCheckInLog(models.Model):
+    user_id = models.PositiveIntegerField()
+    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
+    increased_traffic = models.BigIntegerField("增加的流量", default=0)
+
+    class Meta:
+        unique_together = [["user_id", "date"]]
+
+    @classmethod
+    def add_log(cls, user_id, traffic):
+        return cls.objects.create(user_id=user_id, increased_traffic=traffic)
+
+    @classmethod
+    @transaction.atomic
+    def checkin(cls, user_id):
+        # TODO 在线USERCONFIG里增加流量
+        traffic = random.randint(
+            settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
+        )
+        return cls.add_log(user_id, traffic)
+
+    @classmethod
+    def get_today_is_checkin_by_user_id(cls, user_id):
+        return cls.objects.filter(user_id=user_id, date=pendulum.today()).exists()
+
+
 class SSNodeOnlineLog(models.Model):
 
     node_id = models.IntegerField()
@@ -870,7 +901,6 @@ class SSNode(models.Model):
 
 
 # class UserSSConfig(models.Model):
-#     # TODO migrate this
 
 #     user_id = models.IntegerField(unique=True, db_index=True)
 #     port = models.IntegerField(unique=True)
