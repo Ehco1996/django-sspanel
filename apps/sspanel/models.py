@@ -725,7 +725,7 @@ class SSNode(models.Model):
         params = {"token": settings.TOKEN}
         return (
             settings.HOST
-            + f"/api/user_ss_config_config/{self.node_id}/?{urlencode(params)}"
+            + f"/api/user_ss_config/{self.node_id}/?{urlencode(params)}"
         )
 
     @property
