@@ -5,19 +5,14 @@ def clear_zombie_user():
     """
     删除僵尸用户
     """
-    from apps.sspanel.models import User
+    from apps.sspanel.models import User, UserTraffic
 
-    users = User.objects.all()
-    count = 0
-    for user in users:
-        try:
-            if user.ss_user.last_use_time == 0 and user.balance == 0:
+    for ut in UserTraffic.objects.all():
+        if ut.last_use_time == UserTraffic.DEFAULT_USE_TIME:
+            user = User.get_by_pk(ut.user_id)
+            if user.balance == 0 and user.level > 0:
                 user.delete()
-                count += 1
-        except ObjectDoesNotExist:
-            user.delete()
-            count += 1
-    print("clear user count: ", count)
+                print(f"delete zombie user {user.username}")
 
 
 if __name__ == "__main__":

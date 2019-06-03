@@ -1,4 +1,4 @@
- {% extends 'backendbase.html' %} {% block main %}
+{% extends 'backendbase.html' %} {% block main %}
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -14,7 +14,7 @@
     </section>
 </div>
 <div class="column is-12">
-    <form method="get" action="{% url 'sspanel:user_search' %}">
+    <form method="get" action="{% url 'sspanel:backend_user_ss_config_search' %}">
         <div class="field has-addons">
             <div class="control">
                 <input name="q" class="input" type="search" placeholder="用户名/邮箱 模糊搜索" required>
@@ -28,7 +28,8 @@
     <div class="box">
         <nav class="pagination">
             {% if contacts.has_previous %}
-            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %} {% if contacts.has_next%}
+            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %}
+            {% if contacts.has_next%}
             <a class="pagination-next" href="?page={{ contacts.next_page_number }}">下一页</a> {% endif %} {% if page %}
             <p>页码：</p>
             <ul class="pagination-list">
@@ -66,7 +67,8 @@
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'ssserver:user_edit' contact.ss_user.user_id %}">编辑</a>
+                        <a class="button is-info"
+                            href="{% url 'sspanel:backend_user_ss_config_detail' contact.user_ss_config.user_id %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button" data-target="modal-{{ contact.pk }}">删除</a>
@@ -75,8 +77,9 @@
                 <td>#{{ contact.id}}</td>
                 <td>{{ contact.username }}</td>
                 <td>{{ contact.email }}</td>
-                <td>{{ contact.ss_user.port }}</td>
-                <td>{{ contact.ss_user.used_traffic }} / {{ contact.ss_user.total_transfer }}</td>
+                <td>{{ contact.user_ss_config.port }}</td>
+                <td>{{ contact.user_ss_config.human_used_traffic }} / {{ contact.user_ss_config.human_total_traffic }}
+                </td>
             </tr>
             <div class="modal user_delete" id="modal-{{ contact.pk }}">
                 <div class="modal-background"></div>
@@ -89,7 +92,8 @@
                         <p class="subtitle">确定要删除:
                             <code>{{ contact.username }}</code>?</p>
                         <p align="center">
-                            <a class="button is-danger is-outlined" href="{% url 'sspanel:user_delete' contact.pk %}">确定删除</a>
+                            <a class="button is-danger is-outlined"
+                                href="{% url 'sspanel:backend_user_ss_config_delete' contact.pk %}">确定删除</a>
                         </p>
                     </section>
                 </div>

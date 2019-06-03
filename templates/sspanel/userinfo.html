@@ -110,19 +110,13 @@
                     </div>
                     <div class="message-body">
                         <li> 端口：
-                            <code><span id="port">{{ user.ss_user.port }}</span></code>
+                            <code><span id="port">{{ user.user_ss_config.port }}</span></code>
                         </li>
                         <li> 密码：
-                            <code>{{ user.ss_user.password }}</code>
+                            <code>{{ user.user_ss_config.password }}</code>
                         </li>
                         <li> 加密：
-                            <code>{{ user.ss_user.method }}</code>
-                        </li>
-                        <li> 协议：
-                            <code>{{ user.ss_user.protocol }}</code>
-                        </li>
-                        <li> 混淆：
-                            <code>{{ user.ss_user.obfs }}</code>
+                            <code>{{ user.user_ss_config.method }}</code>
                         </li>
                         <br>
                         <div class="buttons">
@@ -167,7 +161,7 @@
                         <div class="columns">
                             <div class="column">
                                 <li>总量:
-                                    <code>{{ user.ss_user.total_transfer }}</code>
+                                    <code>{{ user.user_ss_config.human_total_traffic }}</code>
                                 </li>
                             </div>
                             <div class="column">
@@ -187,10 +181,10 @@
                         <div class="columns">
                             <div class="column">
                                 <li>使用:
-                                    <code>{{ user.ss_user.used_traffic }}</code> </li>
+                                    <code>{{ user.user_ss_config.human_used_traffic }}</code> </li>
                             </div>
                             <div class="column">
-                                <progress class="progress is-danger" value="{{  user.ss_user.used_percentage }}"
+                                <progress class="progress is-danger" value="{{  user.user_ss_config.used_percentage }}"
                                     max="100"></progress>
                             </div>
                         </div>
@@ -211,7 +205,7 @@
                         <li> 等级：
                             <code>{{ user.level }} 级 </code>
                         </li>
-                        {% if user.ss_user.enable == True %}
+                        {% if user.user_ss_config.enable == True %}
                         <li> 状态：
                             <code>正常使用</code>
                         </li>
@@ -230,7 +224,7 @@
                             <code>{{ user.level_expire_time }} </code>
                         </li>
                         <li>上次使用时间:
-                            <code>{{ user.ss_user.user_last_use_time|date:"m月d日G点" }}</code>
+                            <code>{{ user_traffic.last_use_time}}</code>
                         </li>
 
                     </div>
@@ -248,17 +242,20 @@
         $('.copied').show();
         $('.copied').fadeOut(1000);
     });
-    // 端口重置Ajax部分
+    // 端口重置
     var ProtButton = $("#id-change-port")
     var changeport = function () {
-        url = "{% url 'api:changessport' %}"
-        $.getJSON(url, function (results) {
+        url = "{% url 'api:reset_ss_port' %}"
+        data = {
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        }
+        $.post(url, data, function (results) {
             swal(results.title, results.subtitle, results.status)
             port.textContent = results.subtitle.slice(6, -1)
         })
     }
     ProtButton.click(changeport)
-    // 签到AJAX部分
+    // 签到
     var CheckButton = $("#id-checkin")
     var Checkin = function () {
         url = "{% url 'api:checkin' %}"

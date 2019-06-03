@@ -17,7 +17,7 @@ urlpatterns = [
     path("user_traffic_log/", views.UserTrafficLog.as_view(), name="user_traffic_log"),
     # 用户信息
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
-    path("users/settings/", views.ss_user_settings, name="ss_user_settings"),
+    path("users/settings/", views.UserSettingView.as_view(), name="user_settings"),
     path(
         "users/ss_node_config/",
         views.UserSSNodeConfigView.as_view(),
@@ -25,7 +25,7 @@ urlpatterns = [
     ),
     # 捐赠/充值
     path("donate/", views.donate, name="donate"),
-    path("shop/", views.shop, name="shop"),
+    path("shop/", views.ShopView.as_view(), name="shop"),
     path("purchaselog/", views.purchaselog, name="purchaselog"),
     path("chargecenter/", views.chargecenter, name="chargecenter"),
     path("charge/", views.charge, name="charge"),
@@ -69,10 +69,31 @@ urlpatterns = [
         name="backend_ss_node_detail",
     ),
     # 用户相关
-    path("backend/userlist/", admin_views.backend_userlist, name="user_list"),
-    path("backend/user/delete/<int:pk>/", admin_views.user_delete, name="user_delete"),
-    path("backend/user/search/", admin_views.user_search, name="user_search"),
-    path("backend/user/status/", admin_views.user_status, name="user_status"),
+    path(
+        "backend/user_ss_config_list/",
+        admin_views.UserSSConfigListView.as_view(),
+        name="backend_user_ss_config_list",
+    ),
+    path(
+        "backend/user_ss_config/delete/<int:pk>/",
+        admin_views.UserSSConfigDeleteView.as_view(),
+        name="backend_user_ss_config_delete",
+    ),
+    path(
+        "backend/user_ss_config/search/",
+        admin_views.UserSSConfigSearchView.as_view(),
+        name="backend_user_ss_config_search",
+    ),
+    path(
+        "backend/user_ss_config/<int:user_id>/",
+        admin_views.UserSSConfigDetailView.as_view(),
+        name="backend_user_ss_config_detail",
+    ),
+    path(
+        "backend/user_status/",
+        admin_views.UserStatusView.as_view(),
+        name="backend_user_status",
+    ),
     # 商品充值相关
     path("backend/charge/", admin_views.backend_charge, name="backend_charge"),
     path("backend/shop/", admin_views.backend_shop, name="backend_shop"),

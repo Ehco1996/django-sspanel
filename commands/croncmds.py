@@ -11,6 +11,7 @@ from apps.sspanel.models import (
     UserTrafficLog,
     SSNodeOnlineLog,
     SSNode,
+    UserTraffic,
 )
 
 os.environ["DJANGO_ENV"] = "production"
@@ -19,6 +20,7 @@ os.environ["DJANGO_ENV"] = "production"
 def check_user_state():
     """检测用户状态，将所有账号到期的用户状态重置"""
     User.check_and_disable_expired_users()
+    UserTraffic.check_and_disable_out_of_traffic_user()
     print("Time: {} CHECKED".format(timezone.now()))
 
 
@@ -27,11 +29,9 @@ def auto_reset_traffic():
     users = User.objects.filter(level=0)
 
     for user in users:
-        ss_user = user.ss_user
-        ss_user.download_traffic = 0
-        ss_user.upload_traffic = 0
-        ss_user.transfer_enable = settings.DEFAULT_TRAFFIC
-        ss_user.save()
+        ut = UserTraffic.get_by_user_id(user.pk)
+        ut.reset_traffic(settings.DEFAULT_TRAFFIC)
+        ut.save()
     print("Time {} all free user traffic reset! ".format(timezone.now()))
 
 

@@ -10,7 +10,7 @@ from django.views import View
 
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.sspanel.forms import AnnoForm, GoodsForm, SSNodeForm
+from apps.sspanel.forms import AnnoForm, GoodsForm, SSNodeForm, UserSSConfigForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -23,8 +23,10 @@ from apps.sspanel.models import (
     Ticket,
     User,
     UserOnLineIpLog,
+    UserCheckInLog,
+    UserTraffic,
+    UserSSConfig,
 )
-from apps.ssserver.models import Suser
 
 
 class UserOnlineIpLogView(StaffRequiredMixin, View):
@@ -86,63 +88,83 @@ class SSNodeDeleteView(StaffRequiredMixin, View):
         return HttpResponseRedirect(reverse("sspanel:backend_ss_node_list"))
 
 
+class UserSSConfigListView(StaffRequiredMixin, View):
+    def get(self, request):
+        context = PageListView(
+            request, User.objects.all().order_by("-date_joined")
+        ).get_page_context()
+
+        return render(request, "backend/user_ss_config_list.html", context)
+
+
+class UserSSConfigDeleteView(StaffRequiredMixin, View):
+    def get(self, request, user_id):
+        user = User.get_by_pk(user_id)
+        user.delete()
+        messages.success(request, "成功啦", extra_tags="删除用户")
+        return HttpResponseRedirect(reverse("sspanel:backend_user_ss_config_list"))
+
+
+class UserSSConfigSearchView(StaffRequiredMixin, View):
+    def get(self, request):
+        q = request.GET.get("q")
+        contacts = User.objects.filter(
+            Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
+        )
+        context = {"contacts": contacts}
+        return render(request, "backend/user_ss_config_list.html", context=context)
+
+
+class UserSSConfigDetailView(StaffRequiredMixin, View):
+    def get(self, request, user_id):
+        user_ss_config = UserSSConfig.get_by_user_id(user_id)
+        form = UserSSConfigForm(instance=user_ss_config)
+        return render(
+            request, "backend/user_ss_config_detail.html", context={"form": form}
+        )
+
+    def post(self, request, user_id):
+        user_ss_config = UserSSConfig.get_by_user_id(user_id)
+        form = UserSSConfigForm(request.POST, instance=user_ss_config)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
+            return HttpResponseRedirect(reverse("sspanel:backend_user_ss_config_list"))
+        else:
+            messages.error(request, "数据填写错误", extra_tags="错误")
+            context = {"form": form, "user_ss_config": user_ss_config}
+            return render(
+                request, "backend/user_ss_config_detail.html", context=context
+            )
+
+
+class UserStatusView(StaffRequiredMixin, View):
+    def get(self, request):
+        today_register_user = User.get_today_register_user().values()[:10]
+        # find inviter
+        for u in today_register_user:
+            try:
+                u["inviter"] = User.objects.get(pk=u["inviter_id"])
+            except User.DoesNotExist:
+                u["inviter"] = "None"
+
+        context = {
+            "total_user_num": User.get_total_user_num(),
+            "alive_user_count": SSNodeOnlineLog.get_all_node_online_user_count(),
+            "today_checked_user_count": UserCheckInLog.get_today_checkin_user_count(),
+            "today_register_user_count": len(today_register_user),
+            "traffic_users": UserTraffic.get_user_order_by_traffic(count=10),
+            "rich_users_data": Donate.get_most_donated_user_by_count(10),
+            "today_register_user": today_register_user,
+        }
+        return render(request, "backend/user_status.html", context=context)
+
+
 @permission_required("sspanel")
 def system_status(request):
     """跳转到后台界面"""
     context = {"total_user_num": User.get_total_user_num()}
     return render(request, "backend/index.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_userlist(request):
-    """返回所有用户的View"""
-    context = PageListView(
-        request, User.objects.all().order_by("-date_joined")
-    ).get_page_context()
-    return render(request, "backend/user_list.html", context)
-
-
-@permission_required("sspanel")
-def user_delete(request, pk):
-    """删除user"""
-    user = User.objects.get(pk=pk)
-    user.delete()
-    messages.success(request, "成功啦", extra_tags="删除用户")
-    return HttpResponseRedirect(reverse("sspanel:user_list"))
-
-
-@permission_required("sspanel")
-def user_search(request):
-    """用户搜索结果"""
-    q = request.GET.get("q")
-    contacts = User.objects.filter(
-        Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
-    )
-    context = {"contacts": contacts}
-    return render(request, "backend/user_list.html", context=context)
-
-
-@permission_required("sspanel")
-def user_status(request):
-    """站内用户分析"""
-    today_register_user = User.get_today_register_user().values()[:10]
-    # find inviter
-    for u in today_register_user:
-        try:
-            u["inviter"] = User.objects.get(pk=u["inviter_id"])
-        except User.DoesNotExist:
-            u["inviter"] = "None"
-
-    context = {
-        "total_user_num": User.get_total_user_num(),
-        "alive_user_count": SSNodeOnlineLog.get_all_node_online_user_count(),
-        "today_checked_user_count": Suser.get_today_checked_user_num(),
-        "today_register_user_count": len(today_register_user),
-        "traffic_users": Suser.get_user_order_by_traffic(count=10),
-        "rich_users_data": Donate.get_most_donated_user_by_count(10),
-        "today_register_user": today_register_user,
-    }
-    return render(request, "backend/userstatus.html", context=context)
 
 
 @permission_required("sspanel")

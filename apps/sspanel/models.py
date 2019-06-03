@@ -1,29 +1,35 @@
+import base64
 import datetime
+import random
 import time
 from decimal import Decimal
 from urllib.parse import urlencode
-import base64
-import random
 
 import markdown
 import pendulum
 from django.conf import settings
-from django.forms.models import model_to_dict
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models, transaction
-from django.utils import timezone
+from django.forms.models import model_to_dict
+from django.utils import functional, timezone
 
 from apps.constants import (
+    COUNTRIES_CHOICES,
+    METHOD_CHOICES,
     NODE_TIME_OUT,
     THEME_CHOICES,
-    METHOD_CHOICES,
-    COUNTRIES_CHOICES,
 )
 from apps.encoder import encoder
 from apps.payments import pay
-from apps.utils import get_long_random_string, traffic_format, get_short_random_string
+from apps.utils import (
+    cache,
+    get_long_random_string,
+    get_short_random_string,
+    traffic_format,
+)
 
 
 class User(AbstractUser):
@@ -72,7 +78,7 @@ class User(AbstractUser):
         verbose_name = "用户"
 
     def delete(self):
-        self.ss_user.delete()
+        self.user_ss_config.delete()
         return super(User, self).delete()
 
     def __str__(self):
@@ -91,8 +97,6 @@ class User(AbstractUser):
     @classmethod
     @transaction.atomic
     def add_new_user(cls, cleaned_data):
-        from apps.ssserver.models import Suser
-
         user = cls.objects.create_user(
             cleaned_data["username"], cleaned_data["email"], cleaned_data["password1"]
         )
@@ -106,9 +110,8 @@ class User(AbstractUser):
         UserRefLog.log_ref(inviter_id, pendulum.today())
         user.inviter_id = inviter_id
         user.save()
-        # 绑定suser
-        Suser.create_by_user_id(user.id)
-        Suser.clear_get_user_configs_by_node_id_cache()
+        # 添加SSconfig
+        UserSSConfig.create_by_user_id(user.id)
         return user
 
     @classmethod
@@ -121,19 +124,14 @@ class User(AbstractUser):
 
     @classmethod
     def check_and_disable_expired_users(cls):
-        from apps.ssserver.models import Suser
-
         now = pendulum.now()
         expired_user_emails = []
         expired_users = cls.objects.filter(level__gt=0, level_expire_time__lte=now)
         for user in expired_users:
-            user.ss_user.reset_to_fresh()
             user.level = 0
             user.save()
             print(f"time: {now} user: {user} level timeout!")
             expired_user_emails.append(user.email)
-        if expired_users:
-            Suser.clear_get_user_configs_by_node_id_cache()
         if expired_user_emails and settings.EXPIRE_EMAIL_NOTICE:
             send_mail(
                 f"您的{settings.TITLE}账号已到期",
@@ -145,33 +143,40 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         """订阅地址"""
-        params = {"token": self.ss_user.token}
+        params = {"token": self.token}
         return settings.HOST + f"/api/subscribe/?{urlencode(params)}"
 
     @property
     def ref_link(self):
         """ref地址"""
-        params = {"ref": self.ss_user.token}
+        params = {"ref": self.token}
         return settings.HOST + f"/sspanel/register/?{urlencode(params)}"
 
-    @property
+    @functional.cached_property
     def ss_user(self):
         from apps.ssserver.models import Suser
 
-        return Suser.objects.get(user_id=self.id)
+        return Suser.objects.filter(user_id=self.id).first()
+
+    @functional.cached_property
+    def user_ss_config(self):
+        return UserSSConfig.objects.get(user_id=self.id)
 
     @property
     def today_is_checkin(self):
         return UserCheckInLog.get_today_is_checkin_by_user_id(self.pk)
 
+    @property
+    def token(self):
+        return encoder.int2string(self.pk)
+
     def get_sub_links(self):
         # TODO 暂时只能处理SS节点的订阅
 
         node_list = SSNode.get_active_nodes()
-        ss_user = self.ss_user
         sub_links = "MAX={}\n".format(node_list.count())
         for node in node_list:
-            sub_links += node.get_ss_link(ss_user) + "\n"
+            sub_links += node.get_ss_link(self.user_ss_config) + "\n"
         return sub_links
 
 
@@ -395,21 +400,22 @@ class Goods(models.Model):
         if user.balance < self.money:
             return False
         # 验证成功进行提权操作
-        ss_user = user.ss_user
+        user_traffic = UserTraffic.get_by_user_id(user.pk)
         user.balance -= self.money
         now = pendulum.now()
         days = pendulum.duration(days=self.days)
         if user.level == self.level and user.level_expire_time > now:
             user.level_expire_time += days
-            ss_user.increase_transfer(self.transfer)
+            user_traffic.total_traffic += self.transfer
         else:
             user.level_expire_time = now + days
-            ss_user.reset_traffic(self.transfer)
-        ss_user.enable = True
+            user_traffic.reset_traffic(self.transfer)
+        user_ss_config = user.user_ss_config
+        user_ss_config.enable = True
         user.level = self.level
-        ss_user.save()
+        user_traffic.save()
+        user_ss_config.save()
         user.save()
-        ss_user.clear_get_user_configs_by_node_id_cache()
         # 增加购买记录
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
@@ -754,6 +760,7 @@ class UserCheckInLog(models.Model):
     increased_traffic = models.BigIntegerField("增加的流量", default=0)
 
     class Meta:
+        verbose_name_plural = "用户签到记录"
         unique_together = [["user_id", "date"]]
 
     @classmethod
@@ -763,15 +770,25 @@ class UserCheckInLog(models.Model):
     @classmethod
     @transaction.atomic
     def checkin(cls, user_id):
-        # TODO 在线USERCONFIG里增加流量
         traffic = random.randint(
             settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
         )
+        user_traffic = UserTraffic.get_by_user_id(user_id)
+        user_traffic.total_traffic += traffic
+        user_traffic.save()
         return cls.add_log(user_id, traffic)
 
     @classmethod
     def get_today_is_checkin_by_user_id(cls, user_id):
         return cls.objects.filter(user_id=user_id, date=pendulum.today()).exists()
+
+    @classmethod
+    def get_today_checkin_user_count(cls):
+        return cls.objects.filter(date=pendulum.today()).count()
+
+    @property
+    def human_increased_traffic(self):
+        return traffic_format(self.increased_traffic)
 
 
 class SSNodeOnlineLog(models.Model):
@@ -866,7 +883,8 @@ class SSNode(models.Model):
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
         return (
-            settings.HOST + f"/api/ss_user_config/{self.node_id}/?{urlencode(params)}"
+            settings.HOST
+            + f"/api/user_ss_config_config/{self.node_id}/?{urlencode(params)}"
         )
 
     @property
@@ -877,44 +895,194 @@ class SSNode(models.Model):
     def human_used_traffic(self):
         return traffic_format(self.used_traffic)
 
-    def get_ss_link(self, ss_user):
-        method = ss_user.method if self.custom_method else self.method
-        code = f"{method}:{ss_user.password}@{self.server}:{ss_user.port}"
+    def get_ss_link(self, user_ss_config):
+        method = user_ss_config.method if self.custom_method else self.method
+        code = f"{method}:{user_ss_config.password}@{self.server}:{user_ss_config.port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         ss_link = "ss://{}#{}".format(b64_code, self.name)
         return ss_link
 
-    def to_dict_with_ss_user(self, ss_user):
+    def to_dict_with_user_ss_config(self, user_ss_config):
         data = model_to_dict(self)
-        data.update(model_to_dict(ss_user))
+        data.update(model_to_dict(user_ss_config))
         if not self.custom_method:
             data["method"] = self.method
         return data
 
-    def to_dict_with_extra_info(self, ss_user):
-        data = self.to_dict_with_ss_user(ss_user)
+    def to_dict_with_extra_info(self, user_ss_config):
+        data = self.to_dict_with_user_ss_config(user_ss_config)
         data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
         data["country"] = self.country.lower()
-        data["ss_link"] = self.get_ss_link(ss_user)
+        data["ss_link"] = self.get_ss_link(user_ss_config)
         data["api_point"] = self.api_endpoint
         return data
 
 
-# class UserSSConfig(models.Model):
+class UserSSConfig(models.Model):
 
-#     user_id = models.IntegerField(unique=True, db_index=True)
-#     port = models.IntegerField(unique=True)
-#     password = models.CharField(max_length=32, default=get_short_random_string)
-#     enable = models.BooleanField(default=True)
-#     speed_limit = models.IntegerField(default=0)
-#     method = models.CharField(
-#         default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
-#     )
-#     upload_traffic = models.BigIntegerField(verbose_name="上传流量", default=0)
-#     download_traffic = models.BigIntegerField(verbose_name="下载流量", default=0)
-#     transfer = models.BigIntegerField(
-#         verbose_name="总流量", default=settings.DEFAULT_TRAFFIC
-#     )
+    MIN_PORT = 1025
 
-#     class Meta:
-#         verbose_name_plural = "Shadowsocks配置"
+    user_id = models.IntegerField(unique=True, db_index=True)
+    port = models.IntegerField("端口", unique=True, default=MIN_PORT)
+    password = models.CharField("密码", max_length=32, default=get_short_random_string)
+    enable = models.BooleanField("是否开启", default=True)
+    speed_limit = models.IntegerField("限速", default=0)
+    method = models.CharField(
+        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+
+    class Meta:
+        verbose_name_plural = "用户SS配置"
+
+    @classmethod
+    @transaction.atomic
+    def create_by_user_id(cls, user_id):
+        config = cls.objects.create(user_id=user_id, port=cls.get_not_used_port())
+        UserTraffic.objects.create(user_id=user_id)
+        return config
+
+    @classmethod
+    def get_not_used_port(cls):
+        port_set = {log[0] for log in cls.objects.all().values_list("port")}
+        if not port_set:
+            return cls.MIN_PORT
+        max_port = max(port_set) + 1
+        return random.choice(
+            list({i for i in range(cls.MIN_PORT, max_port + 1)}.difference(port_set))
+        )
+
+    @classmethod
+    def get_by_user_id(cls, user_id):
+        return cls.objects.get(user_id=user_id)
+
+    @classmethod
+    @cache.cached(ttl=60 * 60 * 5)
+    def get_configs_by_user_level(cls, level):
+        user_ids = [
+            d[0] for d in User.objects.filter(level__gte=level).values_list("id")
+        ]
+        return UserSSConfig.objects.filter(user_id__in=user_ids)
+
+    @functional.cached_property
+    def user_traffic(self):
+        return UserTraffic.get_by_user_id(self.user_id)
+
+    @property
+    def human_total_traffic(self):
+        return traffic_format(self.user_traffic.total_traffic)
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.user_traffic.used_traffic)
+
+    def reset_random_port(self):
+        cls = type(self)
+        port = cls.get_not_used_port()
+        self.port = port
+        self.save()
+        return port
+
+    def update_from_dict(self, data):
+        clean_fields = ["password", "method"]
+        for k, v in data.items():
+            if k in clean_fields:
+                setattr(self, k, v)
+        try:
+            self.full_clean()
+            self.save()
+            return True
+        except ValidationError:
+            return False
+
+    def get_import_links(self):
+        links = [node.get_ss_link(self) for node in SSNode.get_active_nodes()]
+        return "\n".join(links)
+
+
+class UserTraffic(models.Model):
+
+    DEFAULT_USE_TIME = pendulum.datetime(year=1996, month=2, day=2)
+
+    user_id = models.IntegerField(unique=True, db_index=True)
+    upload_traffic = models.BigIntegerField("上传流量", default=0)
+    download_traffic = models.BigIntegerField("下载流量", default=0)
+    total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
+    last_use_time = models.DateTimeField(
+        "上次使用时间", default=DEFAULT_USE_TIME, db_index=True
+    )
+
+    class Meta:
+        verbose_name_plural = "用户流量"
+
+    @classmethod
+    def get_never_used_user_count(cls):
+        return cls.objects.filter(last_use_time=cls.DEFAULT_USE_TIME).count()
+
+    @classmethod
+    def get_by_user_id(cls, user_id):
+        return cls.objects.get(user_id=user_id)
+
+    @classmethod
+    def get_overflow_user_ids(cls):
+        # NOTE cronjob用 先不加索引
+        uts = cls.objects.filter(
+            total_traffic__lte=(
+                models.F("upload_traffic") + models.F("download_traffic")
+            )
+        ).values_list("user_id")
+        return [ut[0] for ut in uts]
+
+    @classmethod
+    def check_and_disable_out_of_traffic_user(cls):
+        need_disable_user_ids = UserTraffic.get_overflow_user_ids()
+        UserSSConfig.objects.filter(user_id__in=need_disable_user_ids).update(
+            enable=False
+        )
+        user_list = User.objects.filter(id__in=need_disable_user_ids)
+        emails = [user.email for user in user_list]
+        if emails and settings.EXPIRE_EMAIL_NOTICE:
+            send_mail(
+                f"您的{settings.TITLE}账号流量已全部用完",
+                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
+                settings.DEFAULT_FROM_EMAIL,
+                emails,
+            )
+            print(f"共有{len(emails)}个用户流量用超啦")
+
+    @property
+    def overflow(self):
+        return (self.upload_traffic + self.download_traffic) > self.total_traffic
+
+    @property
+    def used_traffic(self):
+        return self.upload_traffic + self.download_traffic
+
+    @property
+    def used_percentage(self):
+        try:
+            return self.used_traffic // self.total_traffic
+        except ZeroDivisionError:
+            return 100
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.used_traffic)
+
+    @property
+    def user(self):
+        return User.get_by_pk(self.user_id)
+
+    @classmethod
+    def get_user_order_by_traffic(cls, count=10):
+        # NOTE 后台展示用 暂时不加索引
+        return cls.objects.all().order_by("-download_traffic")[:count]
+
+    def reset_traffic(self, new_traffic):
+        self.transfer_enable = new_traffic
+        self.upload_traffic = 0
+        self.download_traffic = 0
+
+    def reset_to_fresh(self):
+        self.enable = False
+        self.reset_traffic(settings.DEFAULT_TRAFFIC)
+        self.save()

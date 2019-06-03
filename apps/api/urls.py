@@ -4,11 +4,9 @@ from . import views
 app_name = "api"
 urlpatterns = [
     path("system_status/", views.SystemStatusView.as_view(), name="system_status"),
-    path(
-        "ss_user/settings/", views.SSUserSettingsView.as_view(), name="ss_user_settings"
-    ),
+    path("user/settings/", views.UserSettingsView.as_view(), name="user_settings"),
     path("subscribe/", views.SubscribeView.as_view(), name="subscribe"),
-    path("random/port/", views.change_ss_port, name="changessport"),
+    path("reset_ss_port/", views.ReSetSSPortView.as_view(), name="reset_ss_port"),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),
     path("change/theme/", views.change_theme, name="change_theme"),
@@ -23,8 +21,8 @@ urlpatterns = [
     path("traffic/upload", views.TrafficReportView.as_view(), name="post_traffic"),
     path(
         "ss_user_config/<int:node_id>/",
-        views.SsUserConfigView.as_view(),
-        name="ss_user_config",
+        views.UserSSConfigView.as_view(),
+        name="user_ss_config",
     ),
     # 支付
     path("orders", views.OrderView.as_view(), name="order"),

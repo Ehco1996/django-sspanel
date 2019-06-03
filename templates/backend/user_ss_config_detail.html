@@ -1,14 +1,14 @@
  {% extends 'backendbase.html' %} {% block main %} {% load ehcofilter %}
 
 <div class="column is-12">
-    <section class="hero is-light is-smaill">
+    <section class="hero is-light is-small">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
                     用户编辑：
                 </h1>
                 <h2 class="subtitle">
-                    编辑信息：{{ ss_user }}
+                    编辑信息：{{ user_ss_config }}
                 </h2>
             </div>
         </div>
@@ -18,8 +18,8 @@
     <div class="box">
         <form class="form" method="post">
             {% csrf_token %}
-            {{ ssform.non_field_errors }}
-            {% for field in ssform %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
                 {{ field.label_tag }}
                     {{ field}}
                     {{ field.errors}}
@@ -27,18 +27,17 @@
                     <p class="help is-danger">{{ field.help_text|safe }}</p>
                     {% endif %}
             {% endfor %}
-            <br> {{ userform.non_field_errors }}
+            <br>
+            {{ userform.non_field_errors }}
             {% for field in userform %} {{ field.label_tag }} {{ field}} {{ field.errors}}
                 {% if field.help_text %}
                 <p class="help is-danger">{{ field.help_text|safe }}</p>
                 {% endif %}
             {% endfor %}
-            <label>用户密码:</label>
-            <input type="text" name="resetpass" class="input" maxlength="32" placeholder="不修改请留空">
-            <hr/>
+            <br>
             <div class="is-grouped">
                 <button type="submit" class="button is-danger is-outlined ">确认修改</button>
-                <a class="button is-success is-outlined" href="{% url 'sspanel:user_list' %}">取消修改</a>
+                <a class="button is-success is-outlined" href="{% url 'sspanel:backend_user_ss_config_list' %}">取消修改</a>
             </div>
         </form>
     </div>

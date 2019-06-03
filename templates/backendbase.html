@@ -66,8 +66,8 @@
                     <a class="navbar-item" href="{% url 'sspanel:backend_shop' %}">商品管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:purchase_history' %}">购买记录</a>
                     <a class="navbar-item is-active">用户管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:user_list' %}">用户列表</a>
-                    <a class="navbar-item" href="{% url 'sspanel:user_status' %}">用户分析</a>
+                    <a class="navbar-item" href="{% url 'sspanel:backend_user_ss_config_list' %}">用户列表</a>
+                    <a class="navbar-item" href="{% url 'sspanel:backend_user_status' %}">用户分析</a>
                     <a class="navbar-item is-active">面板跳转</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'sspanel:userinfo' %}">用户面板</a>
@@ -144,10 +144,10 @@
                         </p>
                         <ul class="menu-list">
                             <li>
-                                <a href="{% url 'sspanel:user_list' %}">用户列表</a>
+                                <a href="{% url 'sspanel:backend_user_ss_config_list' %}">用户列表</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:user_status' %}">用户分析</a>
+                                <a href="{% url 'sspanel:backend_user_status' %}">用户分析</a>
                             </li>
                         </ul>
                         <p class="menu-label">
