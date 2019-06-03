@@ -19,13 +19,6 @@ urlpatterns = [
         "users/nodes/<int:node_id>", views.node_user_configs, name="node_user_configs"
     ),
     path("traffic/upload", views.TrafficReportView.as_view(), name="post_traffic"),
-    # TODO delete this
-    path(
-        "ss_user_config/<int:node_id>/",
-        views.UserSSConfigView.as_view(),
-        name="user_ss_config",
-    ),
-    # END TODO
     path(
         "user_ss_config/<int:node_id>/",
         views.UserSSConfigView.as_view(),

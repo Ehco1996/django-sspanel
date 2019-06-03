@@ -102,7 +102,6 @@ class UserInfoView(View):
         min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
         max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
         remain_traffic = "{:.2f}".format(100 - user_traffic.used_percentage)
-        print(remain_traffic, user_traffic.used_percentage)
         context = {
             "user": user,
             "user_traffic": user_traffic,
@@ -128,7 +127,6 @@ class NodeInfoView(View):
             node.to_dict_with_extra_info(user_ss_config)
             for node in SSNode.get_active_nodes()
         ]
-        print(node_list)
 
         # TODO 去掉 SSR节点的兼容
         ss_user = request.user.ss_user

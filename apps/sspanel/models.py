@@ -182,7 +182,7 @@ class User(AbstractUser):
 
 
 class UserPropertyMixin:
-    @property
+    @functional.cached_property
     def user(self):
         return User.get_by_pk(self.user_id)
 
@@ -500,7 +500,6 @@ class UserSSConfig(models.Model, UserPropertyMixin):
         return cls.objects.get(user_id=user_id)
 
     @classmethod
-    @cache.cached(ttl=60 * 60 * 5)
     def get_configs_by_user_level(cls, level):
         user_ids = [
             d[0] for d in User.objects.filter(level__gte=level).values_list("id")
@@ -711,6 +710,11 @@ class SSNode(models.Model):
         return cls.objects.filter(enable=True).order_by("level")
 
     @classmethod
+    def get_node_ids_by_level(cls, level):
+        node_list = cls.objects.filter(level__lte=level).values_list("node_id")
+        return [node[0] for node in node_list]
+
+    @classmethod
     def increase_used_traffic(cls, node_id, used_traffic):
         cls.objects.filter(node_id=node_id).update(
             used_traffic=models.F("used_traffic") + used_traffic
@@ -720,12 +724,23 @@ class SSNode(models.Model):
     def get_user_active_nodes(cls, user):
         return cls.objects.filter(enable=True, level__lte=user.level)
 
+    @classmethod
+    @cache.cached(ttl=60 * 60 * 24)
+    def get_user_ss_configs_by_node_id(cls, node_id):
+        ss_node = cls.get_or_none_by_node_id(node_id)
+        configs = {"users": []}
+        if ss_node:
+            configs["users"] = [
+                ss_node.to_dict_with_user_ss_config(config)
+                for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
+            ]
+        return configs
+
     @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
         return (
-            settings.HOST
-            + f"/api/user_ss_config/{self.node_id}/?{urlencode(params)}"
+            settings.HOST + f"/api/user_ss_config/{self.node_id}/?{urlencode(params)}"
         )
 
     @property
@@ -1093,4 +1108,3 @@ class Ticket(models.Model):
     class Meta:
         verbose_name_plural = "工单"
         ordering = ("-time",)
-

@@ -185,13 +185,7 @@ class UserSSConfigView(View):
 
     @method_decorator(api_authorized)
     def get(self, request, node_id):
-        ss_node = SSNode.get_or_none_by_node_id(node_id)
-        configs = {"users": []}
-        if ss_node:
-            configs["users"] = [
-                ss_node.to_dict_with_user_ss_config(config)
-                for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
-            ]
+        configs = SSNode.get_user_ss_configs_by_node_id(node_id)
         return JsonResponse(configs)
 
     @method_decorator(handle_json_post)
