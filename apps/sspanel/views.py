@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from apps.constants import METHOD_CHOICES, OBFS_CHOICES, PROTOCOL_CHOICES, THEME_CHOICES
+from apps.constants import METHOD_CHOICES, THEME_CHOICES
 from apps.sspanel.forms import LoginForm, RegisterForm
 from apps.sspanel.models import (
     Announcement,
@@ -102,6 +102,7 @@ class UserInfoView(View):
         min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
         max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
         remain_traffic = "{:.2f}".format(100 - user_traffic.used_percentage)
+        print(remain_traffic, user_traffic.used_percentage)
         context = {
             "user": user,
             "user_traffic": user_traffic,
@@ -127,6 +128,7 @@ class NodeInfoView(View):
             node.to_dict_with_extra_info(user_ss_config)
             for node in SSNode.get_active_nodes()
         ]
+        print(node_list)
 
         # TODO 去掉 SSR节点的兼容
         ss_user = request.user.ss_user
@@ -161,7 +163,7 @@ class UserSSNodeConfigView(View):
         user = request.user
         user_ss_config = user.user_ss_config
         configs = [
-            node.to_dict_with_extra_info(user_ss_config)
+            node.to_dict_with_user_ss_config(user_ss_config)
             for node in SSNode.get_user_active_nodes(user)
         ]
         return JsonResponse({"configs": configs})

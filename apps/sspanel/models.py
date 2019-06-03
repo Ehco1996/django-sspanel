@@ -119,6 +119,7 @@ class User(AbstractUser):
         return cls.objects.get(username=username)
 
     @classmethod
+    @cache.cached(ttl=60 * 60 * 24)
     def get_by_pk(cls, pk):
         return cls.objects.get(pk=pk)
 
@@ -178,6 +179,584 @@ class User(AbstractUser):
         for node in node_list:
             sub_links += node.get_ss_link(self.user_ss_config) + "\n"
         return sub_links
+
+
+class UserPropertyMixin:
+    @property
+    def user(self):
+        return User.get_by_pk(self.user_id)
+
+
+class UserOrder(models.Model, UserPropertyMixin):
+
+    DEFAULT_ORDER_TIME_OUT = "24h"
+    STATUS_CREATED = 0
+    STATUS_PAID = 1
+    STATUS_FINISHED = 2
+    STATUS_CHOICES = (
+        (STATUS_CREATED, "created"),
+        (STATUS_PAID, "paid"),
+        (STATUS_FINISHED, "finished"),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    status = models.SmallIntegerField(
+        verbose_name="订单状态", db_index=True, choices=STATUS_CHOICES
+    )
+    out_trade_no = models.CharField(
+        verbose_name="流水号", max_length=64, unique=True, db_index=True
+    )
+    qrcode_url = models.CharField(verbose_name="支付连接", max_length=64, null=True)
+    amount = models.DecimalField(
+        verbose_name="金额", decimal_places=2, max_digits=10, default=0
+    )
+    created_at = models.DateTimeField(
+        verbose_name="时间", auto_now_add=True, db_index=True
+    )
+    expired_at = models.DateTimeField(verbose_name="过期时间", db_index=True)
+
+    def __str__(self):
+        return f"<{self.id,self.user}>:{self.amount}"
+
+    class Meta:
+        verbose_name_plural = "用户订单"
+        index_together = ["user", "status"]
+
+    @classmethod
+    def gen_out_trade_no(cls):
+        return datetime.datetime.fromtimestamp(time.time()).strftime("%Y%m%d%H%M%S%s")
+
+    @classmethod
+    def get_not_paid_order(cls, user, amount):
+        return (
+            cls.objects.filter(user=user, status=cls.STATUS_CREATED, amount=amount)
+            .order_by("-created_at")
+            .first()
+        )
+
+    @classmethod
+    def get_recent_created_order(cls, user):
+        return cls.objects.filter(user=user).order_by("-created_at").first()
+
+    @classmethod
+    def make_up_lost_orders(cls):
+        now = pendulum.now()
+        for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
+            changed = order.check_order_status()
+            if changed:
+                print(f"补单：{order.user,order.amount}")
+
+    @classmethod
+    def get_or_create_order(cls, user, amount):
+        now = pendulum.now()
+        order = cls.get_not_paid_order(user, amount)
+        if order and order.expired_at > now:
+            return order
+        with transaction.atomic():
+            out_trade_no = cls.gen_out_trade_no()
+            trade = pay.alipay.api_alipay_trade_precreate(
+                subject=settings.ALIPAY_TRADE_INFO.format(amount),
+                out_trade_no=out_trade_no,
+                total_amount=amount,
+                timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
+                notify_url=settings.ALIPAY_CALLBACK_URL,
+            )
+            qrcode_url = trade.get("qr_code")
+            order = cls.objects.create(
+                user=user,
+                status=cls.STATUS_CREATED,
+                out_trade_no=out_trade_no,
+                amount=amount,
+                qrcode_url=qrcode_url,
+                expired_at=now.add(hours=24),
+            )
+            return order
+
+    def handle_paid(self):
+        if self.status != self.STATUS_PAID:
+            return
+        with transaction.atomic():
+            self.user.balance += self.amount
+            self.user.save()
+            self.status = self.STATUS_FINISHED
+            self.save()
+            # 将充值记录和捐赠绑定
+            Donate.objects.create(user=self.user, money=self.amount)
+
+    def check_order_status(self):
+        changed = False
+        if self.status != self.STATUS_CREATED:
+            return
+        with transaction.atomic():
+            res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
+            if res.get("trade_status", "") == "TRADE_SUCCESS":
+                self.status = self.STATUS_PAID
+                self.save()
+                changed = True
+        self.handle_paid()
+        return changed
+
+
+class UserRefLog(models.Model, UserPropertyMixin):
+    user_id = models.PositiveIntegerField()
+    register_count = models.IntegerField(default=0)
+    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
+
+    class Meta:
+        unique_together = [["user_id", "date"]]
+
+    @classmethod
+    def log_ref(cls, user_id, date):
+        log, _ = cls.objects.get_or_create(user_id=user_id, date=date)
+        log.register_count += 1
+        log.save()
+
+    @classmethod
+    def list_by_user_id_and_date_list(cls, user_id, date_list):
+        return cls.objects.filter(user_id=user_id, date__in=date_list)
+
+    @classmethod
+    def gen_bar_chart_configs(cls, user_id, date_list):
+        """set register_count to 0 if the query date log not exists"""
+        date_list = sorted(date_list)
+        logs = {
+            log.date: log.register_count
+            for log in cls.list_by_user_id_and_date_list(user_id, date_list)
+        }
+        bar_config = {
+            "labels": [f"{date.month}-{date.day}" for date in date_list],
+            "data": [logs.get(date, 0) for date in date_list],
+            "data_title": "每日邀请注册人数",
+        }
+        return bar_config
+
+
+class UserOnLineIpLog(models.Model, UserPropertyMixin):
+
+    user_id = models.IntegerField(db_index=True)
+    node_id = models.IntegerField()
+    ip = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name_plural = "用户在线IP"
+        ordering = ["-created_at"]
+        index_together = ["node_id", "created_at"]
+
+    @classmethod
+    def get_recent_log_by_node_id(cls, node_id):
+        now = pendulum.now()
+        ip_set = set()
+        ret = []
+        for log in cls.objects.filter(
+            node_id=node_id,
+            created_at__range=[now.subtract(seconds=NODE_TIME_OUT), now],
+        ):
+            if log.ip not in ip_set:
+                ret.append(log)
+            ip_set.add(log.ip)
+        return ret
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+
+class UserTrafficLog(models.Model, UserPropertyMixin):
+
+    user_id = models.IntegerField()
+    node_id = models.IntegerField()
+    date = models.DateField(auto_now_add=True, db_index=True)
+    upload_traffic = models.BigIntegerField("上传流量", default=0)
+    download_traffic = models.BigIntegerField("下载流量", default=0)
+
+    class Meta:
+        verbose_name_plural = "流量记录"
+        ordering = ["-date"]
+        index_together = ["user_id", "node_id", "date"]
+
+    @property
+    def total_traffic(self):
+        return traffic_format(self.download_traffic + self.upload_traffic)
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+    @classmethod
+    def calc_user_total_traffic(cls, node_id, user_id):
+        logs = cls.objects.filter(user_id=user_id, node_id=node_id)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return traffic_format(ut + dt)
+
+    @classmethod
+    def calc_user_traffic_by_date(cls, user_id, node_id, date):
+        logs = cls.objects.filter(node_id=node_id, user_id=user_id, date=date)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return (ut + dt) // settings.MB
+
+    @classmethod
+    def gen_line_chart_configs(cls, user_id, node_id, date_list):
+
+        ss_node = SSNode.get_or_none_by_node_id(node_id)
+        user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
+        date_list = sorted(date_list)
+        line_config = {
+            "title": "节点 {} 当月共消耗：{}".format(ss_node.name, user_total_traffic),
+            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+            "data": [
+                cls.calc_user_traffic_by_date(user_id, node_id, date)
+                for date in date_list
+            ],
+            "data_title": ss_node.name,
+            "x_label": "日期 最近七天",
+            "y_label": "流量 单位：MB",
+        }
+        return line_config
+
+
+class UserCheckInLog(models.Model, UserPropertyMixin):
+    user_id = models.PositiveIntegerField()
+    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
+    increased_traffic = models.BigIntegerField("增加的流量", default=0)
+
+    class Meta:
+        verbose_name_plural = "用户签到记录"
+        unique_together = [["user_id", "date"]]
+
+    @classmethod
+    def add_log(cls, user_id, traffic):
+        return cls.objects.create(user_id=user_id, increased_traffic=traffic)
+
+    @classmethod
+    @transaction.atomic
+    def checkin(cls, user_id):
+        traffic = random.randint(
+            settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
+        )
+        user_traffic = UserTraffic.get_by_user_id(user_id)
+        user_traffic.total_traffic += traffic
+        user_traffic.save()
+        return cls.add_log(user_id, traffic)
+
+    @classmethod
+    def get_today_is_checkin_by_user_id(cls, user_id):
+        return cls.objects.filter(user_id=user_id, date=pendulum.today()).exists()
+
+    @classmethod
+    def get_today_checkin_user_count(cls):
+        return cls.objects.filter(date=pendulum.today()).count()
+
+    @property
+    def human_increased_traffic(self):
+        return traffic_format(self.increased_traffic)
+
+
+class UserSSConfig(models.Model, UserPropertyMixin):
+
+    MIN_PORT = 1025
+
+    user_id = models.IntegerField(unique=True, db_index=True)
+    port = models.IntegerField("端口", unique=True, default=MIN_PORT)
+    password = models.CharField("密码", max_length=32, default=get_short_random_string)
+    enable = models.BooleanField("是否开启", default=True)
+    speed_limit = models.IntegerField("限速", default=0)
+    method = models.CharField(
+        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+
+    class Meta:
+        verbose_name_plural = "用户SS配置"
+
+    @classmethod
+    @transaction.atomic
+    def create_by_user_id(cls, user_id):
+        config = cls.objects.create(user_id=user_id, port=cls.get_not_used_port())
+        UserTraffic.objects.create(user_id=user_id)
+        return config
+
+    @classmethod
+    def get_not_used_port(cls):
+        port_set = {log[0] for log in cls.objects.all().values_list("port")}
+        if not port_set:
+            return cls.MIN_PORT
+        max_port = max(port_set) + 1
+        return random.choice(
+            list({i for i in range(cls.MIN_PORT, max_port + 1)}.difference(port_set))
+        )
+
+    @classmethod
+    def get_by_user_id(cls, user_id):
+        return cls.objects.get(user_id=user_id)
+
+    @classmethod
+    @cache.cached(ttl=60 * 60 * 5)
+    def get_configs_by_user_level(cls, level):
+        user_ids = [
+            d[0] for d in User.objects.filter(level__gte=level).values_list("id")
+        ]
+        return UserSSConfig.objects.filter(user_id__in=user_ids)
+
+    @functional.cached_property
+    def user_traffic(self):
+        return UserTraffic.get_by_user_id(self.user_id)
+
+    @property
+    def human_total_traffic(self):
+        return traffic_format(self.user_traffic.total_traffic)
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.user_traffic.used_traffic)
+
+    def reset_random_port(self):
+        cls = type(self)
+        port = cls.get_not_used_port()
+        self.port = port
+        self.save()
+        return port
+
+    def update_from_dict(self, data):
+        clean_fields = ["password", "method"]
+        for k, v in data.items():
+            if k in clean_fields:
+                setattr(self, k, v)
+        try:
+            self.full_clean()
+            self.save()
+            return True
+        except ValidationError:
+            return False
+
+    def get_import_links(self):
+        links = [node.get_ss_link(self) for node in SSNode.get_active_nodes()]
+        return "\n".join(links)
+
+
+class UserTraffic(models.Model, UserPropertyMixin):
+
+    DEFAULT_USE_TIME = pendulum.datetime(year=1996, month=2, day=2)
+
+    user_id = models.IntegerField(unique=True, db_index=True)
+    upload_traffic = models.BigIntegerField("上传流量", default=0)
+    download_traffic = models.BigIntegerField("下载流量", default=0)
+    total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
+    last_use_time = models.DateTimeField(
+        "上次使用时间", default=DEFAULT_USE_TIME, db_index=True
+    )
+
+    class Meta:
+        verbose_name_plural = "用户流量"
+
+    @classmethod
+    def get_never_used_user_count(cls):
+        return cls.objects.filter(last_use_time=cls.DEFAULT_USE_TIME).count()
+
+    @classmethod
+    def get_by_user_id(cls, user_id):
+        return cls.objects.get(user_id=user_id)
+
+    @classmethod
+    def get_overflow_user_ids(cls):
+        # NOTE cronjob用 先不加索引
+        uts = cls.objects.filter(
+            total_traffic__lte=(
+                models.F("upload_traffic") + models.F("download_traffic")
+            )
+        ).values_list("user_id")
+        return [ut[0] for ut in uts]
+
+    @classmethod
+    def check_and_disable_out_of_traffic_user(cls):
+        need_disable_user_ids = UserTraffic.get_overflow_user_ids()
+        UserSSConfig.objects.filter(user_id__in=need_disable_user_ids).update(
+            enable=False
+        )
+        user_list = User.objects.filter(id__in=need_disable_user_ids)
+        emails = [user.email for user in user_list]
+        if emails and settings.EXPIRE_EMAIL_NOTICE:
+            send_mail(
+                f"您的{settings.TITLE}账号流量已全部用完",
+                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
+                settings.DEFAULT_FROM_EMAIL,
+                emails,
+            )
+            print(f"共有{len(emails)}个用户流量用超啦")
+
+    @property
+    def overflow(self):
+        return (self.upload_traffic + self.download_traffic) > self.total_traffic
+
+    @property
+    def used_traffic(self):
+        return self.upload_traffic + self.download_traffic
+
+    @property
+    def used_percentage(self):
+        try:
+            return round(self.used_traffic / self.total_traffic * 100, 2)
+        except ZeroDivisionError:
+            return 100.00
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.used_traffic)
+
+    @property
+    def user(self):
+        return User.get_by_pk(self.user_id)
+
+    @classmethod
+    def get_user_order_by_traffic(cls, count=10):
+        # NOTE 后台展示用 暂时不加索引
+        return cls.objects.all().order_by("-download_traffic")[:count]
+
+    def reset_traffic(self, new_traffic):
+        self.transfer_enable = new_traffic
+        self.upload_traffic = 0
+        self.download_traffic = 0
+
+    def reset_to_fresh(self):
+        self.enable = False
+        self.reset_traffic(settings.DEFAULT_TRAFFIC)
+        self.save()
+
+
+class SSNodeOnlineLog(models.Model):
+
+    node_id = models.IntegerField()
+    online_user_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name_plural = "节点在线记录"
+        ordering = ["-created_at"]
+        index_together = ["node_id", "created_at"]
+
+    @property
+    def is_online(self):
+        return pendulum.now().subtract(seconds=NODE_TIME_OUT) < self.created_at
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+    @classmethod
+    def add_log(cls, node_id, num):
+        return cls.objects.create(node_id=node_id, online_user_count=num)
+
+    @classmethod
+    def get_latest_log_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).order_by("-created_at").first()
+
+    @classmethod
+    def get_all_node_online_user_count(cls):
+
+        ss_node_ids = [node.node_id for node in SSNode.get_active_nodes()]
+        count = 0
+        for node_id in ss_node_ids:
+            log = cls.get_latest_log_by_node_id(node_id)
+            if log:
+                count += log.online_user_count
+        return count
+
+    @classmethod
+    def get_latest_online_log_info(cls, node_id):
+        data = {"online": False, "online_user_count": 0}
+        log = cls.get_latest_log_by_node_id(node_id)
+        if log:
+            data["online"] = log.is_online
+            data["online_user_count"] = log.online_user_count
+        return data
+
+
+class SSNode(models.Model):
+
+    node_id = models.IntegerField(unique=True)
+    level = models.PositiveIntegerField(default=0)
+    name = models.CharField("名字", max_length=32)
+    info = models.CharField("节点说明", max_length=1024)
+    country = models.CharField(
+        "国家", default="CN", max_length=5, choices=COUNTRIES_CHOICES
+    )
+    server = models.CharField("服务器地址", max_length=128)
+    method = models.CharField(
+        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+    used_traffic = models.BigIntegerField("已用流量", default=0)
+    total_traffic = models.BigIntegerField("总流量", default=settings.GB)
+    enable = models.BooleanField("是否开启", default=True, db_index=True)
+    custom_method = models.BooleanField("自定义加密", default=False)
+
+    class Meta:
+        verbose_name_plural = "SS节点"
+
+    @classmethod
+    def get_or_none_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).first()
+
+    @classmethod
+    def get_active_nodes(cls):
+        return cls.objects.filter(enable=True).order_by("level")
+
+    @classmethod
+    def increase_used_traffic(cls, node_id, used_traffic):
+        cls.objects.filter(node_id=node_id).update(
+            used_traffic=models.F("used_traffic") + used_traffic
+        )
+
+    @classmethod
+    def get_user_active_nodes(cls, user):
+        return cls.objects.filter(enable=True, level__lte=user.level)
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/user_ss_config_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def human_total_traffic(self):
+        return traffic_format(self.total_traffic)
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.used_traffic)
+
+    def get_ss_link(self, user_ss_config):
+        method = user_ss_config.method if self.custom_method else self.method
+        code = f"{method}:{user_ss_config.password}@{self.server}:{user_ss_config.port}"
+        b64_code = base64.urlsafe_b64encode(code.encode()).decode()
+        ss_link = "ss://{}#{}".format(b64_code, self.name)
+        return ss_link
+
+    def to_dict_with_user_ss_config(self, user_ss_config):
+        data = model_to_dict(self)
+        data.update(model_to_dict(user_ss_config))
+        if not self.custom_method:
+            data["method"] = self.method
+        return data
+
+    def to_dict_with_extra_info(self, user_ss_config):
+        data = self.to_dict_with_user_ss_config(user_ss_config)
+        data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
+        data["country"] = self.country.lower()
+        data["ss_link"] = self.get_ss_link(user_ss_config)
+        data["api_point"] = self.api_endpoint
+        return data
 
 
 class InviteCode(models.Model):
@@ -515,574 +1094,3 @@ class Ticket(models.Model):
         verbose_name_plural = "工单"
         ordering = ("-time",)
 
-
-class UserOrder(models.Model):
-
-    DEFAULT_ORDER_TIME_OUT = "24h"
-    STATUS_CREATED = 0
-    STATUS_PAID = 1
-    STATUS_FINISHED = 2
-    STATUS_CHOICES = (
-        (STATUS_CREATED, "created"),
-        (STATUS_PAID, "paid"),
-        (STATUS_FINISHED, "finished"),
-    )
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    status = models.SmallIntegerField(
-        verbose_name="订单状态", db_index=True, choices=STATUS_CHOICES
-    )
-    out_trade_no = models.CharField(
-        verbose_name="流水号", max_length=64, unique=True, db_index=True
-    )
-    qrcode_url = models.CharField(verbose_name="支付连接", max_length=64, null=True)
-    amount = models.DecimalField(
-        verbose_name="金额", decimal_places=2, max_digits=10, default=0
-    )
-    created_at = models.DateTimeField(
-        verbose_name="时间", auto_now_add=True, db_index=True
-    )
-    expired_at = models.DateTimeField(verbose_name="过期时间", db_index=True)
-
-    def __str__(self):
-        return f"<{self.id,self.user}>:{self.amount}"
-
-    class Meta:
-        verbose_name_plural = "用户订单"
-        index_together = ["user", "status"]
-
-    @classmethod
-    def gen_out_trade_no(cls):
-        return datetime.datetime.fromtimestamp(time.time()).strftime("%Y%m%d%H%M%S%s")
-
-    @classmethod
-    def get_not_paid_order(cls, user, amount):
-        return (
-            cls.objects.filter(user=user, status=cls.STATUS_CREATED, amount=amount)
-            .order_by("-created_at")
-            .first()
-        )
-
-    @classmethod
-    def get_recent_created_order(cls, user):
-        return cls.objects.filter(user=user).order_by("-created_at").first()
-
-    @classmethod
-    def make_up_lost_orders(cls):
-        now = pendulum.now()
-        for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
-            changed = order.check_order_status()
-            if changed:
-                print(f"补单：{order.user,order.amount}")
-
-    @classmethod
-    def get_or_create_order(cls, user, amount):
-        now = pendulum.now()
-        order = cls.get_not_paid_order(user, amount)
-        if order and order.expired_at > now:
-            return order
-        with transaction.atomic():
-            out_trade_no = cls.gen_out_trade_no()
-            trade = pay.alipay.api_alipay_trade_precreate(
-                subject=settings.ALIPAY_TRADE_INFO.format(amount),
-                out_trade_no=out_trade_no,
-                total_amount=amount,
-                timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
-                notify_url=settings.ALIPAY_CALLBACK_URL,
-            )
-            qrcode_url = trade.get("qr_code")
-            order = cls.objects.create(
-                user=user,
-                status=cls.STATUS_CREATED,
-                out_trade_no=out_trade_no,
-                amount=amount,
-                qrcode_url=qrcode_url,
-                expired_at=now.add(hours=24),
-            )
-            return order
-
-    def handle_paid(self):
-        if self.status != self.STATUS_PAID:
-            return
-        with transaction.atomic():
-            self.user.balance += self.amount
-            self.user.save()
-            self.status = self.STATUS_FINISHED
-            self.save()
-            # 将充值记录和捐赠绑定
-            Donate.objects.create(user=self.user, money=self.amount)
-
-    def check_order_status(self):
-        changed = False
-        if self.status != self.STATUS_CREATED:
-            return
-        with transaction.atomic():
-            res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
-            if res.get("trade_status", "") == "TRADE_SUCCESS":
-                self.status = self.STATUS_PAID
-                self.save()
-                changed = True
-        self.handle_paid()
-        return changed
-
-
-class UserRefLog(models.Model):
-    user_id = models.PositiveIntegerField()
-    register_count = models.IntegerField(default=0)
-    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
-
-    class Meta:
-        unique_together = [["user_id", "date"]]
-
-    @classmethod
-    def log_ref(cls, user_id, date):
-        log, _ = cls.objects.get_or_create(user_id=user_id, date=date)
-        log.register_count += 1
-        log.save()
-
-    @classmethod
-    def list_by_user_id_and_date_list(cls, user_id, date_list):
-        return cls.objects.filter(user_id=user_id, date__in=date_list)
-
-    @classmethod
-    def gen_bar_chart_configs(cls, user_id, date_list):
-        """set register_count to 0 if the query date log not exists"""
-        date_list = sorted(date_list)
-        logs = {
-            log.date: log.register_count
-            for log in cls.list_by_user_id_and_date_list(user_id, date_list)
-        }
-        bar_config = {
-            "labels": [f"{date.month}-{date.day}" for date in date_list],
-            "data": [logs.get(date, 0) for date in date_list],
-            "data_title": "每日邀请注册人数",
-        }
-        return bar_config
-
-
-class UserOnLineIpLog(models.Model):
-
-    user_id = models.IntegerField(db_index=True)
-    node_id = models.IntegerField()
-    ip = models.CharField(max_length=128)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    class Meta:
-        verbose_name_plural = "用户在线IP"
-        ordering = ["-created_at"]
-        index_together = ["node_id", "created_at"]
-
-    @classmethod
-    def get_recent_log_by_node_id(cls, node_id):
-        now = pendulum.now()
-        ip_set = set()
-        ret = []
-        for log in cls.objects.filter(
-            node_id=node_id,
-            created_at__range=[now.subtract(seconds=NODE_TIME_OUT), now],
-        ):
-            if log.ip not in ip_set:
-                ret.append(log)
-            ip_set.add(log.ip)
-        return ret
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-
-class UserTrafficLog(models.Model):
-
-    user_id = models.IntegerField()
-    node_id = models.IntegerField()
-    date = models.DateField(auto_now_add=True, db_index=True)
-    upload_traffic = models.BigIntegerField("上传流量", default=0)
-    download_traffic = models.BigIntegerField("下载流量", default=0)
-
-    class Meta:
-        verbose_name_plural = "流量记录"
-        ordering = ["-date"]
-        index_together = ["user_id", "node_id", "date"]
-
-    @property
-    def total_traffic(self):
-        return traffic_format(self.download_traffic + self.upload_traffic)
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-    @classmethod
-    def calc_user_total_traffic(cls, node_id, user_id):
-        logs = cls.objects.filter(user_id=user_id, node_id=node_id)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return traffic_format(ut + dt)
-
-    @classmethod
-    def calc_user_traffic_by_date(cls, user_id, node_id, date):
-        logs = cls.objects.filter(node_id=node_id, user_id=user_id, date=date)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return (ut + dt) // settings.MB
-
-    @classmethod
-    def gen_line_chart_configs(cls, user_id, node_id, date_list):
-
-        ss_node = SSNode.get_or_none_by_node_id(node_id)
-        user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
-        date_list = sorted(date_list)
-        line_config = {
-            "title": "节点 {} 当月共消耗：{}".format(ss_node.name, user_total_traffic),
-            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
-            "data": [
-                cls.calc_user_traffic_by_date(user_id, node_id, date)
-                for date in date_list
-            ],
-            "data_title": ss_node.name,
-            "x_label": "日期 最近七天",
-            "y_label": "流量 单位：MB",
-        }
-        return line_config
-
-
-class UserCheckInLog(models.Model):
-    user_id = models.PositiveIntegerField()
-    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
-    increased_traffic = models.BigIntegerField("增加的流量", default=0)
-
-    class Meta:
-        verbose_name_plural = "用户签到记录"
-        unique_together = [["user_id", "date"]]
-
-    @classmethod
-    def add_log(cls, user_id, traffic):
-        return cls.objects.create(user_id=user_id, increased_traffic=traffic)
-
-    @classmethod
-    @transaction.atomic
-    def checkin(cls, user_id):
-        traffic = random.randint(
-            settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
-        )
-        user_traffic = UserTraffic.get_by_user_id(user_id)
-        user_traffic.total_traffic += traffic
-        user_traffic.save()
-        return cls.add_log(user_id, traffic)
-
-    @classmethod
-    def get_today_is_checkin_by_user_id(cls, user_id):
-        return cls.objects.filter(user_id=user_id, date=pendulum.today()).exists()
-
-    @classmethod
-    def get_today_checkin_user_count(cls):
-        return cls.objects.filter(date=pendulum.today()).count()
-
-    @property
-    def human_increased_traffic(self):
-        return traffic_format(self.increased_traffic)
-
-
-class SSNodeOnlineLog(models.Model):
-
-    node_id = models.IntegerField()
-    online_user_count = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    class Meta:
-        verbose_name_plural = "节点在线记录"
-        ordering = ["-created_at"]
-        index_together = ["node_id", "created_at"]
-
-    @property
-    def is_online(self):
-        return pendulum.now().subtract(seconds=NODE_TIME_OUT) < self.created_at
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-    @classmethod
-    def add_log(cls, node_id, num):
-        return cls.objects.create(node_id=node_id, online_user_count=num)
-
-    @classmethod
-    def get_latest_log_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).order_by("-created_at").first()
-
-    @classmethod
-    def get_all_node_online_user_count(cls):
-
-        ss_node_ids = [node.node_id for node in SSNode.get_active_nodes()]
-        count = 0
-        for node_id in ss_node_ids:
-            log = cls.get_latest_log_by_node_id(node_id)
-            if log:
-                count += log.online_user_count
-        return count
-
-    @classmethod
-    def get_latest_online_log_info(cls, node_id):
-        data = {"online": False, "online_user_count": 0}
-        log = cls.get_latest_log_by_node_id(node_id)
-        if log:
-            data["online"] = log.is_online
-            data["online_user_count"] = log.online_user_count
-        return data
-
-
-class SSNode(models.Model):
-
-    node_id = models.IntegerField(unique=True)
-    level = models.PositiveIntegerField(default=0)
-    name = models.CharField("名字", max_length=32)
-    info = models.CharField("节点说明", max_length=1024)
-    country = models.CharField(
-        "国家", default="CN", max_length=5, choices=COUNTRIES_CHOICES
-    )
-    server = models.CharField("服务器地址", max_length=128)
-    method = models.CharField(
-        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
-    )
-    used_traffic = models.BigIntegerField("已用流量", default=0)
-    total_traffic = models.BigIntegerField("总流量", default=settings.GB)
-    enable = models.BooleanField("是否开启", default=True, db_index=True)
-    custom_method = models.BooleanField("自定义加密", default=False)
-
-    class Meta:
-        verbose_name_plural = "SS节点"
-
-    @classmethod
-    def get_or_none_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).first()
-
-    @classmethod
-    def get_active_nodes(cls):
-        return cls.objects.filter(enable=True)
-
-    @classmethod
-    def increase_used_traffic(cls, node_id, used_traffic):
-        cls.objects.filter(node_id=node_id).update(
-            used_traffic=models.F("used_traffic") + used_traffic
-        )
-
-    @classmethod
-    def get_user_active_nodes(cls, user):
-        return cls.objects.filter(enable=True, level__lte=user.level)
-
-    @property
-    def api_endpoint(self):
-        params = {"token": settings.TOKEN}
-        return (
-            settings.HOST
-            + f"/api/user_ss_config_config/{self.node_id}/?{urlencode(params)}"
-        )
-
-    @property
-    def human_total_traffic(self):
-        return traffic_format(self.total_traffic)
-
-    @property
-    def human_used_traffic(self):
-        return traffic_format(self.used_traffic)
-
-    def get_ss_link(self, user_ss_config):
-        method = user_ss_config.method if self.custom_method else self.method
-        code = f"{method}:{user_ss_config.password}@{self.server}:{user_ss_config.port}"
-        b64_code = base64.urlsafe_b64encode(code.encode()).decode()
-        ss_link = "ss://{}#{}".format(b64_code, self.name)
-        return ss_link
-
-    def to_dict_with_user_ss_config(self, user_ss_config):
-        data = model_to_dict(self)
-        data.update(model_to_dict(user_ss_config))
-        if not self.custom_method:
-            data["method"] = self.method
-        return data
-
-    def to_dict_with_extra_info(self, user_ss_config):
-        data = self.to_dict_with_user_ss_config(user_ss_config)
-        data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
-        data["country"] = self.country.lower()
-        data["ss_link"] = self.get_ss_link(user_ss_config)
-        data["api_point"] = self.api_endpoint
-        return data
-
-
-class UserSSConfig(models.Model):
-
-    MIN_PORT = 1025
-
-    user_id = models.IntegerField(unique=True, db_index=True)
-    port = models.IntegerField("端口", unique=True, default=MIN_PORT)
-    password = models.CharField("密码", max_length=32, default=get_short_random_string)
-    enable = models.BooleanField("是否开启", default=True)
-    speed_limit = models.IntegerField("限速", default=0)
-    method = models.CharField(
-        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
-    )
-
-    class Meta:
-        verbose_name_plural = "用户SS配置"
-
-    @classmethod
-    @transaction.atomic
-    def create_by_user_id(cls, user_id):
-        config = cls.objects.create(user_id=user_id, port=cls.get_not_used_port())
-        UserTraffic.objects.create(user_id=user_id)
-        return config
-
-    @classmethod
-    def get_not_used_port(cls):
-        port_set = {log[0] for log in cls.objects.all().values_list("port")}
-        if not port_set:
-            return cls.MIN_PORT
-        max_port = max(port_set) + 1
-        return random.choice(
-            list({i for i in range(cls.MIN_PORT, max_port + 1)}.difference(port_set))
-        )
-
-    @classmethod
-    def get_by_user_id(cls, user_id):
-        return cls.objects.get(user_id=user_id)
-
-    @classmethod
-    @cache.cached(ttl=60 * 60 * 5)
-    def get_configs_by_user_level(cls, level):
-        user_ids = [
-            d[0] for d in User.objects.filter(level__gte=level).values_list("id")
-        ]
-        return UserSSConfig.objects.filter(user_id__in=user_ids)
-
-    @functional.cached_property
-    def user_traffic(self):
-        return UserTraffic.get_by_user_id(self.user_id)
-
-    @property
-    def human_total_traffic(self):
-        return traffic_format(self.user_traffic.total_traffic)
-
-    @property
-    def human_used_traffic(self):
-        return traffic_format(self.user_traffic.used_traffic)
-
-    def reset_random_port(self):
-        cls = type(self)
-        port = cls.get_not_used_port()
-        self.port = port
-        self.save()
-        return port
-
-    def update_from_dict(self, data):
-        clean_fields = ["password", "method"]
-        for k, v in data.items():
-            if k in clean_fields:
-                setattr(self, k, v)
-        try:
-            self.full_clean()
-            self.save()
-            return True
-        except ValidationError:
-            return False
-
-    def get_import_links(self):
-        links = [node.get_ss_link(self) for node in SSNode.get_active_nodes()]
-        return "\n".join(links)
-
-
-class UserTraffic(models.Model):
-
-    DEFAULT_USE_TIME = pendulum.datetime(year=1996, month=2, day=2)
-
-    user_id = models.IntegerField(unique=True, db_index=True)
-    upload_traffic = models.BigIntegerField("上传流量", default=0)
-    download_traffic = models.BigIntegerField("下载流量", default=0)
-    total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
-    last_use_time = models.DateTimeField(
-        "上次使用时间", default=DEFAULT_USE_TIME, db_index=True
-    )
-
-    class Meta:
-        verbose_name_plural = "用户流量"
-
-    @classmethod
-    def get_never_used_user_count(cls):
-        return cls.objects.filter(last_use_time=cls.DEFAULT_USE_TIME).count()
-
-    @classmethod
-    def get_by_user_id(cls, user_id):
-        return cls.objects.get(user_id=user_id)
-
-    @classmethod
-    def get_overflow_user_ids(cls):
-        # NOTE cronjob用 先不加索引
-        uts = cls.objects.filter(
-            total_traffic__lte=(
-                models.F("upload_traffic") + models.F("download_traffic")
-            )
-        ).values_list("user_id")
-        return [ut[0] for ut in uts]
-
-    @classmethod
-    def check_and_disable_out_of_traffic_user(cls):
-        need_disable_user_ids = UserTraffic.get_overflow_user_ids()
-        UserSSConfig.objects.filter(user_id__in=need_disable_user_ids).update(
-            enable=False
-        )
-        user_list = User.objects.filter(id__in=need_disable_user_ids)
-        emails = [user.email for user in user_list]
-        if emails and settings.EXPIRE_EMAIL_NOTICE:
-            send_mail(
-                f"您的{settings.TITLE}账号流量已全部用完",
-                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
-                settings.DEFAULT_FROM_EMAIL,
-                emails,
-            )
-            print(f"共有{len(emails)}个用户流量用超啦")
-
-    @property
-    def overflow(self):
-        return (self.upload_traffic + self.download_traffic) > self.total_traffic
-
-    @property
-    def used_traffic(self):
-        return self.upload_traffic + self.download_traffic
-
-    @property
-    def used_percentage(self):
-        try:
-            return self.used_traffic // self.total_traffic
-        except ZeroDivisionError:
-            return 100
-
-    @property
-    def human_used_traffic(self):
-        return traffic_format(self.used_traffic)
-
-    @property
-    def user(self):
-        return User.get_by_pk(self.user_id)
-
-    @classmethod
-    def get_user_order_by_traffic(cls, count=10):
-        # NOTE 后台展示用 暂时不加索引
-        return cls.objects.all().order_by("-download_traffic")[:count]
-
-    def reset_traffic(self, new_traffic):
-        self.transfer_enable = new_traffic
-        self.upload_traffic = 0
-        self.download_traffic = 0
-
-    def reset_to_fresh(self):
-        self.enable = False
-        self.reset_traffic(settings.DEFAULT_TRAFFIC)
-        self.save()
