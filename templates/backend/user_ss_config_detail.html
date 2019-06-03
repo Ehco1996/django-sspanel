@@ -27,7 +27,8 @@
                     <p class="help is-danger">{{ field.help_text|safe }}</p>
                     {% endif %}
             {% endfor %}
-            <br> {{ userform.non_field_errors }}
+            <br>
+            {{ userform.non_field_errors }}
             {% for field in userform %} {{ field.label_tag }} {{ field}} {{ field.errors}}
                 {% if field.help_text %}
                 <p class="help is-danger">{{ field.help_text|safe }}</p>
