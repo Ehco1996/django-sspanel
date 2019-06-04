@@ -621,7 +621,7 @@ class UserTraffic(models.Model, UserPropertyMixin):
         return cls.objects.all().order_by("-download_traffic")[:count]
 
     def reset_traffic(self, new_traffic):
-        self.transfer_enable = new_traffic
+        self.total_traffic = new_traffic
         self.upload_traffic = 0
         self.download_traffic = 0
 
