@@ -60,8 +60,8 @@ class UserCheckInAdmin(admin.ModelAdmin):
 
 
 class UserTrafficAdmin(admin.ModelAdmin):
-    list_display = ["user", "user_id", "used_traffic", "used_percentage", "overflow"]
-    search_fields = ["user_id", "date"]
+    list_display = ["user", "user_id", "human_used_traffic", "used_percentage", "overflow"]
+    search_fields = ["user_id", "last_use_time"]
 
 
 class SSNodeOnlineLogAdmin(admin.ModelAdmin):
