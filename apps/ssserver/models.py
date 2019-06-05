@@ -460,8 +460,7 @@ class Node(ExportModelOperationsMixin("node"), models.Model):
         if self.node_type == 1:
             data["method"] = self.method
             data["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
-            data["password"] = "{}:{}".format(ss_user.port, ss_user.password)
-            data["port"] = self.port
+            data["password"] = self.password
         data["id"] = ss_user.user_id
         data["passwd"] = ss_user.password
         data["u"] = ss_user.upload_traffic
