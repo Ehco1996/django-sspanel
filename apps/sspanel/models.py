@@ -1007,9 +1007,9 @@ class Goods(models.Model):
         user_ss_config = user.user_ss_config
         user_ss_config.enable = True
         user.level = self.level
+        user.save()
         user_traffic.save()
         user_ss_config.save()
-        user.save()
         # 增加购买记录
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
