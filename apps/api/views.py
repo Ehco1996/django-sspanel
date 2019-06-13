@@ -1,5 +1,4 @@
 import base64
-import time
 
 import pendulum
 from django.conf import settings
@@ -191,6 +190,15 @@ class UserSSConfigView(View):
     @method_decorator(handle_json_post)
     @method_decorator(api_authorized)
     def post(self, request, node_id):
+        """
+        这个接口操作比较重，所以为了避免发信号
+        所有写操作都需要用BULK的方式
+        1 更新节点流量
+        2 更新用户流量
+        3 记录节点在线IP
+        4 关闭超出流量的用户
+        5 关闭超出流量的节点
+        """
         data = request.json["data"]
         log_time = pendulum.now()
         node_total_traffic = 0
@@ -246,9 +254,12 @@ class UserSSConfigView(View):
         UserSSConfig.objects.bulk_update(user_ss_config_model_list, ["enable"])
         # 节点在线人数
         SSNodeOnlineLog.add_log(node_id, len(data))
-        if user_ss_config_model_list:
+        # check node && user traffic
+        ss_node = SSNode.get_or_none_by_node_id(node_id)
+        if ss_node.overflow:
+            ss_node.enable = False
+        if user_ss_config_model_list or ss_node.overflow:
             # NOTE save for clear cache
-            ss_node = SSNode.get_or_none_by_node_id(node_id)
             ss_node.save()
         return JsonResponse({"ret": 1, "data": []})
 

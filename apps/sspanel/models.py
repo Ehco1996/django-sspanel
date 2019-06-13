@@ -734,6 +734,9 @@ class SSNode(models.Model):
                 ss_node.to_dict_with_user_ss_config(config)
                 for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
             ]
+        if not ss_node.enable:
+            for config in configs["users"]:
+                config["enable"] = False
         return configs
 
     @property
@@ -750,6 +753,10 @@ class SSNode(models.Model):
     @property
     def human_used_traffic(self):
         return traffic_format(self.used_traffic)
+
+    @property
+    def overflow(self):
+        return (self.used_traffic) > self.total_traffic
 
     def get_ss_link(self, user_ss_config):
         method = user_ss_config.method if self.custom_method else self.method
