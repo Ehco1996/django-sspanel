@@ -676,7 +676,7 @@ class SSNodeOnlineLog(models.Model):
         log = cls.get_latest_log_by_node_id(node_id)
         if log:
             data["online"] = log.is_online
-            data["online_user_count"] = log.online_user_count
+            data["online_user_count"] = log.online_user_count if log.is_online else 0
         return data
 
 
