@@ -707,7 +707,7 @@ class SSNode(models.Model):
 
     @classmethod
     def get_active_nodes(cls):
-        return cls.objects.filter(enable=True).order_by("level")
+        return cls.objects.filter(enable=True).order_by("level", "country")
 
     @classmethod
     def get_node_ids_by_level(cls, level):
