@@ -578,10 +578,10 @@ class UserTraffic(models.Model, UserPropertyMixin):
     @classmethod
     def check_and_disable_out_of_traffic_user(cls):
         need_disable_user_ids = UserTraffic.get_overflow_user_ids()
-        UserSSConfig.objects.filter(user_id__in=need_disable_user_ids).update(
-            enable=False
-        )
-        user_list = User.objects.filter(id__in=need_disable_user_ids)
+        user_ss_configs = UserSSConfig.objects.filter(user_id__in=need_disable_user_ids)
+        need_set_user_ids = [c.user_id for c in user_ss_configs if c.enable]
+        UserSSConfig.objects.filter(user_id__in=need_set_user_ids).update(enable=False)
+        user_list = User.objects.filter(id__in=need_set_user_ids)
         emails = [user.email for user in user_list]
         if emails and settings.EXPIRE_EMAIL_NOTICE:
             send_mail(
