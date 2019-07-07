@@ -59,6 +59,12 @@ class UserCheckInAdmin(admin.ModelAdmin):
     list_filter = ["date"]
 
 
+class UserRefLogAdmin(admin.ModelAdmin):
+    list_display = ["user", "user_id", "register_count", "date"]
+    search_fields = ["user_id", "date"]
+    list_filter = ["date"]
+
+
 class UserTrafficAdmin(admin.ModelAdmin):
     list_display = [
         "user",
@@ -117,6 +123,7 @@ admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
 admin.site.register(models.UserSSConfig, UserSSConfigAdmin)
 admin.site.register(models.UserCheckInLog, UserCheckInAdmin)
+admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.UserTraffic, UserTrafficAdmin)
 admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)

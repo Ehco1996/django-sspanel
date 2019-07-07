@@ -303,6 +303,7 @@ class UserRefLog(models.Model, UserPropertyMixin):
     date = models.DateField("记录日期", default=pendulum.today, db_index=True)
 
     class Meta:
+        verbose_name_plural = "用户推荐记录"
         unique_together = [["user_id", "date"]]
 
     @classmethod
@@ -893,9 +894,11 @@ class Donate(models.Model):
 
     @classmethod
     def get_donate_money_by_date(cls, date=None):
+        qs = cls.objects.filter()
         if date:
-            return int(sum([d.money for d in cls.objects.filter(time__gte=date)]))
-        return int(sum([d.money for d in cls.objects.all()]))
+            qs = qs.filter(time__gte=date, time__lte=date.add(days=1))
+        res = qs.aggregate(amount=models.Sum("money"))["amount"]
+        return int(res) if res else 0
 
     @classmethod
     def get_donate_count_by_date(cls, date=None):
