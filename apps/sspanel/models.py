@@ -154,12 +154,6 @@ class User(AbstractUser):
         return settings.HOST + f"/sspanel/register/?{urlencode(params)}"
 
     @functional.cached_property
-    def ss_user(self):
-        from apps.ssserver.models import Suser
-
-        return Suser.objects.filter(user_id=self.id).first()
-
-    @functional.cached_property
     def user_ss_config(self):
         return UserSSConfig.objects.get(user_id=self.id)
 
@@ -172,7 +166,6 @@ class User(AbstractUser):
         return encoder.int2string(self.pk)
 
     def get_sub_links(self):
-        # TODO 暂时只能处理SS节点的订阅
 
         node_list = SSNode.get_active_nodes()
         sub_links = "MAX={}\n".format(node_list.count())
