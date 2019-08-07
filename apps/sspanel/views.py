@@ -22,7 +22,6 @@ from apps.sspanel.models import (
     User,
     SSNode,
 )
-from apps.ssserver.models import Node
 from apps.utils import traffic_format
 
 
@@ -127,23 +126,7 @@ class NodeInfoView(View):
             node.to_dict_with_extra_info(user_ss_config)
             for node in SSNode.get_active_nodes()
         ]
-
-        # TODO 去掉 SSR节点的兼容
-        ss_user = request.user.ss_user
-        if ss_user:
-            ssr_node_list = [
-                node.to_dict_with_extra_info(ss_user)
-                for node in Node.get_active_nodes()
-            ]
-        else:
-            ssr_node_list = []
-        context = {
-            "node_list": node_list,
-            "ssr_node_list": ssr_node_list,
-            "user": user,
-            "sub_link": user.sub_link,
-        }
-
+        context = {"node_list": node_list, "user": user, "sub_link": user.sub_link}
         return render(request, "sspanel/nodeinfo.html", context=context)
 
 

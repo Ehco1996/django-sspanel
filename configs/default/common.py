@@ -17,7 +17,6 @@ INSTALLED_APPS = [
     "django_crontab",
     "anymail",
     "apps.sspanel",
-    "apps.ssserver",
     "v2",
 ]
 

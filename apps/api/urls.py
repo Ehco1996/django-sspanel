@@ -13,12 +13,6 @@ urlpatterns = [
     path("change/sub_type/", views.change_sub_type, name="change_sub_type"),
     path("checkin/", views.UserCheckInView.as_view(), name="checkin"),
     # web api 接口
-    path("nodes/<int:node_id>", views.node_api, name="get_node_info"),
-    path("nodes/online", views.node_online_api, name="post_onlineip"),
-    path(
-        "users/nodes/<int:node_id>", views.node_user_configs, name="node_user_configs"
-    ),
-    path("traffic/upload", views.TrafficReportView.as_view(), name="post_traffic"),
     path(
         "user_ss_config/<int:node_id>/",
         views.UserSSConfigView.as_view(),

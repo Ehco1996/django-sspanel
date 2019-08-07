@@ -3,7 +3,6 @@ import base64
 import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from django.db.models import F
 from django.http import HttpResponseNotFound, JsonResponse, StreamingHttpResponse
 from django.shortcuts import HttpResponse
 from django.utils.decorators import method_decorator
@@ -29,14 +28,7 @@ from apps.sspanel.models import (
     UserTraffic,
     UserSSConfig,
 )
-from apps.ssserver.models import Node, Suser
-from apps.utils import (
-    api_authorized,
-    authorized,
-    handle_json_post,
-    simple_cached_view,
-    traffic_format,
-)
+from apps.utils import api_authorized, authorized, handle_json_post, traffic_format
 
 
 class SystemStatusView(View):
@@ -124,57 +116,6 @@ class UserTrafficChartView(View):
         last_week = [now.subtract(days=i).date() for i in range(6, -1, -1)]
         configs = UserTrafficLog.gen_line_chart_configs(user_id, node_id, last_week)
         return JsonResponse(configs)
-
-
-class TrafficReportView(View):
-    @csrf_exempt
-    def dispatch(self, *args, **kwargs):
-        return super(TrafficReportView, self).dispatch(*args, **kwargs)
-
-    @method_decorator(authorized)
-    def post(self, request):
-        data = request.json
-        node_id = data["node_id"]
-        traffic_list = data["data"]
-        now = pendulum.now()
-
-        node_total_traffic = 0
-        trafficlog_model_list = []
-        user_traffic_model_list = []
-
-        for rec in traffic_list:
-            user_id = rec["user_id"]
-            u = rec["u"]
-            d = rec["d"]
-            # 个人流量增量
-            user_traffic = UserTraffic.get_by_user_id(user_id)
-            user_traffic.download_traffic += d
-            user_traffic.upload_traffic += u
-            user_traffic.last_use_time = now
-            user_traffic_model_list.append(user_traffic)
-            # 个人流量记录
-            trafficlog_model_list.append(
-                UserTrafficLog(
-                    node_id=node_id,
-                    user_id=user_id,
-                    download_traffic=u,
-                    upload_traffic=d,
-                )
-            )
-            # 节点流量增量
-            node_total_traffic += u + d
-        # 节点流量记录
-        SSNode.objects.filter(node_id=node_id).update(
-            used_traffic=F("used_traffic") + node_total_traffic
-        )
-        # 流量记录
-        UserTrafficLog.objects.bulk_create(trafficlog_model_list)
-        # 个人流量记录
-        UserTraffic.objects.bulk_update(
-            user_traffic_model_list,
-            ["download_traffic", "upload_traffic", "last_use_time"],
-        )
-        return JsonResponse({"ret": 1, "data": []})
 
 
 class UserSSConfigView(View):
@@ -346,47 +287,6 @@ def change_sub_type(request):
     user.sub_type = sub_type
     user.save()
     res = {"title": "修改成功！", "subtitle": "订阅类型更换成功!", "status": "success"}
-    return JsonResponse(res)
-
-
-@authorized
-@simple_cached_view()
-@require_http_methods(["GET"])
-def node_api(request, node_id):
-    """
-    返回节点信息
-    筛选节点是否用光
-    """
-    # TODO 下线SSR节点后 delete this
-    node = Node.objects.filter(node_id=node_id).first()
-    if node and node.used_traffic < node.total_traffic:
-        data = (node.traffic_rate,)
-    else:
-        data = None
-    res = {"ret": 1, "data": data}
-    return JsonResponse(res)
-
-
-@authorized
-@csrf_exempt
-@require_http_methods(["POST"])
-def node_online_api(request):
-    """
-    接受节点在线人数上报
-    """
-    # TODO 下线SSR节点后 delete this
-    data = request.json
-    node = Node.objects.filter(node_id=data["node_id"]).first()
-    node and SSNodeOnlineLog.add_log(data["node_id"], data["online_user"])
-    res = {"ret": 1, "data": []}
-    return JsonResponse(res)
-
-
-@authorized
-@require_http_methods(["GET"])
-def node_user_configs(request, node_id):
-    # TODO TO BE DELETED
-    res = {"ret": 1, "data": Suser.get_user_configs_by_node_id(node_id)}
     return JsonResponse(res)
 
 
