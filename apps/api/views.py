@@ -28,7 +28,7 @@ from apps.sspanel.models import (
     UserTraffic,
     UserSSConfig,
 )
-from apps.utils import api_authorized, authorized, handle_json_post, traffic_format
+from apps.utils import api_authorized, handle_json_post, traffic_format
 
 
 class SystemStatusView(View):
@@ -287,21 +287,6 @@ def change_sub_type(request):
     user.sub_type = sub_type
     user.save()
     res = {"title": "修改成功！", "subtitle": "订阅类型更换成功!", "status": "success"}
-    return JsonResponse(res)
-
-
-@authorized
-@csrf_exempt
-@require_http_methods(["POST"])
-def alive_ip_api(request):
-    data = request.json
-    node_id = data["node_id"]
-    model_list = []
-    for user_id, ip_list in data["data"].items():
-        for ip in ip_list:
-            model_list.append(UserOnLineIpLog(node_id=node_id, user=user_id, ip=ip))
-    UserOnLineIpLog.objects.bulk_create(model_list)
-    res = {"ret": 1, "data": []}
     return JsonResponse(res)
 
 
