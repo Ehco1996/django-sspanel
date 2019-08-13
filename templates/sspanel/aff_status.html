@@ -1,0 +1,49 @@
+{% extends 'base.html' %} {% block main %}{% load ehcofilter %}
+
+<div class="column is-12">
+    <section class="hero is-warning is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    返利记录：最新的10条记录
+                </h1>
+                <h2 class="subtitle">
+                    存钱罐....
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box" height="100">
+        <canvas id="id-ref-canvas"></canvas>
+        <hr>
+        <div class="content">
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>金额</th>
+                        <th>购买时间</th>
+                    </tr>
+                </thead>
+                {% for log in rebate_logs %}
+                <tr>
+                    <td>{{ log.consumer_username|mix_name:log.consumer_username }}</td>
+                    <td>{{ log.money }}元</td>
+                    <td>{{ log.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    var genRefChart = function () {
+        url = "{% url 'api:user_ref_chart' %}"
+        $.get(url, function (results) {
+            genBarChart('id-ref-canvas', results)
+        })
+    }
+    genRefChart()
+</script>{% endblock main %}

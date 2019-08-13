@@ -109,11 +109,26 @@ def authorized(view_func):
     return wrapper
 
 
+def api_authorized(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        token = request.GET.get("token", "")
+        if token != settings.TOKEN:
+            return JsonResponse({"msg": "auth error"})
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def handle_json_post(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kw):
+        if request.method == "POST":
+            request.json = json.loads(request.body)
+        return view_func(request, *args, **kw)
+
+    return wrapper
+
+
 def get_current_time():
     return pendulum.now(tz=settings.TIME_ZONE)
-
-
-def global_settings(request):
-    global_variable = {"USE_SMTP": settings.USE_SMTP}
-
-    return global_variable

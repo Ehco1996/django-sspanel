@@ -1,0 +1,77 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="column is-12">
+    <section class="hero is-warning is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    我的推广：
+                </h1>
+                <h2 class="subtitle">
+                    每当通过你的<strong>邀请码/邀请链接</strong>注册的用户<strong>消费一笔</strong>
+                    <p>你就能获得<strong>{{ invite_percent }}%</strong>的返利哟！
+                    </p>
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box">
+        <div>
+            <p class="subtitle">我的邀请链接: </p>
+            <div class="field is-grouped">
+                <p class="control is-expanded">
+                    <input class="input is-rounded is-focused" id="id-sub-link" value="{{ ref_link }}" readonly>
+                </p>
+                <p class="control">
+                    <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-sub-link">
+                        <i class="fa fa-clipboard" aria-hidden="true"></i>
+                    </a>
+                </p>
+            </div>
+            <span class="copied" hidden="true">复制成功!</span>
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="content">
+            <p class="subtitle">我的邀请码: </p>
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>邀请码</th>
+                        <th>是否使用</th>
+                    </tr>
+                </thead>
+                {% for code in code_list %}
+                <tr>
+                    <td>{{ code.created_at | date:"m月d日" }}</td>
+                    <td>{{ code.code }}</td>
+                    <td>{{ code.used }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <p align="right"><a class="button is-outlined is-info" id="id-gen-invitecode">生成{{ invitecode_num }}个邀请码
+                </a></p>
+        </div>
+    </div>
+</div>
+<script>
+    // 端口重置Ajax部分
+    var InviteButton = $("#id-gen-invitecode")
+    var gencode = function () {
+        url = "{% url 'api:geninvitecode' %}"
+        $.getJSON(url, function (results) {
+            swal(results.title, results.subtitle, results.status)
+        })
+    }
+    InviteButton.click(gencode)
+    // 点击复制
+    var clip = new Clipboard('#id-button-clip');
+    clip.on('success', function (e) {
+        $('.copied').show();
+        $('.copied').fadeOut(1000);
+    });
+</script> {% endblock main %}

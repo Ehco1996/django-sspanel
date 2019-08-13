@@ -26,7 +26,7 @@ class Alipayments:
     def init_payment(self):
         self.alipay = AliPay(
             appid=APPID,
-            app_notify_url="",
+            app_notify_url=settings.ALIPAY_CALLBACK_URL,
             app_private_key_path=PRIVATE_KEY_PATH,
             # 支付宝的公钥，验证支付宝回传消息使用，不是你自己的公钥,
             alipay_public_key_path=PUBLIC_KEY_PATH,

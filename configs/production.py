@@ -11,6 +11,3 @@ DATABASES["default"].update(
         "USER": os.getenv("MYSQL_USER", "root"),
     }
 )
-
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

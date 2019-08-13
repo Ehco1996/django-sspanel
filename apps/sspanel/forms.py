@@ -1,10 +1,16 @@
 from django import forms
-from django.conf import settings
-from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import ModelForm
 
-from apps.ssserver.models import Node
-from apps.sspanel.models import Announcement, Goods, User, InviteCode
+from apps.encoder import encoder
+from apps.sspanel.models import (
+    Announcement,
+    Goods,
+    InviteCode,
+    User,
+    SSNode,
+    UserSSConfig,
+)
 
 
 class RegisterForm(UserCreationForm):
@@ -19,11 +25,6 @@ class RegisterForm(UserCreationForm):
     email = forms.EmailField(
         label="邮箱", widget=forms.TextInput(attrs={"class": "input is-warning"})
     )
-    invitecode = forms.CharField(
-        label="邀请码",
-        help_text="邀请码必须填写",
-        widget=forms.TextInput(attrs={"class": "input is-success"}),
-    )
     password1 = forms.CharField(
         label="密码",
         help_text="""你的密码不能与其他个人信息太相似。
@@ -37,6 +38,23 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={"class": "input is-danger", "type": "password"}),
     )
 
+    invitecode = forms.CharField(
+        label="邀请码",
+        help_text="邀请码必须填写",
+        widget=forms.TextInput(attrs={"class": "input is-success"}),
+    )
+
+    ref = forms.CharField(
+        label="邀请", widget=forms.TextInput(attrs={"class": "input is-success"})
+    )
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        if "ref" in self.data or "ref" in self.initial.keys():
+            self.fields.pop("invitecode")
+        else:
+            self.fields.pop("ref")
+
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).first():
@@ -44,16 +62,41 @@ class RegisterForm(UserCreationForm):
         else:
             return email
 
-    def clean_invitecode(self):
+    def _post_clean(self):
+        super()._post_clean()
+        if "ref" in self.fields:
+            try:
+                self._clean_ref()
+            except forms.ValidationError as error:
+                self.add_error("ref", error)
+        if "invitecode" in self.fields:
+            try:
+                self._clean_invitecode()
+            except forms.ValidationError as error:
+                self.add_error("invitecode", error)
+
+    def _clean_invitecode(self):
         code = self.cleaned_data.get("invitecode")
-        if InviteCode.objects.filter(code=code, isused=False).first():
+        if InviteCode.objects.filter(code=code, used=False).exists():
             return code
         else:
             raise forms.ValidationError("该邀请码失效")
 
+    def _clean_ref(self):
+        ref = self.cleaned_data.get("ref")
+        try:
+            user_id = encoder.string2int(ref)
+        except ValueError:
+            raise forms.ValidationError("ref不正确")
+
+        if User.objects.filter(id=user_id).exists():
+            return ref
+        else:
+            raise forms.ValidationError("ref不正确")
+
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ("username", "email", "password1", "password2", "invitecode")
+        fields = ("username", "email", "password1", "password2", "invitecode", "ref")
 
 
 class LoginForm(forms.Form):
@@ -81,18 +124,23 @@ class LoginForm(forms.Form):
             self.cleaned_data = super(LoginForm, self).clean()
 
 
-class NodeForm(ModelForm):
-    total_traffic = forms.IntegerField(label="节点总流量(GB)")
-
-    def clean(self):
-        data = self.cleaned_data
-        data["total_traffic"] = data["total_traffic"] * settings.GB
-        return data
-
+class SSNodeForm(ModelForm):
     class Meta:
-        model = Node
+        model = SSNode
         fields = "__all__"
-        exclude = ["used_traffic"]
+        widgets = {
+            "node_id": forms.NumberInput(attrs={"class": "input"}),
+            "level": forms.NumberInput(attrs={"class": "input"}),
+            "name": forms.TextInput(attrs={"class": "input"}),
+            "info": forms.TextInput(attrs={"class": "input"}),
+            "server": forms.TextInput(attrs={"class": "input"}),
+            "method": forms.Select(attrs={"class": "input"}),
+            "country": forms.Select(attrs={"class": "input"}),
+            "used_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "total_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "custom_method": forms.CheckboxInput(attrs={"class": "checkbox"}),
+        }
 
 
 class GoodsForm(ModelForm):
@@ -115,4 +163,17 @@ class UserForm(ModelForm):
             "balance": forms.NumberInput(attrs={"class": "input"}),
             "level": forms.NumberInput(attrs={"class": "input"}),
             "level_expire_time": forms.DateTimeInput(attrs={"class": "input"}),
+        }
+
+
+class UserSSConfigForm(ModelForm):
+    class Meta:
+        model = UserSSConfig
+        fields = ["port", "password", "speed_limit", "method", "enable"]
+        widgets = {
+            "port": forms.NumberInput(attrs={"class": "input"}),
+            "speed_limit": forms.NumberInput(attrs={"class": "input"}),
+            "password": forms.TextInput(attrs={"class": "input"}),
+            "method": forms.Select(attrs={"class": "input"}),
+            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
         }

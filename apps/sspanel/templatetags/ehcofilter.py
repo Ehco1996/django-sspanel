@@ -11,12 +11,13 @@ def add_class(value, arg):
 
 
 # 捐赠名混淆
-
-
 @register.filter(name="mix_name")
 def mix_name(value, arg):
-    value = str(value)
-    mix_name = value[0] + "***" + value[-1]
+    if value:
+        value = str(value)
+        mix_name = value[0] + "***" + value[-1]
+    else:
+        mix_name = "***"
     return mix_name
 
 

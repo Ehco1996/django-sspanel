@@ -1,50 +1,54 @@
 version: '3'
 
+
+networks:
+  sspanel:
+
+volumes:
+  mysql_data:
+
 services:
-  db:
+  nginx:
+    image: nginx
+    restart: always
+    container_name : nginx
+    volumes:
+      - ./configs/nginx/:/etc/nginx/conf.d
+      - .:/usr/src/app
+    ports:
+      - 80:80
+    depends_on:
+      - web
+    networks:
+      - sspanel
+  mysql:
     image: mysql:5.6
-    container_name : sspanel-db
+    container_name : mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: yourpass
       MYSQL_DATABASE: sspanel
     volumes:
       - ./configs/mysqld/mysqld_charset.cnf:/etc/mysql/conf.d/mysqld_charset.cnf
-      - mysql-data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     networks:
-      - sspanel_network
+      - sspanel
   web:
-    container_name : sspanel-web
+    container_name : web
+    restart: always
     build: .
     image: sspanel
     environment:
       MYSQL_PASSWORD: yourpass
-      MYSQL_HOST: db
+      MYSQL_HOST: mysql
+      DJANGO_ENV: production
     volumes:
-      - .:/src/django-sspanel
+      - .:/usr/src/app
     depends_on:
-      - db
+      - mysql
     networks:
-      - sspanel_network
+      - sspanel
     ports:
       - 8080:8080
-    working_dir: /src/django-sspanel
+    working_dir: /usr/src/app
     command: uwsgi uwsgi.ini
-  nginx:
-    image: nginx
-    restart: always
-    container_name : sspanel-nginx
-    volumes:
-      - ./configs/nginx/:/etc/nginx/conf.d
-      - static:/src/django-sspanel/static
-    ports:
-      - 80:80
-    depends_on:
-      - web
-    networks:
-      - sspanel_network
-networks:
-  sspanel_network:
-volumes:
-  static:
-  mysql-data:

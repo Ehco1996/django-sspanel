@@ -1,0 +1,66 @@
+{% extends 'base.html' %} {% block main %}
+<div class="column is-12">
+    <section class="hero is-success is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    流量记录：
+                </h1>
+                <h2 class="subtitle">
+                    该记录每月1号自动清空....
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <nav class="level box ">
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">用户名:</p>
+                <p class="title">{{ user }}</p>
+            </div>
+        </div>
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">使用流量：</p>
+                <p class="title">
+                    <code>{{ user.user_ss_config.human_used_traffic }}</code>
+                </p>
+            </div>
+        </div>
+    </nav>
+    <div class="box">
+        <p class="subtitle">选择节点获取流量记录：</p>
+        <div class="field has-addons">
+            <div class="control">
+                <div class="select">
+                    <select id="id-select-nodes" name="nodes">
+                        {% for node in node_list %}
+                        <option value={{ node.node_id }}>{{ node.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="control">
+                <button id="id-button-query" class="button is-outlined is-info">查询</button>
+            </div>
+        </div>
+        <canvas id="traffic" width="auto" height="auto"></canvas>
+    </div>
+</div>
+<script>
+    // 流量记录查询部分
+    queryButton = $("#id-button-query")
+    var traffic_query = function () {
+        url = "{% url 'api:user_traffic_chart' %}"
+        var options = $("#id-select-nodes option:selected")
+        var data = {
+            'node_id': options.val(),
+        }
+        $.get(url, data, function (results) {
+            genLineChart('traffic', results)
+        })
+    }
+    queryButton.click(traffic_query)
+</script> {% endblock main %}

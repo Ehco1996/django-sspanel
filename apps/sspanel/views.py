@@ -1,37 +1,177 @@
-import tomd
-
-from django.db.models import Q
-from django.urls import reverse
 from django.conf import settings
-from django.shortcuts import render
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views import View
 
-from apps.utils import traffic_format
-from apps.custom_views import Page_List_View
-from .forms import RegisterForm, LoginForm, NodeForm, GoodsForm, AnnoForm
-from apps.ssserver.models import Suser, Node, NodeOnlineLog, AliveIp
-from .models import (
-    InviteCode,
-    User,
+from apps.constants import METHOD_CHOICES, THEME_CHOICES
+from apps.sspanel.forms import LoginForm, RegisterForm
+from apps.sspanel.models import (
+    Announcement,
     Donate,
     Goods,
+    InviteCode,
     MoneyCode,
     PurchaseHistory,
-    Announcement,
-    Ticket,
     RebateRecord,
+    Ticket,
+    User,
+    SSNode,
 )
-from apps.constants import METHOD_CHOICES, PROTOCOL_CHOICES, OBFS_CHOICES, THEME_CHOICES
+from apps.utils import traffic_format
+
+
+class RegisterView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse("sspanel:userinfo"))
+        ref = request.GET.get("ref")
+        if ref:
+            form = RegisterForm(initial={"ref": ref})
+        else:
+            form = RegisterForm(initial={"invitecode": request.GET.get("invitecode")})
+        return render(request, "sspanel/register.html", {"form": form})
+
+    def post(self, request):
+        if settings.ALLOW_REGISTER is False:
+            return HttpResponse("已经关闭注册了喵")
+
+        form = RegisterForm(data=request.POST)
+        if form.is_valid():
+            user = User.add_new_user(form.cleaned_data)
+            if not user:
+                messages.error(request, "服务出现了点小问题", extra_tags="请尝试或者联系站长~")
+                return render(request, "sspanel/register.html", {"form": form})
+            else:
+                messages.success(request, "自动跳转到用户中心", extra_tags="注册成功！")
+                user = authenticate(
+                    username=form.cleaned_data["username"],
+                    password=form.cleaned_data["password1"],
+                )
+                login(request, user)
+                return HttpResponseRedirect(reverse("sspanel:userinfo"))
+        return render(request, "sspanel/register.html", {"form": form})
+
+
+class InviteCodeView(View):
+    def get(self, request):
+        code_list = InviteCode.list_by_code_type(InviteCode.TYPE_PUBLIC)
+        return render(request, "sspanel/invite.html", context={"code_list": code_list})
+
+
+class AffInviteView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        context = {
+            "code_list": InviteCode.list_by_user_id(user.pk),
+            "invite_percent": settings.INVITE_PERCENT * 100,
+            "invitecode_num": InviteCode.calc_num_by_user(user),
+            "ref_link": user.ref_link,
+        }
+        return render(request, "sspanel/aff_invite.html", context=context)
+
+
+class AffStatusView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        rebate_logs = RebateRecord.list_by_user_id_with_consumer_username(user.pk)
+        bar_config = {
+            "labels": ["z", "v", "x", "x", "z", "v", "x", "x", "z", "v"],
+            "data": [1, 2, 3, 4, 1, 1, 1, 1, 1, 2],
+            "data_title": "每日邀请注册人数",
+        }
+        context = {"rebate_logs": rebate_logs, "user": user, "bar_config": bar_config}
+        return render(request, "sspanel/aff_status.html", context=context)
+
+
+class UserInfoView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        user_ss_config = user.user_ss_config
+        user_traffic = user_ss_config.user_traffic
+        # 获取公告
+        anno = Announcement.objects.first()
+        min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
+        max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
+        remain_traffic = "{:.2f}".format(100 - user_traffic.used_percentage)
+        context = {
+            "user": user,
+            "user_traffic": user_traffic,
+            "anno": anno,
+            "remain_traffic": remain_traffic,
+            "min_traffic": min_traffic,
+            "max_traffic": max_traffic,
+            "import_links": user_ss_config.get_import_links(),
+            "themes": THEME_CHOICES,
+            "sub_link": user.sub_link,
+            "sub_types": User.SUB_TYPES,
+            "user_sub_type": user.get_sub_type_display(),
+        }
+        return render(request, "sspanel/userinfo.html", context=context)
+
+
+class NodeInfoView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        user_ss_config = user.user_ss_config
+        node_list = [
+            node.to_dict_with_extra_info(user_ss_config)
+            for node in SSNode.get_active_nodes()
+        ]
+        context = {"node_list": node_list, "user": user, "sub_link": user.sub_link}
+        return render(request, "sspanel/nodeinfo.html", context=context)
+
+
+class UserTrafficLog(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        node_list = SSNode.get_active_nodes()
+        context = {"user": request.user, "node_list": node_list}
+        return render(request, "sspanel/user_traffic_log.html", context=context)
+
+
+class UserSSNodeConfigView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        user_ss_config = user.user_ss_config
+        configs = [
+            node.to_dict_with_user_ss_config(user_ss_config)
+            for node in SSNode.get_user_active_nodes(user)
+        ]
+        return JsonResponse({"configs": configs})
+
+
+class UserSettingView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        methods = [m[0] for m in METHOD_CHOICES]
+        context = {"user_ss_config": request.user.user_ss_config, "methods": methods}
+        return render(request, "sspanel/user_settings.html", context=context)
+
+
+class ShopView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        user = request.user
+        goods = Goods.objects.filter(status=1)
+        context = {"user": user, "goods": goods}
+        return render(request, "sspanel/shop.html", context=context)
 
 
 def index(request):
     """跳转到首页"""
 
     return render(
-        request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISET}
+        request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
     )
 
 
@@ -44,42 +184,6 @@ def sshelp(request):
 def ssclient(request):
     """跳转到客户端界面"""
     return render(request, "sspanel/client.html")
-
-
-def ssinvite(request):
-    """跳转到邀请码界面"""
-    codelist = InviteCode.objects.filter(code_type=1, isused=False, code_id=1)[:20]
-
-    context = {"codelist": codelist}
-
-    return render(request, "sspanel/invite.html", context=context)
-
-
-def pass_invitecode(request, invitecode):
-    """提供点击邀请码连接之后自动填写邀请码"""
-    form = RegisterForm(initial={"invitecode": invitecode})
-    return render(request, "sspanel/register.html", {"form": form})
-
-
-def register(request):
-    """用户注册时的函数"""
-    if settings.ALLOW_REGISET is False:
-        return HttpResponse("已经关闭注册了喵")
-    if request.method == "POST":
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = User.add_new_user(form.cleaned_data)
-            if not user:
-                messages.error(request, "服务出现了点小问题", extra_tags="请尝试或者联系站长~")
-                return render(request, "sspanel/register.html", {"form": form})
-            else:
-                messages.success(request, "请登录使用吧！", extra_tags="注册成功！")
-
-                return HttpResponseRedirect(reverse("index"))
-    else:
-        form = RegisterForm()
-
-    return render(request, "sspanel/register.html", {"form": form})
 
 
 def user_login(request):
@@ -97,7 +201,7 @@ def user_login(request):
                 return HttpResponseRedirect(reverse("sspanel:userinfo"))
             else:
                 messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
-    context = {"form": LoginForm()}
+    context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
     return render(request, "sspanel/login.html", context=context)
 
 
@@ -106,47 +210,6 @@ def user_logout(request):
     logout(request)
     messages.success(request, "欢迎下次再来", extra_tags="注销成功")
     return HttpResponseRedirect(reverse("index"))
-
-
-@login_required
-def userinfo(request):
-    """用户中心"""
-    user = request.user
-    # 获取公告
-    anno = Announcement.objects.first()
-    min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
-    max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-    remain_traffic = "{:.2f}".format(100 - user.ss_user.used_percentage)
-    context = {
-        "user": user,
-        "user_sub_type": user.get_sub_type_display(),
-        "anno": anno,
-        "remain_traffic": remain_traffic,
-        "min_traffic": min_traffic,
-        "max_traffic": max_traffic,
-        "sub_link": user.sub_link,
-        "import_code": Node.get_import_code(user),
-        "themes": THEME_CHOICES,
-        "sub_types": User.SUB_TYPES,
-    }
-    return render(request, "sspanel/userinfo.html", context=context)
-
-
-@login_required
-def userinfo_edit(request):
-    """跳转到资料编辑界面"""
-    ss_user = request.user.ss_user
-    methods = [m[0] for m in METHOD_CHOICES]
-    protocols = [p[0] for p in PROTOCOL_CHOICES]
-    obfss = [o[0] for o in OBFS_CHOICES]
-
-    context = {
-        "ss_user": ss_user,
-        "methods": methods,
-        "protocols": protocols,
-        "obfss": obfss,
-    }
-    return render(request, "sspanel/userinfoedit.html", context=context)
 
 
 @login_required
@@ -160,81 +223,6 @@ def donate(request):
         # 关闭支付宝支付
         context["alipay"] = False
     return render(request, "sspanel/donate.html", context=context)
-
-
-@login_required
-def nodeinfo(request):
-    """跳转到节点信息的页面"""
-
-    nodelists = []
-    ss_user = request.user.ss_user
-    user = request.user
-    # 加入等级的判断
-    nodes = Node.objects.filter(show=1).values()
-    # 循环遍历每一条线路的在线人数
-    for node in nodes:
-        # 生成SSR和SS的链接
-        obj = Node.objects.get(node_id=node["node_id"])
-        node["ssrlink"] = obj.get_ssr_link(ss_user)
-        node["sslink"] = obj.get_ss_link(ss_user)
-        node["country"] = obj.country.lower()
-        node["node_type"] = obj.get_node_type_display()[:-3]
-        if obj.node_type == 1:
-            # 单端口的情况下
-            node["port"] = obj.port
-            node["method"] = obj.method
-            node["password"] = obj.password
-            node["protocol"] = obj.protocol
-            node["node_color"] = "warning"
-            node["protocol_param"] = "{}:{}".format(ss_user.port, ss_user.password)
-            node["obfs"] = obj.obfs
-            node["obfs_param"] = obj.obfs_param
-        else:
-            node["port"] = ss_user.port
-            node["method"] = ss_user.method
-            node["password"] = ss_user.password
-            node["protocol"] = ss_user.protocol
-            node["node_color"] = "info"
-            node["protocol_param"] = ss_user.protocol_param
-            node["obfs"] = ss_user.obfs
-            node["obfs_param"] = ss_user.obfs_param
-            # 得到在线人数
-        log = NodeOnlineLog.objects.filter(node_id=node["node_id"]).last()
-        if log:
-            node["online"] = log.get_oneline_status()
-            node["count"] = log.get_online_user()
-        else:
-            node["online"] = False
-            node["count"] = 0
-        # 添加ss_type
-        node["ss_type_info"] = obj.get_ss_type_display()
-        nodelists.append(node)
-    context = {
-        "nodelists": nodelists,
-        "ss_user": ss_user,
-        "user": user,
-        "sub_link": user.sub_link,
-    }
-    return render(request, "sspanel/nodeinfo.html", context=context)
-
-
-@login_required
-def trafficlog(request):
-    """跳转到流量记录的页面"""
-
-    ss_user = request.user.ss_user
-    nodes = Node.objects.filter(show=1)
-    context = {"ss_user": ss_user, "nodes": nodes}
-    return render(request, "sspanel/trafficlog.html", context=context)
-
-
-@login_required
-def shop(request):
-    """跳转到商品界面"""
-    ss_user = request.user
-    goods = Goods.objects.filter(status=1)
-    context = {"ss_user": ss_user, "goods": goods}
-    return render(request, "sspanel/shop.html", context=context)
 
 
 @login_required
@@ -340,372 +328,3 @@ def ticket_edit(request, pk):
     else:
         context = {"ticket": ticket}
         return render(request, "sspanel/ticketedit.html", context=context)
-
-
-@login_required
-def affiliate(request):
-    """推广页面"""
-    if request.user.is_superuser is not True:
-        invidecodes = InviteCode.objects.filter(code_id=request.user.pk, code_type=0)
-        inviteNum = request.user.invitecode_num - len(invidecodes)
-    else:
-        # 如果是管理员，特殊处理
-        invidecodes = InviteCode.objects.filter(
-            code_id=request.user.pk, code_type=0, isused=False
-        )
-        inviteNum = 5
-    context = {
-        "invitecodes": invidecodes,
-        "invitePercent": settings.INVITE_PERCENT * 100,
-        "inviteNumn": inviteNum,
-    }
-    return render(request, "sspanel/affiliate.html", context=context)
-
-
-@login_required
-def rebate_record(request):
-    """返利记录"""
-    u = request.user
-    records = RebateRecord.objects.filter(user_id=u.pk)[:10]
-    context = {"records": records, "user": request.user}
-    return render(request, "sspanel/rebaterecord.html", context=context)
-
-
-# ==================================
-# 网站后台界面
-# ==================================
-
-
-@permission_required("sspanel")
-def backend_index(request):
-    """跳转到后台界面"""
-    context = {"userNum": User.get_total_user_num()}
-
-    return render(request, "backend/index.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_node_info(request):
-    """节点编辑界面"""
-    nodes = Node.objects.all()
-    context = {"nodes": nodes}
-    return render(request, "backend/nodeinfo.html", context=context)
-
-
-@permission_required("sspanel")
-def node_delete(request, node_id):
-    """删除节点"""
-    node = Node.objects.filter(node_id=node_id)
-    node.delete()
-    messages.success(request, "成功啦", extra_tags="删除节点")
-    return HttpResponseRedirect(reverse("sspanel:backend_node_info"))
-
-
-@permission_required("sspanel")
-def node_edit(request, node_id):
-    """编辑节点"""
-    node = Node.objects.get(node_id=node_id)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        form = NodeForm(request.POST, instance=node)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_node_info"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "node": node}
-            return render(request, "backend/nodeedit.html", context=context)
-    # 当请求不是post时，渲染form
-    else:
-        form = NodeForm(
-            instance=node, initial={"total_traffic": node.total_traffic // settings.GB}
-        )
-        context = {"form": form, "node": node}
-        return render(request, "backend/nodeedit.html", context=context)
-
-
-@permission_required("sspanel")
-def node_create(request):
-    """创建节点"""
-    if request.method == "POST":
-        form = NodeForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_node_info"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form}
-            return render(request, "backend/nodecreate.html", context=context)
-
-    else:
-        form = NodeForm()
-        return render(request, "backend/nodecreate.html", context={"form": form})
-
-
-@permission_required("sspanel")
-def backend_userlist(request):
-    """返回所有用户的View"""
-    obj = User.objects.all().order_by("-date_joined")
-    page_num = 15
-    context = Page_List_View(request, obj, page_num).get_page_context()
-    return render(request, "backend/userlist.html", context)
-
-
-@permission_required("sspanel")
-def user_delete(request, pk):
-    """删除user"""
-    user = User.objects.get(pk=pk)
-    user.delete()
-    messages.success(request, "成功啦", extra_tags="删除用户")
-    return HttpResponseRedirect(reverse("sspanel:user_list"))
-
-
-@permission_required("sspanel")
-def user_search(request):
-    """用户搜索结果"""
-    q = request.GET.get("q")
-    contacts = User.objects.filter(
-        Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
-    )
-    context = {"contacts": contacts}
-    return render(request, "backend/userlist.html", context=context)
-
-
-@permission_required("sspanel")
-def user_status(request):
-    """站内用户分析"""
-    # 查询今日注册的用户
-    todayRegistered = User.get_today_register_user().values()
-    for t in todayRegistered:
-        try:
-            t["inviter"] = User.objects.get(pk=t["invited_by"])
-        except User.DoesNotExist:
-            t["inviter"] = "ehco"
-    todayRegisteredNum = len(todayRegistered)
-    # 查询消费水平前十的用户
-    richUser = Donate.richPeople()
-    # 查询流量用的最多的用户
-    coreUser = Suser.get_user_by_traffic(num=10)
-    context = {
-        "userNum": User.get_total_user_num(),
-        "todayChecked": Suser.get_today_checked_user_num(),
-        "aliveUser": NodeOnlineLog.totalOnlineUser(),
-        "todayRegistered": todayRegistered[:10],
-        "todayRegisteredNum": todayRegisteredNum,
-        "richUser": richUser,
-        "coreUser": coreUser,
-    }
-    return render(request, "backend/userstatus.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_invite(request):
-    """邀请码生成"""
-    code_list = InviteCode.objects.filter(code_type=0, isused=False, code_id=1)
-    return render(request, "backend/invitecode.html", {"code_list": code_list})
-
-
-@permission_required("sspanel")
-def gen_invite_code(request):
-
-    Num = request.GET.get("num")
-    code_type = request.GET.get("type")
-    for i in range(int(Num)):
-        code = InviteCode(code_type=code_type)
-        code.save()
-    messages.success(request, "添加邀请码{}个".format(Num), extra_tags="成功")
-    return HttpResponseRedirect(reverse("sspanel:backend_invite"))
-
-
-@permission_required("sspanel")
-def backend_charge(request):
-    """后台充值码界面"""
-    # 获取所有充值码记录
-    obj = MoneyCode.objects.all()
-    page_num = 10
-    context = Page_List_View(request, obj, page_num).get_page_context()
-    # 获取充值的金额和数量
-    Num = request.GET.get("num")
-    money = request.GET.get("money")
-    if Num and money:
-        for i in range(int(Num)):
-            code = MoneyCode(number=money)
-            code.save()
-        messages.success(request, "添加{}元充值码{}个".format(money, Num), extra_tags="成功")
-        return HttpResponseRedirect(reverse("sspanel:backend_charge"))
-    return render(request, "backend/charge.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_shop(request):
-    """商品管理界面"""
-
-    goods = Goods.objects.all()
-    context = {"goods": goods}
-    return render(request, "backend/shop.html", context=context)
-
-
-@permission_required("sspanel")
-def good_delete(request, pk):
-    """删除商品"""
-    good = Goods.objects.filter(pk=pk)
-    good.delete()
-    messages.success(request, "成功啦", extra_tags="删除商品")
-    return HttpResponseRedirect(reverse("sspanel:backend_shop"))
-
-
-@permission_required("sspanel")
-def good_edit(request, pk):
-    """商品编辑"""
-
-    good = Goods.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        # 转换为GB
-        data = request.POST.copy()
-        data["transfer"] = eval(data["transfer"]) * settings.GB
-        form = GoodsForm(data, instance=good)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_shop"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "good": good}
-            return render(request, "backend/goodedit.html", context=context)
-    # 当请求不是post时，渲染form
-    else:
-        data = {"transfer": round(good.transfer / settings.GB)}
-        form = GoodsForm(initial=data, instance=good)
-        context = {"form": form, "good": good}
-        return render(request, "backend/goodedit.html", context=context)
-
-
-@permission_required("sspanel")
-def good_create(request):
-    """商品创建"""
-    if request.method == "POST":
-        # 转换为GB
-        data = request.POST.copy()
-        data["transfer"] = eval(data["transfer"]) * settings.GB
-        form = GoodsForm(data)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_shop"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form}
-            return render(request, "backend/goodcreate.html", context=context)
-    else:
-        form = GoodsForm()
-        return render(request, "backend/goodcreate.html", context={"form": form})
-
-
-@permission_required("sspanel")
-def purchase_history(request):
-    """购买历史"""
-    obj = PurchaseHistory.objects.all()
-    page_num = 10
-    context = Page_List_View(request, obj, page_num).get_page_context()
-    return render(request, "backend/purchasehistory.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_anno(request):
-    """公告管理界面"""
-    anno = Announcement.objects.all()
-    context = {"anno": anno}
-    return render(request, "backend/annolist.html", context=context)
-
-
-@permission_required("sspanel")
-def anno_delete(request, pk):
-    """删除公告"""
-    anno = Announcement.objects.filter(pk=pk)
-    anno.delete()
-    messages.success(request, "成功啦", extra_tags="删除公告")
-    return HttpResponseRedirect(reverse("sspanel:backend_anno"))
-
-
-@permission_required("sspanel")
-def anno_create(request):
-    """公告创建"""
-    if request.method == "POST":
-        form = AnnoForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_anno"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form}
-            return render(request, "backend/annocreate.html", context=context)
-    else:
-        form = AnnoForm()
-        return render(request, "backend/annocreate.html", context={"form": form})
-
-
-@permission_required("sspanel")
-def anno_edit(request, pk):
-    """公告编辑"""
-    anno = Announcement.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        form = AnnoForm(request.POST, instance=anno)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_anno"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "anno": anno}
-            return render(request, "backend/annoedit.html", context=context)
-    # 当请求不是post时，渲染form
-    else:
-        anno.body = tomd.convert(anno.body)
-        context = {"anno": anno}
-        return render(request, "backend/annoedit.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_ticket(request):
-    """工单系统"""
-    ticket = Ticket.objects.filter(status=1)
-    context = {"ticket": ticket}
-    return render(request, "backend/ticket.html", context=context)
-
-
-@permission_required("sspanel")
-def backend_ticketedit(request, pk):
-    """后台工单编辑"""
-    ticket = Ticket.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        title = request.POST.get("title", "")
-        body = request.POST.get("body", "")
-        status = request.POST.get("status", 1)
-        ticket.title = title
-        ticket.body = body
-        ticket.status = status
-        ticket.save()
-
-        messages.success(request, "数据更新成功", extra_tags="修改成功")
-        return HttpResponseRedirect(reverse("sspanel:backend_ticket"))
-    # 当请求不是post时，渲染
-    else:
-        context = {"ticket": ticket}
-        return render(request, "backend/ticketedit.html", context=context)
-
-
-@permission_required("ssserver")
-def backend_alive_user(request):
-    user_list = []
-    for node_id in Node.get_node_ids_by_show():
-        user_list.extend(AliveIp.recent_alive(node_id))
-    page_num = 15
-    context = Page_List_View(request, user_list, page_num).get_page_context()
-
-    return render(request, "backend/aliveuser.html", context=context)

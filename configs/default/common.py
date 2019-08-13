@@ -14,9 +14,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_prometheus",
-    "django_crontab",  # 定时任务相关
-    "apps.sspanel",  # 前端网站
-    "apps.ssserver",
+    "django_crontab",
+    "anymail",
+    "apps.sspanel",
+    "v2",
 ]
 
 MIDDLEWARE = [
@@ -44,7 +45,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "apps.utils.global_settings",
             ]
         },
     }

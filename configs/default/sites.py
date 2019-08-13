@@ -1,11 +1,11 @@
 # 网站域名设置（请正确填写，不然订阅功能会失效：
-HOST = "http://127.0.0.1:8000/"
+HOST = "http://127.0.0.1:8000"
 
 # 网站密钥
 SECRET_KEY = "aasdasdas"
 
 # 是否开启注册
-ALLOW_REGISET = True
+ALLOW_REGISTER = True
 
 # 默认的theme
 # 可选列表在 apps/constants.py 里的THEME_CHOICES里
@@ -34,7 +34,7 @@ USE_ALIPAY = False
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
 ALIPAY_TRADE_INFO = "谜之屋的{}元充值码"
 # 支付宝回掉接口
-ALIPAY_CALLBACK_URL = f'{HOST}/api/callback/alipay'
+ALIPAY_CALLBACK_URL = f"{HOST}/api/callback/alipay"
 
 # 网站title
 TITLE = "谜之屋"
@@ -54,3 +54,6 @@ TOKEN = "youowntoken"
 
 # 是否开启用户到期邮件通知
 EXPIRE_EMAIL_NOTICE = False
+
+# SHORT_URL_ALPHABET 请随机生成,且不要重复
+DEFAULT_ALPHABET = "qwertyuiopasdfghjklzxcvbnm"
