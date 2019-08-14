@@ -35,7 +35,7 @@
     var getSystemStatus = function () {
         $.getJSON("{% url 'api:system_status' %}", function (res) {
             genDoughnutChart('userState', '总用户:{{ total_user_num }} ',
-                ['在线人数', '今日注册', '今日签到', '从未签到', '从未使用'],
+                ['在线人数', '今日注册', '今日签到', '从未使用'],
                 res.user_status)
             genDoughnutChart('nodeState', '节点流量 单位：GB',
                 res.node_status.names, res.node_status.traffics)

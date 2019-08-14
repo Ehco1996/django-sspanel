@@ -18,15 +18,15 @@
         <table class="table is-fullwidth">
             <thead>
                 <tr>
-                    <th>操作:</th>
-                    <th>节点ID:</th>
-                    <th>节点名:</th>
-                    <th>上线:</th>
-                    <th>节点IP:</th>
-                    <th>等级:</th>
-                    <th>已用流量:</th>
-                    <th>总流量:</th>
-                    <th>对接地址:</th>
+                    <th>操作</th>
+                    <th>ID</th>
+                    <th>名字</th>
+                    <th>节点地址</th>
+                    <th>等级</th>
+                    <th>上线</th>
+                    <th>在线人数</th>
+                    <th>已用/总流量</th>
+                    <th>对接地址</th>
                 </tr>
             </thead>
             {% for node in ss_node_list %}
@@ -41,11 +41,11 @@
                 </td>
                 <td>{{ node.node_id }}</td>
                 <td>{{ node.name }}</td>
-                <td>{{ node.enable }}</td>
                 <td>{{ node.server }}</td>
                 <td>{{ node.level }}</td>
-                <td>{{ node.human_used_traffic }}</td>
-                <td>{{ node.human_total_traffic }}</td>
+                <td>{{ node.enable }}</td>
+                <td>{{ node.online_user_count }}</td>
+                <td>{{ node.human_used_traffic}}/{{ node.human_total_traffic }}</td>
                 <td>
                     <p class="control is-expanded">
                         <input class="input" value="{{ node.api_endpoint }}" readonly>

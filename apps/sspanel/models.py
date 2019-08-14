@@ -734,6 +734,11 @@ class SSNode(models.Model):
         return configs
 
     @property
+    def online_user_count(self):
+        log = SSNodeOnlineLog.get_latest_online_log_info(self.node_id)
+        return log["online_user_count"]
+
+    @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
         return (
