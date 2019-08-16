@@ -459,7 +459,7 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 class UserSSConfig(models.Model, UserPropertyMixin):
 
     MIN_PORT = 1025
-    PORT_BLACK_SET = {6443}
+    PORT_BLACK_SET = {6443, 8472}
 
     user_id = models.IntegerField(unique=True, db_index=True)
     port = models.IntegerField("端口", unique=True, default=MIN_PORT)
@@ -482,7 +482,7 @@ class UserSSConfig(models.Model, UserPropertyMixin):
 
     @classmethod
     def get_not_used_port(cls):
-        port_set = {log['port'] for log in cls.objects.all().values("port")}
+        port_set = {log["port"] for log in cls.objects.all().values("port")}
         if not port_set:
             return cls.MIN_PORT
         max_port = max(port_set) + 1
