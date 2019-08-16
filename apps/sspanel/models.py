@@ -459,6 +459,7 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 class UserSSConfig(models.Model, UserPropertyMixin):
 
     MIN_PORT = 1025
+    PORT_BLACK_SET = {6443}
 
     user_id = models.IntegerField(unique=True, db_index=True)
     port = models.IntegerField("端口", unique=True, default=MIN_PORT)
@@ -481,13 +482,14 @@ class UserSSConfig(models.Model, UserPropertyMixin):
 
     @classmethod
     def get_not_used_port(cls):
-        port_set = {log[0] for log in cls.objects.all().values_list("port")}
+        port_set = {log['port'] for log in cls.objects.all().values("port")}
         if not port_set:
             return cls.MIN_PORT
         max_port = max(port_set) + 1
-        return random.choice(
-            list({i for i in range(cls.MIN_PORT, max_port + 1)}.difference(port_set))
+        port_set = {i for i in range(cls.MIN_PORT, max_port + 1)}.difference(
+            port_set.union(cls.PORT_BLACK_SET)
         )
+        return random.choice(list(port_set))
 
     @classmethod
     def get_by_user_id(cls, user_id):
@@ -512,6 +514,7 @@ class UserSSConfig(models.Model, UserPropertyMixin):
     def human_used_traffic(self):
         return traffic_format(self.user_traffic.used_traffic)
 
+    @transaction.atomic
     def reset_random_port(self):
         cls = type(self)
         port = cls.get_not_used_port()
