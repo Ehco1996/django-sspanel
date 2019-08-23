@@ -54,7 +54,7 @@
                     <div class="card-footer">
                         <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
                             data-target="modal-qrcode-{{ node.name }}">二维码</a>
-                        <a class="card-footer-item modal-button" data-target="modal-config-{{ node.node_id }}">配置</a>
+                        <a class="card-footer-item modal-button" data-target="ss-modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
                                 <i class="fa fa-user-o">「{{ node.online_user_count }}」</i>
@@ -62,7 +62,7 @@
                         </a>
                     </div>
                     <!--配置部分 -->
-                    <div class="modal nodeinfo" id="modal-config-{{ node.node_id }}">
+                    <div class="modal nodeinfo" id="ss-modal-config-{{ node.node_id }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
@@ -185,7 +185,8 @@
                     <div class="card-footer">
                         <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
                             data-target="modal-qrcode-{{ node.name }}">二维码</a>
-                        <a class="card-footer-item modal-button" data-target="modal-config-{{ node.node_id }}">配置</a>
+                        <a class="card-footer-item modal-button"
+                            data-target="vmess-modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
                                 <i class="fa fa-user-o">「{{ node.online_user_count }}」</i>
@@ -193,7 +194,7 @@
                         </a>
                     </div>
                     <!--配置部分 -->
-                    <div class="modal nodeinfo" id="modal-config-{{ node.node_id }}">
+                    <div class="modal nodeinfo" id="vmess-modal-config-{{ node.node_id }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
