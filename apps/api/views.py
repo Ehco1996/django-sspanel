@@ -24,6 +24,7 @@ from apps.sspanel.models import (
     UserTrafficLog,
     SSNodeOnlineLog,
     SSNode,
+    VmessNode,
     UserCheckInLog,
     UserTraffic,
     UserSSConfig,
@@ -203,6 +204,29 @@ class UserSSConfigView(View):
             # NOTE save for clear cache
             ss_node.save()
         return JsonResponse({"ret": 1, "data": []})
+
+
+class UserVmessConfigView(View):
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(UserVmessConfigView, self).dispatch(*args, **kwargs)
+
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        configs = VmessNode.get_user_vmess_configs_by_node_id(node_id)
+        return JsonResponse(configs)
+
+    @method_decorator(handle_json_post)
+    @method_decorator(api_authorized)
+    def post(self, request, node_id):
+        """
+        TODO 1 更新节点流量
+             2 更新用户流量
+             3 记录节点在线IP
+             4 关闭超出流量的用户
+             5 关闭超出流量的节点
+        """
+        return JsonResponse()
 
 
 class UserCheckInView(View):
