@@ -92,6 +92,18 @@ class SSNodeAdmin(admin.ModelAdmin):
     ]
 
 
+class VmessNodeAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "node_id",
+        "level",
+        "server",
+        "human_used_traffic",
+        "human_total_traffic",
+        "enable",
+    ]
+
+
 class PurchaseHistoryAdmin(admin.ModelAdmin):
     list_display = ["good", "user", "money", "purchtime"]
     search_fields = ["user"]
@@ -127,6 +139,7 @@ admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.UserTraffic, UserTrafficAdmin)
 admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
+admin.site.register(models.VmessNode, VmessNodeAdmin)
 
 admin.site.register(models.InviteCode, InviteCodeAdmin)
 admin.site.register(models.Donate, DonateAdmin)

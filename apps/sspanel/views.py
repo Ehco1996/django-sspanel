@@ -21,6 +21,7 @@ from apps.sspanel.models import (
     Ticket,
     User,
     SSNode,
+    VmessNode,
 )
 from apps.utils import traffic_format
 
@@ -122,11 +123,23 @@ class NodeInfoView(View):
     def get(self, request):
         user = request.user
         user_ss_config = user.user_ss_config
-        node_list = [
+        # ss node
+        ss_node_list = [
             node.to_dict_with_extra_info(user_ss_config)
             for node in SSNode.get_active_nodes()
         ]
-        context = {"node_list": node_list, "user": user, "sub_link": user.sub_link}
+
+        # vmess node
+        vmess_node_list = [
+            node.to_dict_with_extra_info(user) for node in VmessNode.get_active_nodes()
+        ]
+
+        context = {
+            "ss_node_list": ss_node_list,
+            "vmess_node_list": vmess_node_list,
+            "user": user,
+            "sub_link": user.sub_link,
+        }
         return render(request, "sspanel/nodeinfo.html", context=context)
 
 

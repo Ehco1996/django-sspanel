@@ -18,6 +18,11 @@ urlpatterns = [
         views.UserSSConfigView.as_view(),
         name="user_ss_config",
     ),
+    path(
+        "user_vmess_config/<int:node_id>/",
+        views.UserVmessConfigView.as_view(),
+        name="user_vmess_config",
+    ),
     # 支付
     path("orders", views.OrderView.as_view(), name="order"),
     path("callback/alipay", views.ailpay_callback, name="alipay_callback"),

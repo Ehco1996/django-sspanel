@@ -15,8 +15,9 @@
 </div>
 
 <div class="column is-12 is-vcentered">
+    {% if ss_node_list %}
     <div class="box" id="id-ss-node-list">
-        {% for node in node_list %}
+        {% for node in ss_node_list %}
         <div class="node-cell" data-id="{{ node.node_id }}" data-ss_link="{{ node.ss_link }}">
             <div class="card">
                 <div class="card-header">
@@ -37,14 +38,14 @@
                         </span>
                     </p>
                     <a id="id-icon-{{ node.node_id }}" class="card-header-icon"
-                        onclick="$(`#id-card-body-${ {{ node.node_id }} }`).toggle('swing')">
+                        onclick="$(`#id-ss-card-body-${ {{ node.node_id }} }`).toggle('swing')">
                         <span class="icon">
                             <i class="fa fa-ellipsis-v"></i>
                         </span>
                     </a>
                 </div>
                 {% if user.level >= node.level %}
-                <div id="id-card-body-{{ node.node_id }}" hidden="true">
+                <div id="id-ss-card-body-{{ node.node_id }}" hidden="true">
                     <div class="card-content">
                         <div class="content">
                             {{ node.info }}
@@ -142,7 +143,119 @@
         {% if not forloop.last %}<br>{% endif %}
         {% endfor %}
     </div>
+    {% endif %}
 
+    {% if vmess_node_list %}
+    <br>
+    <div class="box" id="id-vmess-node-list">
+        {% for node in vmess_node_list %}
+        <div class="node-cell" data-id="{{ node.node_id }}" data-vmess_link="{{ node.vmess_link }}">
+            <div class="card">
+                <div class="card-header">
+                    {% if node.online == True %}
+                    <p class="card-header-title">
+                        <span class="tag is-primary is-rounded is-hidden-mobile">Vmess</span>
+                        <span class="tag is-success is-rounded">在线</span>&nbsp;{{ node.name }}
+                    </p>
+                    {% else %}
+                    <p class="card-header-title">
+                        <span class="tag is-primary is-rounded is-hidden-mobile">Vmess</span>
+                        <span class="tag is-danger is-rounded">掉线</span>&nbsp;{{ node.name }}
+                    </p>
+                    {% endif %}
+                    <p class="card-header-icon">地区：
+                        <span class="icon">
+                            <i class="flag-icon flag-icon-{{ node.country }}"></i>
+                        </span>
+                    </p>
+                    <a id="id-icon-{{ node.node_id }}" class="card-header-icon"
+                        onclick="$(`#id-vmess-card-body-${ {{ node.node_id }} }`).toggle('swing')">
+                        <span class="icon">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </span>
+                    </a>
+                </div>
+                {% if user.level >= node.level %}
+                <div id="id-vmess-card-body-{{ node.node_id }}" hidden="true">
+                    <div class="card-content">
+                        <div class="content">
+                            {{ node.info }}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
+                            data-target="modal-qrcode-{{ node.name }}">二维码</a>
+                        <a class="card-footer-item modal-button" data-target="modal-config-{{ node.node_id }}">配置</a>
+                        <a class="card-footer-item">
+                            <span class="icon">
+                                <i class="fa fa-user-o">「{{ node.online_user_count }}」</i>
+                            </span>
+                        </a>
+                    </div>
+                    <!--配置部分 -->
+                    <div class="modal nodeinfo" id="modal-config-{{ node.node_id }}">
+                        <div class="modal-background"></div>
+                        <div class="modal-card">
+                            <header class="modal-card-head">
+                                <p class="modal-card-title">节点配置信息:</p>
+                                <button class="delete"></button>
+                            </header>
+                            <section class="modal-card-body">
+                                <table class="table is-fullwidth is-bordered is-striped ">
+                                    <tr>
+                                        <td class="notification">节点ip:</td>
+                                        <td class="notification">{{ node.server }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">端口:</td>
+                                        <td class="notification">{{ node.port }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">UUID:</td>
+                                        <td class="notification">{{ node.uuid }}</td>
+                                    </tr>
+                                </table>
+                                <p class="subtitle">配置链接：</p>
+                                <a href={{ node.vmess_link }}>手机上用默认浏览器打开点我就可以直接添加配置(Vmess)</a>
+                            </section>
+                        </div>
+                    </div>
+                    <!--二维码部分 -->
+                    <div class="modal" id="modal-qrcode-{{ node.name }}">
+                        <div class="modal-background"></div>
+                        <div class="modal-card">
+                            <header class="modal-card-head">
+                                <p class="modal-card-title">节点:
+                                    <strong>{{ node.name }}</strong> 配置二维码</p>
+                                <button class="delete" aria-label="close"></button>
+                            </header>
+                            <section class="modal-card-body">
+                                <div class="box">
+                                    <div id="id-qr-code-vmess-{{ node.node_id }}"></div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div id="id-card-body-{{ node.node_id }}" hidden="true">
+                    <div class="card-content">
+                        <article class="message is-danger">
+                            <div class="message-body">
+                                <p>该线路为VIP线路
+                                    <strong>购买对应商品 提升至等级:「{{node.level}}」后</strong> 才能看见节点配置哟！</p>
+                                <a class="is-link" href="{% url 'sspanel:shop' %}">点我购买！</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% if not forloop.last %}<br>{% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 
 
@@ -172,6 +285,7 @@
         $('.copied').show();
         $('.copied').fadeOut(1000);
     });
+
     var SSNodeList = $("#id-ss-node-list")
     // 事件委托绑定按钮
     SSNodeList.on('click', 'a', function (event) {
@@ -181,5 +295,16 @@
         var node_id = node.data('id')
         var ss = node.find(`#id-qr-code-ss-${node_id}`)
         if (ss.children().length == 0) { ss.qrcode(toUtf8(node.data("ss_link"))) }
+    })
+
+    var VmessNodeList = $("#id-vmess-node-list")
+    // 事件委托绑定按钮
+    VmessNodeList.on('click', 'a', function (event) {
+        var target = $(event.target)
+        var node = target.closest('.node-cell')
+        // 找到节点id
+        var node_id = node.data('id')
+        var vmess = node.find(`#id-qr-code-vmess-${node_id}`)
+        if (vmess.children().length == 0) { vmess.qrcode(toUtf8(node.data("vmess_link"))) }
     })
 </script> {% endblock main %}

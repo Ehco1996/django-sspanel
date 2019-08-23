@@ -2,6 +2,7 @@ import base64
 import datetime
 import random
 import time
+from uuid import uuid4
 from decimal import Decimal
 from urllib.parse import urlencode
 
@@ -73,6 +74,7 @@ class User(AbstractUser):
         verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
     inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
+    vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
 
     class Meta(AbstractUser.Meta):
         verbose_name = "用户"
@@ -109,6 +111,8 @@ class User(AbstractUser):
         # 绑定邀请人
         UserRefLog.log_ref(inviter_id, pendulum.today())
         user.inviter_id = inviter_id
+        # 绑定uuid
+        user.vmess_uuid = str(uuid4())
         user.save()
         # 添加SSconfig
         UserSSConfig.create_by_user_id(user.id)
@@ -677,8 +681,7 @@ class SSNodeOnlineLog(models.Model):
         return data
 
 
-class SSNode(models.Model):
-
+class BaseAbstractNode(models.Model):
     node_id = models.IntegerField(unique=True)
     level = models.PositiveIntegerField(default=0)
     name = models.CharField("名字", max_length=32)
@@ -686,17 +689,12 @@ class SSNode(models.Model):
     country = models.CharField(
         "国家", default="CN", max_length=5, choices=COUNTRIES_CHOICES
     )
-    server = models.CharField("服务器地址", max_length=128)
-    method = models.CharField(
-        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
-    )
     used_traffic = models.BigIntegerField("已用流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
-    custom_method = models.BooleanField("自定义加密", default=False)
 
     class Meta:
-        verbose_name_plural = "SS节点"
+        abstract = True
 
     @classmethod
     def get_or_none_by_node_id(cls, node_id):
@@ -720,6 +718,97 @@ class SSNode(models.Model):
     @classmethod
     def get_user_active_nodes(cls, user):
         return cls.objects.filter(enable=True, level__lte=user.level)
+
+    @property
+    def human_total_traffic(self):
+        return traffic_format(self.total_traffic)
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.used_traffic)
+
+    @property
+    def overflow(self):
+        return (self.used_traffic) > self.total_traffic
+
+
+class VmessNode(BaseAbstractNode):
+    # TODO add ONline Log
+    # TODO add cronjob
+    # TODO 订阅链接
+
+    server = models.CharField("服务器地址", max_length=128)
+    inbound_tag = models.CharField("标签", default="proxy", max_length=64)
+    port = models.IntegerField("端口", unique=True, default=10086)
+    alert_id = models.IntegerField("额外ID数量", default=1)
+
+    class Meta:
+        verbose_name_plural = "Vmess节点"
+
+    @classmethod
+    @cache.cached(ttl=60 * 60 * 24)
+    def get_user_vmess_configs_by_node_id(cls, node_id):
+        node = cls.get_or_none_by_node_id(node_id)
+        if not node:
+            return {"tag": "", "configs": []}
+
+        user_ids = []
+        configs = []
+        for d in User.objects.filter(level__gte=node.level).values(
+            "id", "email", "vmess_uuid"
+        ):
+            user_ids.append(d["id"])
+            configs.append(
+                {
+                    "user_id": d["id"],
+                    "email": d["email"],
+                    "uuid": d["vmess_uuid"],
+                    "level": node.level,
+                    "alert_id": node.alert_id,
+                }
+            )
+        ut_overflow_map = {
+            ut.user_id: ut.overflow
+            for ut in UserTraffic.objects.filter(user_id__in=user_ids)
+        }
+        for cfg in configs:
+            if not node.enable:
+                cfg["enable"] = False
+            else:
+                cfg["enable"] = not ut_overflow_map[cfg["user_id"]]
+        return {"configs": configs, "tag": node.inbound_tag}
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/user_vmess_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    def get_vmess_link(self, user):
+        # hardcode methoud to none
+        tpl = f"none:{user.vmess_uuid}@{self.server}:{self.port}"
+        return f"vmess://{base64.urlsafe_b64encode(tpl.encode()).decode()}"
+
+    def to_dict_with_extra_info(self, user):
+        data = model_to_dict(self)
+        data["country"] = self.country.lower()
+        data["uuid"] = user.vmess_uuid
+        data["vmess_link"] = self.get_vmess_link(user)
+        data.update({"online": False, "online_user_count": 0})
+        return data
+
+
+class SSNode(BaseAbstractNode):
+    server = models.CharField("服务器地址", max_length=128)
+    method = models.CharField(
+        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+    custom_method = models.BooleanField("自定义加密", default=False)
+
+    class Meta:
+        verbose_name_plural = "SS节点"
 
     @classmethod
     @cache.cached(ttl=60 * 60 * 24)
@@ -747,18 +836,6 @@ class SSNode(models.Model):
         return (
             settings.HOST + f"/api/user_ss_config/{self.node_id}/?{urlencode(params)}"
         )
-
-    @property
-    def human_total_traffic(self):
-        return traffic_format(self.total_traffic)
-
-    @property
-    def human_used_traffic(self):
-        return traffic_format(self.used_traffic)
-
-    @property
-    def overflow(self):
-        return (self.used_traffic) > self.total_traffic
 
     def get_ss_link(self, user_ss_config):
         method = user_ss_config.method if self.custom_method else self.method
