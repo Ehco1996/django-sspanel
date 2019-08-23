@@ -796,7 +796,8 @@ class VmessNode(BaseAbstractNode):
         data["country"] = self.country.lower()
         data["uuid"] = user.vmess_uuid
         data["vmess_link"] = self.get_vmess_link(user)
-        data.update({"online": False, "online_user_count": 0})
+        # TODO remove hardcode
+        data.update({"online": True, "online_user_count": 1})
         return data
 
 
