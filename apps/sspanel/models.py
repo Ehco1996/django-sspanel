@@ -634,7 +634,7 @@ class UserTraffic(models.Model, UserPropertyMixin):
 class NodeOnlineLog(models.Model):
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VMESS = "vmess"
-    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_VMESS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
+    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
 
     node_id = models.IntegerField()
     node_type = models.CharField(
