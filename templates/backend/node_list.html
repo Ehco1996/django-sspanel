@@ -19,7 +19,7 @@
             <thead>
                 <tr>
                     <th>操作</th>
-                    <th>ID</th>
+                    <th>ID/Type</th>
                     <th>名字</th>
                     <th>节点地址</th>
                     <th>等级</th>
@@ -29,17 +29,19 @@
                     <th>对接地址</th>
                 </tr>
             </thead>
-            {% for node in ss_node_list %}
+            {% for node in node_list %}
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'sspanel:backend_ss_node_detail' node.node_id  %}">编辑</a>
+                        <a class="button is-info"
+                            href="{% url 'sspanel:backend_node_detail' node_type=node.node_type node_id=node.node_id  %}">编辑</a>
                     </p>
                     <p class="control">
-                        <a class="button is-danger modal-button" data-target="modal-{{ node.node_id }}">删除</a>
+                        <a class="button is-danger modal-button"
+                            data-target="modal-{{ node.node_type }}-{{ node.node_id }}">删除</a>
                     </p>
                 </td>
-                <td>{{ node.node_id }}</td>
+                <td>{{ node.node_id }}/{{ node.node_type }}</td>
                 <td>{{ node.name }}</td>
                 <td>{{ node.server }}</td>
                 <td>{{ node.level }}</td>
@@ -52,7 +54,7 @@
                     </p>
                 </td>
             </tr>
-            <div class="modal node_delete" id="modal-{{ node.node_id }}">
+            <div class="modal node_delete" id="modal-{{ node.node_type }}-{{ node.node_id }}">
                 <div class="modal-background"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
@@ -64,7 +66,7 @@
                             <code>{{ node.name }}</code>?</p>
                         <p align="center">
                             <a class="button is-danger is-outlined"
-                                href="{% url 'sspanel:backend_ss_node_delete'  node.node_id %}">确定删除</a>
+                                href="{% url 'sspanel:backend_node_delete' node_type=node.node_type node_id=node.node_id %}">确定删除</a>
                         </p>
                     </section>
                 </div>
@@ -76,7 +78,9 @@
             {% endfor %}
         </table>
         <p align="right">
-            <a class="button is-danger is-outlined" href="{% url 'sspanel:backend_ss_node' %}">增加节点</a>
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:backend_node' node_type='ss' %}">增加SS节点</a>
+            <a class="button is-info is-outlined"
+                href="{% url 'sspanel:backend_node' node_type='vmess' %}">增加VMESS节点</a>
         </p>
     </div>
 </div>

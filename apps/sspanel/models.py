@@ -695,7 +695,6 @@ class BaseAbstractNode(models.Model):
 
 
 class VmessNode(BaseAbstractNode):
-    # TODO 订阅链接
 
     server = models.CharField("服务器地址", max_length=128)
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
@@ -737,6 +736,10 @@ class VmessNode(BaseAbstractNode):
             else:
                 cfg["enable"] = not ut_overflow_map[cfg["user_id"]]
         return {"configs": configs, "tag": node.inbound_tag}
+
+    @property
+    def node_type(self):
+        return "vmess"
 
     @property
     def api_endpoint(self):
@@ -795,6 +798,10 @@ class SSNode(BaseAbstractNode):
             for config in configs["users"]:
                 config["enable"] = False
         return configs
+
+    @property
+    def node_type(self):
+        return "ss"
 
     @property
     def online_user_count(self):

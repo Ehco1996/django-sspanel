@@ -52,20 +52,24 @@ urlpatterns = [
     path("invite_gen_code/", admin_views.gen_invite_code, name="geninvitecode"),
     # 节点相关
     path(
-        "backend/ss_node_list/",
-        admin_views.SSNodeListView.as_view(),
-        name="backend_ss_node_list",
-    ),
-    path("backend/ss_node/", admin_views.SSNodeView.as_view(), name="backend_ss_node"),
-    path(
-        "backend/ss_node_delete/<int:node_id>/",
-        admin_views.SSNodeDeleteView.as_view(),
-        name="backend_ss_node_delete",
+        "backend/node_list/",
+        admin_views.NodeListView.as_view(),
+        name="backend_node_list",
     ),
     path(
-        "backend/ss_node/<int:node_id>/",
-        admin_views.SSNodeDetailView.as_view(),
-        name="backend_ss_node_detail",
+        "backend/node/<str:node_type>/",
+        admin_views.NodeView.as_view(),
+        name="backend_node",
+    ),
+    path(
+        "backend/node_delete/<str:node_type>/<int:node_id>/",
+        admin_views.NodeDeleteView.as_view(),
+        name="backend_node_delete",
+    ),
+    path(
+        "backend/ss_node/<str:node_type>/<int:node_id>/",
+        admin_views.NodeDetailView.as_view(),
+        name="backend_node_detail",
     ),
     # 用户相关
     path(

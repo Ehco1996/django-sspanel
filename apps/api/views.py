@@ -48,7 +48,9 @@ class SystemStatusView(View):
             Donate.get_donate_money_by_date(date=pendulum.today()),
         ]
 
-        active_nodes = SSNode.get_active_nodes()
+        active_nodes = list(SSNode.get_active_nodes()) + list(
+            VmessNode.get_active_nodes()
+        )
         node_status = {
             "names": [node.name for node in active_nodes],
             "traffics": [
