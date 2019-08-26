@@ -36,12 +36,12 @@ from apps.utils import (
 class User(AbstractUser):
 
     SUB_TYPE_SS = 0
-    SUB_TYPE_SSR = 1
+    SUB_TYPE_VMESS = 1
     SUB_TYPE_ALL = 2
 
     SUB_TYPES = (
         (SUB_TYPE_SS, "只订阅SS"),
-        (SUB_TYPE_SSR, "只订阅SSR"),
+        (SUB_TYPE_VMESS, "只订阅Vmess"),
         (SUB_TYPE_ALL, "订阅所有"),
     )
 
@@ -69,7 +69,6 @@ class User(AbstractUser):
         default=settings.DEFAULT_THEME,
         max_length=10,
     )
-    # TODO Move To UserSsConfig
     sub_type = models.SmallIntegerField(
         verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
@@ -632,16 +631,22 @@ class UserTraffic(models.Model, UserPropertyMixin):
         self.save()
 
 
-class SSNodeOnlineLog(models.Model):
+class NodeOnlineLog(models.Model):
+    NODE_TYPE_SS = "ss"
+    NODE_TYPE_VMESS = "vmess"
+    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_VMESS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
 
     node_id = models.IntegerField()
+    node_type = models.CharField(
+        "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
+    )
     online_user_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name_plural = "节点在线记录"
         ordering = ["-created_at"]
-        index_together = ["node_id", "created_at"]
+        index_together = ["node_type", "node_id", "created_at"]
 
     @property
     def is_online(self):
@@ -653,28 +658,38 @@ class SSNodeOnlineLog(models.Model):
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
     @classmethod
-    def add_log(cls, node_id, num):
-        return cls.objects.create(node_id=node_id, online_user_count=num)
+    def add_log(cls, node_type, node_id, num):
+        return cls.objects.create(
+            node_type=node_type, node_id=node_id, online_user_count=num
+        )
 
     @classmethod
-    def get_latest_log_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).order_by("-created_at").first()
+    def get_latest_log_by_node_id(cls, node_type, node_id):
+        return (
+            cls.objects.filter(node_type=node_type, node_id=node_id)
+            .order_by("-created_at")
+            .first()
+        )
 
     @classmethod
     def get_all_node_online_user_count(cls):
 
-        ss_node_ids = [node.node_id for node in SSNode.get_active_nodes()]
         count = 0
-        for node_id in ss_node_ids:
-            log = cls.get_latest_log_by_node_id(node_id)
+        for node in SSNode.get_active_nodes():
+            log = cls.get_latest_log_by_node_id(cls.NODE_TYPE_SS, node.node_id)
+            if log:
+                count += log.online_user_count
+
+        for node in VmessNode.get_active_nodes():
+            log = cls.get_latest_log_by_node_id(cls.NODE_TYPE_VMESS, node.node_id)
             if log:
                 count += log.online_user_count
         return count
 
     @classmethod
-    def get_latest_online_log_info(cls, node_id):
+    def get_latest_online_log_info(cls, node_type, node_id):
         data = {"online": False, "online_user_count": 0}
-        log = cls.get_latest_log_by_node_id(node_id)
+        log = cls.get_latest_log_by_node_id(node_type, node_id)
         if log:
             data["online"] = log.is_online
             data["online_user_count"] = log.online_user_count if log.is_online else 0
@@ -733,8 +748,6 @@ class BaseAbstractNode(models.Model):
 
 
 class VmessNode(BaseAbstractNode):
-    # TODO add ONline Log
-    # TODO add cronjob
     # TODO 订阅链接
 
     server = models.CharField("服务器地址", max_length=128)
@@ -793,11 +806,14 @@ class VmessNode(BaseAbstractNode):
 
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
+        data.update(
+            NodeOnlineLog.get_latest_online_log_info(
+                NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
+            )
+        )
         data["country"] = self.country.lower()
         data["uuid"] = user.vmess_uuid
         data["vmess_link"] = self.get_vmess_link(user)
-        # TODO remove hardcode
-        data.update({"online": True, "online_user_count": 1})
         return data
 
 
@@ -828,7 +844,7 @@ class SSNode(BaseAbstractNode):
 
     @property
     def online_user_count(self):
-        log = SSNodeOnlineLog.get_latest_online_log_info(self.node_id)
+        log = NodeOnlineLog.get_latest_online_log_info(self.node_id)
         return log["online_user_count"]
 
     @property
@@ -854,7 +870,11 @@ class SSNode(BaseAbstractNode):
 
     def to_dict_with_extra_info(self, user_ss_config):
         data = self.to_dict_with_user_ss_config(user_ss_config)
-        data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
+        data.update(
+            NodeOnlineLog.get_latest_online_log_info(
+                NodeOnlineLog.NODE_TYPE_SS, self.node_id
+            )
+        )
         data["country"] = self.country.lower()
         data["ss_link"] = self.get_ss_link(user_ss_config)
         data["api_point"] = self.api_endpoint

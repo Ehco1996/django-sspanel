@@ -19,7 +19,7 @@ from apps.sspanel.models import (
     MoneyCode,
     PurchaseHistory,
     SSNode,
-    SSNodeOnlineLog,
+    NodeOnlineLog,
     Ticket,
     User,
     UserOnLineIpLog,
@@ -150,7 +150,7 @@ class UserStatusView(StaffRequiredMixin, View):
 
         context = {
             "total_user_num": User.get_total_user_num(),
-            "alive_user_count": SSNodeOnlineLog.get_all_node_online_user_count(),
+            "alive_user_count": NodeOnlineLog.get_all_node_online_user_count(),
             "today_checked_user_count": UserCheckInLog.get_today_checkin_user_count(),
             "today_register_user_count": len(today_register_user),
             "traffic_users": UserTraffic.get_user_order_by_traffic(count=10),

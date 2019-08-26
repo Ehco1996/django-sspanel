@@ -22,7 +22,7 @@ from apps.sspanel.models import (
     UserRefLog,
     UserOnLineIpLog,
     UserTrafficLog,
-    SSNodeOnlineLog,
+    NodeOnlineLog,
     SSNode,
     VmessNode,
     UserCheckInLog,
@@ -36,7 +36,7 @@ class SystemStatusView(View):
     @method_decorator(permission_required("sspanel"))
     def get(self, request):
         user_status = [
-            SSNodeOnlineLog.get_all_node_online_user_count(),
+            NodeOnlineLog.get_all_node_online_user_count(),
             User.get_today_register_user().count(),
             UserCheckInLog.get_today_checkin_user_count(),
             UserTraffic.get_never_used_user_count(),
@@ -111,6 +111,7 @@ class UserRefChartView(View):
 class UserTrafficChartView(View):
     @method_decorator(login_required)
     def get(self, request):
+        # TODO Vmess Support
         node_id = request.GET.get("node_id", 0)
         user_id = request.user.pk
         now = pendulum.now()
@@ -195,7 +196,7 @@ class UserSSConfigView(View):
         # 用户开关
         UserSSConfig.objects.bulk_update(user_ss_config_model_list, ["enable"])
         # 节点在线人数
-        SSNodeOnlineLog.add_log(node_id, len(data))
+        NodeOnlineLog.add_log(NodeOnlineLog.NODE_TYPE_SS, node_id, len(data))
         # check node && user traffic
         ss_node = SSNode.get_or_none_by_node_id(node_id)
         if ss_node.overflow:
@@ -219,14 +220,53 @@ class UserVmessConfigView(View):
     @method_decorator(handle_json_post)
     @method_decorator(api_authorized)
     def post(self, request, node_id):
-        """
-        TODO 1 更新节点流量
-             2 更新用户流量
-             3 记录节点在线IP
-             4 关闭超出流量的用户
-             5 关闭超出流量的节点
-        """
-        return JsonResponse()
+        log_time = pendulum.now()
+        node_total_traffic = 0
+        trafficlog_model_list = []
+        user_traffic_model_list = []
+
+        for log in request.json["user_traffics"]:
+            user_id = log["user_id"]
+            u = log["ut"]
+            d = log["dt"]
+
+            # 个人流量增量
+            user_traffic = UserTraffic.get_by_user_id(user_id)
+            user_traffic.download_traffic += d
+            user_traffic.upload_traffic += u
+            user_traffic.last_use_time = log_time
+            user_traffic_model_list.append(user_traffic)
+            # 个人流量记录
+            trafficlog_model_list.append(
+                UserTrafficLog(
+                    node_id=node_id,
+                    user_id=user_id,
+                    download_traffic=u,
+                    upload_traffic=d,
+                )
+            )
+            # 节点流量增量
+            node_total_traffic += u + d
+        # 节点流量记录
+        VmessNode.increase_used_traffic(node_id, node_total_traffic)
+        # 流量记录
+        UserTrafficLog.objects.bulk_create(trafficlog_model_list)
+        # TODO 在线IP
+        # 个人流量记录
+        UserTraffic.objects.bulk_update(
+            user_traffic_model_list,
+            ["download_traffic", "upload_traffic", "last_use_time"],
+        )
+        # 节点在线人数
+        NodeOnlineLog.add_log(
+            NodeOnlineLog.NODE_TYPE_VMESS, node_id, len(request.json["user_traffics"])
+        )
+        # check node && user traffic
+        node = VmessNode.get_or_none_by_node_id(node_id)
+        if node.overflow:
+            node.enable = False
+            node.save()
+        return JsonResponse(data={})
 
 
 class UserCheckInView(View):

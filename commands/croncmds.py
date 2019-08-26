@@ -9,7 +9,7 @@ from apps.sspanel.models import (
     UserOrder,
     UserOnLineIpLog,
     UserTrafficLog,
-    SSNodeOnlineLog,
+    NodeOnlineLog,
     SSNode,
     UserTraffic,
 )
@@ -45,8 +45,8 @@ def clean_traffic_log():
 
 def clean_online_log():
     """清空所有在线记录"""
-    count = SSNodeOnlineLog.objects.count()
-    SSNodeOnlineLog.truncate()
+    count = NodeOnlineLog.objects.count()
+    NodeOnlineLog.truncate()
     print("Time {} online record removed!:{}".format(timezone.now(), count))
 
 

@@ -76,8 +76,8 @@ class UserTrafficAdmin(admin.ModelAdmin):
     search_fields = ["user_id", "last_use_time"]
 
 
-class SSNodeOnlineLogAdmin(admin.ModelAdmin):
-    list_display = ["node_id", "online_user_count", "created_at"]
+class NodeOnlineLogAdmin(admin.ModelAdmin):
+    list_display = ["node_id", "node_type", "online_user_count", "created_at"]
 
 
 class SSNodeAdmin(admin.ModelAdmin):
@@ -137,7 +137,7 @@ admin.site.register(models.UserSSConfig, UserSSConfigAdmin)
 admin.site.register(models.UserCheckInLog, UserCheckInAdmin)
 admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.UserTraffic, UserTrafficAdmin)
-admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineLogAdmin)
+admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
 admin.site.register(models.VmessNode, VmessNodeAdmin)
 
