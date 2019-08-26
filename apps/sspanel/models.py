@@ -799,6 +799,13 @@ class VmessNode(BaseAbstractNode):
             + f"/api/user_vmess_config/{self.node_id}/?{urlencode(params)}"
         )
 
+    @property
+    def online_user_count(self):
+        log = NodeOnlineLog.get_latest_online_log_info(
+            NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
+        )
+        return log["online_user_count"]
+
     def get_vmess_link(self, user):
         # hardcode methoud to none
         tpl = f"none:{user.vmess_uuid}@{self.server}:{self.port}"
@@ -844,7 +851,9 @@ class SSNode(BaseAbstractNode):
 
     @property
     def online_user_count(self):
-        log = NodeOnlineLog.get_latest_online_log_info(self.node_id)
+        log = NodeOnlineLog.get_latest_online_log_info(
+            NodeOnlineLog.NODE_TYPE_SS, self.node_id
+        )
         return log["online_user_count"]
 
     @property
