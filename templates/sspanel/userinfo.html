@@ -15,7 +15,6 @@
 </div>
 <div class="column is-12">
     <div class="tile is-ancestor">
-
         <div class="tile is-5 is-vertical is-parent">
             <div class="tile box is-child">
                 <p class="title">
@@ -72,6 +71,36 @@
                         <button class="button is-outlined is-primary is-rounded" id="id-button-sub">提交</button>
                     </p>
                 </div>
+                <div class="field is-grouped">
+                    <div class="control has-icons-left">
+                        <div class="select is-rounded is-fullwidth is-link">
+                            <select name="selects-method-types">
+                                <option value="" disabled="" selected="">更换加密方式</option>
+                                <option disabled="">───</option>
+                                {% for m in methods %}
+                                <option>{{ m }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="icon is-small is-left">
+                            <i class="fa fa-wrench"></i>
+                        </div>
+                    </div>
+                    <p class="control">
+                        <button class="button is-outlined is-link is-rounded" id="id-button-method">提交</button>
+                    </p>
+                </div>
+                <div class="field is-grouped">
+                    <div class="control has-icons-left">
+                        <input name="num" class="input is-rounded" placeholder="更换SS密码" id="id-password">
+                        <div class="icon is-small is-left">
+                            <i class="fa fa-key"></i>
+                        </div>
+                    </div>
+                    <p class="control">
+                        <button class="button is-outlined is-primary is-rounded" id="id-button-password">提交</button>
+                    </p>
+                </div>
                 <hr>
                 <div id="id-checkin-box">
                     {% if user.today_is_checkin %}
@@ -100,7 +129,6 @@
                 </article>
             </div>
         </div>
-
         <div class="tile is-7 is-vertical is-parent">
 
             <div class="tile box is-child">
@@ -245,6 +273,7 @@
         $('.copied').show();
         $('.copied').fadeOut(1000);
     });
+
     // 端口重置
     var ProtButton = $("#id-change-port")
     var changeport = function () {
@@ -258,6 +287,7 @@
         })
     }
     ProtButton.click(changeport)
+
     // 签到
     var CheckButton = $("#id-checkin")
     var Checkin = function () {
@@ -273,6 +303,7 @@
         })
     }
     CheckButton.click(Checkin)
+
     // 更换主题
     var ThemeButton = $("#id-button-theme")
     var changeTheme = function () {
@@ -292,6 +323,7 @@
         }
     }
     ThemeButton.click(changeTheme)
+
     // 更换订阅类型
     var SubButton = $("#id-button-sub")
     var changeSub = function () {
@@ -311,4 +343,43 @@
         }
     }
     SubButton.click(changeSub)
+
+    // 更换加密方式
+    var MethodButton = $("#id-button-method")
+    var changeMethod = function () {
+        var method = $("select[name=selects-method-types]").val();
+        if (method) {
+            data = {
+                method: method,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
+            url = "{% url 'api:user_settings' %}"
+            $.post(url, data, function (results) {
+                info = results
+                swal(info.title, info.subtitle, info.status)
+            })
+        } else {
+            swal('错误！', '请选择你要更换的加密类型', 'error')
+        }
+    }
+    MethodButton.click(changeMethod)
+    // 更换密码
+    var PasswordButton = $("#id-button-password")
+    var changePassword = function () {
+        var password = $("#id-password").val();
+        if (password) {
+            data = {
+                password: password,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
+            url = "{% url 'api:user_settings' %}"
+            $.post(url, data, function (results) {
+                info = results
+                swal(info.title, info.subtitle, info.status)
+            })
+        } else {
+            swal('错误！', '请输入SS密码', 'error')
+        }
+    }
+    PasswordButton.click(changePassword)
 </script> {% endblock main %}

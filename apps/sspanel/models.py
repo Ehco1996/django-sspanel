@@ -58,9 +58,7 @@ class User(AbstractUser):
         verbose_name="可生成的邀请码数量", default=settings.INVITE_NUM
     )
     level = models.PositiveIntegerField(
-        verbose_name="用户等级",
-        default=0,
-        validators=[MaxValueValidator(9), MinValueValidator(0)],
+        verbose_name="用户等级", default=0, validators=[MinValueValidator(0)]
     )
     level_expire_time = models.DateTimeField(verbose_name="等级有效期", default=timezone.now)
     theme = models.CharField(
@@ -170,10 +168,21 @@ class User(AbstractUser):
 
     def get_sub_links(self):
 
-        node_list = SSNode.get_active_nodes()
-        sub_links = "MAX={}\n".format(node_list.count())
+        if self.sub_type == self.SUB_TYPE_SS:
+            node_list = list(SSNode.get_active_nodes())
+        if self.sub_type == self.SUB_TYPE_VMESS:
+            node_list = list(VmessNode.get_active_nodes())
+        if self.sub_type == self.SUB_TYPE_ALL:
+            node_list = list(SSNode.get_active_nodes()) + list(
+                VmessNode.get_active_nodes()
+            )
+
+        sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
-            sub_links += node.get_ss_link(self.user_ss_config) + "\n"
+            if type(node) == SSNode:
+                sub_links += node.get_ss_link(self.user_ss_config) + "\n"
+            if type(node) == VmessNode:
+                sub_links += node.get_vmess_link(self) + "\n"
         return sub_links
 
 
@@ -358,68 +367,6 @@ class UserOnLineIpLog(models.Model, UserPropertyMixin):
     def truncate(cls):
         with connection.cursor() as cursor:
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-
-class UserTrafficLog(models.Model, UserPropertyMixin):
-
-    user_id = models.IntegerField()
-    node_id = models.IntegerField()
-    date = models.DateField(auto_now_add=True, db_index=True)
-    upload_traffic = models.BigIntegerField("上传流量", default=0)
-    download_traffic = models.BigIntegerField("下载流量", default=0)
-
-    class Meta:
-        verbose_name_plural = "流量记录"
-        ordering = ["-date"]
-        index_together = ["user_id", "node_id", "date"]
-
-    @property
-    def total_traffic(self):
-        return traffic_format(self.download_traffic + self.upload_traffic)
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-    @classmethod
-    def calc_user_total_traffic(cls, node_id, user_id):
-        logs = cls.objects.filter(user_id=user_id, node_id=node_id)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return traffic_format(ut + dt)
-
-    @classmethod
-    def calc_user_traffic_by_date(cls, user_id, node_id, date):
-        logs = cls.objects.filter(node_id=node_id, user_id=user_id, date=date)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return (ut + dt) // settings.MB
-
-    @classmethod
-    def gen_line_chart_configs(cls, user_id, node_id, date_list):
-
-        ss_node = SSNode.get_or_none_by_node_id(node_id)
-        user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
-        date_list = sorted(date_list)
-        line_config = {
-            "title": "节点 {} 当月共消耗：{}".format(ss_node.name, user_total_traffic),
-            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
-            "data": [
-                cls.calc_user_traffic_by_date(user_id, node_id, date)
-                for date in date_list
-            ],
-            "data_title": ss_node.name,
-            "x_label": "日期 最近七天",
-            "y_label": "流量 单位：MB",
-        }
-        return line_config
 
 
 class UserCheckInLog(models.Model, UserPropertyMixin):
@@ -807,9 +754,9 @@ class VmessNode(BaseAbstractNode):
         return log["online_user_count"]
 
     def get_vmess_link(self, user):
-        # hardcode methoud to none
+        # NOTE hardcode methoud to none
         tpl = f"none:{user.vmess_uuid}@{self.server}:{self.port}"
-        return f"vmess://{base64.urlsafe_b64encode(tpl.encode()).decode()}"
+        return f"vmess://{base64.urlsafe_b64encode(tpl.encode()).decode()}#{self.name}"
 
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
@@ -888,6 +835,77 @@ class SSNode(BaseAbstractNode):
         data["ss_link"] = self.get_ss_link(user_ss_config)
         data["api_point"] = self.api_endpoint
         return data
+
+
+class UserTrafficLog(models.Model, UserPropertyMixin):
+    NODE_TYPE_SS = "ss"
+    NODE_TYPE_VMESS = "vmess"
+    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
+    NODE_MODEL_DICT = {NODE_TYPE_SS: SSNode, NODE_TYPE_VMESS: VmessNode}
+
+    user_id = models.IntegerField()
+    node_type = models.CharField(
+        "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
+    )
+    node_id = models.IntegerField()
+    date = models.DateField(auto_now_add=True, db_index=True)
+    upload_traffic = models.BigIntegerField("上传流量", default=0)
+    download_traffic = models.BigIntegerField("下载流量", default=0)
+
+    class Meta:
+        verbose_name_plural = "流量记录"
+        ordering = ["-date"]
+        index_together = ["user_id", "node_type", "node_id", "date"]
+
+    @property
+    def total_traffic(self):
+        return traffic_format(self.download_traffic + self.upload_traffic)
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+    @classmethod
+    def calc_user_total_traffic(cls, node_type, node_id, user_id):
+        logs = cls.objects.filter(user_id=user_id, node_type=node_type, node_id=node_id)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return traffic_format(ut + dt)
+
+    @classmethod
+    def calc_user_traffic_by_date(cls, user_id, node_type, node_id, date):
+        logs = cls.objects.filter(
+            node_type=node_type, node_id=node_id, user_id=user_id, date=date
+        )
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return (ut + dt) // settings.MB
+
+    @classmethod
+    def gen_line_chart_configs(cls, user_id, node_type, node_id, date_list):
+        model = cls.NODE_MODEL_DICT[node_type]
+        node = model.get_or_none_by_node_id(node_id)
+        user_total_traffic = cls.calc_user_total_traffic(node_type, node_id, user_id)
+        date_list = sorted(date_list)
+        line_config = {
+            "title": "节点 {} 当月共消耗：{}".format(node.name, user_total_traffic),
+            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+            "data": [
+                cls.calc_user_traffic_by_date(user_id, node_type, node_id, date)
+                for date in date_list
+            ],
+            "data_title": node.name,
+            "x_label": "日期 最近七天",
+            "y_label": "流量 单位：MB",
+        }
+        return line_config
 
 
 class InviteCode(models.Model):

@@ -114,6 +114,7 @@ class UserInfoView(View):
             "sub_link": user.sub_link,
             "sub_types": User.SUB_TYPES,
             "user_sub_type": user.get_sub_type_display(),
+            "methods": [m[0] for m in METHOD_CHOICES],
         }
         return render(request, "sspanel/userinfo.html", context=context)
 
@@ -146,8 +147,13 @@ class NodeInfoView(View):
 class UserTrafficLog(View):
     @method_decorator(login_required)
     def get(self, request):
-        node_list = SSNode.get_active_nodes()
-        context = {"user": request.user, "node_list": node_list}
+        ss_node_list = SSNode.get_active_nodes()
+        vmess_node_list = VmessNode.get_active_nodes()
+        context = {
+            "user": request.user,
+            "ss_node_list": ss_node_list,
+            "vmess_node_list": vmess_node_list,
+        }
         return render(request, "sspanel/user_traffic_log.html", context=context)
 
 
@@ -161,14 +167,6 @@ class UserSSNodeConfigView(View):
             for node in SSNode.get_user_active_nodes(user)
         ]
         return JsonResponse({"configs": configs})
-
-
-class UserSettingView(View):
-    @method_decorator(login_required)
-    def get(self, request):
-        methods = [m[0] for m in METHOD_CHOICES]
-        context = {"user_ss_config": request.user.user_ss_config, "methods": methods}
-        return render(request, "sspanel/user_settings.html", context=context)
 
 
 class ShopView(View):

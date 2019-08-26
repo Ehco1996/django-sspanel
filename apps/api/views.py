@@ -68,12 +68,10 @@ class UserSettingsView(View):
     def dispatch(self, *args, **kwargs):
         return super(UserSettingsView, self).dispatch(*args, **kwargs)
 
-    @method_decorator(handle_json_post)
     @method_decorator(login_required)
     def post(self, request):
         config = request.user.user_ss_config
-
-        success = config.update_from_dict(data=request.json)
+        success = config.update_from_dict(data={k: v for k, v in request.POST.items()})
         if success:
             data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}
         else:
@@ -111,12 +109,14 @@ class UserRefChartView(View):
 class UserTrafficChartView(View):
     @method_decorator(login_required)
     def get(self, request):
-        # TODO Vmess Support
         node_id = request.GET.get("node_id", 0)
+        node_type = request.GET.get("node_type", "ss")
         user_id = request.user.pk
         now = pendulum.now()
         last_week = [now.subtract(days=i).date() for i in range(6, -1, -1)]
-        configs = UserTrafficLog.gen_line_chart_configs(user_id, node_id, last_week)
+        configs = UserTrafficLog.gen_line_chart_configs(
+            user_id, node_type, node_id, last_week
+        )
         return JsonResponse(configs)
 
 
@@ -168,6 +168,7 @@ class UserSSConfigView(View):
             # 个人流量记录
             trafficlog_model_list.append(
                 UserTrafficLog(
+                    node_type=UserTrafficLog.NODE_TYPE_SS,
                     node_id=node_id,
                     user_id=user_id,
                     download_traffic=u,
@@ -239,6 +240,7 @@ class UserVmessConfigView(View):
             # 个人流量记录
             trafficlog_model_list.append(
                 UserTrafficLog(
+                    node_type=UserTrafficLog.NODE_TYPE_VMESS,
                     node_id=node_id,
                     user_id=user_id,
                     download_traffic=u,
