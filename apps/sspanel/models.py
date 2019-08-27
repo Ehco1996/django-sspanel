@@ -698,7 +698,7 @@ class VmessNode(BaseAbstractNode):
 
     server = models.CharField("服务器地址", max_length=128)
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
-    port = models.IntegerField("端口", unique=True, default=10086)
+    port = models.IntegerField("端口", default=10086)
     alert_id = models.IntegerField("额外ID数量", default=1)
 
     class Meta:
