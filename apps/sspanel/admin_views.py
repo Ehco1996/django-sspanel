@@ -81,11 +81,11 @@ class NodeDetailView(StaffRequiredMixin, View):
 
     def post(self, request, node_type, node_id):
         if node_type == "vmess":
-            vmess_node = VmessNode.objects.get(node_id=node_id)
-            form = VmessNodeForm(request.POST, instance=vmess_node)
+            node = VmessNode.objects.get(node_id=node_id)
+            form = VmessNodeForm(request.POST, instance=node)
         elif node_type == "ss":
-            ss_node = SSNode.objects.get(node_id=node_id)
-            form = SSNodeForm(request.POST, instance=ss_node)
+            node = SSNode.objects.get(node_id=node_id)
+            form = SSNodeForm(request.POST, instance=node)
 
         if form.is_valid():
             form.save()
@@ -93,8 +93,7 @@ class NodeDetailView(StaffRequiredMixin, View):
             return HttpResponseRedirect(reverse("sspanel:backend_node_list"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "ss_node": ss_node}
-            return render(request, "backend/node_detail.html", context=context)
+            return render(request, "backend/node_detail.html", context={"form": form})
 
 
 class NodeDeleteView(StaffRequiredMixin, View):
