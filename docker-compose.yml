@@ -1,5 +1,4 @@
-version: '3'
-
+version: "3"
 
 networks:
   sspanel:
@@ -11,7 +10,7 @@ services:
   nginx:
     image: nginx
     restart: always
-    container_name : nginx
+    container_name: nginx
     volumes:
       - ./configs/nginx/:/etc/nginx/conf.d
       - .:/usr/src/app
@@ -23,7 +22,7 @@ services:
       - sspanel
   mysql:
     image: mysql:5.6
-    container_name : mysql
+    container_name: mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: yourpass
@@ -34,10 +33,10 @@ services:
     networks:
       - sspanel
   web:
-    container_name : web
+    container_name: web
     restart: always
     build: .
-    image: sspanel
+    image: ehco1996/django-sspanel:runtime
     environment:
       MYSQL_PASSWORD: yourpass
       MYSQL_HOST: mysql
