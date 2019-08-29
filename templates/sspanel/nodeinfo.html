@@ -215,6 +215,14 @@
                                         <td class="notification">UUID:</td>
                                         <td class="notification">{{ node.uuid }}</td>
                                     </tr>
+                                    <tr>
+                                        <td class="notification">AlterId:</td>
+                                        <td class="notification">{{ node.alert_id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">Level:</td>
+                                        <td class="notification">{{ node.level }}</td>
+                                    </tr>
                                 </table>
                                 <p class="subtitle">配置链接：</p>
                                 <a href={{ node.vmess_link }}>手机上用默认浏览器打开点我就可以直接添加配置(Vmess)</a>
