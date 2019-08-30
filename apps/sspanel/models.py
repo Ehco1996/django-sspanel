@@ -241,7 +241,11 @@ class UserOrder(models.Model, UserPropertyMixin):
 
     @classmethod
     def get_recent_created_order(cls, user):
-        return cls.objects.filter(user=user).order_by("-created_at").first()
+        return (
+            cls.objects.filter(user=user, status=cls.STATUS_CREATED)
+            .order_by("-created_at")
+            .first()
+        )
 
     @classmethod
     def make_up_lost_orders(cls):

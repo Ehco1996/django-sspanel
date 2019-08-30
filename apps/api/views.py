@@ -361,7 +361,7 @@ def change_sub_type(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def ailpay_callback(request):
-    data = dict(request.POST)
+    data = request.POST.dict()
     signature = data.pop("sign")
     success = pay.alipay.verify(data, signature)
     if success and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED"):
