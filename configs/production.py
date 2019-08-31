@@ -1,6 +1,7 @@
 import os
 
-from configs.default import *
+from configs.default import *  # noqa
+from configs.default import DATABASES
 
 DEBUG = False
 
