@@ -293,17 +293,27 @@ class UserOrder(models.Model, UserPropertyMixin):
             Donate.objects.create(user=self.user, money=self.amount)
 
     def check_order_status(self):
+        # TODO 考虑并发的情况 需要加分布式锁
         changed = False
         if self.status != self.STATUS_CREATED:
             return
-        with transaction.atomic():
-            res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
-            if res.get("trade_status", "") == "TRADE_SUCCESS":
-                self.status = self.STATUS_PAID
-                self.save()
-                changed = True
+        res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
+        if res.get("trade_status", "") == "TRADE_SUCCESS":
+            self.status = self.STATUS_PAID
+            self.save()
+            changed = True
         self.handle_paid()
         return changed
+
+    def handle_callback(self, data):
+        signature = data.pop("sign")
+        res = pay.alipay.verify(data, signature)
+        success = res and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED")
+        if success:
+            self.status = self.STATUS_PAID
+            self.save()
+        self.handle_paid()
+        return success
 
 
 class UserRefLog(models.Model, UserPropertyMixin):

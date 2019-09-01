@@ -12,7 +12,6 @@ from django.views.decorators.http import require_http_methods
 from ratelimit.decorators import ratelimit
 
 from apps.encoder import encoder
-from apps.payments import pay
 from apps.sspanel.models import (
     Donate,
     Goods,
@@ -362,11 +361,9 @@ def change_sub_type(request):
 @require_http_methods(["POST"])
 def ailpay_callback(request):
     data = request.POST.dict()
-    signature = data.pop("sign")
-    success = pay.alipay.verify(data, signature)
-    if success and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED"):
-        order = UserOrder.objects.get(out_trade_no=data["out_trade_no"])
-        order.handle_paid()
+    order = UserOrder.objects.get(out_trade_no=data["out_trade_no"])
+    success = order.handle_callback(data)
+    if success:
         return HttpResponse("success")
     else:
         return HttpResponse("failure")
