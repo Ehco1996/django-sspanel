@@ -194,7 +194,7 @@ class UserPropertyMixin:
 
 class UserOrder(models.Model, UserPropertyMixin):
 
-    DEFAULT_ORDER_TIME_OUT = "24h"
+    DEFAULT_ORDER_TIME_OUT = "10m"
     STATUS_CREATED = 0
     STATUS_PAID = 1
     STATUS_FINISHED = 2
@@ -296,7 +296,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         # TODO 考虑并发的情况 需要加分布式锁
         changed = False
         if self.status != self.STATUS_CREATED:
-            return
+            return changed
         res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             self.status = self.STATUS_PAID
@@ -306,6 +306,8 @@ class UserOrder(models.Model, UserPropertyMixin):
         return changed
 
     def handle_callback(self, data):
+        if self.status != self.STATUS_CREATED:
+            return True
         signature = data.pop("sign")
         res = pay.alipay.verify(data, signature)
         success = res and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED")
