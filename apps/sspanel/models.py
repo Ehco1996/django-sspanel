@@ -277,7 +277,7 @@ class UserOrder(models.Model, UserPropertyMixin):
                 out_trade_no=out_trade_no,
                 amount=amount,
                 qrcode_url=qrcode_url,
-                expired_at=now.add(min=10),
+                expired_at=now.add(minutes=10),
             )
             return order
 
