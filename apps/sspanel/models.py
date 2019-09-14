@@ -232,7 +232,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         return datetime.datetime.fromtimestamp(time.time()).strftime("%Y%m%d%H%M%S%s")
 
     @classmethod
-    def get_not_paid_order(cls, user, amount):
+    def get_not_paid_order_by_amount(cls, user, amount):
         return (
             cls.objects.filter(user=user, status=cls.STATUS_CREATED, amount=amount)
             .order_by("-created_at")
@@ -244,7 +244,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         with transaction.atomic():
             order = (
                 cls.objects.select_for_update()
-                .filter(user=user, status=cls.STATUS_CREATED)
+                .filter(user=user)
                 .order_by("-created_at")
                 .first()
             )
@@ -282,7 +282,7 @@ class UserOrder(models.Model, UserPropertyMixin):
     @classmethod
     def get_or_create_order(cls, user, amount):
         now = pendulum.now()
-        order = cls.get_not_paid_order(user, amount)
+        order = cls.get_not_paid_order_by_amount(user, amount)
         if order and order.expired_at > now:
             return order
         with transaction.atomic():
