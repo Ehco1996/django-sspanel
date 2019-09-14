@@ -240,12 +240,36 @@ class UserOrder(models.Model, UserPropertyMixin):
         )
 
     @classmethod
-    def get_recent_created_order(cls, user):
-        return (
-            cls.objects.filter(user=user, status=cls.STATUS_CREATED)
-            .order_by("-created_at")
-            .first()
-        )
+    def get_and_check_recent_created_order(cls, user):
+        with transaction.atomic():
+            order = (
+                cls.objects.select_for_update()
+                .filter(user=user, status=cls.STATUS_CREATED)
+                .order_by("-created_at")
+                .first()
+            )
+            order and order.check_order_status()
+            return order
+
+    @classmethod
+    def handle_callback_by_alipay(cls, data):
+        with transaction.atomic():
+            order = UserOrder.objects.select_for_update().get(
+                out_trade_no=data["out_trade_no"]
+            )
+            if order.status != order.STATUS_CREATED:
+                return True
+            signature = data.pop("sign")
+            res = pay.alipay.verify(data, signature)
+            success = res and data["trade_status"] in (
+                "TRADE_SUCCESS",
+                "TRADE_FINISHED",
+            )
+            if success:
+                order.status = order.STATUS_PAID
+                order.save()
+            order.handle_paid()
+            return success
 
     @classmethod
     def make_up_lost_orders(cls):
@@ -282,18 +306,17 @@ class UserOrder(models.Model, UserPropertyMixin):
             return order
 
     def handle_paid(self):
+        # NOTE Must use in transaction
         if self.status != self.STATUS_PAID:
             return
-        with transaction.atomic():
-            self.user.balance += self.amount
-            self.user.save()
-            self.status = self.STATUS_FINISHED
-            self.save()
-            # 将充值记录和捐赠绑定
-            Donate.objects.create(user=self.user, money=self.amount)
+        self.user.balance += self.amount
+        self.user.save()
+        self.status = self.STATUS_FINISHED
+        self.save()
+        # 将充值记录和捐赠绑定
+        Donate.objects.create(user=self.user, money=self.amount)
 
     def check_order_status(self):
-        # TODO 考虑并发的情况 需要加分布式锁
         changed = False
         if self.status != self.STATUS_CREATED:
             return changed
@@ -304,18 +327,6 @@ class UserOrder(models.Model, UserPropertyMixin):
             changed = True
         self.handle_paid()
         return changed
-
-    def handle_callback(self, data):
-        if self.status != self.STATUS_CREATED:
-            return True
-        signature = data.pop("sign")
-        res = pay.alipay.verify(data, signature)
-        success = res and data["trade_status"] in ("TRADE_SUCCESS", "TRADE_FINISHED")
-        if success:
-            self.status = self.STATUS_PAID
-            self.save()
-        self.handle_paid()
-        return success
 
 
 class UserRefLog(models.Model, UserPropertyMixin):

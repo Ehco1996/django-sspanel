@@ -361,8 +361,7 @@ def change_sub_type(request):
 @require_http_methods(["POST"])
 def ailpay_callback(request):
     data = request.POST.dict()
-    order = UserOrder.objects.get(out_trade_no=data["out_trade_no"])
-    success = order.handle_callback(data)
+    success = UserOrder.handle_callback_by_alipay(data)
     if success:
         return HttpResponse("success")
     else:
@@ -373,8 +372,7 @@ class OrderView(View):
     @method_decorator(login_required)
     def get(self, request):
         user = request.user
-        order = UserOrder.get_recent_created_order(user)
-        order and order.check_order_status()
+        order = UserOrder.get_and_check_recent_created_order(user)
         if order and order.status == UserOrder.STATUS_FINISHED:
             info = {"title": "充值成功!", "subtitle": "请去商品界面购买商品！", "status": "success"}
         else:
