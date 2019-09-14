@@ -373,7 +373,7 @@ class OrderView(View):
     def get(self, request):
         user = request.user
         order = UserOrder.get_and_check_recent_created_order(user)
-        if order and order.status == UserOrder.STATUS_FINISHED:
+        if order and order.status != UserOrder.STATUS_CREATED:
             info = {"title": "充值成功!", "subtitle": "请去商品界面购买商品！", "status": "success"}
         else:
             info = {"title": "支付查询失败!", "subtitle": "亲，确认支付了么？", "status": "error"}
