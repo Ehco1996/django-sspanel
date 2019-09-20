@@ -141,6 +141,7 @@ class SSNodeForm(ModelForm):
             "total_traffic": forms.NumberInput(attrs={"class": "input"}),
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "custom_method": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "speed_limit": forms.NumberInput(attrs={"class": "input"}),
         }
 
 
@@ -191,10 +192,9 @@ class UserForm(ModelForm):
 class UserSSConfigForm(ModelForm):
     class Meta:
         model = UserSSConfig
-        fields = ["port", "password", "speed_limit", "method", "enable"]
+        fields = ["port", "password", "method", "enable"]
         widgets = {
             "port": forms.NumberInput(attrs={"class": "input"}),
-            "speed_limit": forms.NumberInput(attrs={"class": "input"}),
             "password": forms.TextInput(attrs={"class": "input"}),
             "method": forms.Select(attrs={"class": "input"}),
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),

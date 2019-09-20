@@ -442,7 +442,6 @@ class UserSSConfig(models.Model, UserPropertyMixin):
     port = models.IntegerField("端口", unique=True, default=MIN_PORT)
     password = models.CharField("密码", max_length=32, default=get_short_random_string)
     enable = models.BooleanField("是否开启", default=True)
-    speed_limit = models.IntegerField("限速", default=0)
     method = models.CharField(
         "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
     )
@@ -807,6 +806,7 @@ class SSNode(BaseAbstractNode):
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
     )
     custom_method = models.BooleanField("自定义加密", default=False)
+    speed_limit = models.IntegerField("限速", default=0)
 
     class Meta:
         verbose_name_plural = "SS节点"

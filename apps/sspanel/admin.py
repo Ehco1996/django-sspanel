@@ -44,7 +44,6 @@ class UserSSConfigAdmin(admin.ModelAdmin):
         "port",
         "password",
         "method",
-        "speed_limit",
         "human_used_traffic",
         "human_total_traffic",
         "enable",
@@ -78,6 +77,7 @@ class UserTrafficAdmin(admin.ModelAdmin):
 
 class NodeOnlineLogAdmin(admin.ModelAdmin):
     list_display = ["node_id", "node_type", "online_user_count", "created_at"]
+    search_fields = ["node_id", "node_type"]
 
 
 class SSNodeAdmin(admin.ModelAdmin):

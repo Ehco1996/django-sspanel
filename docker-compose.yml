@@ -35,7 +35,6 @@ services:
   web:
     container_name: web
     restart: always
-    build: .
     image: ehco1996/django-sspanel:runtime
     environment:
       MYSQL_PASSWORD: yourpass
