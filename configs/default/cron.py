@@ -27,7 +27,7 @@ CRONJOBS = [
         "30 2 * * *",
         "django.core.management.call_command",
         ["run_cron_job"],
-        {"jobname": "clean_online_log"},
+        {"jobname": "clean_node_online_log"},
         ">>" + BASE_DIR + "/logs/cron.log",
     ),
     (
