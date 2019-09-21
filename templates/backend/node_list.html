@@ -24,8 +24,9 @@
                     <th>节点地址</th>
                     <th>等级</th>
                     <th>上线</th>
-                    <th>在线人数</th>
+                    <th>人数</th>
                     <th>已用/总流量</th>
+                    <th>限速</th>
                     <th>对接地址</th>
                 </tr>
             </thead>
@@ -48,6 +49,7 @@
                 <td>{{ node.enable }}</td>
                 <td>{{ node.online_user_count }}</td>
                 <td>{{ node.human_used_traffic}}/{{ node.human_total_traffic }}</td>
+                <td>{{ node.human_speed_limit }}</td>
                 <td>
                     <p class="control is-expanded">
                         <input class="input" value="{{ node.api_endpoint }}" readonly>

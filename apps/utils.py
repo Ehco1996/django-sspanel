@@ -50,12 +50,12 @@ def traffic_format(traffic):
         return str(int(traffic)) + "B"
 
     if traffic < 1024 * 1024:
-        return str(round((traffic / 1024.0), 2)) + "KB"
+        return str(round((traffic / 1024.0), 1)) + "KB"
 
     if traffic < 1024 * 1024 * 1024:
-        return str(round((traffic / (1024.0 * 1024)), 2)) + "MB"
+        return str(round((traffic / (1024.0 * 1024)), 1)) + "MB"
 
-    return str(round((traffic / 1073741824.0), 2)) + "GB"
+    return str(round((traffic / 1073741824.0), 1)) + "GB"
 
 
 def reverse_traffic(str):

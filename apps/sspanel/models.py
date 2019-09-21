@@ -802,6 +802,9 @@ class VmessNode(BaseAbstractNode):
 
 
 class SSNode(BaseAbstractNode):
+    KB = 1024
+    MEGABIT = KB * 125
+
     server = models.CharField("服务器地址", max_length=128)
     method = models.CharField(
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
@@ -830,6 +833,13 @@ class SSNode(BaseAbstractNode):
     @property
     def node_type(self):
         return "ss"
+
+    @property
+    def human_speed_limit(self):
+        if self.speed_limit != 0:
+            return f"{round(self.speed_limit / self.MEGABIT, 1)} Mbps"
+        else:
+            return "不限速"
 
     @property
     def online_user_count(self):
@@ -869,6 +879,7 @@ class SSNode(BaseAbstractNode):
         data["country"] = self.country.lower()
         data["ss_link"] = self.get_ss_link(user_ss_config)
         data["api_point"] = self.api_endpoint
+        data["human_speed_limit"] = self.human_speed_limit
         return data
 
 

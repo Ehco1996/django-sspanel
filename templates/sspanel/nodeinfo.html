@@ -48,7 +48,8 @@
                 <div id="id-ss-card-body-{{ node.node_id }}" hidden="true">
                     <div class="card-content">
                         <div class="content">
-                            {{ node.info }}
+                            <p>{{ node.info }}</p>
+                            <p>限速：<code>{{ node.human_speed_limit }}</code></p>
                         </div>
                     </div>
                     <div class="card-footer">
