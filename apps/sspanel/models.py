@@ -132,7 +132,7 @@ class User(AbstractUser):
         for user in expired_users:
             user.level = 0
             user.save()
-            print(f"time: {now} user: {user} level timeout!")
+            print(f"Time: {now} user: {user} level timeout!")
             expired_user_emails.append(user.email)
         if expired_user_emails and settings.EXPIRE_EMAIL_NOTICE:
             send_mail(
@@ -452,6 +452,7 @@ class UserSSConfig(models.Model, UserPropertyMixin):
     @classmethod
     @transaction.atomic
     def create_by_user_id(cls, user_id):
+        # TODO 暂时在这里创建usertraffic 以后如果再增加节点类型可以挪走
         config = cls.objects.create(user_id=user_id, port=cls.get_not_used_port())
         UserTraffic.objects.create(user_id=user_id)
         return config
