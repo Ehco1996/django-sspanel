@@ -820,11 +820,12 @@ class SSNode(BaseAbstractNode):
     def get_user_ss_configs_by_node_id(cls, node_id):
         ss_node = cls.get_or_none_by_node_id(node_id)
         configs = {"users": []}
-        if ss_node:
-            configs["users"] = [
-                ss_node.to_dict_with_user_ss_config(config)
-                for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
-            ]
+        if not ss_node:
+            return configs
+        configs["users"] = [
+            ss_node.to_dict_with_user_ss_config(config)
+            for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
+        ]
         if not ss_node.enable:
             for config in configs["users"]:
                 config["enable"] = False

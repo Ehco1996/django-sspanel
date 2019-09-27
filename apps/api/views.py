@@ -266,7 +266,7 @@ class UserVmessConfigView(View):
         )
         # check node && user traffic
         node = VmessNode.get_or_none_by_node_id(node_id)
-        if node.overflow:
+        if node and node.overflow:
             node.enable = False
             node.save()
         return JsonResponse(data={})
