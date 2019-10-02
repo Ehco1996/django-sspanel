@@ -111,6 +111,7 @@
                 num: paynum,
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             }
+            requestButton.attr("disabled", "disabled")
             $.post(url, data, function (results) {
                 codeBox.attr('class', '')
                 // 追加二维码图片
@@ -118,7 +119,6 @@
                 qrcode_url = results.qrcode_url
                 $("#id-qrcode-canvas").qrcode(qrcode_url)
                 swal(info.title, info.subtitle, info.status)
-                requestButton.attr("disabled", "disabled")
             })
         } else {
             swal('错误！', '金额必须为整数且最少为一元', 'error')

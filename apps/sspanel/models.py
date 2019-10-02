@@ -783,6 +783,44 @@ class VmessNode(BaseAbstractNode):
         )
         return log["online_user_count"]
 
+    @property
+    def server_config(self):
+        return {
+            "stats": {},
+            "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
+            "log": {"loglevel": "warning"},
+            "policy": {
+                "levels": {
+                    self.level: {"statsUserUplink": True, "statsUserDownlink": True}
+                },
+                "system": {"statsInboundUplink": True, "statsInboundDownlink": True},
+            },
+            "inbounds": [
+                {
+                    "tag": self.inbound_tag,
+                    "port": self.port,
+                    "protocol": "vmess",
+                    "settings": {"clients": []},
+                },
+                {
+                    "listen": "127.0.0.1",
+                    "port": 8080,
+                    "protocol": "dokodemo-door",
+                    "settings": {"address": "127.0.0.1"},
+                    "tag": "api",
+                },
+            ],
+            "outbounds": [{"protocol": "freedom", "settings": {}}],
+            "routing": {
+                "settings": {
+                    "rules": [
+                        {"inboundTag": ["api"], "outboundTag": "api", "type": "field"}
+                    ]
+                },
+                "strategy": "rules",
+            },
+        }
+
     def get_vmess_link(self, user):
         # NOTE hardcode methoud to none
         tpl = f"none:{user.vmess_uuid}@{self.server}:{self.port}"

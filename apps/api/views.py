@@ -3,13 +3,12 @@ import base64
 import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import HttpResponseNotFound, JsonResponse, StreamingHttpResponse
-from django.shortcuts import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from ratelimit.decorators import ratelimit
 
 from apps.encoder import encoder
 from apps.sspanel.models import (
@@ -88,12 +87,7 @@ class SubscribeView(View):
         user = User.get_by_pk(encoder.string2int(token))
         sub_links = user.get_sub_links()
         sub_links = base64.b64encode(bytes(sub_links, "utf8")).decode("ascii")
-        resp = StreamingHttpResponse(sub_links)
-        resp["Content-Type"] = "application/octet-stream; charset=utf-8"
-        resp["Content-Disposition"] = "attachment; filename={}.txt".format(token)
-        resp["Cache-Control"] = "no-store, no-cache, must-revalidate"
-        resp["Content-Length"] = len(sub_links)
-        return resp
+        return HttpResponse(sub_links)
 
 
 class UserRefChartView(View):
@@ -143,6 +137,10 @@ class UserSSConfigView(View):
         4 关闭超出流量的用户
         5 关闭超出流量的节点
         """
+        ss_node = SSNode.get_or_none_by_node_id(node_id)
+        if not ss_node:
+            return HttpResponseNotFound()
+
         data = request.json["data"]
         log_time = pendulum.now()
         node_total_traffic = 0
@@ -200,13 +198,12 @@ class UserSSConfigView(View):
         # 节点在线人数
         NodeOnlineLog.add_log(NodeOnlineLog.NODE_TYPE_SS, node_id, len(data))
         # check node && user traffic
-        ss_node = SSNode.get_or_none_by_node_id(node_id)
         if ss_node.overflow:
             ss_node.enable = False
         if user_ss_config_model_list or ss_node.overflow:
             # NOTE save for clear cache
             ss_node.save()
-        return JsonResponse({"ret": 1, "data": []})
+        return JsonResponse(data={})
 
 
 class UserVmessConfigView(View):
@@ -222,6 +219,10 @@ class UserVmessConfigView(View):
     @method_decorator(handle_json_post)
     @method_decorator(api_authorized)
     def post(self, request, node_id):
+        node = VmessNode.get_or_none_by_node_id(node_id)
+        if not node:
+            return HttpResponseNotFound()
+
         log_time = pendulum.now()
         node_total_traffic = 0
         trafficlog_model_list = []
@@ -265,11 +266,23 @@ class UserVmessConfigView(View):
             NodeOnlineLog.NODE_TYPE_VMESS, node_id, len(request.json["user_traffics"])
         )
         # check node && user traffic
-        node = VmessNode.get_or_none_by_node_id(node_id)
-        if node and node.overflow:
+        if node.overflow:
             node.enable = False
             node.save()
         return JsonResponse(data={})
+
+
+class VmessServerConfigView(View):
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(VmessServerConfigView, self).dispatch(*args, **kwargs)
+
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        node = VmessNode.get_or_none_by_node_id(node_id)
+        if not node:
+            return HttpResponseNotFound()
+        return JsonResponse(node.server_config)
 
 
 class UserCheckInView(View):
@@ -380,7 +393,6 @@ class OrderView(View):
         return JsonResponse({"info": info})
 
     @method_decorator(login_required)
-    @ratelimit(key="user", rate="1/1s", block=True)
     def post(self, request):
         amount = int(request.POST.get("num"))
         if amount < 1:

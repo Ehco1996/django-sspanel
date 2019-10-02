@@ -23,6 +23,11 @@ urlpatterns = [
         views.UserVmessConfigView.as_view(),
         name="user_vmess_config",
     ),
+    path(
+        "vmess_server_config/<int:node_id>/",
+        views.VmessServerConfigView.as_view(),
+        name="vmess_server_config",
+    ),
     # 支付
     path("orders", views.OrderView.as_view(), name="order"),
     path("callback/alipay", views.ailpay_callback, name="alipay_callback"),
