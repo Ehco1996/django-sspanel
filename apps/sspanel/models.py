@@ -125,6 +125,10 @@ class User(AbstractUser):
         return cls.objects.get(pk=pk)
 
     @classmethod
+    def get_or_none(cls, pk):
+        return cls.objects.filter(pk=pk).first()
+
+    @classmethod
     def check_and_disable_expired_users(cls):
         now = pendulum.now()
         expired_user_emails = []

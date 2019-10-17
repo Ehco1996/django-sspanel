@@ -84,7 +84,9 @@ class SubscribeView(View):
         token = request.GET.get("token")
         if not token:
             return HttpResponseNotFound()
-        user = User.get_by_pk(encoder.string2int(token))
+        user = User.get_or_none(encoder.string2int(token))
+        if not user:
+            return HttpResponseNotFound()
         sub_links = user.get_sub_links()
         sub_links = base64.b64encode(bytes(sub_links, "utf8")).decode("ascii")
         return HttpResponse(sub_links)
