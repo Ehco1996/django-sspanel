@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from apps.sspanel.models import (
     NodeOnlineLog,
     SSNode,
+    VmessNode,
     User,
     UserOnLineIpLog,
     UserOrder,
@@ -49,6 +50,10 @@ class Command(BaseCommand):
     def reset_node_traffic(self):
         """月初重置节点使用流量"""
         for node in SSNode.objects.all():
+            node.used_traffic = 0
+            node.save()
+
+        for node in VmessNode.objects.all():
             node.used_traffic = 0
             node.save()
 

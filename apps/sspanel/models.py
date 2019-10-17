@@ -518,22 +518,18 @@ class UserSSConfig(models.Model, UserPropertyMixin):
 
 class UserTraffic(models.Model, UserPropertyMixin):
 
-    DEFAULT_USE_TIME = pendulum.datetime(year=1996, month=2, day=2)
-
     user_id = models.IntegerField(unique=True, db_index=True)
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
-    last_use_time = models.DateTimeField(
-        "上次使用时间", default=DEFAULT_USE_TIME, db_index=True
-    )
+    last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True)
 
     class Meta:
         verbose_name_plural = "用户流量"
 
     @classmethod
     def get_never_used_user_count(cls):
-        return cls.objects.filter(last_use_time=cls.DEFAULT_USE_TIME).count()
+        return cls.objects.filter(last_use_time__isnull=True).count()
 
     @classmethod
     def get_by_user_id(cls, user_id):
@@ -727,6 +723,8 @@ class VmessNode(BaseAbstractNode):
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
     port = models.IntegerField("端口", default=10086)
     alter_id = models.IntegerField("额外ID数量", default=1)
+    grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
+    grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
 
     class Meta:
         verbose_name_plural = "Vmess节点"
@@ -803,10 +801,10 @@ class VmessNode(BaseAbstractNode):
                     "settings": {"clients": []},
                 },
                 {
-                    "listen": "127.0.0.1",
-                    "port": 8080,
+                    "listen": self.grpc_host,
+                    "port": self.grpc_port,
                     "protocol": "dokodemo-door",
-                    "settings": {"address": "127.0.0.1"},
+                    "settings": {"address": self.grpc_host},
                     "tag": "api",
                 },
             ],
