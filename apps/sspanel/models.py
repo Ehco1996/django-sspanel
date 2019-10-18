@@ -526,7 +526,7 @@ class UserTraffic(models.Model, UserPropertyMixin):
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
-    last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True)
+    last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True, null=True)
 
     class Meta:
         verbose_name_plural = "用户流量"
