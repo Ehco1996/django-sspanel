@@ -54,7 +54,7 @@
                     </div>
                     <div class="card-footer">
                         <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
-                            data-target="modal-qrcode-{{ node.name }}">二维码</a>
+                            data-target="modal-qrcode-ss-{{node.node_id }}-{{ node.name }}">二维码</a>
                         <a class="card-footer-item modal-button" data-target="ss-modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
@@ -110,7 +110,7 @@
                         </div>
                     </div>
                     <!--二维码部分 -->
-                    <div class="modal" id="modal-qrcode-{{ node.name }}">
+                    <div class="modal" id="modal-qrcode-ss-{{node.node_id }}-{{ node.name }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
@@ -185,7 +185,7 @@
                     </div>
                     <div class="card-footer">
                         <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
-                            data-target="modal-qrcode-{{ node.name }}">二维码</a>
+                            data-target="modal-qrcode-vmess-{{node.node_id }}-{{ node.name }}">二维码</a>
                         <a class="card-footer-item modal-button"
                             data-target="vmess-modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
@@ -231,7 +231,7 @@
                         </div>
                     </div>
                     <!--二维码部分 -->
-                    <div class="modal" id="modal-qrcode-{{ node.name }}">
+                    <div class="modal" id="modal-qrcode-vmess-{{node.node_id }}-{{ node.name }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
