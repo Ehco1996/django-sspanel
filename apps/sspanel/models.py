@@ -4,7 +4,7 @@ import random
 import time
 from uuid import uuid4
 from decimal import Decimal
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 
 import markdown
 import pendulum
@@ -826,7 +826,7 @@ class VmessNode(BaseAbstractNode):
     def get_vmess_link(self, user):
         # NOTE hardcode methoud to none
         tpl = f"none:{user.vmess_uuid}@{self.server}:{self.port}"
-        return f"vmess://{base64.urlsafe_b64encode(tpl.encode()).decode()}#{self.name}"
+        return f"vmess://{base64.urlsafe_b64encode(tpl.encode()).decode()}#{quote(self.name)}"
 
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
@@ -900,7 +900,7 @@ class SSNode(BaseAbstractNode):
         method = user_ss_config.method if self.custom_method else self.method
         code = f"{method}:{user_ss_config.password}@{self.server}:{user_ss_config.port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
-        ss_link = "ss://{}#{}".format(b64_code, self.name)
+        ss_link = "ss://{}#{}".format(b64_code, quote(self.name))
         return ss_link
 
     def to_dict_with_user_ss_config(self, user_ss_config):
