@@ -726,6 +726,7 @@ class VmessNode(BaseAbstractNode):
     server = models.CharField("服务器地址", max_length=128)
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
     port = models.IntegerField("端口", default=10086)
+    offset_port = models.IntegerField("偏移端口", blank=True,null=True)
     alter_id = models.IntegerField("额外ID数量", default=1)
     grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
@@ -825,7 +826,9 @@ class VmessNode(BaseAbstractNode):
 
     def get_vmess_link(self, user):
         # NOTE hardcode methoud to none
-        tpl = f"none:{user.vmess_uuid}@{self.server}:{self.port}"
+        # NOTE 当有offset_port的时候应显示为offset_port(中继机器的端口)
+        port = self.port if not self.offset_port else self.offset_port
+        tpl = f"none:{user.vmess_uuid}@{self.server}:{port}"
         return f"vmess://{base64.urlsafe_b64encode(tpl.encode()).decode()}#{quote(self.name)}"
 
     def to_dict_with_extra_info(self, user):
@@ -835,9 +838,12 @@ class VmessNode(BaseAbstractNode):
                 NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
             )
         )
+        if self.offset_port:
+            data["port"]= self.offset_port
         data["country"] = self.country.lower()
         data["uuid"] = user.vmess_uuid
         data["vmess_link"] = self.get_vmess_link(user)
+
         return data
 
 

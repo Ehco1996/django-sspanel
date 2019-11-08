@@ -156,6 +156,7 @@ class VmessNodeForm(ModelForm):
             "inbound_tag": forms.TextInput(attrs={"class": "input"}),
             "alter_id": forms.NumberInput(attrs={"class": "input"}),
             "port": forms.NumberInput(attrs={"class": "input"}),
+            "offset_port": forms.NumberInput(attrs={"class": "input"}),
             "info": forms.TextInput(attrs={"class": "input"}),
             "server": forms.TextInput(attrs={"class": "input"}),
             "grpc_host": forms.TextInput(attrs={"class": "input"}),
