@@ -6,13 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0022_auto_20190920_2238'),
+        ("sspanel", "0022_auto_20190920_2238"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='vmessnode',
-            old_name='alert_id',
-            new_name='alter_id',
+            model_name="vmessnode", old_name="alert_id", new_name="alter_id",
         ),
     ]

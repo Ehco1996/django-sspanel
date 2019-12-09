@@ -6,27 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0021_auto_20190827_1505'),
+        ("sspanel", "0021_auto_20190827_1505"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='userssconfig',
-            name='speed_limit',
-        ),
+        migrations.RemoveField(model_name="userssconfig", name="speed_limit",),
         migrations.AddField(
-            model_name='ssnode',
-            name='speed_limit',
-            field=models.IntegerField(default=0, verbose_name='限速'),
+            model_name="ssnode",
+            name="speed_limit",
+            field=models.IntegerField(default=0, verbose_name="限速"),
         ),
         migrations.AlterField(
-            model_name='ssnode',
-            name='method',
-            field=models.CharField(choices=[('aes-256-cfb', 'aes-256-cfb'), ('aes-128-ctr', 'aes-128-ctr'), ('rc4-md5', 'rc4-md5'), ('salsa20', 'salsa20'), ('chacha20', 'chacha20'), ('none', 'none')], default='aes-256-cfb', max_length=32, verbose_name='加密类型'),
+            model_name="ssnode",
+            name="method",
+            field=models.CharField(
+                choices=[
+                    ("aes-256-cfb", "aes-256-cfb"),
+                    ("aes-128-ctr", "aes-128-ctr"),
+                    ("rc4-md5", "rc4-md5"),
+                    ("salsa20", "salsa20"),
+                    ("chacha20", "chacha20"),
+                    ("none", "none"),
+                ],
+                default="aes-256-cfb",
+                max_length=32,
+                verbose_name="加密类型",
+            ),
         ),
         migrations.AlterField(
-            model_name='userssconfig',
-            name='method',
-            field=models.CharField(choices=[('aes-256-cfb', 'aes-256-cfb'), ('aes-128-ctr', 'aes-128-ctr'), ('rc4-md5', 'rc4-md5'), ('salsa20', 'salsa20'), ('chacha20', 'chacha20'), ('none', 'none')], default='aes-256-cfb', max_length=32, verbose_name='加密'),
+            model_name="userssconfig",
+            name="method",
+            field=models.CharField(
+                choices=[
+                    ("aes-256-cfb", "aes-256-cfb"),
+                    ("aes-128-ctr", "aes-128-ctr"),
+                    ("rc4-md5", "rc4-md5"),
+                    ("salsa20", "salsa20"),
+                    ("chacha20", "chacha20"),
+                    ("none", "none"),
+                ],
+                default="aes-256-cfb",
+                max_length=32,
+                verbose_name="加密",
+            ),
         ),
     ]

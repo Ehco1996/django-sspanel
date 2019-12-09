@@ -6,7 +6,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 LOGIN_URL = "/sspanel/login"
 
 INSTALLED_APPS = [
-    "jet",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -62,16 +61,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
-LANGUAGE_CODE = "Zh-hans"
-
-TIME_ZONE = "Asia/Shanghai"
-
-USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
+TIME_ZONE = "Asia/Shanghai"
+LANGUAGE_CODE = "zh-hans"
 
 # session 设置
 SESSION_COOKIE_AGE = 60 * 60 * 24  # 一天
@@ -91,16 +84,3 @@ AUTHENTICATION_BACKENDS = (
 
 # 用户模型设置：
 AUTH_USER_MODEL = "sspanel.User"
-
-JET_THEMES = [
-    {
-        "theme": "default",  # theme folder name
-        "color": "#47bac1",  # color of the theme's button in user menu
-        "title": "Default",  # theme title
-    },
-    {"theme": "green", "color": "#44b78b", "title": "Green"},
-    {"theme": "light-green", "color": "#2faa60", "title": "Light Green"},
-    {"theme": "light-violet", "color": "#a464c4", "title": "Light Violet"},
-    {"theme": "light-blue", "color": "#5EADDE", "title": "Light Blue"},
-    {"theme": "light-gray", "color": "#222", "title": "Light Gray"},
-]

@@ -49,11 +49,6 @@ Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 ![](https://user-images.githubusercontent.com/24697284/53059234-14120a00-34f1-11e9-8937-ea56cf4077ed.png)
 
 
-* Django-jet 后台:
-
-![](https://user-images.githubusercontent.com/24697284/53059235-14120a00-34f1-11e9-81ea-69bbb2e445d2.png)
-
-
 ## 部署教程：
 
 部署需要vps的支持  
