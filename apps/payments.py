@@ -1,3 +1,4 @@
+# TODO 写成ext
 import os
 from alipay import AliPay
 
@@ -24,12 +25,14 @@ class Alipayments:
             self.init_payment()
 
     def init_payment(self):
+        app_private_key_string = open(PRIVATE_KEY_PATH).read()
+        alipay_public_key_string = open(PUBLIC_KEY_PATH).read()
         self.alipay = AliPay(
             appid=APPID,
             app_notify_url=settings.ALIPAY_CALLBACK_URL,
-            app_private_key_path=PRIVATE_KEY_PATH,
+            app_private_key_string=app_private_key_string,
             # 支付宝的公钥，验证支付宝回传消息使用，不是你自己的公钥,
-            alipay_public_key_path=PUBLIC_KEY_PATH,
+            alipay_public_key_string=alipay_public_key_string,
             sign_type="RSA2",  # RSA 或者 RSA2
             debug=False,  # 默认False
         )
