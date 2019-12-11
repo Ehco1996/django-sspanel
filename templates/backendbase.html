@@ -3,7 +3,7 @@
 <html lang="zh">
 
 <head>
-    {% load staticfiles %}
+    {% load static %}
     <title>{% settings_value "TITLE" %}</title>
     {% include "basehead.html" %}
 </head>
@@ -80,9 +80,7 @@
         <div class="hero-body">
             <div class="container has-text-centered">
                 <h1 class="title">
-                    <a href="/">
-                        <strong>{% settings_value "SUBTITLE" %}</strong>
-                    </a>
+                    {% settings_value "SUBTITLE" %}
                 </h1>
                 <h2 class="subtitle">
                     你说会发现什么呢？

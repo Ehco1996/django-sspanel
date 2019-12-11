@@ -74,7 +74,7 @@ class User(AbstractUser):
     vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
 
     class Meta(AbstractUser.Meta):
-        verbose_name = "用户"
+        verbose_name_plural = "用户"
 
     def delete(self):
         self.user_ss_config.delete()
@@ -726,7 +726,7 @@ class VmessNode(BaseAbstractNode):
     server = models.CharField("服务器地址", max_length=128)
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
     port = models.IntegerField("端口", default=10086)
-    offset_port = models.IntegerField("偏移端口", blank=True,null=True)
+    offset_port = models.IntegerField("偏移端口", blank=True, null=True)
     alter_id = models.IntegerField("额外ID数量", default=1)
     grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
@@ -839,7 +839,7 @@ class VmessNode(BaseAbstractNode):
             )
         )
         if self.offset_port:
-            data["port"]= self.offset_port
+            data["port"] = self.offset_port
         data["country"] = self.country.lower()
         data["uuid"] = user.vmess_uuid
         data["vmess_link"] = self.get_vmess_link(user)

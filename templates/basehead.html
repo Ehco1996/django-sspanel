@@ -1,24 +1,23 @@
-{% load staticfiles %}
+{% load static %}
 <!-- meta -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" href="{% static 'img/logo/logo.ico' %}" />
 
 <!-- css -->
-{% if user.theme %}
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.7.2/{{ user.theme }}/bulmaswatch.min.css" rel="stylesheet">
-{% if user.theme == "default" %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" rel="stylesheet">
-{% endif %}
+{% if user.theme and user.theme != "default" %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.7.5/{{ user.theme }}/bulmaswatch.min.css"
+    rel="stylesheet">
 {% else %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.8.0/css/bulma.min.css" rel="stylesheet">
 {% endif %}
-
 <link rel="stylesheet" href="{% static 'sspanel/css/sspanel.css'%}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/css/flag-icon.min.css">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css"
+    rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css"
+    rel="stylesheet">
 
 <!-- js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
