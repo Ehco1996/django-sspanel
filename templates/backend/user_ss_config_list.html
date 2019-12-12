@@ -52,56 +52,59 @@
             {% endif %}
         </nav>
         <br>
-        <table class="table is-fullwidth">
-            <thead>
+        <div class="table-container">
+            <table class="table is-fullwidth">
+                <thead>
+                    <tr>
+                        <th>操作:</th>
+                        <th>ID:</th>
+                        <th>用户名</th>
+                        <th>邮箱:</th>
+                        <th>端口:</th>
+                        <th>已用/总流量</th>
+                    </tr>
+                </thead>
+                {% for contact in contacts %}
                 <tr>
-                    <th>操作:</th>
-                    <th>ID:</th>
-                    <th>用户名</th>
-                    <th>邮箱:</th>
-                    <th>端口:</th>
-                    <th>已用/总流量</th>
-                </tr>
-            </thead>
-            {% for contact in contacts %}
-            <tr>
-                <td>
-                    <p class="control">
-                        <a class="button is-info"
-                            href="{% url 'sspanel:backend_user_ss_config_detail' contact.user_ss_config.user_id %}">编辑</a>
-                    </p>
-                    <p class="control">
-                        <a class="button is-danger modal-button" data-target="modal-{{ contact.pk }}">删除</a>
-                    </p>
-                </td>
-                <td>#{{ contact.id}}</td>
-                <td>{{ contact.username }}</td>
-                <td>{{ contact.email }}</td>
-                <td>{{ contact.user_ss_config.port }}</td>
-                <td>{{ contact.user_ss_config.human_used_traffic }} / {{ contact.user_ss_config.human_total_traffic }}
-                </td>
-            </tr>
-            <div class="modal user_delete" id="modal-{{ contact.pk }}">
-                <div class="modal-background"></div>
-                <div class="modal-card">
-                    <header class="modal-card-head">
-                        <p class="modal-card-title">用户名:{{ contact.username }}</p>
-                        <button class="delete"></button>
-                    </header>
-                    <section class="modal-card-body">
-                        <p class="subtitle">确定要删除:
-                            <code>{{ contact.username }}</code>?</p>
-                        <p align="center">
-                            <a class="button is-danger is-outlined"
-                                href="{% url 'sspanel:backend_user_ss_config_delete' contact.pk %}">确定删除</a>
+                    <td>
+                        <p class="control">
+                            <a class="button is-info"
+                                href="{% url 'sspanel:backend_user_ss_config_detail' contact.user_ss_config.user_id %}">编辑</a>
                         </p>
-                    </section>
+                        <p class="control">
+                            <a class="button is-danger modal-button" data-target="modal-{{ contact.pk }}">删除</a>
+                        </p>
+                    </td>
+                    <td>#{{ contact.id}}</td>
+                    <td>{{ contact.username }}</td>
+                    <td>{{ contact.email }}</td>
+                    <td>{{ contact.user_ss_config.port }}</td>
+                    <td>{{ contact.user_ss_config.human_used_traffic }} /
+                        {{ contact.user_ss_config.human_total_traffic }}
+                    </td>
+                </tr>
+                <div class="modal user_delete" id="modal-{{ contact.pk }}">
+                    <div class="modal-background"></div>
+                    <div class="modal-card">
+                        <header class="modal-card-head">
+                            <p class="modal-card-title">用户名:{{ contact.username }}</p>
+                            <button class="delete"></button>
+                        </header>
+                        <section class="modal-card-body">
+                            <p class="subtitle">确定要删除:
+                                <code>{{ contact.username }}</code>?</p>
+                            <p align="center">
+                                <a class="button is-danger is-outlined"
+                                    href="{% url 'sspanel:backend_user_ss_config_delete' contact.pk %}">确定删除</a>
+                            </p>
+                        </section>
+                    </div>
                 </div>
-            </div>
-            {% empty %}
-            <p class="subtitle">没有用户哟</p>
-            {% endfor %}
-        </table>
+                {% empty %}
+                <p class="subtitle">没有用户哟</p>
+                {% endfor %}
+            </table>
+        </div>
     </div>
 </div>
 {% endblock main %}

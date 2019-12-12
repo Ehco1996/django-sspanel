@@ -16,7 +16,7 @@
 
 <div class="column is-12 is-vcentered">
     {% if ss_node_list %}
-    <div class="box" id="id-ss-node-list">
+    <div id="id-ss-node-list">
         {% for node in ss_node_list %}
         <div class="node-cell" data-id="{{ node.node_id }}" data-ss_link="{{ node.ss_link }}">
             <div class="card">
@@ -145,10 +145,9 @@
         {% endfor %}
     </div>
     {% endif %}
-
     {% if vmess_node_list %}
-    <br>
-    <div class="box" id="id-vmess-node-list">
+    <hr>
+    <div id="id-vmess-node-list">
         {% for node in vmess_node_list %}
         <div class="node-cell" data-id="{{ node.node_id }}" data-vmess_link="{{ node.vmess_link }}">
             <div class="card">

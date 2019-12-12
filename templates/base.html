@@ -90,130 +90,126 @@
         </div>
     </section>
     <hr>
-    <main class="bd-main">
-        <div class="container is-fluid">
-            <div class="columns">
-                <div class="column is-2 is-hidden-mobile">
-                    <div class="box">
-                        {% if user.is_authenticated %}
-                        <aside class="menu">
-                            <p class="menu-label">
-                                我的信息：
-                            </p>
-                            <ul class="menu-list">
-                                <li>
-                                    <a class="" href="{% url 'sspanel:userinfo' %}">账户信息</a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'sspanel:announcement' %}">查看公告</a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'sspanel:ticket' %}">联系站长</a>
-                                </li>
-                            </ul>
-                            <p class="menu-label">
-                                节点相关
-                            </p>
-                            <ul class="menu-list">
-                                <li>
-                                    <a href="{% url 'sspanel:nodeinfo' %}">节点信息</a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'sspanel:user_traffic_log' %}">流量记录</a>
-                                </li>
-                            </ul>
-                            <p class="menu-label">
-                                交易相关
-                            </p>
-                            <ul class="menu-list">
-                                <li>
-                                    <a href="{% url 'sspanel:donate' %}">捐赠付费</a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'sspanel:chargecenter' %}">充值界面</a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'sspanel:shop' %}">商品界面</a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'sspanel:purchaselog' %}">购买记录</a>
-                                </li>
-                            </ul>
-                            <p class="menu-label">
-                                邀请相关
-                            </p>
-                            <ul class="menu-list">
-                                <li>
-                                    <a href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'sspanel:aff_status' %}">返利记录</a>
-                                </li>
-                            </ul>
-                            {% if perms.sspanel %}
-                            <p class="menu-label">
-                                管理面板
-                            </p>
-                            <ul class="menu-list">
-                                <li>
-                                    <a href="/admin">数据后台</a>
-                                </li>
-                            </ul>
-                            <ul class="menu-list">
-                                <li>
-                                    <a href="{% url 'sspanel:system_status' %}">网站后台</a>
-                                </li>
-                            </ul>
-                            {% endif %} {% else %}
-                            <article class="message is-primary">
-                                <div class="message-header">
-                                    <p>幻想乡：</p>
-                                    <button class="delete"></button>
-                                </div>
-                                <div class="message-body">
-                                    幻想中的:「地方」
-                                </div>
-                            </article>
-                            <article class="message is-info">
-                                <div class="message-header">
-                                    <p>谜の屋：</p>
-                                    <button class="delete"></button>
-                                </div>
-                                <div class="message-body">
-                                    他不存于:「地表」
-                                </div>
-                            </article>
-                            <article class="message is-success">
-                                <div class="message-header">
-                                    <p>时之塔：</p>
-                                    <button class="delete"></button>
-                                </div>
-                                <div class="message-body">
-                                    这囚禁着：「思想」
-                                </div>
-                            </article>
-                            <article class="message is-warning">
-                                <div class="message-header">
-                                    <p>旧の桥</p>
-                                    <button class="delete"></button>
-                                </div>
-                                <div class="message-body">
-                                    却连接着：「自由」
-                                </div>
-                            </article>
-                            {% endif %}
-                        </aside>
-                    </div>
-                </div>
-
-                <div class="column is-10">
-
-                    {% block main %} {% endblock main%}
-
+    <div class="container">
+        <div class="columns">
+            <div class="column is-2 is-hidden-mobile">
+                <div class="box">
+                    {% if user.is_authenticated %}
+                    <aside class="menu">
+                        <p class="menu-label">
+                            我的信息：
+                        </p>
+                        <ul class="menu-list">
+                            <li>
+                                <a class="" href="{% url 'sspanel:userinfo' %}">账户信息</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:announcement' %}">查看公告</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:ticket' %}">联系站长</a>
+                            </li>
+                        </ul>
+                        <p class="menu-label">
+                            节点相关
+                        </p>
+                        <ul class="menu-list">
+                            <li>
+                                <a href="{% url 'sspanel:nodeinfo' %}">节点信息</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:user_traffic_log' %}">流量记录</a>
+                            </li>
+                        </ul>
+                        <p class="menu-label">
+                            交易相关
+                        </p>
+                        <ul class="menu-list">
+                            <li>
+                                <a href="{% url 'sspanel:donate' %}">捐赠付费</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:chargecenter' %}">充值界面</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:shop' %}">商品界面</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:purchaselog' %}">购买记录</a>
+                            </li>
+                        </ul>
+                        <p class="menu-label">
+                            邀请相关
+                        </p>
+                        <ul class="menu-list">
+                            <li>
+                                <a href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:aff_status' %}">返利记录</a>
+                            </li>
+                        </ul>
+                        {% if perms.sspanel %}
+                        <p class="menu-label">
+                            管理面板
+                        </p>
+                        <ul class="menu-list">
+                            <li>
+                                <a href="/admin">数据后台</a>
+                            </li>
+                        </ul>
+                        <ul class="menu-list">
+                            <li>
+                                <a href="{% url 'sspanel:system_status' %}">网站后台</a>
+                            </li>
+                        </ul>
+                        {% endif %} {% else %}
+                        <article class="message is-primary">
+                            <div class="message-header">
+                                <p>幻想乡：</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                幻想中的:「地方」
+                            </div>
+                        </article>
+                        <article class="message is-info">
+                            <div class="message-header">
+                                <p>谜の屋：</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                他不存于:「地表」
+                            </div>
+                        </article>
+                        <article class="message is-success">
+                            <div class="message-header">
+                                <p>时之塔：</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                这囚禁着：「思想」
+                            </div>
+                        </article>
+                        <article class="message is-warning">
+                            <div class="message-header">
+                                <p>旧の桥</p>
+                                <button class="delete"></button>
+                            </div>
+                            <div class="message-body">
+                                却连接着：「自由」
+                            </div>
+                        </article>
+                        {% endif %}
+                    </aside>
                 </div>
             </div>
+
+            <div class="column is-10">
+                {% block main %} {% endblock main%}
+            </div>
         </div>
-    </main>
+    </div>
     <footer>
         <div class="container">
             <div class="content has-text-centered">
