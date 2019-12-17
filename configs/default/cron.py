@@ -45,7 +45,7 @@ CRONJOBS = [
         ">>" + BASE_DIR + "/logs/cron.log",
     ),
     (
-        "*/30 * * * *",
+        "*/5 * * * *",
         "django.core.management.call_command",
         ["run_cron_job"],
         {"jobname": "make_up_lost_order"},
