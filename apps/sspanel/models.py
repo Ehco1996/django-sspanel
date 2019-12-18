@@ -24,7 +24,7 @@ from apps.constants import (
     THEME_CHOICES,
 )
 from apps.encoder import encoder
-from apps.payments import pay
+from apps.ext import pay
 from apps.utils import (
     cache,
     get_long_random_string,
@@ -198,6 +198,7 @@ class UserPropertyMixin:
 
 class UserOrder(models.Model, UserPropertyMixin):
 
+    ALIPAY_CALLBACK_URL = f"{settings.HOST}/api/callback/alipay"
     DEFAULT_ORDER_TIME_OUT = "10m"
     STATUS_CREATED = 0
     STATUS_PAID = 1
@@ -285,6 +286,8 @@ class UserOrder(models.Model, UserPropertyMixin):
 
     @classmethod
     def get_or_create_order(cls, user, amount):
+        # NOTE 目前这里只支持支付宝 所以暂时写死
+        # TODO 缺少一把分布式锁 目前还不想引入其他外部组件所以暂时忽略
         now = pendulum.now()
         order = cls.get_not_paid_order_by_amount(user, amount)
         if order and order.expired_at > now:
@@ -292,11 +295,11 @@ class UserOrder(models.Model, UserPropertyMixin):
         with transaction.atomic():
             out_trade_no = cls.gen_out_trade_no()
             trade = pay.alipay.api_alipay_trade_precreate(
-                subject=settings.ALIPAY_TRADE_INFO.format(amount),
                 out_trade_no=out_trade_no,
                 total_amount=amount,
+                subject=settings.ALIPAY_TRADE_INFO.format(amount),
                 timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
-                notify_url=settings.ALIPAY_CALLBACK_URL,
+                notify_url=cls.ALIPAY_CALLBACK_URL,
             )
             qrcode_url = trade.get("qr_code")
             order = cls.objects.create(

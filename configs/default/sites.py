@@ -27,13 +27,6 @@ DEFAULT_METHOD = "aes-256-cfb"
 MIN_CHECKIN_TRAFFIC = 10 * MB
 MAX_CHECKIN_TRAFFIC = 200 * MB
 
-# 是否启用支付宝系统
-USE_ALIPAY = False
-# 支付订单提示信息 修改请保留 {} 用于动态生成金额
-ALIPAY_TRADE_INFO = "谜之屋的{}元充值码"
-# 支付宝回掉接口
-ALIPAY_CALLBACK_URL = f"{HOST}/api/callback/alipay"
-
 # 网站title
 TITLE = "谜之屋"
 SUBTITLE = "秘密的小屋"
