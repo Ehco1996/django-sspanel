@@ -20,7 +20,7 @@ class UserOrderAdmin(admin.ModelAdmin):
         "expired_at",
     ]
     search_fields = ["user__username", "user__id"]
-    list_filter = ["user", "amount", "status", "created_at"]
+    list_filter = ["amount", "status", "created_at"]
     ordering = ("-created_at",)
 
 

@@ -5,6 +5,8 @@ from django.conf import settings
 
 class Pay:
     def __init__(self):
+        if not settings.USE_ALIPAY:
+            return
         # NOTE 暂时只支持支付宝
         self.alipay = AliPay(
             app_notify_url="",

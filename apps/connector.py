@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_delete, post_save
 from apps.sspanel import models as m
-from apps.utils import cache
+from apps.ext import cache
 
 
 def clear_user_get_by_pk_cache(sender, instance, *args, **kwargs):

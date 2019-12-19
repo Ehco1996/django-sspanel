@@ -4,20 +4,8 @@ import random
 import time
 from functools import wraps
 
-import pendulum
 from django.conf import settings
-from django.core.cache import cache
 from django.http import JsonResponse
-
-from apps.cachext import Cached, make_default_key
-from apps.constants import DEFAULT_CACHE_TTL
-
-
-class C(Cached):
-    client = cache
-
-
-cache.cached = C
 
 
 def get_random_string(
@@ -73,42 +61,6 @@ def reverse_traffic(str):
     return round(num)
 
 
-def simple_cached_view(key=None, ttl=None):
-    def decorator(func):
-        @wraps(func)
-        def cached_view(*args, **kw):
-            cache_key = key if key else make_default_key(func, *args, **kw)
-            cache_ttl = ttl if ttl else DEFAULT_CACHE_TTL
-            resp = cache.get(cache_key)
-            if resp:
-                return resp
-            else:
-                resp = func(*args, **kw)
-                cache.set(cache_key, resp, cache_ttl)
-                return resp
-
-        return cached_view
-
-    return decorator
-
-
-def authorized(view_func):
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if request.method == "GET":
-            token = request.GET.get("token", "")
-        else:
-            data = json.loads(request.body)
-            token = data.get("token", "")
-            request.json = data
-        if token == settings.TOKEN:
-            return view_func(request, *args, **kwargs)
-        else:
-            return JsonResponse({"ret": -1, "msg": "auth error"})
-
-    return wrapper
-
-
 def api_authorized(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -128,7 +80,3 @@ def handle_json_post(view_func):
         return view_func(request, *args, **kw)
 
     return wrapper
-
-
-def get_current_time():
-    return pendulum.now(tz=settings.TIME_ZONE)

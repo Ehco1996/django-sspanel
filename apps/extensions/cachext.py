@@ -1,4 +1,5 @@
 import functools
+from django.core.cache import cache
 
 DEFAULT_KEY_TYPES = (str, int, float, bool)
 
@@ -22,9 +23,8 @@ def make_default_key(f, *args, **kwargs):
     return "default.{}.{}.{}".format(f.__module__, f.__name__, ".".join(keys))
 
 
-class Cached:
-
-    client = None
+class cached:
+    client = cache
 
     def __init__(self, func=None, ttl=60 * 5, cache_key=make_default_key):
         self.ttl = ttl
@@ -66,3 +66,13 @@ class Cached:
         wrapper.make_cache_key = make_cache_key
 
         return wrapper
+
+
+class Cache:
+    def __init__(self):
+        # register cached attr
+        self.cached = cached
+        self._client = self.cached.client
+
+    def __getattr__(self, name):
+        return getattr(self._client, name)

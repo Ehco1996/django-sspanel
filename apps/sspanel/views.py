@@ -228,7 +228,7 @@ def donate(request):
     """捐赠界面和支付宝当面付功能"""
     donatelist = Donate.objects.all()[:8]
     context = {"donatelist": donatelist}
-    if settings.USE_ALIPAY is True:
+    if settings.USE_ALIPAY:
         context["alipay"] = True
     else:
         # 关闭支付宝支付

@@ -24,9 +24,8 @@ from apps.constants import (
     THEME_CHOICES,
 )
 from apps.encoder import encoder
-from apps.ext import pay
+from apps.ext import pay, cache
 from apps.utils import (
-    cache,
     get_long_random_string,
     get_short_random_string,
     traffic_format,
