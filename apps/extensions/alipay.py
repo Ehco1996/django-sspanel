@@ -14,6 +14,3 @@ class Pay:
             app_private_key_string=settings.ALIPAY_APP_PRIVATE_KEY_STRING,
             alipay_public_key_string=settings.ALIPAY_PUBLIC_KEY_STRING,
         )
-
-    def __getattr__(self, attr):
-        return getattr(self.alipay, attr)
