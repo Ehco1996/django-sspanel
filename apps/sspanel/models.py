@@ -821,6 +821,11 @@ class VmessNode(BaseAbstractNode):
             },
         }
 
+    @property
+    def human_speed_limit(self):
+        # NOTE vemss目前不支持限速
+        return "不限速"
+
     def get_vmess_link(self, user):
         # NOTE hardcode methoud to none
         # NOTE 当有offset_port的时候应显示为offset_port(中继机器的端口)
