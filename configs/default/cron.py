@@ -3,7 +3,7 @@ from .common import BASE_DIR
 # 定时任务相关
 CRONJOBS = [
     (
-        "* 1 * * *",
+        "*/1 * * * *",
         "django.core.management.call_command",
         ["run_cron_job"],
         {"jobname": "check_user_state"},

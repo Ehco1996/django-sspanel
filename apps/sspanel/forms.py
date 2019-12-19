@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
-from apps.encoder import encoder
+from apps.ext import encoder
 from apps.sspanel.models import (
     Announcement,
     Goods,

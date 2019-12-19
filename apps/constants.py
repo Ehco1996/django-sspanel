@@ -7,22 +7,6 @@ METHOD_CHOICES = (
     ("none", "none"),
 )
 
-PROTOCOL_CHOICES = (
-    ("auth_sha1_v4", "auth_sha1_v4"),
-    ("auth_aes128_md5", "auth_aes128_md5"),
-    ("auth_aes128_sha1", "auth_aes128_sha1"),
-    ("auth_chain_a", "auth_chain_a"),
-    ("origin", "origin"),
-)
-
-
-OBFS_CHOICES = (
-    ("plain", "plain"),
-    ("http_simple", "http_simple"),
-    ("http_simple_compatible", "http_simple_compatible"),
-    ("http_post", "http_post"),
-    ("tls1.2_ticket_auth", "tls1.2_ticket_auth"),
-)
 
 COUNTRIES_CHOICES = (
     ("US", "美国"),
@@ -74,5 +58,3 @@ THEME_CHOICES = (
 
 # 判断节点在线时间间隔
 NODE_TIME_OUT = 75
-
-DEFAULT_CACHE_TTL = 60 * 60 * 2

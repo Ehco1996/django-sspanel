@@ -2,9 +2,9 @@ import base64
 import datetime
 import random
 import time
-from uuid import uuid4
 from decimal import Decimal
-from urllib.parse import urlencode, quote
+from urllib.parse import quote, urlencode
+from uuid import uuid4
 
 import markdown
 import pendulum
@@ -23,13 +23,8 @@ from apps.constants import (
     NODE_TIME_OUT,
     THEME_CHOICES,
 )
-from apps.encoder import encoder
-from apps.ext import pay, cache
-from apps.utils import (
-    get_long_random_string,
-    get_short_random_string,
-    traffic_format,
-)
+from apps.ext import cache, encoder, pay
+from apps.utils import get_long_random_string, get_short_random_string, traffic_format
 
 
 class User(AbstractUser):
