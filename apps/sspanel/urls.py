@@ -10,8 +10,8 @@ urlpatterns = [
     path("invitecode/", views.InviteCodeView.as_view(), name="invite_code"),
     # 注册/登录
     path("register/", views.RegisterView.as_view(), name="register"),
-    path("login/", views.user_login, name="login"),
-    path("logout/", views.user_logout, name="logout"),
+    path("login/", views.UserLogInView.as_view(), name="login"),
+    path("logout/", views.UserLogOutView.as_view(), name="logout"),
     # 节点
     path("nodeinfo/", views.NodeInfoView.as_view(), name="nodeinfo"),
     path("user_traffic_log/", views.UserTrafficLog.as_view(), name="user_traffic_log"),

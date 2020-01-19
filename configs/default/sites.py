@@ -48,3 +48,6 @@ EXPIRE_EMAIL_NOTICE = False
 
 # SHORT_URL_ALPHABET 请随机生成,且不要重复
 DEFAULT_ALPHABET = "qwertyuiopasdfghjklzxcvbnm"
+
+# FOR SIMPLE UI
+SIMPLEUI_HOME_INFO = False

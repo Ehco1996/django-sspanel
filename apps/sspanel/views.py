@@ -58,6 +58,36 @@ class RegisterView(View):
         return render(request, "sspanel/register.html", {"form": form})
 
 
+class UserLogInView(View):
+    def post(self, request):
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+            )
+            if user and user.is_active:
+                login(request, user)
+                messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
+                return HttpResponseRedirect(reverse("sspanel:userinfo"))
+            else:
+                messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
+
+        context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
+        return render(request, "sspanel/login.html", context=context)
+
+    def get(self, request):
+        context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
+        return render(request, "sspanel/login.html", context=context)
+
+
+class UserLogOutView(View):
+    def get(self, request):
+        logout(request)
+        messages.warning(request, "欢迎下次再来", extra_tags="注销成功")
+        return HttpResponseRedirect(reverse("index"))
+
+
 class InviteCodeView(View):
     def get(self, request):
         code_list = InviteCode.list_by_code_type(InviteCode.TYPE_PUBLIC)
@@ -180,7 +210,6 @@ class ShopView(View):
 
 def index(request):
     """跳转到首页"""
-
     return render(
         request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
     )
@@ -195,32 +224,6 @@ def sshelp(request):
 def ssclient(request):
     """跳转到客户端界面"""
     return render(request, "sspanel/client.html")
-
-
-def user_login(request):
-    """用户登录函数"""
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            user = authenticate(
-                username=form.cleaned_data["username"],
-                password=form.cleaned_data["password"],
-            )
-            if user and user.is_active:
-                login(request, user)
-                messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
-                return HttpResponseRedirect(reverse("sspanel:userinfo"))
-            else:
-                messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
-    context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
-    return render(request, "sspanel/login.html", context=context)
-
-
-def user_logout(request):
-    """用户登出函数"""
-    logout(request)
-    messages.success(request, "欢迎下次再来", extra_tags="注销成功")
-    return HttpResponseRedirect(reverse("index"))
 
 
 @login_required
