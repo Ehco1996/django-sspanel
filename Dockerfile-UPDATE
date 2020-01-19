@@ -1,0 +1,9 @@
+
+FROM ehco1996/django-sspanel:runtime
+
+LABEL Name=django-sspanel
+
+COPY requirements.txt /tmp/requirements.txt
+
+RUN pip install --no-cache-dir -U -r /tmp/requirements.txt && apk del .build-deps
+
