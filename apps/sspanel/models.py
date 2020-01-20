@@ -1,3 +1,4 @@
+import re
 import base64
 import datetime
 import random
@@ -9,6 +10,7 @@ from uuid import uuid4
 import markdown
 import pendulum
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -1308,17 +1310,33 @@ class Announcement(models.Model):
     def __str__(self):
         return "日期:{}".format(str(self.time)[:9])
 
-    # 重写save函数，将文本渲染成markdown格式存入数据库
     def save(self, *args, **kwargs):
-        # 首先实例化一个MarkDown类，来渲染一下body的文本 成为html文本
         md = markdown.Markdown(extensions=["markdown.extensions.extra"])
         self.body = md.convert(self.body)
-        # 调动父类save 将数据保存到数据库中
         super(Announcement, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = "系统公告"
         ordering = ("-time",)
+
+    @classmethod
+    def send_first_visit_msg(cls, request):
+        anno = cls.objects.order_by("-time").first()
+        if not anno or request.session.get("first_visit"):
+            return
+        request.session["first_visit"] = True
+        messages.warning(request, anno.plain_text, extra_tags="最新通知！")
+
+    @property
+    def plain_text(self):
+        # TODO 现在db里存的二是md转换成的html，这里之后可能要优化。转换的逻辑移到前端去
+        re_br = re.compile("<br\s*?/?>")  # 处理换行
+        re_h = re.compile("</?\w+[^>]*>")  # HTML标签
+        s = re_br.sub("", self.body)  # 去掉br
+        s = re_h.sub("", s)  # 去掉HTML 标签
+        blank_line = re.compile("\n+")  # 去掉多余的空行
+        s = blank_line.sub("", s)
+        return s
 
 
 class Ticket(models.Model):

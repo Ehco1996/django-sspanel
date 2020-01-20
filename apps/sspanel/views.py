@@ -171,6 +171,7 @@ class NodeInfoView(View):
             "user": user,
             "sub_link": user.sub_link,
         }
+        Announcement.send_first_visit_msg(request)
         return render(request, "sspanel/nodeinfo.html", context=context)
 
 
