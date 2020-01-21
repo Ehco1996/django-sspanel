@@ -5,8 +5,10 @@ from apps.sspanel import views, admin_views
 app_name = "sspanel"
 urlpatterns = [
     # 网站用户面板
-    path("sshelp/", views.sshelp, name="sshelp"),
-    path("ssclient/", views.ssclient, name="ssclient"),
+    path("", views.IndexView.as_view(), name="index"),
+    path("help/", views.HelpView.as_view(), name="help"),
+    path("client/", views.ClientView.as_view(), name="client"),
+    # 邀请
     path("invitecode/", views.InviteCodeView.as_view(), name="invite_code"),
     # 注册/登录
     path("register/", views.RegisterView.as_view(), name="register"),
@@ -23,18 +25,22 @@ urlpatterns = [
         name="ss_node_config",
     ),
     # 捐赠/充值
-    path("donate/", views.donate, name="donate"),
+    path("donate/", views.DonateView.as_view(), name="donate"),
     path("shop/", views.ShopView.as_view(), name="shop"),
-    path("purchaselog/", views.purchaselog, name="purchaselog"),
-    path("chargecenter/", views.chargecenter, name="chargecenter"),
-    path("charge/", views.charge, name="charge"),
+    path("purchaselog/", views.PurchaseLogView.as_view(), name="purchaselog"),
+    path("chargecenter/", views.ChargeView.as_view(), name="chargecenter"),
+    # path("charge/", views.charge, name="charge"),
     # 公告
-    path("announcement/", views.announcement, name="announcement"),
+    path("announcement/", views.AnnouncementView.as_view(), name="announcement"),
     # 工单
-    path("ticket/", views.ticket, name="ticket"),
-    path("ticket/create/", views.ticket_create, name="ticket_create"),
-    path("ticket/edit/(<int:pk>)/", views.ticket_edit, name="ticket_edit"),
-    path("ticket/delete/<int:pk>)/", views.ticket_delete, name="ticket_delete"),
+    path("tickets/", views.TicketsView.as_view(), name="tickets"),
+    path("tickets/(<int:pk>)/", views.TicketDetailView.as_view(), name="ticket_detail"),
+    path("ticket_create/", views.TicketCreateView.as_view(), name="ticket_create"),
+    path(
+        "ticket_delete/<int:pk>)/",
+        views.TicketDeleteView.as_view(),
+        name="ticket_delete",
+    ),
     # 推广相关
     path("aff/invite/", views.AffInviteView.as_view(), name="aff_invite"),
     path("aff/status/", views.AffStatusView.as_view(), name="aff_status"),

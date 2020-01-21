@@ -11,7 +11,7 @@
 <body>
     <nav class="navbar is-info is-spaced">
         <div class="navbar-brand">
-            <a class="navbar-item" href="{% url 'index' %}">
+            <a class="navbar-item" href="/">
                 <img src="{% static 'img/logo/logo.png' %}" alt="谜之屋logo" width="112" height="28">
             </a>
             <div class="navbar-burger burger" data-target="navMenuColorprimary-example">
@@ -22,11 +22,11 @@
         </div>
         <div id="navMenuColorprimary-example" class="navbar-menu">
             <div class="navbar-end">
-                <a class="navbar-item" href="{% url 'index' %}">首页</a>
-                <a class="navbar-item" href="{% url 'sspanel:sshelp' %}">使用说明</a>
+                <a class="navbar-item" href="{% url 'sspanel:index' %}">首页</a>
+                <a class="navbar-item" href="{% url 'sspanel:help' %}">使用说明</a>
                 <a class="navbar-item" href="{% url 'sspanel:invite_code' %}">邀请码</a>
                 {% if user.is_authenticated %}
-                <a class="navbar-item" href="{% url 'sspanel:ssclient' %}">客户端</a>
+                <a class="navbar-item" href="{% url 'sspanel:client' %}">客户端</a>
                 <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
                     <span class="navbar-item">
                         <a class="button is-info is-inverted" href="{% url 'sspanel:userinfo' %}">
@@ -57,7 +57,7 @@
                     <a class="navbar-item is-active">我的信息</a>
                     <a class="navbar-item" href="{% url 'sspanel:userinfo' %}">账户信息</a>
                     <a class="navbar-item" href="{% url 'sspanel:announcement' %}">查看公告</a>
-                    <a class="navbar-item" href="{% url 'sspanel:ticket' %}">联系站长</a>
+                    <a class="navbar-item" href="{% url 'sspanel:tickets' %}">联系站长</a>
                     <a class="navbar-item is-active">节点相关</a>
                     <a class="navbar-item" href="{% url 'sspanel:nodeinfo' %}">节点信息</a>
                     <a class="navbar-item" href="{% url 'sspanel:user_traffic_log' %}">流量记录</a>
@@ -107,7 +107,7 @@
                                 <a href="{% url 'sspanel:announcement' %}">查看公告</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:ticket' %}">联系站长</a>
+                                <a href="{% url 'sspanel:tickets' %}">联系站长</a>
                             </li>
                         </ul>
                         <p class="menu-label">

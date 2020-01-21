@@ -209,61 +209,63 @@ class ShopView(View):
         return render(request, "sspanel/shop.html", context=context)
 
 
-def index(request):
-    """跳转到首页"""
-    return render(
-        request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
-    )
+class IndexView(View):
+    def get(self, request):
+        """跳转到首页"""
+        return render(
+            request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
+        )
 
 
-def sshelp(request):
-    """跳转到帮助界面"""
-    return render(request, "sspanel/help.html")
+class HelpView(View):
+    def get(self, request):
+        """跳转到帮助界面"""
+        return render(request, "sspanel/help.html")
 
 
-@login_required
-def ssclient(request):
-    """跳转到客户端界面"""
-    return render(request, "sspanel/client.html")
+class ClientView(View):
+    @method_decorator(login_required)
+    def get(request):
+        """跳转到客户端界面"""
+        return render(request, "sspanel/client.html")
 
 
-@login_required
-def donate(request):
-    """捐赠界面和支付宝当面付功能"""
-    donatelist = Donate.objects.all()[:8]
-    context = {"donatelist": donatelist}
-    if settings.USE_ALIPAY:
-        context["alipay"] = True
-    else:
-        # 关闭支付宝支付
-        context["alipay"] = False
-    return render(request, "sspanel/donate.html", context=context)
+class DonateView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        """捐赠界面和支付宝当面付功能"""
+        donatelist = Donate.objects.all()[:8]
+        context = {"donatelist": donatelist}
+        if settings.USE_ALIPAY:
+            context["alipay"] = True
+        else:
+            # 关闭支付宝支付
+            context["alipay"] = False
+        return render(request, "sspanel/donate.html", context=context)
 
 
-@login_required
-def purchaselog(request):
-    """用户购买记录页面"""
+class PurchaseLogView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        """用户购买记录页面"""
 
-    records = PurchaseHistory.objects.filter(user=request.user)[:10]
-    context = {"records": records}
-    return render(request, "sspanel/purchaselog.html", context=context)
-
-
-@login_required
-def chargecenter(request):
-    """充值界面的跳转"""
-    user = request.user
-    codelist = MoneyCode.objects.filter(user=user)
-
-    context = {"user": user, "codelist": codelist}
-
-    return render(request, "sspanel/chargecenter.html", context=context)
+        records = PurchaseHistory.objects.filter(user=request.user)[:10]
+        context = {"records": records}
+        return render(request, "sspanel/purchaselog.html", context=context)
 
 
-@login_required
-def charge(request):
-    user = request.user
-    if request.method == "POST":
+class ChargeView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        """充值界面的跳转"""
+        user = request.user
+        codelist = MoneyCode.objects.filter(user=user)
+        context = {"user": user, "codelist": codelist}
+        return render(request, "sspanel/chargecenter.html", context=context)
+
+    @method_decorator(login_required)
+    def post(self, request):
+        user = request.user
         input_code = request.POST.get("chargecode")
         # 在数据库里检索充值
         code = MoneyCode.objects.filter(code=input_code).first()
@@ -290,56 +292,64 @@ def charge(request):
                 return HttpResponseRedirect(reverse("sspanel:chargecenter"))
 
 
-@login_required
-def announcement(request):
-    """网站公告列表"""
-    anno = Announcement.objects.all()
-    return render(request, "sspanel/announcement.html", {"anno": anno})
+class AnnouncementView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        """网站公告列表"""
+        anno = Announcement.objects.all()
+        return render(request, "sspanel/announcement.html", {"anno": anno})
 
 
-@login_required
-def ticket(request):
-    """工单系统"""
-    ticket = Ticket.objects.filter(user=request.user)
-    context = {"ticket": ticket}
-    return render(request, "sspanel/ticket.html", context=context)
+class TicketsView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        """工单系统"""
+        ticket = Ticket.objects.filter(user=request.user)
+        context = {"ticket": ticket}
+        return render(request, "sspanel/ticket.html", context=context)
 
 
-@login_required
-def ticket_create(request):
-    """工单提交"""
-    if request.method == "POST":
+class TicketCreateView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        return render(request, "sspanel/ticketcreate.html")
+
+    @method_decorator(login_required)
+    def post(self, request):
+        """工单提交"""
         title = request.POST.get("title", "")
         body = request.POST.get("body", "")
         Ticket.objects.create(user=request.user, title=title, body=body)
         messages.success(request, "数据更新成功！", extra_tags="添加成功")
-        return HttpResponseRedirect(reverse("sspanel:ticket"))
-    else:
-        return render(request, "sspanel/ticketcreate.html")
+        return HttpResponseRedirect(reverse("sspanel:tickets"))
 
 
-@login_required
-def ticket_delete(request, pk):
-    """删除指定"""
-    ticket = Ticket.objects.get(pk=pk)
-    ticket.delete()
-    messages.success(request, "该工单已经删除", extra_tags="删除成功")
-    return HttpResponseRedirect(reverse("sspanel:ticket"))
-
-
-@login_required
-def ticket_edit(request, pk):
-    """工单编辑"""
-    ticket = Ticket.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        title = request.POST.get("title", "")
-        body = request.POST.get("body", "")
-        ticket.title = title
-        ticket.body = body
-        ticket.save()
-        messages.success(request, "数据更新成功", extra_tags="修改成功")
-        return HttpResponseRedirect(reverse("sspanel:ticket"))
-    else:
+class TicketDetailView(View):
+    @method_decorator(login_required)
+    def get(self, request, pk):
+        """工单编辑"""
+        ticket = Ticket.objects.get(pk=pk)
         context = {"ticket": ticket}
         return render(request, "sspanel/ticketedit.html", context=context)
+
+    @method_decorator(login_required)
+    def post(self, request, pk):
+        ticket = Ticket.objects.get(pk=pk)
+        ticket.title = request.POST.get("title", "")
+        ticket.body = request.POST.get("body", "")
+        ticket.save()
+        messages.success(request, "数据更新成功", extra_tags="修改成功")
+        return HttpResponseRedirect(reverse("sspanel:tickets"))
+
+
+class TicketDeleteView(View):
+    @method_decorator(login_required)
+    def get(self, request, pk):
+        """删除指定"""
+        ticket = Ticket.objects.filter(pk=pk, user=request.user).first()
+        if ticket:
+            ticket.delete()
+            messages.success(request, "该工单已经删除", extra_tags="删除成功")
+        else:
+            messages.error(request, "该工单不存在", extra_tags="删除失败")
+        return HttpResponseRedirect(reverse("sspanel:tickets"))

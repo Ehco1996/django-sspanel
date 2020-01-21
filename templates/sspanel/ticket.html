@@ -32,8 +32,8 @@
 
                 {% for record in ticket %}
                 <tr>
-                    <td><a class="button is-info" href="{% url 'sspanel:ticket_edit' record.pk %}">查看</a><br>
-                        <a class="button is-danger" href="{% url 'sspanel:ticket_delete' record.pk %}">删除</a></td>                
+                    <td><a class="button is-info" href="{% url 'sspanel:ticket_detail' record.pk %}">查看</a><br>
+                        <a class="button is-danger" href="{% url 'sspanel:ticket_delete' record.pk %}">删除</a></td>
                     <td>#{{ record.pk }}</td>
                     <td>{{ record.time }}</td>
                     <td>{{ record.title }}</td>
@@ -49,9 +49,4 @@
         </div>
     </div>
 </div>
-
-
-
-
-
 {% endblock main %}
