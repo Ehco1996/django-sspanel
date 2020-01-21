@@ -85,7 +85,7 @@ class UserLogOutView(View):
     def get(self, request):
         logout(request)
         messages.warning(request, "欢迎下次再来", extra_tags="注销成功")
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(reverse("sspanel:index"))
 
 
 class InviteCodeView(View):

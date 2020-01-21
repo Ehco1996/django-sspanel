@@ -29,7 +29,6 @@ urlpatterns = [
     path("shop/", views.ShopView.as_view(), name="shop"),
     path("purchaselog/", views.PurchaseLogView.as_view(), name="purchaselog"),
     path("chargecenter/", views.ChargeView.as_view(), name="chargecenter"),
-    # path("charge/", views.charge, name="charge"),
     # 公告
     path("announcement/", views.AnnouncementView.as_view(), name="announcement"),
     # 工单
