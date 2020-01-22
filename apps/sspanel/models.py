@@ -554,12 +554,12 @@ class UserTraffic(models.Model, UserPropertyMixin):
         need_set_user_ids = [c.user_id for c in user_ss_configs if c.enable]
         UserSSConfig.objects.filter(user_id__in=need_set_user_ids).update(enable=False)
         user_list = User.objects.filter(id__in=need_set_user_ids)
-        if emails and settings.EXPIRE_EMAIL_NOTICE:
+        if user_list and settings.EXPIRE_EMAIL_NOTICE:
             EmailSendLog.send_mail_to_users(user_list,
                 f"您的{settings.TITLE}账号流量已全部用完",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
-            print(f"共有{len(emails)}个用户流量用超啦")
+            print(f"共有{len(user_list)}个用户流量用超啦")
 
     @property
     def overflow(self):
