@@ -1381,11 +1381,6 @@ class EmailSendLog(models.Model):
         if send_mail(subject, message,settings.DEFAULT_FROM_EMAIL,address):
             logs = [cls(user=user, subject=subject, message=message) for user in users]
             cls.objects.bulk_create(logs)
-            print(f"send email success total user: {len(users)}")
+            print(f"send email success total user: emails: {address}")
         else:
             raise Exception(f"Could not send mail {address} subject: {subject}")
-
-    @classmethod
-    def send_mail_with_sleep(cls, users, subject, message, sleep_time):
-        cls.send_mail_to_users(users, subject, message)
-        time.sleep(sleep_time)
