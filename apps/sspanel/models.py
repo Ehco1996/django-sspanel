@@ -134,7 +134,7 @@ class User(AbstractUser):
             user.level = 0
             user.save()
             print(f"Time: {now} user: {user} level timeout!")
-        if expired_user_emails and settings.EXPIRE_EMAIL_NOTICE:
+        if expired_users and settings.EXPIRE_EMAIL_NOTICE:
             EmailSendLog.send_mail_to_users(
                 expired_users,
                 f"您的{settings.TITLE}账号已到期",
