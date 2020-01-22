@@ -130,7 +130,8 @@ class GoodsAdmin(admin.ModelAdmin):
 
 class EmailSendLogAdmin(admin.ModelAdmin):
     list_display = ["user", "subject", "created_at"]
-    search_fields = ["user", "subject"]
+    list_filter = ["subject", "created_at"]
+    search_fields = ["user__username", "subject"]
 
 
 # Register your models here.
