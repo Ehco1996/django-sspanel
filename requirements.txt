@@ -24,7 +24,7 @@ python-dateutil==2.8.1
 pytz==2019.3
 pytzdata==2019.3
 requests==2.22.0
-sentry-sdk==0.13.5
+sentry-sdk==0.14.1
 short-url==1.2.2
 six==1.13.0
 sqlparse==0.3.0
