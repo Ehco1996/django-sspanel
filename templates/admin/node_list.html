@@ -1,4 +1,4 @@
-{% extends 'backendbase.html' %} {% block main %}
+{% extends 'adminbase.html' %} {% block main %}
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -35,7 +35,7 @@
                 <td>
                     <p class="control">
                         <a class="button is-info"
-                            href="{% url 'sspanel:backend_node_detail' node_type=node.node_type node_id=node.node_id  %}">编辑</a>
+                            href="{% url 'sspanel:admin_node_detail' node_type=node.node_type node_id=node.node_id  %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button"
@@ -68,7 +68,7 @@
                             <code>{{ node.name }}</code>?</p>
                         <p align="center">
                             <a class="button is-danger is-outlined"
-                                href="{% url 'sspanel:backend_node_delete' node_type=node.node_type node_id=node.node_id %}">确定删除</a>
+                                href="{% url 'sspanel:admin_node_delete' node_type=node.node_type node_id=node.node_id %}">确定删除</a>
                         </p>
                     </section>
                 </div>
@@ -80,9 +80,9 @@
             {% endfor %}
         </table>
         <p align="right">
-            <a class="button is-danger is-outlined" href="{% url 'sspanel:backend_node' node_type='ss' %}">增加SS节点</a>
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:admin_node' node_type='ss' %}">增加SS节点</a>
             <a class="button is-info is-outlined"
-                href="{% url 'sspanel:backend_node' node_type='vmess' %}">增加VMESS节点</a>
+                href="{% url 'sspanel:admin_node' node_type='vmess' %}">增加VMESS节点</a>
         </p>
     </div>
 </div>

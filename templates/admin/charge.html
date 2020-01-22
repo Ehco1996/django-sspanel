@@ -1,20 +1,38 @@
- {% extends 'backendbase.html' %} {% block main %}
+{% extends 'adminbase.html' %} {% block main %}
+
+
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
-                    购买记录列表：
+                    充值码列表：
                 </h1>
                 <h2 class="subtitle">
-                    都在这里了，看吧!
+                    添加充值码：
                 </h2>
             </div>
         </div>
     </section>
 </div>
-
 <div class="column is-12">
+
+    <div class="box">
+        <form method="post">
+            {% csrf_token %}
+            <div class="field has-addons">
+                <div class="control">
+                    <input name="money" class="input" placeholder="键入充值码金额" required>
+                </div>
+                <div class="control">
+                    <input name="num" class="input" placeholder="键入充值码数量" required>
+                </div>
+                <div class="control">
+                    <button type="submit" class="button is-outlined is-info">添加</button>
+                </div>
+            </div>
+        </form>
+    </div>
     <div class="box">
         <nav class="pagination">
             {% if contacts.has_previous %}
@@ -37,22 +55,22 @@
             <thead>
                 <tr>
                     <th>ID:</th>
-                    <th>商品名:</th>
-                    <th>用户名:</th>
-                    <th>价格:</th>
-                    <th>购买时间</th>
+                    <th>面值:</th>
+                    <th>代码:</th>
+                    <th>是否使用:</th>
+                    <th>用户名</th>
                 </tr>
             </thead>
             {% for contact in contacts %}
             <tr>
                 <td>#{{ contact.pk}}</td>
-                <td>{{ contact.good }}</td>
+                <td>{{ contact.number }}</td>
+                <td>{{ contact.code }}</td>
+                <td>{{ contact.isused }}</td>
                 <td>{{ contact.user }}</td>
-                <td>{{ contact.money }} 元</td>
-                <td>{{ contact.purchtime }}</td>
             </tr>
             {% empty %}
-            <p class="subtitle">暂时还没有人购买哦</p>
+            <p class="subtitle">没有充值码哟</p>
             {% endfor %}
         </table>
     </div>

@@ -47,82 +47,105 @@ urlpatterns = [
     # 网站后台界面
     # ====================================================================
     path(
-        "backend/user_online_ip_log/",
+        "admin/user_online_ip_log/",
         admin_views.UserOnlineIpLogView.as_view(),
         name="user_online_ip_log",
     ),
-    path("backend/", admin_views.system_status, name="system_status"),
+    path("admin/", admin_views.SystemStatusView.as_view(), name="system_status"),
     # 邀请码相关
-    path("backend/invite/", admin_views.backend_invite, name="backend_invite"),
-    path("invite_gen_code/", admin_views.gen_invite_code, name="geninvitecode"),
+    path("admin/invite/", admin_views.InviteCodeView.as_view(), name="admin_invite"),
     # 节点相关
     path(
-        "backend/node_list/",
-        admin_views.NodeListView.as_view(),
-        name="backend_node_list",
+        "admin/node_list/", admin_views.NodeListView.as_view(), name="admin_node_list",
     ),
     path(
-        "backend/node/<str:node_type>/",
+        "admin/node/<str:node_type>/",
         admin_views.NodeView.as_view(),
-        name="backend_node",
+        name="admin_node",
     ),
     path(
-        "backend/node_delete/<str:node_type>/<int:node_id>/",
+        "admin/node_delete/<str:node_type>/<int:node_id>/",
         admin_views.NodeDeleteView.as_view(),
-        name="backend_node_delete",
+        name="admin_node_delete",
     ),
     path(
-        "backend/ss_node/<str:node_type>/<int:node_id>/",
+        "admin/ss_node/<str:node_type>/<int:node_id>/",
         admin_views.NodeDetailView.as_view(),
-        name="backend_node_detail",
+        name="admin_node_detail",
     ),
     # 用户相关
     path(
-        "backend/user_ss_config_list/",
+        "admin/user_ss_config_list/",
         admin_views.UserSSConfigListView.as_view(),
-        name="backend_user_ss_config_list",
+        name="admin_user_ss_config_list",
     ),
     path(
-        "backend/user_ss_config/delete/<int:pk>/",
+        "admin/user_ss_config/delete/<int:pk>/",
         admin_views.UserSSConfigDeleteView.as_view(),
-        name="backend_user_ss_config_delete",
+        name="admin_user_ss_config_delete",
     ),
     path(
-        "backend/user_ss_config/search/",
+        "admin/user_ss_config/search/",
         admin_views.UserSSConfigSearchView.as_view(),
-        name="backend_user_ss_config_search",
+        name="admin_user_ss_config_search",
     ),
     path(
-        "backend/user_ss_config/<int:user_id>/",
+        "admin/user_ss_config/<int:user_id>/",
         admin_views.UserSSConfigDetailView.as_view(),
-        name="backend_user_ss_config_detail",
+        name="admin_user_ss_config_detail",
     ),
     path(
-        "backend/user_status/",
+        "admin/user_status/",
         admin_views.UserStatusView.as_view(),
-        name="backend_user_status",
+        name="admin_user_status",
     ),
     # 商品充值相关
-    path("backend/charge/", admin_views.backend_charge, name="backend_charge"),
-    path("backend/shop/", admin_views.backend_shop, name="backend_shop"),
-    path("backend/shop/delete/<int:pk>/", admin_views.good_delete, name="good_delete"),
-    path("backend/good/create/", admin_views.good_create, name="good_create"),
-    path("backend/good/edit/<int:pk>/", admin_views.good_edit, name="good_edit"),
+    path("admin/charge/", admin_views.ChargeView.as_view(), name="admin_charge"),
+    path("admin/goods/", admin_views.GoodsView.as_view(), name="admin_goods"),
     path(
-        "backend/purchase/history/",
-        admin_views.purchase_history,
+        "admin/goods/<int:pk>/",
+        admin_views.GoodDetailView.as_view(),
+        name="good_detail",
+    ),
+    path(
+        "admin/good_delete/<int:pk>/",
+        admin_views.GoodDeleteView.as_view(),
+        name="good_delete",
+    ),
+    path(
+        "admin/good_create/", admin_views.GoodsCreateView.as_view(), name="good_create"
+    ),
+    path(
+        "admin/purchase/history/",
+        admin_views.PurchaseHistoryView.as_view(),
         name="purchase_history",
     ),
     # 公告管理相关
-    path("backend/anno/", admin_views.backend_anno, name="backend_anno"),
-    path("backend/anno/delete/<int:pk>/", admin_views.anno_delete, name="anno_delete"),
-    path("backend/anno/create/", admin_views.anno_create, name="anno_create"),
-    path("backend/anno/edit/<int:pk>/", admin_views.anno_edit, name="anno_edit"),
-    # 工单相关
-    path("backend/ticket/", admin_views.backend_ticket, name="backend_ticket"),
     path(
-        "backend/ticket/edit/<int:pk>/",
-        admin_views.backend_ticketedit,
-        name="backend_ticketedit",
+        "admin/announcements/",
+        admin_views.AnnouncementsView.as_view(),
+        name="admin_announcements",
+    ),
+    path(
+        "admin/announcements/<int:pk>/",
+        admin_views.AnnouncementDetailView.as_view(),
+        name="announcement_detail",
+    ),
+    path(
+        "admin/announcement_delete/<int:pk>/",
+        admin_views.AnnouncementDeleteView.as_view(),
+        name="announcement_delete",
+    ),
+    path(
+        "admin/announcement_create/",
+        admin_views.AnnouncementCreateView.as_view(),
+        name="announcement_create",
+    ),
+    # 工单相关
+    path("admin/tickets/", admin_views.TicketsView.as_view(), name="admin_tickets"),
+    path(
+        "admin/tickets/<int:pk>/",
+        admin_views.TicketDetailView.as_view(),
+        name="admin_ticket_detail",
     ),
 ]

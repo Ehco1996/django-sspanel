@@ -1,4 +1,4 @@
-{% extends 'backendbase.html' %} {% block main %}
+{% extends 'adminbase.html' %} {% block main %}
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -30,7 +30,7 @@
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'sspanel:good_edit' good.pk  %}">编辑</a>
+                        <a class="button is-info" href="{% url 'sspanel:good_detail' good.pk  %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button" data-target="modal-{{ good.pk }}">删除</a>

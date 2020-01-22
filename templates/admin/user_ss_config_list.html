@@ -1,4 +1,4 @@
-{% extends 'backendbase.html' %} {% block main %}
+{% extends 'adminbase.html' %} {% block main %}
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -14,7 +14,7 @@
     </section>
 </div>
 <div class="column is-12">
-    <form method="get" action="{% url 'sspanel:backend_user_ss_config_search' %}">
+    <form method="get" action="{% url 'sspanel:admin_user_ss_config_search' %}">
         <div class="field has-addons">
             <div class="control">
                 <input name="q" class="input" type="search" placeholder="用户名/邮箱 模糊搜索" required>
@@ -69,7 +69,7 @@
                     <td>
                         <p class="control">
                             <a class="button is-info"
-                                href="{% url 'sspanel:backend_user_ss_config_detail' contact.user_ss_config.user_id %}">编辑</a>
+                                href="{% url 'sspanel:admin_user_ss_config_detail' contact.user_ss_config.user_id %}">编辑</a>
                         </p>
                         <p class="control">
                             <a class="button is-danger modal-button" data-target="modal-{{ contact.pk }}">删除</a>
@@ -95,7 +95,7 @@
                                 <code>{{ contact.username }}</code>?</p>
                             <p align="center">
                                 <a class="button is-danger is-outlined"
-                                    href="{% url 'sspanel:backend_user_ss_config_delete' contact.pk %}">确定删除</a>
+                                    href="{% url 'sspanel:admin_user_ss_config_delete' contact.pk %}">确定删除</a>
                             </p>
                         </section>
                     </div>

@@ -1,4 +1,4 @@
-{% extends 'backendbase.html' %} {% block main %}
+{% extends 'adminbase.html' %} {% block main %}
 
 
 <div class="column is-12">
@@ -30,7 +30,7 @@
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info" href="{% url 'sspanel:anno_edit' rec.pk %}">编辑</a>
+                        <a class="button is-info" href="{% url 'sspanel:announcement_detail' rec.pk %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button" data-target="modal-{{ rec.pk }}">删除</a>
@@ -51,7 +51,7 @@
                         <p class="subtitle">确定要删除:
                             <code>{{ rec.pk }}</code>号公告么?</p>
                         <p align="center">
-                            <a class="button is-danger is-outlined" href="{% url 'sspanel:anno_delete' rec.pk %}">确定删除</a>
+                            <a class="button is-danger is-outlined" href="{% url 'sspanel:announcement_delete' rec.pk %}">确定删除</a>
                         </p>
                     </section>
                 </div>
@@ -61,7 +61,7 @@
             {% endfor %}
         </table>
         <p align="right">
-            <a class="button is-danger is-outlined" href="{% url 'sspanel:anno_create' %}">增加公告</a>
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:announcement_create' %}">增加公告</a>
         </p>
     </div>
 </div>

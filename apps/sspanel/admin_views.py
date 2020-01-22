@@ -41,7 +41,7 @@ class NodeListView(StaffRequiredMixin, View):
         context = {
             "node_list": list(SSNode.objects.all()) + list(VmessNode.objects.all())
         }
-        return render(request, "backend/node_list.html", context=context)
+        return render(request, "admin/node_list.html", context=context)
 
 
 class NodeView(StaffRequiredMixin, View):
@@ -50,7 +50,7 @@ class NodeView(StaffRequiredMixin, View):
             form = VmessNodeForm()
         elif node_type == "ss":
             form = SSNodeForm()
-        return render(request, "backend/node_detail.html", context={"form": form})
+        return render(request, "admin/node_detail.html", context={"form": form})
 
     def post(self, request, node_type):
         if node_type == "vmess":
@@ -61,11 +61,11 @@ class NodeView(StaffRequiredMixin, View):
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_node_list"))
+            return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form}
-            return render(request, "backend/node_detail.html", context=context)
+            return render(request, "admin/node_detail.html", context=context)
 
 
 class NodeDetailView(StaffRequiredMixin, View):
@@ -77,7 +77,7 @@ class NodeDetailView(StaffRequiredMixin, View):
             ss_node = SSNode.objects.get(node_id=node_id)
             form = SSNodeForm(instance=ss_node)
 
-        return render(request, "backend/node_detail.html", context={"form": form})
+        return render(request, "admin/node_detail.html", context={"form": form})
 
     def post(self, request, node_type, node_id):
         if node_type == "vmess":
@@ -90,10 +90,10 @@ class NodeDetailView(StaffRequiredMixin, View):
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_node_list"))
+            return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
-            return render(request, "backend/node_detail.html", context={"form": form})
+            return render(request, "admin/node_detail.html", context={"form": form})
 
 
 class NodeDeleteView(StaffRequiredMixin, View):
@@ -105,7 +105,7 @@ class NodeDeleteView(StaffRequiredMixin, View):
             ss_node = SSNode.objects.get(node_id=node_id)
             ss_node.delete()
         messages.success(request, "成功啦", extra_tags="删除节点")
-        return HttpResponseRedirect(reverse("sspanel:backend_node_list"))
+        return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
 
 
 class UserOnlineIpLogView(StaffRequiredMixin, View):
@@ -114,7 +114,7 @@ class UserOnlineIpLogView(StaffRequiredMixin, View):
         for node in SSNode.get_active_nodes():
             data.extend(UserOnLineIpLog.get_recent_log_by_node_id(node.node_id))
         context = PageListView(request, data).get_page_context()
-        return render(request, "backend/user_online_ip_log.html", context=context)
+        return render(request, "admin/user_online_ip_log.html", context=context)
 
 
 class UserSSConfigListView(StaffRequiredMixin, View):
@@ -123,7 +123,7 @@ class UserSSConfigListView(StaffRequiredMixin, View):
             request, User.objects.all().order_by("-date_joined")
         ).get_page_context()
 
-        return render(request, "backend/user_ss_config_list.html", context)
+        return render(request, "admin/user_ss_config_list.html", context)
 
 
 class UserSSConfigDeleteView(StaffRequiredMixin, View):
@@ -131,7 +131,7 @@ class UserSSConfigDeleteView(StaffRequiredMixin, View):
         user = User.get_by_pk(user_id)
         user.delete()
         messages.success(request, "成功啦", extra_tags="删除用户")
-        return HttpResponseRedirect(reverse("sspanel:backend_user_ss_config_list"))
+        return HttpResponseRedirect(reverse("sspanel:admin_user_ss_config_list"))
 
 
 class UserSSConfigSearchView(StaffRequiredMixin, View):
@@ -141,7 +141,7 @@ class UserSSConfigSearchView(StaffRequiredMixin, View):
             Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
         )
         context = {"contacts": contacts}
-        return render(request, "backend/user_ss_config_list.html", context=context)
+        return render(request, "admin/user_ss_config_list.html", context=context)
 
 
 class UserSSConfigDetailView(StaffRequiredMixin, View):
@@ -149,7 +149,7 @@ class UserSSConfigDetailView(StaffRequiredMixin, View):
         user_ss_config = UserSSConfig.get_by_user_id(user_id)
         form = UserSSConfigForm(instance=user_ss_config)
         return render(
-            request, "backend/user_ss_config_detail.html", context={"form": form}
+            request, "admin/user_ss_config_detail.html", context={"form": form}
         )
 
     def post(self, request, user_id):
@@ -158,13 +158,11 @@ class UserSSConfigDetailView(StaffRequiredMixin, View):
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_user_ss_config_list"))
+            return HttpResponseRedirect(reverse("sspanel:admin_user_ss_config_list"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form, "user_ss_config": user_ss_config}
-            return render(
-                request, "backend/user_ss_config_detail.html", context=context
-            )
+            return render(request, "admin/user_ss_config_detail.html", context=context)
 
 
 class UserStatusView(StaffRequiredMixin, View):
@@ -186,212 +184,186 @@ class UserStatusView(StaffRequiredMixin, View):
             "rich_users_data": Donate.get_most_donated_user_by_count(10),
             "today_register_user": today_register_user,
         }
-        return render(request, "backend/user_status.html", context=context)
+        return render(request, "admin/user_status.html", context=context)
 
 
-@permission_required("sspanel")
-def system_status(request):
-    """跳转到后台界面"""
-    context = {"total_user_num": User.get_total_user_num()}
-    return render(request, "backend/index.html", context=context)
+class SystemStatusView(View, StaffRequiredMixin):
+    def get(self, request):
+        """跳转到后台界面"""
+        context = {"total_user_num": User.get_total_user_num()}
+        return render(request, "admin/index.html", context=context)
 
 
-@permission_required("sspanel")
-def backend_invite(request):
-    """邀请码生成"""
-    # TODO 这里加入一些统计功能
-    code_list = InviteCode.objects.filter(code_type=0, used=False, user_id=1)
-    return render(request, "backend/invitecode.html", {"code_list": code_list})
+class InviteCodeView(View, StaffRequiredMixin):
+    def get(self, request):
+        """邀请码生成"""
+        # TODO 这里加入一些统计功能
+        code_list = InviteCode.objects.filter(
+            code_type=InviteCode.TYPE_PUBLIC, used=False
+        )
+        return render(request, "admin/invitecode.html", {"code_list": code_list})
+
+    def post(self, request):
+        num = int(request.POST.get("num", 0))
+        for i in range(num):
+            code = InviteCode(code_type=request.POST.get("type"))
+            code.save()
+        messages.success(request, "添加邀请码{}个".format(num), extra_tags="成功")
+        return HttpResponseRedirect(reverse("sspanel:admin_invite"))
 
 
-@permission_required("sspanel")
-def gen_invite_code(request):
+class ChargeView(View, StaffRequiredMixin):
+    def get(self, request):
+        """后台充值码界面"""
+        obj = MoneyCode.objects.all()
+        page_num = 10
+        context = PageListView(request, obj, page_num).get_page_context()
+        return render(request, "admin/charge.html", context=context)
 
-    Num = request.GET.get("num")
-    code_type = request.GET.get("type")
-    for i in range(int(Num)):
-        code = InviteCode(code_type=code_type)
-        code.save()
-    messages.success(request, "添加邀请码{}个".format(Num), extra_tags="成功")
-    return HttpResponseRedirect(reverse("sspanel:backend_invite"))
-
-
-@permission_required("sspanel")
-def backend_charge(request):
-    """后台充值码界面"""
-    # 获取所有充值码记录
-    obj = MoneyCode.objects.all()
-    page_num = 10
-    context = PageListView(request, obj, page_num).get_page_context()
-    # 获取充值的金额和数量
-    Num = request.GET.get("num")
-    money = request.GET.get("money")
-    if Num and money:
-        for i in range(int(Num)):
+    def post(self, request):
+        num = request.POST.get("num")
+        money = request.POST.get("money")
+        for i in range(int(num)):
             code = MoneyCode(number=money)
             code.save()
-        messages.success(request, "添加{}元充值码{}个".format(money, Num), extra_tags="成功")
-        return HttpResponseRedirect(reverse("sspanel:backend_charge"))
-    return render(request, "backend/charge.html", context=context)
+        messages.success(request, "添加{}元充值码{}个".format(money, num), extra_tags="成功")
+        return HttpResponseRedirect(reverse("sspanel:admin_charge"))
 
 
-@permission_required("sspanel")
-def backend_shop(request):
-    """商品管理界面"""
-
-    goods = Goods.objects.all()
-    context = {"goods": goods}
-    return render(request, "backend/shop.html", context=context)
+class PurchaseHistoryView(View, StaffRequiredMixin):
+    def get(self, request):
+        obj = PurchaseHistory.objects.all()
+        context = PageListView(request, obj, 10).get_page_context()
+        return render(request, "admin/purchasehistory.html", context=context)
 
 
-@permission_required("sspanel")
-def good_delete(request, pk):
-    """删除商品"""
-    good = Goods.objects.filter(pk=pk)
-    good.delete()
-    messages.success(request, "成功啦", extra_tags="删除商品")
-    return HttpResponseRedirect(reverse("sspanel:backend_shop"))
+class TicketsView(View, StaffRequiredMixin):
+    def get(self, request):
+        ticket = Ticket.objects.filter(status=1)
+        context = {"ticket": ticket}
+        return render(request, "admin/tickets.html", context=context)
 
 
-@permission_required("sspanel")
-def good_edit(request, pk):
-    """商品编辑"""
+class TicketDetailView(View, StaffRequiredMixin):
+    def get(self, request, pk):
+        ticket = Ticket.objects.get(pk=pk)
+        context = {"ticket": ticket}
+        return render(request, "admin/ticket_detail.html", context=context)
 
-    good = Goods.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        # 转换为GB
-        data = request.POST.copy()
-        data["transfer"] = eval(data["transfer"]) * settings.GB
-        form = GoodsForm(data, instance=good)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_shop"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "good": good}
-            return render(request, "backend/goodedit.html", context=context)
-    # 当请求不是post时，渲染form
-    else:
-        data = {"transfer": round(good.transfer / settings.GB)}
-        form = GoodsForm(initial=data, instance=good)
-        context = {"form": form, "good": good}
-        return render(request, "backend/goodedit.html", context=context)
+    def post(self, request, pk):
+        ticket = Ticket.objects.get(pk=pk)
+        ticket.title = request.POST.get("title", "")
+        ticket.body = request.POST.get("body", "")
+        ticket.status = request.POST.get("status", 1)
+        ticket.save()
+        messages.success(request, "数据更新成功", extra_tags="修改成功")
+        return HttpResponseRedirect(reverse("sspanel:admin_tickets"))
 
 
-@permission_required("sspanel")
-def good_create(request):
-    """商品创建"""
-    if request.method == "POST":
-        # 转换为GB
+class GoodsView(View, StaffRequiredMixin):
+    def get(self, request):
+        goods = Goods.objects.all()
+        context = {"goods": goods}
+        return render(request, "admin/goods.html", context=context)
+
+
+class GoodDeleteView(View, StaffRequiredMixin):
+    def get(self, request, pk):
+        good = Goods.objects.filter(pk=pk).first()
+        good.delete()
+        messages.success(request, "成功啦", extra_tags="删除商品")
+        return HttpResponseRedirect(reverse("sspanel:admin_goods"))
+
+
+class GoodsCreateView(View, StaffRequiredMixin):
+    def get(self, request):
+        form = GoodsForm()
+        return render(request, "admin/good_create.html", context={"form": form})
+
+    def post(self, request):
         data = request.POST.copy()
         data["transfer"] = eval(data["transfer"]) * settings.GB
         form = GoodsForm(data)
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_shop"))
+            return HttpResponseRedirect(reverse("sspanel:admin_goods"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form}
-            return render(request, "backend/goodcreate.html", context=context)
-    else:
-        form = GoodsForm()
-        return render(request, "backend/goodcreate.html", context={"form": form})
+            return render(request, "admin/good_create.html", context=context)
 
 
-@permission_required("sspanel")
-def purchase_history(request):
-    """购买历史"""
-    obj = PurchaseHistory.objects.all()
-    page_num = 10
-    context = PageListView(request, obj, page_num).get_page_context()
-    return render(request, "backend/purchasehistory.html", context=context)
+class GoodDetailView(View, StaffRequiredMixin):
+    def get(self, request, pk):
+        good = Goods.objects.get(pk=pk)
+        data = {"transfer": round(good.transfer / settings.GB)}
+        form = GoodsForm(initial=data, instance=good)
+        context = {"form": form, "good": good}
+        return render(request, "admin/good_detail.html", context=context)
 
-
-@permission_required("sspanel")
-def backend_anno(request):
-    """公告管理界面"""
-    anno = Announcement.objects.all()
-    context = {"anno": anno}
-    return render(request, "backend/annolist.html", context=context)
-
-
-@permission_required("sspanel")
-def anno_delete(request, pk):
-    """删除公告"""
-    anno = Announcement.objects.filter(pk=pk)
-    anno.delete()
-    messages.success(request, "成功啦", extra_tags="删除公告")
-    return HttpResponseRedirect(reverse("sspanel:backend_anno"))
-
-
-@permission_required("sspanel")
-def anno_create(request):
-    """公告创建"""
-    if request.method == "POST":
-        form = AnnoForm(request.POST)
+    def post(self, request, pk):
+        good = Goods.objects.get(pk=pk)
+        data = request.POST.copy()
+        data["transfer"] = eval(data["transfer"]) * settings.GB
+        form = GoodsForm(data, instance=good)
         if form.is_valid():
             form.save()
-            messages.success(request, "数据更新成功", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_anno"))
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
+            return HttpResponseRedirect(reverse("sspanel:admin_goods"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form}
-            return render(request, "backend/annocreate.html", context=context)
-    else:
-        form = AnnoForm()
-        return render(request, "backend/annocreate.html", context={"form": form})
+            context = {"form": form, "good": good}
+            return render(request, "admin/good_detail.html", context=context)
 
 
-@permission_required("sspanel")
-def anno_edit(request, pk):
-    """公告编辑"""
-    anno = Announcement.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
+class AnnouncementsView(View, StaffRequiredMixin):
+    def get(self, request):
+        anno = Announcement.objects.all()
+        context = {"anno": anno}
+        return render(request, "admin/announcements.html", context=context)
+
+
+class AnnouncementDetailView(View, StaffRequiredMixin):
+    def get(self, request, pk):
+        anno = Announcement.objects.get(pk=pk)
+        anno.body = tomd.convert(anno.body)
+        context = {"anno": anno}
+        return render(request, "admin/announcement_detail.html", context=context)
+
+    def post(self, request, pk):
+        anno = Announcement.objects.get(pk=pk)
         form = AnnoForm(request.POST, instance=anno)
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:backend_anno"))
+            return HttpResponseRedirect(reverse("sspanel:admin_announcements"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form, "anno": anno}
-            return render(request, "backend/annoedit.html", context=context)
-    # 当请求不是post时，渲染form
-    else:
-        anno.body = tomd.convert(anno.body)
-        context = {"anno": anno}
-        return render(request, "backend/annoedit.html", context=context)
+            return render(request, "admin/announcement_detail.html", context=context)
 
 
-@permission_required("sspanel")
-def backend_ticket(request):
-    """工单系统"""
-    ticket = Ticket.objects.filter(status=1)
-    context = {"ticket": ticket}
-    return render(request, "backend/ticket.html", context=context)
+class AnnouncementDeleteView(View, StaffRequiredMixin):
+    def get(self, request, pk):
+        anno = Announcement.objects.filter(pk=pk).first()
+        anno.delete()
+        messages.success(request, "成功啦", extra_tags="删除公告")
+        return HttpResponseRedirect(reverse("sspanel:admin_announcements"))
 
 
-@permission_required("sspanel")
-def backend_ticketedit(request, pk):
-    """后台工单编辑"""
-    ticket = Ticket.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        title = request.POST.get("title", "")
-        body = request.POST.get("body", "")
-        status = request.POST.get("status", 1)
-        ticket.title = title
-        ticket.body = body
-        ticket.status = status
-        ticket.save()
+class AnnouncementCreateView(View, StaffRequiredMixin):
+    def get(self, request):
+        form = AnnoForm()
+        return render(request, "admin/announcement_create.html", context={"form": form})
 
-        messages.success(request, "数据更新成功", extra_tags="修改成功")
-        return HttpResponseRedirect(reverse("sspanel:backend_ticket"))
-    # 当请求不是post时，渲染
-    else:
-        context = {"ticket": ticket}
-        return render(request, "backend/ticketedit.html", context=context)
+    def post(self, request):
+        form = AnnoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "数据更新成功", extra_tags="添加成功")
+            return HttpResponseRedirect(reverse("sspanel:admin_announcements"))
+        else:
+            messages.error(request, "数据填写错误", extra_tags="错误")
+            context = {"form": form}
+            return render(request, "admin/announcement_create.html", context=context)

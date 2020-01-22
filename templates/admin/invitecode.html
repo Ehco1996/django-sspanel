@@ -1,4 +1,4 @@
-{% extends 'backendbase.html' %} {% block main %} {% load ehcofilter %}
+{% extends 'adminbase.html' %} {% block main %} {% load ehcofilter %}
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -15,7 +15,8 @@
 </div>
 <div class="column is-12">
     <div class="box">
-        <form method="get" action="{% url 'sspanel:geninvitecode' %}">
+        <form method="post">
+            {% csrf_token %}
             <div class="field has-addons">
                 <div class="control">
                     <input name="num" class="input" placeholder="键入邀请码数量" required>

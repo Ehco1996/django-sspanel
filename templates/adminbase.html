@@ -55,19 +55,19 @@
                 <div class="is-hidden-tablet">
                     <a class="navbar-item is-active">面板管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:system_status' %}">系统状态</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_invite' %}">邀请相关</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_anno' %}">公告管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_ticket' %}">工单管理</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_invite' %}">邀请相关</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_announcements' %}">公告管理</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_tickets' %}">工单管理</a>
                     <a class="navbar-item is-active">节点管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_node_list' %}">节点列表</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_node_list' %}">节点列表</a>
                     <a class="navbar-item" href="{% url 'sspanel:user_online_ip_log' %}">在线IP</a>
                     <a class="navbar-item is-active">交易管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_charge' %}">充值管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_shop' %}">商品管理</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_charge' %}">充值管理</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_goods' %}">商品管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:purchase_history' %}">购买记录</a>
                     <a class="navbar-item is-active">用户管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_user_ss_config_list' %}">用户列表</a>
-                    <a class="navbar-item" href="{% url 'sspanel:backend_user_status' %}">用户分析</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_user_ss_config_list' %}">用户列表</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_user_status' %}">用户分析</a>
                     <a class="navbar-item is-active">面板跳转</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'sspanel:userinfo' %}">用户面板</a>
@@ -103,13 +103,13 @@
                                 <a href="{% url 'sspanel:system_status' %}">系统状态</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:backend_invite' %}">邀请相关</a>
+                                <a href="{% url 'sspanel:admin_invite' %}">邀请相关</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:backend_anno' %}">公告管理</a>
+                                <a href="{% url 'sspanel:admin_announcements' %}">公告管理</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:backend_ticket' %}">工单管理</a>
+                                <a href="{% url 'sspanel:admin_tickets' %}">工单管理</a>
                             </li>
                         </ul>
                         <p class="menu-label">
@@ -117,7 +117,7 @@
                         </p>
                         <ul class="menu-list">
                             <li>
-                                <a href="{% url 'sspanel:backend_node_list' %}">节点列表</a>
+                                <a href="{% url 'sspanel:admin_node_list' %}">节点列表</a>
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:user_online_ip_log' %}">在线IP</a>
@@ -128,10 +128,10 @@
                         </p>
                         <ul class="menu-list">
                             <li>
-                                <a href="{% url 'sspanel:backend_charge' %}">充值管理</a>
+                                <a href="{% url 'sspanel:admin_charge' %}">充值管理</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:backend_shop' %}">商品管理</a>
+                                <a href="{% url 'sspanel:admin_goods' %}">商品管理</a>
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:purchase_history' %}">购买记录</a>
@@ -142,10 +142,10 @@
                         </p>
                         <ul class="menu-list">
                             <li>
-                                <a href="{% url 'sspanel:backend_user_ss_config_list' %}">用户列表</a>
+                                <a href="{% url 'sspanel:admin_user_ss_config_list' %}">用户列表</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:backend_user_status' %}">用户分析</a>
+                                <a href="{% url 'sspanel:admin_user_status' %}">用户分析</a>
                             </li>
                         </ul>
                         <p class="menu-label">

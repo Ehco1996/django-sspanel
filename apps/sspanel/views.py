@@ -225,7 +225,7 @@ class HelpView(View):
 
 class ClientView(View):
     @method_decorator(login_required)
-    def get(request):
+    def get(self, request):
         """跳转到客户端界面"""
         return render(request, "sspanel/client.html")
 
