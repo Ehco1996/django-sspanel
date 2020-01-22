@@ -51,3 +51,4 @@ DEFAULT_ALPHABET = "qwertyuiopasdfghjklzxcvbnm"
 
 # FOR SIMPLE UI
 SIMPLEUI_HOME_INFO = False
+SIMPLEUI_DEFAULT_ICON = False

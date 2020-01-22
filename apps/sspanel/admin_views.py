@@ -41,7 +41,7 @@ class NodeListView(StaffRequiredMixin, View):
         context = {
             "node_list": list(SSNode.objects.all()) + list(VmessNode.objects.all())
         }
-        return render(request, "admin/node_list.html", context=context)
+        return render(request, "my_admin/node_list.html", context=context)
 
 
 class NodeView(StaffRequiredMixin, View):
@@ -50,7 +50,7 @@ class NodeView(StaffRequiredMixin, View):
             form = VmessNodeForm()
         elif node_type == "ss":
             form = SSNodeForm()
-        return render(request, "admin/node_detail.html", context={"form": form})
+        return render(request, "my_admin/node_detail.html", context={"form": form})
 
     def post(self, request, node_type):
         if node_type == "vmess":
@@ -65,7 +65,7 @@ class NodeView(StaffRequiredMixin, View):
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form}
-            return render(request, "admin/node_detail.html", context=context)
+            return render(request, "my_admin/node_detail.html", context=context)
 
 
 class NodeDetailView(StaffRequiredMixin, View):
@@ -77,7 +77,7 @@ class NodeDetailView(StaffRequiredMixin, View):
             ss_node = SSNode.objects.get(node_id=node_id)
             form = SSNodeForm(instance=ss_node)
 
-        return render(request, "admin/node_detail.html", context={"form": form})
+        return render(request, "my_admin/node_detail.html", context={"form": form})
 
     def post(self, request, node_type, node_id):
         if node_type == "vmess":
@@ -93,7 +93,7 @@ class NodeDetailView(StaffRequiredMixin, View):
             return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
-            return render(request, "admin/node_detail.html", context={"form": form})
+            return render(request, "my_admin/node_detail.html", context={"form": form})
 
 
 class NodeDeleteView(StaffRequiredMixin, View):
@@ -114,7 +114,7 @@ class UserOnlineIpLogView(StaffRequiredMixin, View):
         for node in SSNode.get_active_nodes():
             data.extend(UserOnLineIpLog.get_recent_log_by_node_id(node.node_id))
         context = PageListView(request, data).get_page_context()
-        return render(request, "admin/user_online_ip_log.html", context=context)
+        return render(request, "my_admin/user_online_ip_log.html", context=context)
 
 
 class UserSSConfigListView(StaffRequiredMixin, View):
@@ -123,7 +123,7 @@ class UserSSConfigListView(StaffRequiredMixin, View):
             request, User.objects.all().order_by("-date_joined")
         ).get_page_context()
 
-        return render(request, "admin/user_ss_config_list.html", context)
+        return render(request, "my_admin/user_ss_config_list.html", context)
 
 
 class UserSSConfigDeleteView(StaffRequiredMixin, View):
@@ -141,7 +141,7 @@ class UserSSConfigSearchView(StaffRequiredMixin, View):
             Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
         )
         context = {"contacts": contacts}
-        return render(request, "admin/user_ss_config_list.html", context=context)
+        return render(request, "my_admin/user_ss_config_list.html", context=context)
 
 
 class UserSSConfigDetailView(StaffRequiredMixin, View):
@@ -149,7 +149,7 @@ class UserSSConfigDetailView(StaffRequiredMixin, View):
         user_ss_config = UserSSConfig.get_by_user_id(user_id)
         form = UserSSConfigForm(instance=user_ss_config)
         return render(
-            request, "admin/user_ss_config_detail.html", context={"form": form}
+            request, "my_admin/user_ss_config_detail.html", context={"form": form}
         )
 
     def post(self, request, user_id):
@@ -162,7 +162,9 @@ class UserSSConfigDetailView(StaffRequiredMixin, View):
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form, "user_ss_config": user_ss_config}
-            return render(request, "admin/user_ss_config_detail.html", context=context)
+            return render(
+                request, "my_admin/user_ss_config_detail.html", context=context
+            )
 
 
 class UserStatusView(StaffRequiredMixin, View):
@@ -184,14 +186,14 @@ class UserStatusView(StaffRequiredMixin, View):
             "rich_users_data": Donate.get_most_donated_user_by_count(10),
             "today_register_user": today_register_user,
         }
-        return render(request, "admin/user_status.html", context=context)
+        return render(request, "my_admin/user_status.html", context=context)
 
 
 class SystemStatusView(View, StaffRequiredMixin):
     def get(self, request):
         """跳转到后台界面"""
         context = {"total_user_num": User.get_total_user_num()}
-        return render(request, "admin/index.html", context=context)
+        return render(request, "my_admin/index.html", context=context)
 
 
 class InviteCodeView(View, StaffRequiredMixin):
@@ -201,7 +203,7 @@ class InviteCodeView(View, StaffRequiredMixin):
         code_list = InviteCode.objects.filter(
             code_type=InviteCode.TYPE_PUBLIC, used=False
         )
-        return render(request, "admin/invitecode.html", {"code_list": code_list})
+        return render(request, "my_admin/invitecode.html", {"code_list": code_list})
 
     def post(self, request):
         num = int(request.POST.get("num", 0))
@@ -218,7 +220,7 @@ class ChargeView(View, StaffRequiredMixin):
         obj = MoneyCode.objects.all()
         page_num = 10
         context = PageListView(request, obj, page_num).get_page_context()
-        return render(request, "admin/charge.html", context=context)
+        return render(request, "my_admin/charge.html", context=context)
 
     def post(self, request):
         num = request.POST.get("num")
@@ -234,21 +236,21 @@ class PurchaseHistoryView(View, StaffRequiredMixin):
     def get(self, request):
         obj = PurchaseHistory.objects.all()
         context = PageListView(request, obj, 10).get_page_context()
-        return render(request, "admin/purchasehistory.html", context=context)
+        return render(request, "my_admin/purchasehistory.html", context=context)
 
 
 class TicketsView(View, StaffRequiredMixin):
     def get(self, request):
         ticket = Ticket.objects.filter(status=1)
         context = {"ticket": ticket}
-        return render(request, "admin/tickets.html", context=context)
+        return render(request, "my_admin/tickets.html", context=context)
 
 
 class TicketDetailView(View, StaffRequiredMixin):
     def get(self, request, pk):
         ticket = Ticket.objects.get(pk=pk)
         context = {"ticket": ticket}
-        return render(request, "admin/ticket_detail.html", context=context)
+        return render(request, "my_admin/ticket_detail.html", context=context)
 
     def post(self, request, pk):
         ticket = Ticket.objects.get(pk=pk)
@@ -264,7 +266,7 @@ class GoodsView(View, StaffRequiredMixin):
     def get(self, request):
         goods = Goods.objects.all()
         context = {"goods": goods}
-        return render(request, "admin/goods.html", context=context)
+        return render(request, "my_admin/goods.html", context=context)
 
 
 class GoodDeleteView(View, StaffRequiredMixin):
@@ -278,7 +280,7 @@ class GoodDeleteView(View, StaffRequiredMixin):
 class GoodsCreateView(View, StaffRequiredMixin):
     def get(self, request):
         form = GoodsForm()
-        return render(request, "admin/good_create.html", context={"form": form})
+        return render(request, "my_admin/good_create.html", context={"form": form})
 
     def post(self, request):
         data = request.POST.copy()
@@ -291,7 +293,7 @@ class GoodsCreateView(View, StaffRequiredMixin):
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form}
-            return render(request, "admin/good_create.html", context=context)
+            return render(request, "my_admin/good_create.html", context=context)
 
 
 class GoodDetailView(View, StaffRequiredMixin):
@@ -300,7 +302,7 @@ class GoodDetailView(View, StaffRequiredMixin):
         data = {"transfer": round(good.transfer / settings.GB)}
         form = GoodsForm(initial=data, instance=good)
         context = {"form": form, "good": good}
-        return render(request, "admin/good_detail.html", context=context)
+        return render(request, "my_admin/good_detail.html", context=context)
 
     def post(self, request, pk):
         good = Goods.objects.get(pk=pk)
@@ -314,14 +316,14 @@ class GoodDetailView(View, StaffRequiredMixin):
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form, "good": good}
-            return render(request, "admin/good_detail.html", context=context)
+            return render(request, "my_admin/good_detail.html", context=context)
 
 
 class AnnouncementsView(View, StaffRequiredMixin):
     def get(self, request):
         anno = Announcement.objects.all()
         context = {"anno": anno}
-        return render(request, "admin/announcements.html", context=context)
+        return render(request, "my_admin/announcements.html", context=context)
 
 
 class AnnouncementDetailView(View, StaffRequiredMixin):
@@ -329,7 +331,7 @@ class AnnouncementDetailView(View, StaffRequiredMixin):
         anno = Announcement.objects.get(pk=pk)
         anno.body = tomd.convert(anno.body)
         context = {"anno": anno}
-        return render(request, "admin/announcement_detail.html", context=context)
+        return render(request, "my_admin/announcement_detail.html", context=context)
 
     def post(self, request, pk):
         anno = Announcement.objects.get(pk=pk)
@@ -341,7 +343,7 @@ class AnnouncementDetailView(View, StaffRequiredMixin):
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form, "anno": anno}
-            return render(request, "admin/announcement_detail.html", context=context)
+            return render(request, "my_admin/announcement_detail.html", context=context)
 
 
 class AnnouncementDeleteView(View, StaffRequiredMixin):
@@ -355,7 +357,9 @@ class AnnouncementDeleteView(View, StaffRequiredMixin):
 class AnnouncementCreateView(View, StaffRequiredMixin):
     def get(self, request):
         form = AnnoForm()
-        return render(request, "admin/announcement_create.html", context={"form": form})
+        return render(
+            request, "my_admin/announcement_create.html", context={"form": form}
+        )
 
     def post(self, request):
         form = AnnoForm(request.POST)
@@ -366,4 +370,4 @@ class AnnouncementCreateView(View, StaffRequiredMixin):
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
             context = {"form": form}
-            return render(request, "admin/announcement_create.html", context=context)
+            return render(request, "my_admin/announcement_create.html", context=context)

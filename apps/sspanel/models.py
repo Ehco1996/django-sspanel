@@ -555,7 +555,8 @@ class UserTraffic(models.Model, UserPropertyMixin):
         UserSSConfig.objects.filter(user_id__in=need_set_user_ids).update(enable=False)
         user_list = User.objects.filter(id__in=need_set_user_ids)
         if user_list and settings.EXPIRE_EMAIL_NOTICE:
-            EmailSendLog.send_mail_to_users(user_list,
+            EmailSendLog.send_mail_to_users(
+                user_list,
                 f"您的{settings.TITLE}账号流量已全部用完",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
@@ -1371,16 +1372,23 @@ class EmailSendLog(models.Model):
     """邮件发送记录"""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    subject = models.CharField(max_length=128)
+    subject = models.CharField(max_length=128, db_index=True)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name_plural = "邮件发送记录"
 
     @classmethod
     def send_mail_to_users(cls, users, subject, message):
         address = [user.email for user in users]
-        if send_mail(subject, message,settings.DEFAULT_FROM_EMAIL,address):
+        if send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, address):
             logs = [cls(user=user, subject=subject, message=message) for user in users]
             cls.objects.bulk_create(logs)
-            print(f"send email success total user: emails: {address}")
+            print(f"send email success user: address: {address}")
         else:
             raise Exception(f"Could not send mail {address} subject: {subject}")
+
+    @classmethod
+    def get_user_dict_by_subject(cls, subject):
+        return {l.user: 1 for l in cls.objects.filter(subject=subject)}

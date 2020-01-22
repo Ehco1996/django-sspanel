@@ -128,6 +128,11 @@ class GoodsAdmin(admin.ModelAdmin):
     list_display = ["name", "transfer", "money", "level"]
 
 
+class EmailSendLogAdmin(admin.ModelAdmin):
+    list_display = ["user", "subject", "created_at"]
+    search_fields = ["user", "subject"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserOrder, UserOrderAdmin)
@@ -148,6 +153,7 @@ admin.site.register(models.Goods, GoodsAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
+admin.site.register(models.EmailSendLog, EmailSendLogAdmin)
 
 
 admin.site.unregister(Group)

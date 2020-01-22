@@ -47,104 +47,108 @@ urlpatterns = [
     # 网站后台界面
     # ====================================================================
     path(
-        "admin/user_online_ip_log/",
+        "my_admin/user_online_ip_log/",
         admin_views.UserOnlineIpLogView.as_view(),
         name="user_online_ip_log",
     ),
-    path("admin/", admin_views.SystemStatusView.as_view(), name="system_status"),
+    path("my_admin/", admin_views.SystemStatusView.as_view(), name="system_status"),
     # 邀请码相关
-    path("admin/invite/", admin_views.InviteCodeView.as_view(), name="admin_invite"),
+    path("my_admin/invite/", admin_views.InviteCodeView.as_view(), name="admin_invite"),
     # 节点相关
     path(
-        "admin/node_list/", admin_views.NodeListView.as_view(), name="admin_node_list",
+        "my_admin/node_list/",
+        admin_views.NodeListView.as_view(),
+        name="admin_node_list",
     ),
     path(
-        "admin/node/<str:node_type>/",
+        "my_admin/node/<str:node_type>/",
         admin_views.NodeView.as_view(),
         name="admin_node",
     ),
     path(
-        "admin/node_delete/<str:node_type>/<int:node_id>/",
+        "my_admin/node_delete/<str:node_type>/<int:node_id>/",
         admin_views.NodeDeleteView.as_view(),
         name="admin_node_delete",
     ),
     path(
-        "admin/ss_node/<str:node_type>/<int:node_id>/",
+        "my_admin/ss_node/<str:node_type>/<int:node_id>/",
         admin_views.NodeDetailView.as_view(),
         name="admin_node_detail",
     ),
     # 用户相关
     path(
-        "admin/user_ss_config_list/",
+        "my_admin/user_ss_config_list/",
         admin_views.UserSSConfigListView.as_view(),
         name="admin_user_ss_config_list",
     ),
     path(
-        "admin/user_ss_config/delete/<int:pk>/",
+        "my_admin/user_ss_config/delete/<int:pk>/",
         admin_views.UserSSConfigDeleteView.as_view(),
         name="admin_user_ss_config_delete",
     ),
     path(
-        "admin/user_ss_config/search/",
+        "my_admin/user_ss_config/search/",
         admin_views.UserSSConfigSearchView.as_view(),
         name="admin_user_ss_config_search",
     ),
     path(
-        "admin/user_ss_config/<int:user_id>/",
+        "my_admin/user_ss_config/<int:user_id>/",
         admin_views.UserSSConfigDetailView.as_view(),
         name="admin_user_ss_config_detail",
     ),
     path(
-        "admin/user_status/",
+        "my_admin/user_status/",
         admin_views.UserStatusView.as_view(),
         name="admin_user_status",
     ),
     # 商品充值相关
-    path("admin/charge/", admin_views.ChargeView.as_view(), name="admin_charge"),
-    path("admin/goods/", admin_views.GoodsView.as_view(), name="admin_goods"),
+    path("my_admin/charge/", admin_views.ChargeView.as_view(), name="admin_charge"),
+    path("my_admin/goods/", admin_views.GoodsView.as_view(), name="admin_goods"),
     path(
-        "admin/goods/<int:pk>/",
+        "my_admin/goods/<int:pk>/",
         admin_views.GoodDetailView.as_view(),
         name="good_detail",
     ),
     path(
-        "admin/good_delete/<int:pk>/",
+        "my_admin/good_delete/<int:pk>/",
         admin_views.GoodDeleteView.as_view(),
         name="good_delete",
     ),
     path(
-        "admin/good_create/", admin_views.GoodsCreateView.as_view(), name="good_create"
+        "my_admin/good_create/",
+        admin_views.GoodsCreateView.as_view(),
+        name="good_create",
     ),
     path(
-        "admin/purchase/history/",
+        "my_admin/purchase/history/",
         admin_views.PurchaseHistoryView.as_view(),
         name="purchase_history",
     ),
     # 公告管理相关
     path(
-        "admin/announcements/",
+        "my_admin/announcements/",
         admin_views.AnnouncementsView.as_view(),
         name="admin_announcements",
     ),
     path(
-        "admin/announcements/<int:pk>/",
+        "my_admin/announcements/<int:pk>/",
         admin_views.AnnouncementDetailView.as_view(),
         name="announcement_detail",
     ),
     path(
-        "admin/announcement_delete/<int:pk>/",
+        "my_admin/announcement_delete/<int:pk>/",
         admin_views.AnnouncementDeleteView.as_view(),
         name="announcement_delete",
     ),
     path(
-        "admin/announcement_create/",
+        "my_admin/announcement_create/",
         admin_views.AnnouncementCreateView.as_view(),
         name="announcement_create",
     ),
     # 工单相关
-    path("admin/tickets/", admin_views.TicketsView.as_view(), name="admin_tickets"),
+    path("my_admin/tickets/", admin_views.TicketsView.as_view(), name="admin_tickets"),
     path(
-        "admin/tickets/<int:pk>/",
+        "my_admin/tickets/<int:pk>/",
         admin_views.TicketDetailView.as_view(),
         name="admin_ticket_detail",
     ),
