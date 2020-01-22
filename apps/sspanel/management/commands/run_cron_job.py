@@ -18,7 +18,12 @@ class Command(BaseCommand):
     help = "执行cronjob"
 
     def add_arguments(self, parser):
-        parser.add_argument("--jobname", help="The job you want to run")
+        parser.add_argument(
+            "--jobname",
+            help="check_user_state auto_reset_traffic reset_node_traffic "
+            "make_up_lost_order clean_traffic_log clean_node_online_log"
+            "clean_online_ip_log",
+        )
 
     def handle(self, *args, **options):
 

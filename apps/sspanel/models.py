@@ -127,19 +127,18 @@ class User(AbstractUser):
     @classmethod
     def check_and_disable_expired_users(cls):
         now = pendulum.now()
-        expired_user_emails = []
-        expired_users = cls.objects.filter(level__gt=0, level_expire_time__lte=now)
+        expired_users = list(
+            cls.objects.filter(level__gt=0, level_expire_time__lte=now)
+        )
         for user in expired_users:
             user.level = 0
             user.save()
             print(f"Time: {now} user: {user} level timeout!")
-            expired_user_emails.append(user.email)
         if expired_user_emails and settings.EXPIRE_EMAIL_NOTICE:
-            send_mail(
+            EmailSendLog.send_mail_to_users(
+                expired_users,
                 f"您的{settings.TITLE}账号已到期",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
-                settings.DEFAULT_FROM_EMAIL,
-                expired_user_emails,
             )
 
     @property
@@ -555,13 +554,10 @@ class UserTraffic(models.Model, UserPropertyMixin):
         need_set_user_ids = [c.user_id for c in user_ss_configs if c.enable]
         UserSSConfig.objects.filter(user_id__in=need_set_user_ids).update(enable=False)
         user_list = User.objects.filter(id__in=need_set_user_ids)
-        emails = [user.email for user in user_list]
         if emails and settings.EXPIRE_EMAIL_NOTICE:
-            send_mail(
+            EmailSendLog.send_mail_to_users(user_list,
                 f"您的{settings.TITLE}账号流量已全部用完",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
-                settings.DEFAULT_FROM_EMAIL,
-                emails,
             )
             print(f"共有{len(emails)}个用户流量用超啦")
 
@@ -1287,18 +1283,30 @@ class PurchaseHistory(models.Model):
     def cost_statistics(cls, good_id, start, end):
         start = pendulum.parse(start, tz=timezone.get_current_timezone())
         end = pendulum.parse(end, tz=timezone.get_current_timezone())
+        good = Goods.objects.filter(pk=good_id).first()
+        if not good:
+            print("商品不存在")
+            return
         query = cls.objects.filter(
             good__id=good_id, purchtime__gte=start, purchtime__lte=end
         )
-        for obj in query:
-            print(obj.user, obj.good)
         count = query.count()
-        amount = count * obj.money
+        amount = count * good.money
         print(
             "{} ~ {} 时间内 商品: {} 共销售 {} 次 总金额 {} 元".format(
-                start.date(), end.date(), obj.good, count, amount
+                start.date(), end.date(), good, count, amount
             )
         )
+
+    @classmethod
+    def get_all_purchase_user(cls):
+        username_list = [
+            u["user"]
+            for u in cls.objects.values("user")
+            .annotate(c=models.Count("user"))
+            .order_by("-c")
+        ]
+        return User.objects.find(username__in=username_list)
 
 
 class Announcement(models.Model):
@@ -1357,3 +1365,27 @@ class Ticket(models.Model):
     class Meta:
         verbose_name_plural = "工单"
         ordering = ("-time",)
+
+
+class EmailSendLog(models.Model):
+    """邮件发送记录"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    subject = models.CharField(max_length=128)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    @classmethod
+    def send_mail_to_users(cls, users, subject, message):
+        address = [user.email for user in users]
+        if send_mail(subject, message,settings.DEFAULT_FROM_EMAIL,address):
+            logs = [cls(user=user, subject=subject, message=message) for user in users]
+            cls.objects.bulk_create(logs)
+            print(f"send email success total user: {len(users)}")
+        else:
+            raise Exception(f"Could not send mail {address} subject: {subject}")
+
+    @classmethod
+    def send_mail_with_sleep(cls, users, subject, message, sleep_time):
+        cls.send_mail_to_users(users, subject, message)
+        time.sleep(sleep_time)
