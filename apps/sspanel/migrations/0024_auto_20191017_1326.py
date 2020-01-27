@@ -5,9 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("sspanel", "0023_auto_20191001_1448"),
-    ]
+    dependencies = [("sspanel", "0023_auto_20191001_1448")]
 
     operations = [
         migrations.AddField(

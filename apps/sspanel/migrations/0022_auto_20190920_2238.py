@@ -5,12 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("sspanel", "0021_auto_20190827_1505"),
-    ]
+    dependencies = [("sspanel", "0021_auto_20190827_1505")]
 
     operations = [
-        migrations.RemoveField(model_name="userssconfig", name="speed_limit",),
+        migrations.RemoveField(model_name="userssconfig", name="speed_limit"),
         migrations.AddField(
             model_name="ssnode",
             name="speed_limit",

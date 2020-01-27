@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("sspanel", "0025_auto_20191018_1544"),
-    ]
+    dependencies = [("sspanel", "0025_auto_20191018_1544")]
 
     operations = [
         migrations.AddField(
             model_name="vmessnode",
             name="offset_port",
             field=models.IntegerField(blank=True, null=True, verbose_name="偏移端口"),
-        ),
+        )
     ]

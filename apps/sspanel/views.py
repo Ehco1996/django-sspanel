@@ -1,11 +1,10 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.views import View
 
 from apps.constants import METHOD_CHOICES, THEME_CHOICES
@@ -24,6 +23,20 @@ from apps.sspanel.models import (
     VmessNode,
 )
 from apps.utils import traffic_format
+
+
+class IndexView(View):
+    def get(self, request):
+        """跳转到首页"""
+        return render(
+            request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
+        )
+
+
+class HelpView(View):
+    def get(self, request):
+        """跳转到帮助界面"""
+        return render(request, "sspanel/help.html")
 
 
 class RegisterView(View):
@@ -94,8 +107,7 @@ class InviteCodeView(View):
         return render(request, "sspanel/invite.html", context={"code_list": code_list})
 
 
-class AffInviteView(View):
-    @method_decorator(login_required)
+class AffInviteView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         context = {
@@ -107,8 +119,7 @@ class AffInviteView(View):
         return render(request, "sspanel/aff_invite.html", context=context)
 
 
-class AffStatusView(View):
-    @method_decorator(login_required)
+class AffStatusView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         rebate_logs = RebateRecord.list_by_user_id_with_consumer_username(user.pk)
@@ -121,8 +132,7 @@ class AffStatusView(View):
         return render(request, "sspanel/aff_status.html", context=context)
 
 
-class UserInfoView(View):
-    @method_decorator(login_required)
+class UserInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_ss_config = user.user_ss_config
@@ -149,8 +159,7 @@ class UserInfoView(View):
         return render(request, "sspanel/userinfo.html", context=context)
 
 
-class NodeInfoView(View):
-    @method_decorator(login_required)
+class NodeInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_ss_config = user.user_ss_config
@@ -175,8 +184,7 @@ class NodeInfoView(View):
         return render(request, "sspanel/nodeinfo.html", context=context)
 
 
-class UserTrafficLog(View):
-    @method_decorator(login_required)
+class UserTrafficLog(LoginRequiredMixin, View):
     def get(self, request):
         ss_node_list = SSNode.get_active_nodes()
         vmess_node_list = VmessNode.get_active_nodes()
@@ -188,8 +196,7 @@ class UserTrafficLog(View):
         return render(request, "sspanel/user_traffic_log.html", context=context)
 
 
-class UserSSNodeConfigView(View):
-    @method_decorator(login_required)
+class UserSSNodeConfigView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_ss_config = user.user_ss_config
@@ -200,8 +207,7 @@ class UserSSNodeConfigView(View):
         return JsonResponse({"configs": configs})
 
 
-class ShopView(View):
-    @method_decorator(login_required)
+class ShopView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         goods = Goods.objects.filter(status=1)
@@ -209,29 +215,13 @@ class ShopView(View):
         return render(request, "sspanel/shop.html", context=context)
 
 
-class IndexView(View):
-    def get(self, request):
-        """跳转到首页"""
-        return render(
-            request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
-        )
-
-
-class HelpView(View):
-    def get(self, request):
-        """跳转到帮助界面"""
-        return render(request, "sspanel/help.html")
-
-
-class ClientView(View):
-    @method_decorator(login_required)
+class ClientView(LoginRequiredMixin, View):
     def get(self, request):
         """跳转到客户端界面"""
         return render(request, "sspanel/client.html")
 
 
-class DonateView(View):
-    @method_decorator(login_required)
+class DonateView(LoginRequiredMixin, View):
     def get(self, request):
         """捐赠界面和支付宝当面付功能"""
         donatelist = Donate.objects.all()[:8]
@@ -244,8 +234,7 @@ class DonateView(View):
         return render(request, "sspanel/donate.html", context=context)
 
 
-class PurchaseLogView(View):
-    @method_decorator(login_required)
+class PurchaseLogView(LoginRequiredMixin, View):
     def get(self, request):
         """用户购买记录页面"""
 
@@ -254,8 +243,7 @@ class PurchaseLogView(View):
         return render(request, "sspanel/purchaselog.html", context=context)
 
 
-class ChargeView(View):
-    @method_decorator(login_required)
+class ChargeView(LoginRequiredMixin, View):
     def get(self, request):
         """充值界面的跳转"""
         user = request.user
@@ -263,7 +251,6 @@ class ChargeView(View):
         context = {"user": user, "codelist": codelist}
         return render(request, "sspanel/chargecenter.html", context=context)
 
-    @method_decorator(login_required)
     def post(self, request):
         user = request.user
         input_code = request.POST.get("chargecode")
@@ -292,16 +279,14 @@ class ChargeView(View):
                 return HttpResponseRedirect(reverse("sspanel:chargecenter"))
 
 
-class AnnouncementView(View):
-    @method_decorator(login_required)
+class AnnouncementView(LoginRequiredMixin, View):
     def get(self, request):
         """网站公告列表"""
         anno = Announcement.objects.all()
         return render(request, "sspanel/announcement.html", {"anno": anno})
 
 
-class TicketsView(View):
-    @method_decorator(login_required)
+class TicketsView(LoginRequiredMixin, View):
     def get(self, request):
         """工单系统"""
         ticket = Ticket.objects.filter(user=request.user)
@@ -309,12 +294,10 @@ class TicketsView(View):
         return render(request, "sspanel/ticket.html", context=context)
 
 
-class TicketCreateView(View):
-    @method_decorator(login_required)
+class TicketCreateView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, "sspanel/ticketcreate.html")
 
-    @method_decorator(login_required)
     def post(self, request):
         """工单提交"""
         title = request.POST.get("title", "")
@@ -324,15 +307,13 @@ class TicketCreateView(View):
         return HttpResponseRedirect(reverse("sspanel:tickets"))
 
 
-class TicketDetailView(View):
-    @method_decorator(login_required)
+class TicketDetailView(LoginRequiredMixin, View):
     def get(self, request, pk):
         """工单编辑"""
         ticket = Ticket.objects.get(pk=pk)
         context = {"ticket": ticket}
         return render(request, "sspanel/ticketedit.html", context=context)
 
-    @method_decorator(login_required)
     def post(self, request, pk):
         ticket = Ticket.objects.get(pk=pk)
         ticket.title = request.POST.get("title", "")
@@ -342,8 +323,7 @@ class TicketDetailView(View):
         return HttpResponseRedirect(reverse("sspanel:tickets"))
 
 
-class TicketDeleteView(View):
-    @method_decorator(login_required)
+class TicketDeleteView(LoginRequiredMixin, View):
     def get(self, request, pk):
         """删除指定"""
         ticket = Ticket.objects.filter(pk=pk, user=request.user).first()

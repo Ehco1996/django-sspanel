@@ -7,13 +7,11 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("sspanel", "0026_vmessnode_offset_port"),
-    ]
+    dependencies = [("sspanel", "0026_vmessnode_offset_port")]
 
     operations = [
         migrations.AlterModelOptions(
-            name="user", options={"verbose_name": "user", "verbose_name_plural": "用户"},
+            name="user", options={"verbose_name": "user", "verbose_name_plural": "用户"}
         ),
         migrations.CreateModel(
             name="EmailSendLog",

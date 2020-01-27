@@ -10,7 +10,6 @@ RUN set -e; \
     && apk add --virtual .build-deps libffi-dev build-base \
     # TODO workaround start
     && apk add mariadb-dev \
-    && apk add jpeg-dev \
     # TODO workaround end
     && pip install --no-cache-dir -r /tmp/requirements.txt \
     && apk del .build-deps

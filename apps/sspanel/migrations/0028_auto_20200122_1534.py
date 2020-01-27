@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("sspanel", "0027_auto_20200122_1407"),
-    ]
+    dependencies = [("sspanel", "0027_auto_20200122_1407")]
 
     operations = [
         migrations.AlterField(
             model_name="emailsendlog",
             name="subject",
             field=models.CharField(db_index=True, max_length=128),
-        ),
+        )
     ]

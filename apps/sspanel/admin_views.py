@@ -189,14 +189,14 @@ class UserStatusView(StaffRequiredMixin, View):
         return render(request, "my_admin/user_status.html", context=context)
 
 
-class SystemStatusView(View, StaffRequiredMixin):
+class SystemStatusView(StaffRequiredMixin, View):
     def get(self, request):
         """跳转到后台界面"""
         context = {"total_user_num": User.get_total_user_num()}
         return render(request, "my_admin/index.html", context=context)
 
 
-class InviteCodeView(View, StaffRequiredMixin):
+class InviteCodeView(StaffRequiredMixin, View):
     def get(self, request):
         """邀请码生成"""
         # TODO 这里加入一些统计功能
@@ -214,7 +214,7 @@ class InviteCodeView(View, StaffRequiredMixin):
         return HttpResponseRedirect(reverse("sspanel:admin_invite"))
 
 
-class ChargeView(View, StaffRequiredMixin):
+class ChargeView(StaffRequiredMixin, View):
     def get(self, request):
         """后台充值码界面"""
         obj = MoneyCode.objects.all()
@@ -232,21 +232,21 @@ class ChargeView(View, StaffRequiredMixin):
         return HttpResponseRedirect(reverse("sspanel:admin_charge"))
 
 
-class PurchaseHistoryView(View, StaffRequiredMixin):
+class PurchaseHistoryView(StaffRequiredMixin, View):
     def get(self, request):
         obj = PurchaseHistory.objects.all()
         context = PageListView(request, obj, 10).get_page_context()
         return render(request, "my_admin/purchasehistory.html", context=context)
 
 
-class TicketsView(View, StaffRequiredMixin):
+class TicketsView(StaffRequiredMixin, View):
     def get(self, request):
         ticket = Ticket.objects.filter(status=1)
         context = {"ticket": ticket}
         return render(request, "my_admin/tickets.html", context=context)
 
 
-class TicketDetailView(View, StaffRequiredMixin):
+class TicketDetailView(StaffRequiredMixin, View):
     def get(self, request, pk):
         ticket = Ticket.objects.get(pk=pk)
         context = {"ticket": ticket}
@@ -262,14 +262,14 @@ class TicketDetailView(View, StaffRequiredMixin):
         return HttpResponseRedirect(reverse("sspanel:admin_tickets"))
 
 
-class GoodsView(View, StaffRequiredMixin):
+class GoodsView(StaffRequiredMixin, View):
     def get(self, request):
         goods = Goods.objects.all()
         context = {"goods": goods}
         return render(request, "my_admin/goods.html", context=context)
 
 
-class GoodDeleteView(View, StaffRequiredMixin):
+class GoodDeleteView(StaffRequiredMixin, View):
     def get(self, request, pk):
         good = Goods.objects.filter(pk=pk).first()
         good.delete()
@@ -277,7 +277,7 @@ class GoodDeleteView(View, StaffRequiredMixin):
         return HttpResponseRedirect(reverse("sspanel:admin_goods"))
 
 
-class GoodsCreateView(View, StaffRequiredMixin):
+class GoodsCreateView(StaffRequiredMixin, View):
     def get(self, request):
         form = GoodsForm()
         return render(request, "my_admin/good_create.html", context={"form": form})
@@ -296,7 +296,7 @@ class GoodsCreateView(View, StaffRequiredMixin):
             return render(request, "my_admin/good_create.html", context=context)
 
 
-class GoodDetailView(View, StaffRequiredMixin):
+class GoodDetailView(StaffRequiredMixin, View):
     def get(self, request, pk):
         good = Goods.objects.get(pk=pk)
         data = {"transfer": round(good.transfer / settings.GB)}
@@ -319,14 +319,14 @@ class GoodDetailView(View, StaffRequiredMixin):
             return render(request, "my_admin/good_detail.html", context=context)
 
 
-class AnnouncementsView(View, StaffRequiredMixin):
+class AnnouncementsView(StaffRequiredMixin, View):
     def get(self, request):
         anno = Announcement.objects.all()
         context = {"anno": anno}
         return render(request, "my_admin/announcements.html", context=context)
 
 
-class AnnouncementDetailView(View, StaffRequiredMixin):
+class AnnouncementDetailView(StaffRequiredMixin, View):
     def get(self, request, pk):
         anno = Announcement.objects.get(pk=pk)
         anno.body = tomd.convert(anno.body)
@@ -346,7 +346,7 @@ class AnnouncementDetailView(View, StaffRequiredMixin):
             return render(request, "my_admin/announcement_detail.html", context=context)
 
 
-class AnnouncementDeleteView(View, StaffRequiredMixin):
+class AnnouncementDeleteView(StaffRequiredMixin, View):
     def get(self, request, pk):
         anno = Announcement.objects.filter(pk=pk).first()
         anno.delete()
@@ -354,7 +354,7 @@ class AnnouncementDeleteView(View, StaffRequiredMixin):
         return HttpResponseRedirect(reverse("sspanel:admin_announcements"))
 
 
-class AnnouncementCreateView(View, StaffRequiredMixin):
+class AnnouncementCreateView(StaffRequiredMixin, View):
     def get(self, request):
         form = AnnoForm()
         return render(

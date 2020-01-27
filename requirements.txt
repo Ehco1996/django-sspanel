@@ -14,7 +14,6 @@ idna==2.8
 Markdown==3.1.1
 mysqlclient==1.4.6
 pendulum==2.0.5
-Pillow==6.2.1
 prometheus-client==0.7.1
 pycparser==2.19
 pycryptodomex==3.9.4
