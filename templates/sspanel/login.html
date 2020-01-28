@@ -1,4 +1,5 @@
-{% extends 'base.html' %} {% block main %}
+{% extends 'base.html' %} {% load ehcofilter %}
+{% block main %}
 <div class="column is-12">
     <section class="hero is-info is-smaill">
         <div class="hero-body">
@@ -26,7 +27,8 @@
     <div class="box">
         <h3 class="title">登录:</h3>
         <form class="form" action="{% url 'sspanel:login' %}" method="post">
-            {% csrf_token %} {{ form.non_field_errors }} {% for field in form %} {{ field.label_tag }} {{ field }} {{ field.errors }}
+            {% csrf_token %} {{ form.non_field_errors }} {% for field in form %} {{ field.label_tag }} {{ field }}
+            {{ field.errors }}
             {% if field.help_text %}
             <p class="help is-danger">{{ field.help_text|safe }}</p>
             {% endif %} {% endfor %}
@@ -35,7 +37,8 @@
                 <p class="control">
                     <button type="submit" class="button is-primary is-outlined">登录！</button>
                 </p>
-                {% if USE_SMTP is True %}
+                {% settings_value "USE_SMTP" as use_smtp %}
+                {% if use_smtp %}
                 <p class="control">
                     <a class="button is-info is-outlined " href="{% url 'password_reset' %}">忘记密码？</a>
                 </p>

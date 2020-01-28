@@ -28,9 +28,7 @@ from apps.utils import traffic_format
 class IndexView(View):
     def get(self, request):
         """跳转到首页"""
-        return render(
-            request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
-        )
+        return render(request, "sspanel/index.html")
 
 
 class HelpView(View):
@@ -51,7 +49,7 @@ class RegisterView(View):
         return render(request, "sspanel/register.html", {"form": form})
 
     def post(self, request):
-        if settings.ALLOW_REGISTER is False:
+        if not settings.ALLOW_REGISTER:
             return HttpResponse("已经关闭注册了喵")
 
         form = RegisterForm(data=request.POST)
@@ -86,11 +84,11 @@ class UserLogInView(View):
             else:
                 messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
 
-        context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
+        context = {"form": LoginForm()}
         return render(request, "sspanel/login.html", context=context)
 
     def get(self, request):
-        context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
+        context = {"form": LoginForm()}
         return render(request, "sspanel/login.html", context=context)
 
 
@@ -226,11 +224,6 @@ class DonateView(LoginRequiredMixin, View):
         """捐赠界面和支付宝当面付功能"""
         donatelist = Donate.objects.all()[:8]
         context = {"donatelist": donatelist}
-        if settings.USE_ALIPAY:
-            context["alipay"] = True
-        else:
-            # 关闭支付宝支付
-            context["alipay"] = False
         return render(request, "sspanel/donate.html", context=context)
 
 

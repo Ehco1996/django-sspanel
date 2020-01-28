@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block main %} {% load static %} {% load ehcofilter %}
+{% extends 'base.html' %} {% load ehcofilter %} {% block main %} {% load static %} {% load ehcofilter %}
 <div class="column is-12">
     <section class="hero is-primary is-smaill">
         <div class="hero-body">
@@ -16,10 +16,10 @@
 <div class="column is-12">
     <div class="tile is-ancestor">
         <div class="tile is-5 is-vertical is-parent">
-            {% if alipay == True %}
+            {% settings_value "USE_ALIPAY" as use_alipay %}
+            {% if use_alipay %}
             <div class="tile box is-child">
-                <p class="subtitle">充值捐赠系统正在内测中...
-                    <br>请在下方输入
+                <p class="subtitle">请在下方输入
                     <strong>充值/捐赠金额</strong>
                 </p>
                 <p>点击提交会弹出
