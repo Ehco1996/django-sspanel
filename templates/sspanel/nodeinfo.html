@@ -58,7 +58,7 @@
                         <a class="card-footer-item modal-button" data-target="ss-modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
-                                <i class="fa fa-user-o">「{{ node.online_user_count }}」</i>
+                                <i class="fa fa-user">「{{ node.online_user_count }}/{{node.active_tcp_connections}}」</i>
                             </span>
                         </a>
                     </div>
@@ -189,7 +189,7 @@
                             data-target="vmess-modal-config-{{ node.node_id }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
-                                <i class="fa fa-user-o">「{{ node.online_user_count }}」</i>
+                                <i class="fa fa-user">「{{ node.online_user_count }}」</i>
                             </span>
                         </a>
                     </div>

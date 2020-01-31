@@ -611,6 +611,7 @@ class NodeOnlineLog(models.Model):
         "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
     )
     online_user_count = models.IntegerField(default=0)
+    active_tcp_connections = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
@@ -619,7 +620,7 @@ class NodeOnlineLog(models.Model):
         index_together = ["node_type", "node_id", "created_at"]
 
     @property
-    def is_online(self):
+    def online(self):
         return pendulum.now().subtract(seconds=NODE_TIME_OUT) < self.created_at
 
     @classmethod
@@ -628,9 +629,12 @@ class NodeOnlineLog(models.Model):
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
     @classmethod
-    def add_log(cls, node_type, node_id, num):
+    def add_log(cls, node_type, node_id, online_user_count, active_tcp_connections=0):
         return cls.objects.create(
-            node_type=node_type, node_id=node_id, online_user_count=num
+            node_type=node_type,
+            node_id=node_id,
+            online_user_count=online_user_count,
+            active_tcp_connections=active_tcp_connections,
         )
 
     @classmethod
@@ -658,11 +662,11 @@ class NodeOnlineLog(models.Model):
 
     @classmethod
     def get_latest_online_log_info(cls, node_type, node_id):
-        data = {"online": False, "online_user_count": 0}
+        data = {"online": False, "online_user_count": 0, "active_tcp_connections": 0}
         log = cls.get_latest_log_by_node_id(node_type, node_id)
         if log:
-            data["online"] = log.is_online
-            data["online_user_count"] = log.online_user_count if log.is_online else 0
+            data["online"] = log.online
+            data.update(model_to_dict(log))
         return data
 
 
@@ -715,6 +719,18 @@ class BaseAbstractNode(models.Model):
     @property
     def overflow(self):
         return (self.used_traffic) > self.total_traffic
+
+    @functional.cached_property
+    def online_info(self):
+        return NodeOnlineLog.get_latest_online_log_info(self.node_type, self.node_id)
+
+    @property
+    def online_user_count(self):
+        return self.online_info["online_user_count"]
+
+    @property
+    def active_tcp_connections(self):
+        return self.online_info["active_tcp_connections"]
 
 
 class VmessNode(BaseAbstractNode):
@@ -774,13 +790,6 @@ class VmessNode(BaseAbstractNode):
             settings.HOST
             + f"/api/user_vmess_config/{self.node_id}/?{urlencode(params)}"
         )
-
-    @property
-    def online_user_count(self):
-        log = NodeOnlineLog.get_latest_online_log_info(
-            NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
-        )
-        return log["online_user_count"]
 
     @property
     def server_config(self):
@@ -888,13 +897,6 @@ class SSNode(BaseAbstractNode):
             return f"{round(self.speed_limit / self.MEGABIT, 1)} Mbps"
         else:
             return "不限速"
-
-    @property
-    def online_user_count(self):
-        log = NodeOnlineLog.get_latest_online_log_info(
-            NodeOnlineLog.NODE_TYPE_SS, self.node_id
-        )
-        return log["online_user_count"]
 
     @property
     def api_endpoint(self):

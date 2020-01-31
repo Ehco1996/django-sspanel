@@ -143,9 +143,10 @@ class UserSSConfigView(View):
             return HttpResponseNotFound()
 
         data = request.json["data"]
-        log_time = pendulum.now()
         node_total_traffic = 0
+        log_time = pendulum.now()
         trafficlog_model_list = []
+        active_tcp_connections = 0
         user_traffic_model_list = []
         online_ip_log_model_list = []
         user_ss_config_model_list = []
@@ -177,6 +178,8 @@ class UserSSConfigView(View):
             )
             # 节点流量增量
             node_total_traffic += u + d
+            # active_tcp_connections
+            active_tcp_connections += user_data["tcp_conn_num"]
             # online ip log
             for ip in user_data.get("ip_list", []):
                 online_ip_log_model_list.append(
@@ -197,7 +200,9 @@ class UserSSConfigView(View):
         # 用户开关
         UserSSConfig.objects.bulk_update(user_ss_config_model_list, ["enable"])
         # 节点在线人数
-        NodeOnlineLog.add_log(NodeOnlineLog.NODE_TYPE_SS, node_id, len(data))
+        NodeOnlineLog.add_log(
+            NodeOnlineLog.NODE_TYPE_SS, node_id, len(data), active_tcp_connections
+        )
         # check node && user traffic
         if ss_node.overflow:
             ss_node.enable = False

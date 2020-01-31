@@ -24,7 +24,7 @@
                     <th>节点地址</th>
                     <th>等级</th>
                     <th>上线</th>
-                    <th>人数</th>
+                    <th>人/连接数</th>
                     <th>已用/总流量</th>
                     <th>限速</th>
                     <th>对接地址</th>
@@ -47,7 +47,7 @@
                 <td>{{ node.server }}</td>
                 <td>{{ node.level }}</td>
                 <td>{{ node.enable }}</td>
-                <td>{{ node.online_user_count }}</td>
+                <td>{{ node.online_user_count }}/{{ node.online_user_count }}</td>
                 <td>{{ node.human_used_traffic}}/{{ node.human_total_traffic }}</td>
                 <td>{{ node.human_speed_limit }}</td>
                 <td>
@@ -81,8 +81,7 @@
         </table>
         <p align="right">
             <a class="button is-danger is-outlined" href="{% url 'sspanel:admin_node' node_type='ss' %}">增加SS节点</a>
-            <a class="button is-info is-outlined"
-                href="{% url 'sspanel:admin_node' node_type='vmess' %}">增加VMESS节点</a>
+            <a class="button is-info is-outlined" href="{% url 'sspanel:admin_node' node_type='vmess' %}">增加VMESS节点</a>
         </p>
     </div>
 </div>

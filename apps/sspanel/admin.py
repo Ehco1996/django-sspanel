@@ -76,7 +76,13 @@ class UserTrafficAdmin(admin.ModelAdmin):
 
 
 class NodeOnlineLogAdmin(admin.ModelAdmin):
-    list_display = ["node_id", "node_type", "online_user_count", "created_at"]
+    list_display = [
+        "node_id",
+        "node_type",
+        "online_user_count",
+        "active_tcp_connections",
+        "created_at",
+    ]
     search_fields = ["node_id", "node_type"]
 
 
