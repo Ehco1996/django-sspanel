@@ -3,7 +3,7 @@ certifi==2019.11.28
 cffi==1.13.2
 chardet==3.0.4
 cryptography==2.8
-Django==3.0.2
+Django==3.0.3
 django-anymail==7.0.0
 django-countries==5.5
 django-crontab==0.7.1
