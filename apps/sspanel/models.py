@@ -3,6 +3,7 @@ import base64
 import datetime
 import random
 import time
+import json
 from decimal import Decimal
 from urllib.parse import quote, urlencode
 from uuid import uuid4
@@ -838,8 +839,20 @@ class VmessNode(BaseAbstractNode):
         # NOTE hardcode methoud to none
         # NOTE 当有offset_port的时候应显示为offset_port(中继机器的端口)
         port = self.port if not self.offset_port else self.offset_port
-        tpl = f"none:{user.vmess_uuid}@{self.server}:{port}"
-        return f"vmess://{base64.urlsafe_b64encode(tpl.encode()).decode()}#{quote(self.name)}"
+        data = {
+            "port": port,
+            "aid": self.alter_id,
+            "id": user.vmess_uuid,
+            "ps": self.name,
+            "add": self.server,
+            "tls": "none",
+            "v": "2",
+            "net": "tcp",
+            "host": "",
+            "path": "",
+            "type": "none",
+        }
+        return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
 
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
