@@ -153,8 +153,8 @@ class UserSSConfigView(View):
 
         for user_data in data:
             user_id = user_data["user_id"]
-            u = user_data["upload_traffic"]
-            d = user_data["download_traffic"]
+            u = int(user_data["upload_traffic"] * ss_node.enlarge_scale)
+            d = int(user_data["download_traffic"] * ss_node.enlarge_scale)
 
             # 个人流量增量
             user_traffic = UserTraffic.get_by_user_id(user_id)
@@ -236,8 +236,8 @@ class UserVmessConfigView(View):
 
         for log in request.json["user_traffics"]:
             user_id = log["user_id"]
-            u = log["ut"]
-            d = log["dt"]
+            u = int(log["ut"] * node.enlarge_scale)
+            d = int(log["dt"] * node.enlarge_scale)
 
             # 个人流量增量
             user_traffic = UserTraffic.get_by_user_id(user_id)

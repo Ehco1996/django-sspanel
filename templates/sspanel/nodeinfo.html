@@ -49,7 +49,12 @@
                     <div class="card-content">
                         <div class="content">
                             <p>{{ node.info }}</p>
+                            {%if node.human_speed_limit != "不限速" %}
                             <p>限速：<code>{{ node.human_speed_limit }}</code></p>
+                            {% endif %}
+                            {%if node.enlarge_scale != 1.00 %}
+                            <p>倍率：<code>{{ node.enlarge_scale }}</code></p>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="card-footer">
@@ -179,7 +184,10 @@
                 <div id="id-vmess-card-body-{{ node.node_id }}" hidden="true">
                     <div class="card-content">
                         <div class="content">
-                            {{ node.info }}
+                            <p>{{ node.info }}</p>
+                            {%if node.enlarge_scale != 1.00 %}
+                            <p>倍率：<code>{{ node.enlarge_scale }}</code></p>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="card-footer">

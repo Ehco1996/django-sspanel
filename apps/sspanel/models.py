@@ -682,6 +682,9 @@ class BaseAbstractNode(models.Model):
     used_traffic = models.BigIntegerField("已用流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
+    enlarge_scale = models.DecimalField(
+        "倍率", default=Decimal("1.0"), decimal_places=2, max_digits=10,
+    )
 
     class Meta:
         abstract = True

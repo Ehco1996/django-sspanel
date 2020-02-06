@@ -132,6 +132,7 @@ class SSNodeForm(ModelForm):
         widgets = {
             "node_id": forms.NumberInput(attrs={"class": "input"}),
             "level": forms.NumberInput(attrs={"class": "input"}),
+            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
             "name": forms.TextInput(attrs={"class": "input"}),
             "info": forms.TextInput(attrs={"class": "input"}),
             "server": forms.TextInput(attrs={"class": "input"}),
@@ -152,6 +153,7 @@ class VmessNodeForm(ModelForm):
         widgets = {
             "node_id": forms.NumberInput(attrs={"class": "input"}),
             "level": forms.NumberInput(attrs={"class": "input"}),
+            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
             "name": forms.TextInput(attrs={"class": "input"}),
             "inbound_tag": forms.TextInput(attrs={"class": "input"}),
             "alter_id": forms.NumberInput(attrs={"class": "input"}),
