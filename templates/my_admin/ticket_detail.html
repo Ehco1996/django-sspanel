@@ -1,0 +1,48 @@
+{% extends 'adminbase.html' %} {% block main %}
+
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    查看工单：
+                </h1>
+                <h2 class="subtitle">
+                    看看怎么处理吧！
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box">
+        <form class="form" method="post">
+            {% csrf_token %}
+            <div class="control is-loading">
+                <span class="tag is-info">标题:</span>
+                <textarea class="textarea" name="title" type="text" placeholder="标题" rows="1" maxlength="32">{{ ticket.title }}</textarea>
+                <br>
+                <span class="tag is-info">内容:</span>
+                <textarea class="textarea" id="id-markdown-body" name="body" type="text" rows="10">{{ ticket.body }}</textarea>
+                <span class="tag is-info">状态:</span>
+                <div class="control">
+                    <label class="radio">
+                        <input type="radio" name="status" value="1"> 开启
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="status" value="-1"> 关闭
+                    </label>
+                </div>
+            </div>
+            <hr/>
+            <div class="is-grouped">
+                <button type="submit" class="button is-danger is-outlined ">确认</button>
+                <a class="button is-success is-outlined" href="{% url 'sspanel:admin_tickets' %}">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    var simplemde = new SimpleMDE({ spellChecker: false, element: $("#id-markdown-body")[0] });
+    simplemde.togglePreview();
+</script> {% endblock main %}

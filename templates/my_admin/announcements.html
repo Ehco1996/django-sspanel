@@ -1,0 +1,69 @@
+{% extends 'adminbase.html' %} {% block main %}
+
+
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    公告列表：
+                </h1>
+                <h2 class="subtitle">
+                    领导请下放通知!
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box">
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th>操作:</th>
+                    <th>ID:</th>
+                    <th>日期</th>
+                    <th>内容:</th>
+                </tr>
+            </thead>
+            {% for rec in anno %}
+            <tr>
+                <td>
+                    <p class="control">
+                        <a class="button is-info" href="{% url 'sspanel:announcement_detail' rec.pk %}">编辑</a>
+                    </p>
+                    <p class="control">
+                        <a class="button is-danger modal-button" data-target="modal-{{ rec.pk }}">删除</a>
+                    </p>
+                </td>
+                <td>#{{ rec.pk}}</td>
+                <td>{{ rec.time }}</td>
+                <td>{{ rec.body |safe }}</td>
+            </tr>
+            <div class="modal user_delete" id="modal-{{ rec.pk }}">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">ID:{{ rec.pk }}</p>
+                        <button class="delete"></button>
+                    </header>
+                    <section class="modal-card-body">
+                        <p class="subtitle">确定要删除:
+                            <code>{{ rec.pk }}</code>号公告么?</p>
+                        <p align="center">
+                            <a class="button is-danger is-outlined" href="{% url 'sspanel:announcement_delete' rec.pk %}">确定删除</a>
+                        </p>
+                    </section>
+                </div>
+            </div>
+            {% empty %}
+            <p class="subtitle">没有公告哟</p>
+            {% endfor %}
+        </table>
+        <p align="right">
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:announcement_create' %}">增加公告</a>
+        </p>
+    </div>
+</div>
+
+{% endblock main %}

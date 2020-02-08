@@ -1,0 +1,78 @@
+{% extends 'adminbase.html' %} {% block main %}
+
+
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    充值码列表：
+                </h1>
+                <h2 class="subtitle">
+                    添加充值码：
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+
+    <div class="box">
+        <form method="post">
+            {% csrf_token %}
+            <div class="field has-addons">
+                <div class="control">
+                    <input name="money" class="input" placeholder="键入充值码金额" required>
+                </div>
+                <div class="control">
+                    <input name="num" class="input" placeholder="键入充值码数量" required>
+                </div>
+                <div class="control">
+                    <button type="submit" class="button is-outlined is-info">添加</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="box">
+        <nav class="pagination">
+            {% if contacts.has_previous %}
+            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %} {% if contacts.has_next%}
+            <a class="pagination-next" href="?page={{ contacts.next_page_number }}">下一页</a> {% endif %}
+            <p>页码：</p>
+            <ul class="pagination-list">
+                {% if first %}
+                <a href="?page=1" class="pagination-link">1</a> {% endif %} {% if left %} {% if left_has_more %}
+                <span>...</span> {% endif %} {% for i in left %}
+                <a href="?page={{ i }}" class="pagination-link">{{ i }}</a> {% endfor %} {% endif %}
+                <a href="?page={{ page }}" class="pagination-link is-current">{{ page }}</a> {% if right %} {% for i in right%}
+                <a href="?page={{ i }}" class="pagination-link">{{ i }}</a> {% endfor %} {% if right_has_more %}
+                <span>...</span> {% endif %} {% endif %} {% if last %}
+                <a href="?page={{ total }}" class="pagination-link">{{ total }}</a> {% endif %}
+            </ul>
+        </nav>
+        <br>
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th>ID:</th>
+                    <th>面值:</th>
+                    <th>代码:</th>
+                    <th>是否使用:</th>
+                    <th>用户名</th>
+                </tr>
+            </thead>
+            {% for contact in contacts %}
+            <tr>
+                <td>#{{ contact.pk}}</td>
+                <td>{{ contact.number }}</td>
+                <td>{{ contact.code }}</td>
+                <td>{{ contact.isused }}</td>
+                <td>{{ contact.user }}</td>
+            </tr>
+            {% empty %}
+            <p class="subtitle">没有充值码哟</p>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock main %}

@@ -1,0 +1,66 @@
+{% extends 'adminbase.html' %} {% block main %}
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    在线的用户：
+                </h1>
+                <h2 class="subtitle">
+                    每分钟自动更新一次!
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box">
+        <nav class="pagination">
+            {% if contacts.has_previous %}
+            <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %}
+            {% if contacts.has_next%}
+            <a class="pagination-next" href="?page={{ contacts.next_page_number }}">下一页</a> {% endif %} {% if page %}
+            <p>页码：</p>
+            <ul class="pagination-list">
+                {% if first %}
+                <a href="?page=1" class="pagination-link">1</a>
+                {% endif %} {% if left %} {% if left_has_more %}
+                <span>...</span>
+                {% endif %} {% for i in left %}
+                <a href="?page={{ i }}" class="pagination-link">{{ i }}</a>
+                {% endfor %} {% endif %}
+                <a href="?page={{ page }}" class="pagination-link is-current">{{ page }}</a>
+                {% if right %} {% for i in right%}
+                <a href="?page={{ i }}" class="pagination-link">{{ i }}</a>
+                {% endfor %} {% if right_has_more %}
+                <span>...</span>
+                {% endif %} {% endif %} {% if last %}
+                <a href="?page={{ total }}" class="pagination-link">{{ total }}</a>
+                {% endif %}
+            </ul>
+            {% endif %}
+        </nav>
+        <br>
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th>节点ID</th>
+                    <th>用户ID</th>
+                    <th>IP地址</th>
+                    <th>时间</th>
+                </tr>
+            </thead>
+            {% for contact in contacts %}
+            <tr>
+                <td>{{ contact.node_id }}</td>
+                <td>{{ contact.user_id }}</td>
+                <td>{{ contact.ip }}</td>
+                <td>{{ contact.created_at }}</td>
+            </tr>
+            {% empty %}
+            <p class="subtitle">没有用户在线哟</p>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock main %}

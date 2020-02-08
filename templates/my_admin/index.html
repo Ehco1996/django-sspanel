@@ -1,0 +1,47 @@
+{% extends 'adminbase.html' %} {% block main %}
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    汇总：
+                </h1>
+                <h2 class="subtitle">
+                    下面是系统运行状态简报：
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="tile is-ancestor">
+        <div class="tile is-6 is-vertical is-parent">
+            <div class="tile is-child box">
+                <canvas id="userState" width="auto" height="300"></canvas>
+            </div>
+        </div>
+        <div class="tile is-6 is-vertical is-parent">
+            <div class="tile is-child box">
+                <canvas id="nodeState"></canvas>
+            </div>
+            <div class="tile is-child box">
+                <canvas id="donateState"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // 获取后台首页状态
+    var getSystemStatus = function () {
+        $.getJSON("{% url 'api:system_status' %}", function (res) {
+            genDoughnutChart('userState', '总用户:{{ total_user_num }} ',
+                ['在线人数', '今日注册', '今日签到', '从未使用'],
+                res.user_status)
+            genDoughnutChart('nodeState', '节点流量 单位：GB',
+                res.node_status.names, res.node_status.traffics)
+            genDoughnutChart('donateState', '收入分析',
+                ['总成交数', '总收入', '今日成交数', '今日收入'], res.donate_status)
+        })
+    }
+    getSystemStatus()
+</script> {% endblock main %}

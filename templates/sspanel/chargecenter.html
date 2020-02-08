@@ -31,7 +31,7 @@
         </div>
     </nav>
     <div class="box ">
-        <form class="form" action="{% url 'sspanel:charge' %}" method="post">
+        <form class="form" method="post">
             {% csrf_token %}
             <input type="text" name="chargecode" class="input " required="" id="chargecode" placeholder="请输入充值码">
             <hr/>

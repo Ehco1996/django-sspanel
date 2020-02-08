@@ -2,13 +2,14 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
-from apps.encoder import encoder
+from apps.ext import encoder
 from apps.sspanel.models import (
     Announcement,
     Goods,
     InviteCode,
     User,
     SSNode,
+    VmessNode,
     UserSSConfig,
 )
 
@@ -131,6 +132,7 @@ class SSNodeForm(ModelForm):
         widgets = {
             "node_id": forms.NumberInput(attrs={"class": "input"}),
             "level": forms.NumberInput(attrs={"class": "input"}),
+            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
             "name": forms.TextInput(attrs={"class": "input"}),
             "info": forms.TextInput(attrs={"class": "input"}),
             "server": forms.TextInput(attrs={"class": "input"}),
@@ -140,6 +142,34 @@ class SSNodeForm(ModelForm):
             "total_traffic": forms.NumberInput(attrs={"class": "input"}),
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "custom_method": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "speed_limit": forms.NumberInput(attrs={"class": "input"}),
+        }
+
+
+class VmessNodeForm(ModelForm):
+    class Meta:
+        model = VmessNode
+        fields = "__all__"
+        widgets = {
+            "node_id": forms.NumberInput(attrs={"class": "input"}),
+            "level": forms.NumberInput(attrs={"class": "input"}),
+            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
+            "name": forms.TextInput(attrs={"class": "input"}),
+            "inbound_tag": forms.TextInput(attrs={"class": "input"}),
+            "alter_id": forms.NumberInput(attrs={"class": "input"}),
+            "port": forms.NumberInput(attrs={"class": "input"}),
+            "offset_port": forms.NumberInput(attrs={"class": "input"}),
+            "info": forms.TextInput(attrs={"class": "input"}),
+            "server": forms.TextInput(attrs={"class": "input"}),
+            "grpc_host": forms.TextInput(attrs={"class": "input"}),
+            "grpc_port": forms.TextInput(attrs={"class": "input"}),
+            "country": forms.Select(attrs={"class": "input"}),
+            "used_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "total_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "relay_host": forms.TextInput(attrs={"class": "input"}),
+            "relay_port": forms.TextInput(attrs={"class": "input"}),
+            "relay_offset_port": forms.TextInput(attrs={"class": "input"}),
         }
 
 
@@ -169,10 +199,9 @@ class UserForm(ModelForm):
 class UserSSConfigForm(ModelForm):
     class Meta:
         model = UserSSConfig
-        fields = ["port", "password", "speed_limit", "method", "enable"]
+        fields = ["port", "password", "method", "enable"]
         widgets = {
             "port": forms.NumberInput(attrs={"class": "input"}),
-            "speed_limit": forms.NumberInput(attrs={"class": "input"}),
             "password": forms.TextInput(attrs={"class": "input"}),
             "method": forms.Select(attrs={"class": "input"}),
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),

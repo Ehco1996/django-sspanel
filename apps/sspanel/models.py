@@ -1,13 +1,17 @@
+import re
 import base64
 import datetime
 import random
 import time
+import json
 from decimal import Decimal
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
+from uuid import uuid4
 
 import markdown
 import pendulum
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -22,25 +26,19 @@ from apps.constants import (
     NODE_TIME_OUT,
     THEME_CHOICES,
 )
-from apps.encoder import encoder
-from apps.payments import pay
-from apps.utils import (
-    cache,
-    get_long_random_string,
-    get_short_random_string,
-    traffic_format,
-)
+from apps.ext import cache, encoder, pay
+from apps.utils import get_long_random_string, get_short_random_string, traffic_format
 
 
 class User(AbstractUser):
 
     SUB_TYPE_SS = 0
-    SUB_TYPE_SSR = 1
+    SUB_TYPE_VMESS = 1
     SUB_TYPE_ALL = 2
 
     SUB_TYPES = (
         (SUB_TYPE_SS, "只订阅SS"),
-        (SUB_TYPE_SSR, "只订阅SSR"),
+        (SUB_TYPE_VMESS, "只订阅Vmess"),
         (SUB_TYPE_ALL, "订阅所有"),
     )
 
@@ -57,9 +55,7 @@ class User(AbstractUser):
         verbose_name="可生成的邀请码数量", default=settings.INVITE_NUM
     )
     level = models.PositiveIntegerField(
-        verbose_name="用户等级",
-        default=0,
-        validators=[MaxValueValidator(9), MinValueValidator(0)],
+        verbose_name="用户等级", default=0, validators=[MinValueValidator(0)]
     )
     level_expire_time = models.DateTimeField(verbose_name="等级有效期", default=timezone.now)
     theme = models.CharField(
@@ -68,14 +64,14 @@ class User(AbstractUser):
         default=settings.DEFAULT_THEME,
         max_length=10,
     )
-    # TODO Move To UserSsConfig
     sub_type = models.SmallIntegerField(
         verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
     inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
+    vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
 
     class Meta(AbstractUser.Meta):
-        verbose_name = "用户"
+        verbose_name_plural = "用户"
 
     def delete(self):
         self.user_ss_config.delete()
@@ -109,6 +105,8 @@ class User(AbstractUser):
         # 绑定邀请人
         UserRefLog.log_ref(inviter_id, pendulum.today())
         user.inviter_id = inviter_id
+        # 绑定uuid
+        user.vmess_uuid = str(uuid4())
         user.save()
         # 添加SSconfig
         UserSSConfig.create_by_user_id(user.id)
@@ -124,21 +122,24 @@ class User(AbstractUser):
         return cls.objects.get(pk=pk)
 
     @classmethod
+    def get_or_none(cls, pk):
+        return cls.objects.filter(pk=pk).first()
+
+    @classmethod
     def check_and_disable_expired_users(cls):
         now = pendulum.now()
-        expired_user_emails = []
-        expired_users = cls.objects.filter(level__gt=0, level_expire_time__lte=now)
+        expired_users = list(
+            cls.objects.filter(level__gt=0, level_expire_time__lte=now)
+        )
         for user in expired_users:
             user.level = 0
             user.save()
-            print(f"time: {now} user: {user} level timeout!")
-            expired_user_emails.append(user.email)
-        if expired_user_emails and settings.EXPIRE_EMAIL_NOTICE:
-            send_mail(
+            print(f"Time: {now} user: {user} level timeout!")
+        if expired_users and settings.EXPIRE_EMAIL_NOTICE:
+            EmailSendLog.send_mail_to_users(
+                expired_users,
                 f"您的{settings.TITLE}账号已到期",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
-                settings.DEFAULT_FROM_EMAIL,
-                expired_user_emails,
             )
 
     @property
@@ -167,10 +168,21 @@ class User(AbstractUser):
 
     def get_sub_links(self):
 
-        node_list = SSNode.get_active_nodes()
-        sub_links = "MAX={}\n".format(node_list.count())
+        if self.sub_type == self.SUB_TYPE_SS:
+            node_list = list(SSNode.get_active_nodes())
+        if self.sub_type == self.SUB_TYPE_VMESS:
+            node_list = list(VmessNode.get_active_nodes())
+        if self.sub_type == self.SUB_TYPE_ALL:
+            node_list = list(SSNode.get_active_nodes()) + list(
+                VmessNode.get_active_nodes()
+            )
+
+        sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
-            sub_links += node.get_ss_link(self.user_ss_config) + "\n"
+            if type(node) == SSNode:
+                sub_links += node.get_ss_link(self.user_ss_config) + "\n"
+            if type(node) == VmessNode:
+                sub_links += node.get_vmess_link(self) + "\n"
         return sub_links
 
 
@@ -182,7 +194,8 @@ class UserPropertyMixin:
 
 class UserOrder(models.Model, UserPropertyMixin):
 
-    DEFAULT_ORDER_TIME_OUT = "24h"
+    ALIPAY_CALLBACK_URL = f"{settings.HOST}/api/callback/alipay"
+    DEFAULT_ORDER_TIME_OUT = "10m"
     STATUS_CREATED = 0
     STATUS_PAID = 1
     STATUS_FINISHED = 2
@@ -220,7 +233,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         return datetime.datetime.fromtimestamp(time.time()).strftime("%Y%m%d%H%M%S%s")
 
     @classmethod
-    def get_not_paid_order(cls, user, amount):
+    def get_not_paid_order_by_amount(cls, user, amount):
         return (
             cls.objects.filter(user=user, status=cls.STATUS_CREATED, amount=amount)
             .order_by("-created_at")
@@ -228,8 +241,36 @@ class UserOrder(models.Model, UserPropertyMixin):
         )
 
     @classmethod
-    def get_recent_created_order(cls, user):
-        return cls.objects.filter(user=user).order_by("-created_at").first()
+    def get_and_check_recent_created_order(cls, user):
+        with transaction.atomic():
+            order = (
+                cls.objects.select_for_update()
+                .filter(user=user)
+                .order_by("-created_at")
+                .first()
+            )
+            order and order.check_order_status()
+            return order
+
+    @classmethod
+    def handle_callback_by_alipay(cls, data):
+        with transaction.atomic():
+            order = UserOrder.objects.select_for_update().get(
+                out_trade_no=data["out_trade_no"]
+            )
+            if order.status != order.STATUS_CREATED:
+                return True
+            signature = data.pop("sign")
+            res = pay.alipay.verify(data, signature)
+            success = res and data["trade_status"] in (
+                "TRADE_SUCCESS",
+                "TRADE_FINISHED",
+            )
+            if success:
+                order.status = order.STATUS_PAID
+                order.save()
+            order.handle_paid()
+            return success
 
     @classmethod
     def make_up_lost_orders(cls):
@@ -241,18 +282,20 @@ class UserOrder(models.Model, UserPropertyMixin):
 
     @classmethod
     def get_or_create_order(cls, user, amount):
+        # NOTE 目前这里只支持支付宝 所以暂时写死
+        # TODO 缺少一把分布式锁 目前还不想引入其他外部组件所以暂时忽略
         now = pendulum.now()
-        order = cls.get_not_paid_order(user, amount)
+        order = cls.get_not_paid_order_by_amount(user, amount)
         if order and order.expired_at > now:
             return order
         with transaction.atomic():
             out_trade_no = cls.gen_out_trade_no()
             trade = pay.alipay.api_alipay_trade_precreate(
-                subject=settings.ALIPAY_TRADE_INFO.format(amount),
                 out_trade_no=out_trade_no,
                 total_amount=amount,
+                subject=settings.ALIPAY_TRADE_INFO.format(amount),
                 timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
-                notify_url=settings.ALIPAY_CALLBACK_URL,
+                notify_url=cls.ALIPAY_CALLBACK_URL,
             )
             qrcode_url = trade.get("qr_code")
             order = cls.objects.create(
@@ -261,31 +304,30 @@ class UserOrder(models.Model, UserPropertyMixin):
                 out_trade_no=out_trade_no,
                 amount=amount,
                 qrcode_url=qrcode_url,
-                expired_at=now.add(hours=24),
+                expired_at=now.add(minutes=10),
             )
             return order
 
     def handle_paid(self):
+        # NOTE Must use in transaction
         if self.status != self.STATUS_PAID:
             return
-        with transaction.atomic():
-            self.user.balance += self.amount
-            self.user.save()
-            self.status = self.STATUS_FINISHED
-            self.save()
-            # 将充值记录和捐赠绑定
-            Donate.objects.create(user=self.user, money=self.amount)
+        self.user.balance += self.amount
+        self.user.save()
+        self.status = self.STATUS_FINISHED
+        self.save()
+        # 将充值记录和捐赠绑定
+        Donate.objects.create(user=self.user, money=self.amount)
 
     def check_order_status(self):
         changed = False
         if self.status != self.STATUS_CREATED:
-            return
-        with transaction.atomic():
-            res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
-            if res.get("trade_status", "") == "TRADE_SUCCESS":
-                self.status = self.STATUS_PAID
-                self.save()
-                changed = True
+            return changed
+        res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
+        if res.get("trade_status", "") == "TRADE_SUCCESS":
+            self.status = self.STATUS_PAID
+            self.save()
+            changed = True
         self.handle_paid()
         return changed
 
@@ -357,68 +399,6 @@ class UserOnLineIpLog(models.Model, UserPropertyMixin):
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
 
-class UserTrafficLog(models.Model, UserPropertyMixin):
-
-    user_id = models.IntegerField()
-    node_id = models.IntegerField()
-    date = models.DateField(auto_now_add=True, db_index=True)
-    upload_traffic = models.BigIntegerField("上传流量", default=0)
-    download_traffic = models.BigIntegerField("下载流量", default=0)
-
-    class Meta:
-        verbose_name_plural = "流量记录"
-        ordering = ["-date"]
-        index_together = ["user_id", "node_id", "date"]
-
-    @property
-    def total_traffic(self):
-        return traffic_format(self.download_traffic + self.upload_traffic)
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-    @classmethod
-    def calc_user_total_traffic(cls, node_id, user_id):
-        logs = cls.objects.filter(user_id=user_id, node_id=node_id)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return traffic_format(ut + dt)
-
-    @classmethod
-    def calc_user_traffic_by_date(cls, user_id, node_id, date):
-        logs = cls.objects.filter(node_id=node_id, user_id=user_id, date=date)
-        aggs = logs.aggregate(
-            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
-        )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
-        return (ut + dt) // settings.MB
-
-    @classmethod
-    def gen_line_chart_configs(cls, user_id, node_id, date_list):
-
-        ss_node = SSNode.get_or_none_by_node_id(node_id)
-        user_total_traffic = cls.calc_user_total_traffic(node_id, user_id)
-        date_list = sorted(date_list)
-        line_config = {
-            "title": "节点 {} 当月共消耗：{}".format(ss_node.name, user_total_traffic),
-            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
-            "data": [
-                cls.calc_user_traffic_by_date(user_id, node_id, date)
-                for date in date_list
-            ],
-            "data_title": ss_node.name,
-            "x_label": "日期 最近七天",
-            "y_label": "流量 单位：MB",
-        }
-        return line_config
-
-
 class UserCheckInLog(models.Model, UserPropertyMixin):
     user_id = models.PositiveIntegerField()
     date = models.DateField("记录日期", default=pendulum.today, db_index=True)
@@ -459,12 +439,12 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 class UserSSConfig(models.Model, UserPropertyMixin):
 
     MIN_PORT = 1025
+    PORT_BLACK_SET = {6443, 8472}
 
     user_id = models.IntegerField(unique=True, db_index=True)
     port = models.IntegerField("端口", unique=True, default=MIN_PORT)
     password = models.CharField("密码", max_length=32, default=get_short_random_string)
     enable = models.BooleanField("是否开启", default=True)
-    speed_limit = models.IntegerField("限速", default=0)
     method = models.CharField(
         "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
     )
@@ -475,19 +455,21 @@ class UserSSConfig(models.Model, UserPropertyMixin):
     @classmethod
     @transaction.atomic
     def create_by_user_id(cls, user_id):
+        # TODO 暂时在这里创建usertraffic 以后如果再增加节点类型可以挪走
         config = cls.objects.create(user_id=user_id, port=cls.get_not_used_port())
         UserTraffic.objects.create(user_id=user_id)
         return config
 
     @classmethod
     def get_not_used_port(cls):
-        port_set = {log[0] for log in cls.objects.all().values_list("port")}
+        port_set = {log["port"] for log in cls.objects.all().values("port")}
         if not port_set:
             return cls.MIN_PORT
         max_port = max(port_set) + 1
-        return random.choice(
-            list({i for i in range(cls.MIN_PORT, max_port + 1)}.difference(port_set))
+        port_set = {i for i in range(cls.MIN_PORT, max_port + 1)}.difference(
+            port_set.union(cls.PORT_BLACK_SET)
         )
+        return random.choice(list(port_set))
 
     @classmethod
     def get_by_user_id(cls, user_id):
@@ -512,6 +494,7 @@ class UserSSConfig(models.Model, UserPropertyMixin):
     def human_used_traffic(self):
         return traffic_format(self.user_traffic.used_traffic)
 
+    @transaction.atomic
     def reset_random_port(self):
         cls = type(self)
         port = cls.get_not_used_port()
@@ -538,22 +521,18 @@ class UserSSConfig(models.Model, UserPropertyMixin):
 
 class UserTraffic(models.Model, UserPropertyMixin):
 
-    DEFAULT_USE_TIME = pendulum.datetime(year=1996, month=2, day=2)
-
     user_id = models.IntegerField(unique=True, db_index=True)
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
-    last_use_time = models.DateTimeField(
-        "上次使用时间", default=DEFAULT_USE_TIME, db_index=True
-    )
+    last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True, null=True)
 
     class Meta:
         verbose_name_plural = "用户流量"
 
     @classmethod
     def get_never_used_user_count(cls):
-        return cls.objects.filter(last_use_time=cls.DEFAULT_USE_TIME).count()
+        return cls.objects.filter(last_use_time__isnull=True).count()
 
     @classmethod
     def get_by_user_id(cls, user_id):
@@ -576,15 +555,13 @@ class UserTraffic(models.Model, UserPropertyMixin):
         need_set_user_ids = [c.user_id for c in user_ss_configs if c.enable]
         UserSSConfig.objects.filter(user_id__in=need_set_user_ids).update(enable=False)
         user_list = User.objects.filter(id__in=need_set_user_ids)
-        emails = [user.email for user in user_list]
-        if emails and settings.EXPIRE_EMAIL_NOTICE:
-            send_mail(
+        if user_list and settings.EXPIRE_EMAIL_NOTICE:
+            EmailSendLog.send_mail_to_users(
+                user_list,
                 f"您的{settings.TITLE}账号流量已全部用完",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
-                settings.DEFAULT_FROM_EMAIL,
-                emails,
             )
-            print(f"共有{len(emails)}个用户流量用超啦")
+            print(f"共有{len(user_list)}个用户流量用超啦")
 
     @property
     def overflow(self):
@@ -625,19 +602,26 @@ class UserTraffic(models.Model, UserPropertyMixin):
         self.save()
 
 
-class SSNodeOnlineLog(models.Model):
+class NodeOnlineLog(models.Model):
+    NODE_TYPE_SS = "ss"
+    NODE_TYPE_VMESS = "vmess"
+    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
 
     node_id = models.IntegerField()
+    node_type = models.CharField(
+        "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
+    )
     online_user_count = models.IntegerField(default=0)
+    active_tcp_connections = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name_plural = "节点在线记录"
         ordering = ["-created_at"]
-        index_together = ["node_id", "created_at"]
+        index_together = ["node_type", "node_id", "created_at"]
 
     @property
-    def is_online(self):
+    def online(self):
         return pendulum.now().subtract(seconds=NODE_TIME_OUT) < self.created_at
 
     @classmethod
@@ -646,36 +630,48 @@ class SSNodeOnlineLog(models.Model):
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
     @classmethod
-    def add_log(cls, node_id, num):
-        return cls.objects.create(node_id=node_id, online_user_count=num)
+    def add_log(cls, node_type, node_id, online_user_count, active_tcp_connections=0):
+        return cls.objects.create(
+            node_type=node_type,
+            node_id=node_id,
+            online_user_count=online_user_count,
+            active_tcp_connections=active_tcp_connections,
+        )
 
     @classmethod
-    def get_latest_log_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).order_by("-created_at").first()
+    def get_latest_log_by_node_id(cls, node_type, node_id):
+        return (
+            cls.objects.filter(node_type=node_type, node_id=node_id)
+            .order_by("-created_at")
+            .first()
+        )
 
     @classmethod
     def get_all_node_online_user_count(cls):
 
-        ss_node_ids = [node.node_id for node in SSNode.get_active_nodes()]
         count = 0
-        for node_id in ss_node_ids:
-            log = cls.get_latest_log_by_node_id(node_id)
+        for node in SSNode.get_active_nodes():
+            log = cls.get_latest_log_by_node_id(cls.NODE_TYPE_SS, node.node_id)
+            if log:
+                count += log.online_user_count
+
+        for node in VmessNode.get_active_nodes():
+            log = cls.get_latest_log_by_node_id(cls.NODE_TYPE_VMESS, node.node_id)
             if log:
                 count += log.online_user_count
         return count
 
     @classmethod
-    def get_latest_online_log_info(cls, node_id):
-        data = {"online": False, "online_user_count": 0}
-        log = cls.get_latest_log_by_node_id(node_id)
+    def get_latest_online_log_info(cls, node_type, node_id):
+        data = {"online": False, "online_user_count": 0, "active_tcp_connections": 0}
+        log = cls.get_latest_log_by_node_id(node_type, node_id)
         if log:
-            data["online"] = log.is_online
-            data["online_user_count"] = log.online_user_count if log.is_online else 0
+            data["online"] = log.online
+            data.update(model_to_dict(log))
         return data
 
 
-class SSNode(models.Model):
-
+class BaseAbstractNode(models.Model):
     node_id = models.IntegerField(unique=True)
     level = models.PositiveIntegerField(default=0)
     name = models.CharField("名字", max_length=32)
@@ -683,17 +679,15 @@ class SSNode(models.Model):
     country = models.CharField(
         "国家", default="CN", max_length=5, choices=COUNTRIES_CHOICES
     )
-    server = models.CharField("服务器地址", max_length=128)
-    method = models.CharField(
-        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
-    )
     used_traffic = models.BigIntegerField("已用流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
-    custom_method = models.BooleanField("自定义加密", default=False)
+    enlarge_scale = models.DecimalField(
+        "倍率", default=Decimal("1.0"), decimal_places=2, max_digits=10,
+    )
 
     class Meta:
-        verbose_name_plural = "SS节点"
+        abstract = True
 
     @classmethod
     def get_or_none_by_node_id(cls, node_id):
@@ -718,28 +712,6 @@ class SSNode(models.Model):
     def get_user_active_nodes(cls, user):
         return cls.objects.filter(enable=True, level__lte=user.level)
 
-    @classmethod
-    @cache.cached(ttl=60 * 60 * 24)
-    def get_user_ss_configs_by_node_id(cls, node_id):
-        ss_node = cls.get_or_none_by_node_id(node_id)
-        configs = {"users": []}
-        if ss_node:
-            configs["users"] = [
-                ss_node.to_dict_with_user_ss_config(config)
-                for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
-            ]
-        if not ss_node.enable:
-            for config in configs["users"]:
-                config["enable"] = False
-        return configs
-
-    @property
-    def api_endpoint(self):
-        params = {"token": settings.TOKEN}
-        return (
-            settings.HOST + f"/api/user_ss_config/{self.node_id}/?{urlencode(params)}"
-        )
-
     @property
     def human_total_traffic(self):
         return traffic_format(self.total_traffic)
@@ -752,11 +724,268 @@ class SSNode(models.Model):
     def overflow(self):
         return (self.used_traffic) > self.total_traffic
 
+    @functional.cached_property
+    def online_info(self):
+        return NodeOnlineLog.get_latest_online_log_info(self.node_type, self.node_id)
+
+    @property
+    def online_user_count(self):
+        return self.online_info["online_user_count"]
+
+    @property
+    def active_tcp_connections(self):
+        return self.online_info["active_tcp_connections"]
+
+
+class VmessNode(BaseAbstractNode):
+
+    server = models.CharField("服务器地址", max_length=128)
+    inbound_tag = models.CharField("标签", default="proxy", max_length=64)
+    port = models.IntegerField("端口", default=10086)
+    offset_port = models.IntegerField("偏移端口", blank=True, null=True)
+    alter_id = models.IntegerField("额外ID数量", default=1)
+    grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
+    grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
+    relay_host = models.CharField("中转地址", max_length=64, blank=True, null=True)
+    relay_port = models.CharField("中转端口", max_length=64, blank=True, null=True)
+    relay_offset_port = models.IntegerField("中转偏移端口", blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Vmess节点"
+
+    @classmethod
+    @cache.cached(ttl=60 * 60 * 24)
+    def get_user_vmess_configs_by_node_id(cls, node_id):
+        node = cls.get_or_none_by_node_id(node_id)
+        if not node:
+            return {"tag": "", "configs": []}
+
+        user_ids = []
+        configs = []
+        for d in User.objects.filter(level__gte=node.level).values(
+            "id", "email", "vmess_uuid"
+        ):
+            user_ids.append(d["id"])
+            configs.append(
+                {
+                    "user_id": d["id"],
+                    "email": d["email"],
+                    "uuid": d["vmess_uuid"],
+                    "level": node.level,
+                    "alter_id": node.alter_id,
+                }
+            )
+        ut_overflow_map = {
+            ut.user_id: ut.overflow
+            for ut in UserTraffic.objects.filter(user_id__in=user_ids)
+        }
+        for cfg in configs:
+            if not node.enable:
+                cfg["enable"] = False
+            else:
+                cfg["enable"] = not ut_overflow_map[cfg["user_id"]]
+        return {"configs": configs, "tag": node.inbound_tag}
+
+    @property
+    def node_type(self):
+        return "vmess"
+
+    @property
+    def enable_relay(self):
+        return bool(self.relay_host and self.relay_port)
+
+    @property
+    def display_host(self):
+        if self.enable_relay:
+            return self.relay_host
+        return self.server
+
+    @property
+    def display_port(self):
+        """显示出去的端口"""
+        # NOTE  优先级relay_offset_port> relay_port > offset_port > prot
+        if self.enable_relay:
+            if self.relay_offset_port:
+                return self.relay_offset_port
+            return self.relay_port
+        if self.offset_port:
+            return self.offset_port
+        return self.port
+
+    @property
+    def human_speed_limit(self):
+        # NOTE vemss目前不支持限速
+        return "不限速"
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/user_vmess_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def server_config_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/vmess_server_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def relay_config_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/relay_server_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def server_config(self):
+        return {
+            "stats": {},
+            "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
+            "log": {"loglevel": "info"},
+            "policy": {
+                "levels": {
+                    self.level: {"statsUserUplink": True, "statsUserDownlink": True}
+                },
+                "system": {"statsInboundUplink": True, "statsInboundDownlink": True},
+            },
+            "inbounds": [
+                {
+                    "tag": self.inbound_tag,
+                    "port": self.port,
+                    "protocol": "vmess",
+                    "settings": {"clients": []},
+                },
+                {
+                    "listen": self.grpc_host,
+                    "port": self.grpc_port,
+                    "protocol": "dokodemo-door",
+                    "settings": {"address": self.grpc_host},
+                    "tag": "api",
+                },
+            ],
+            "outbounds": [{"protocol": "freedom", "settings": {}}],
+            "routing": {
+                "settings": {
+                    "rules": [
+                        {"inboundTag": ["api"], "outboundTag": "api", "type": "field"}
+                    ]
+                },
+                "strategy": "rules",
+            },
+        }
+
+    @property
+    def relay_config(self):
+        return {
+            "log": {"loglevel": "info"},
+            "inbounds": [
+                {
+                    "port": self.relay_port,
+                    "listen": "0.0.0.0",
+                    "protocol": "dokodemo-door",
+                    "settings": {
+                        "address": self.server,
+                        "port": self.offset_port if self.offset_port else self.port,
+                        "network": "tcp,udp",
+                    },
+                    "tag": "",
+                    "sniffing": {"enabled": True, "destOverride": ["http", "tls"]},
+                },
+            ],
+            "outbounds": [{"protocol": "freedom", "settings": {}}],
+        }
+
+    def get_vmess_link(self, user):
+        # NOTE hardcode methoud to none
+        data = {
+            "port": self.display_port,
+            "aid": self.alter_id,
+            "id": user.vmess_uuid,
+            "ps": self.name,
+            "add": self.display_host,
+            "tls": "none",
+            "v": "2",
+            "net": "tcp",
+            "host": "",
+            "path": "",
+            "type": "none",
+        }
+        return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
+
+    def to_dict_with_extra_info(self, user):
+        data = model_to_dict(self)
+        data.update(
+            NodeOnlineLog.get_latest_online_log_info(
+                NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
+            )
+        )
+        data["server"] = self.display_host
+        data["port"] = self.display_port
+        data["country"] = self.country.lower()
+        data["uuid"] = user.vmess_uuid
+        data["vmess_link"] = self.get_vmess_link(user)
+
+        return data
+
+
+class SSNode(BaseAbstractNode):
+    KB = 1024
+    MEGABIT = KB * 125
+
+    server = models.CharField("服务器地址", max_length=128)
+    method = models.CharField(
+        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+    custom_method = models.BooleanField("自定义加密", default=False)
+    speed_limit = models.IntegerField("限速", default=0)
+
+    class Meta:
+        verbose_name_plural = "SS节点"
+
+    @classmethod
+    @cache.cached(ttl=60 * 60 * 24)
+    def get_user_ss_configs_by_node_id(cls, node_id):
+        ss_node = cls.get_or_none_by_node_id(node_id)
+        configs = {"users": []}
+        if not ss_node:
+            return configs
+        configs["users"] = [
+            ss_node.to_dict_with_user_ss_config(config)
+            for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
+        ]
+        if not ss_node.enable:
+            for config in configs["users"]:
+                config["enable"] = False
+        return configs
+
+    @property
+    def node_type(self):
+        return "ss"
+
+    @property
+    def human_speed_limit(self):
+        if self.speed_limit != 0:
+            return f"{round(self.speed_limit / self.MEGABIT, 1)} Mbps"
+        else:
+            return "不限速"
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST + f"/api/user_ss_config/{self.node_id}/?{urlencode(params)}"
+        )
+
     def get_ss_link(self, user_ss_config):
         method = user_ss_config.method if self.custom_method else self.method
         code = f"{method}:{user_ss_config.password}@{self.server}:{user_ss_config.port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
-        ss_link = "ss://{}#{}".format(b64_code, self.name)
+        ss_link = "ss://{}#{}".format(b64_code, quote(self.name))
         return ss_link
 
     def to_dict_with_user_ss_config(self, user_ss_config):
@@ -768,11 +997,87 @@ class SSNode(models.Model):
 
     def to_dict_with_extra_info(self, user_ss_config):
         data = self.to_dict_with_user_ss_config(user_ss_config)
-        data.update(SSNodeOnlineLog.get_latest_online_log_info(self.node_id))
+        data.update(
+            NodeOnlineLog.get_latest_online_log_info(
+                NodeOnlineLog.NODE_TYPE_SS, self.node_id
+            )
+        )
         data["country"] = self.country.lower()
         data["ss_link"] = self.get_ss_link(user_ss_config)
         data["api_point"] = self.api_endpoint
+        data["human_speed_limit"] = self.human_speed_limit
         return data
+
+
+class UserTrafficLog(models.Model, UserPropertyMixin):
+    NODE_TYPE_SS = "ss"
+    NODE_TYPE_VMESS = "vmess"
+    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
+    NODE_MODEL_DICT = {NODE_TYPE_SS: SSNode, NODE_TYPE_VMESS: VmessNode}
+
+    user_id = models.IntegerField()
+    node_type = models.CharField(
+        "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
+    )
+    node_id = models.IntegerField()
+    date = models.DateField(auto_now_add=True, db_index=True)
+    upload_traffic = models.BigIntegerField("上传流量", default=0)
+    download_traffic = models.BigIntegerField("下载流量", default=0)
+
+    class Meta:
+        verbose_name_plural = "流量记录"
+        ordering = ["-date"]
+        index_together = ["user_id", "node_type", "node_id", "date"]
+
+    @property
+    def total_traffic(self):
+        return traffic_format(self.download_traffic + self.upload_traffic)
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+    @classmethod
+    def calc_user_total_traffic(cls, node_type, node_id, user_id):
+        logs = cls.objects.filter(user_id=user_id, node_type=node_type, node_id=node_id)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return traffic_format(ut + dt)
+
+    @classmethod
+    def calc_user_traffic_by_date(cls, user_id, node_type, node_id, date):
+        logs = cls.objects.filter(
+            node_type=node_type, node_id=node_id, user_id=user_id, date=date
+        )
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return (ut + dt) // settings.MB
+
+    @classmethod
+    def gen_line_chart_configs(cls, user_id, node_type, node_id, date_list):
+        model = cls.NODE_MODEL_DICT[node_type]
+        node = model.get_or_none_by_node_id(node_id)
+        user_total_traffic = cls.calc_user_total_traffic(node_type, node_id, user_id)
+        date_list = sorted(date_list)
+        line_config = {
+            "title": "节点 {} 当月共消耗：{}".format(node.name, user_total_traffic),
+            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+            "data": [
+                cls.calc_user_traffic_by_date(user_id, node_type, node_id, date)
+                for date in date_list
+            ],
+            "data_title": node.name,
+            "x_label": "日期 最近七天",
+            "y_label": "流量 单位：MB",
+        }
+        return line_config
 
 
 class InviteCode(models.Model):
@@ -1057,18 +1362,30 @@ class PurchaseHistory(models.Model):
     def cost_statistics(cls, good_id, start, end):
         start = pendulum.parse(start, tz=timezone.get_current_timezone())
         end = pendulum.parse(end, tz=timezone.get_current_timezone())
+        good = Goods.objects.filter(pk=good_id).first()
+        if not good:
+            print("商品不存在")
+            return
         query = cls.objects.filter(
             good__id=good_id, purchtime__gte=start, purchtime__lte=end
         )
-        for obj in query:
-            print(obj.user, obj.good)
         count = query.count()
-        amount = count * obj.money
+        amount = count * good.money
         print(
             "{} ~ {} 时间内 商品: {} 共销售 {} 次 总金额 {} 元".format(
-                start.date(), end.date(), obj.good, count, amount
+                start.date(), end.date(), good, count, amount
             )
         )
+
+    @classmethod
+    def get_all_purchase_user(cls):
+        username_list = [
+            u["user"]
+            for u in cls.objects.values("user")
+            .annotate(c=models.Count("user"))
+            .order_by("-c")
+        ]
+        return User.objects.find(username__in=username_list)
 
 
 class Announcement(models.Model):
@@ -1080,17 +1397,33 @@ class Announcement(models.Model):
     def __str__(self):
         return "日期:{}".format(str(self.time)[:9])
 
-    # 重写save函数，将文本渲染成markdown格式存入数据库
     def save(self, *args, **kwargs):
-        # 首先实例化一个MarkDown类，来渲染一下body的文本 成为html文本
         md = markdown.Markdown(extensions=["markdown.extensions.extra"])
         self.body = md.convert(self.body)
-        # 调动父类save 将数据保存到数据库中
         super(Announcement, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = "系统公告"
         ordering = ("-time",)
+
+    @classmethod
+    def send_first_visit_msg(cls, request):
+        anno = cls.objects.order_by("-time").first()
+        if not anno or request.session.get("first_visit"):
+            return
+        request.session["first_visit"] = True
+        messages.warning(request, anno.plain_text, extra_tags="最新通知！")
+
+    @property
+    def plain_text(self):
+        # TODO 现在db里存的二是md转换成的html，这里之后可能要优化。转换的逻辑移到前端去
+        re_br = re.compile("<br\s*?/?>")  # 处理换行
+        re_h = re.compile("</?\w+[^>]*>")  # HTML标签
+        s = re_br.sub("", self.body)  # 去掉br
+        s = re_h.sub("", s)  # 去掉HTML 标签
+        blank_line = re.compile("\n+")  # 去掉多余的空行
+        s = blank_line.sub("", s)
+        return s
 
 
 class Ticket(models.Model):
@@ -1111,3 +1444,29 @@ class Ticket(models.Model):
     class Meta:
         verbose_name_plural = "工单"
         ordering = ("-time",)
+
+
+class EmailSendLog(models.Model):
+    """邮件发送记录"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    subject = models.CharField(max_length=128, db_index=True)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name_plural = "邮件发送记录"
+
+    @classmethod
+    def send_mail_to_users(cls, users, subject, message):
+        address = [user.email for user in users]
+        if send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, address):
+            logs = [cls(user=user, subject=subject, message=message) for user in users]
+            cls.objects.bulk_create(logs)
+            print(f"send email success user: address: {address}")
+        else:
+            raise Exception(f"Could not send mail {address} subject: {subject}")
+
+    @classmethod
+    def get_user_dict_by_subject(cls, subject):
+        return {l.user: 1 for l in cls.objects.filter(subject=subject)}

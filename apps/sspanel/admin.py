@@ -20,7 +20,7 @@ class UserOrderAdmin(admin.ModelAdmin):
         "expired_at",
     ]
     search_fields = ["user__username", "user__id"]
-    list_filter = ["user", "amount", "status", "created_at"]
+    list_filter = ["amount", "status", "created_at"]
     ordering = ("-created_at",)
 
 
@@ -44,7 +44,6 @@ class UserSSConfigAdmin(admin.ModelAdmin):
         "port",
         "password",
         "method",
-        "speed_limit",
         "human_used_traffic",
         "human_total_traffic",
         "enable",
@@ -76,8 +75,15 @@ class UserTrafficAdmin(admin.ModelAdmin):
     search_fields = ["user_id", "last_use_time"]
 
 
-class SSNodeOnlineLogAdmin(admin.ModelAdmin):
-    list_display = ["node_id", "online_user_count", "created_at"]
+class NodeOnlineLogAdmin(admin.ModelAdmin):
+    list_display = [
+        "node_id",
+        "node_type",
+        "online_user_count",
+        "active_tcp_connections",
+        "created_at",
+    ]
+    search_fields = ["node_id", "node_type"]
 
 
 class SSNodeAdmin(admin.ModelAdmin):
@@ -86,6 +92,20 @@ class SSNodeAdmin(admin.ModelAdmin):
         "node_id",
         "level",
         "server",
+        "enlarge_scale",
+        "human_used_traffic",
+        "human_total_traffic",
+        "enable",
+    ]
+
+
+class VmessNodeAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "node_id",
+        "level",
+        "server",
+        "enlarge_scale",
         "human_used_traffic",
         "human_total_traffic",
         "enable",
@@ -116,6 +136,12 @@ class GoodsAdmin(admin.ModelAdmin):
     list_display = ["name", "transfer", "money", "level"]
 
 
+class EmailSendLogAdmin(admin.ModelAdmin):
+    list_display = ["user", "subject", "created_at"]
+    list_filter = ["subject", "created_at"]
+    search_fields = ["user__username", "subject"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserOrder, UserOrderAdmin)
@@ -125,8 +151,9 @@ admin.site.register(models.UserSSConfig, UserSSConfigAdmin)
 admin.site.register(models.UserCheckInLog, UserCheckInAdmin)
 admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.UserTraffic, UserTrafficAdmin)
-admin.site.register(models.SSNodeOnlineLog, SSNodeOnlineLogAdmin)
+admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
+admin.site.register(models.VmessNode, VmessNodeAdmin)
 
 admin.site.register(models.InviteCode, InviteCodeAdmin)
 admin.site.register(models.Donate, DonateAdmin)
@@ -135,6 +162,7 @@ admin.site.register(models.Goods, GoodsAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
+admin.site.register(models.EmailSendLog, EmailSendLogAdmin)
 
 
 admin.site.unregister(Group)

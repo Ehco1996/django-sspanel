@@ -1,11 +1,10 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.views import View
 
 from apps.constants import METHOD_CHOICES, THEME_CHOICES
@@ -21,8 +20,21 @@ from apps.sspanel.models import (
     Ticket,
     User,
     SSNode,
+    VmessNode,
 )
 from apps.utils import traffic_format
+
+
+class IndexView(View):
+    def get(self, request):
+        """跳转到首页"""
+        return render(request, "sspanel/index.html")
+
+
+class HelpView(View):
+    def get(self, request):
+        """跳转到帮助界面"""
+        return render(request, "sspanel/help.html")
 
 
 class RegisterView(View):
@@ -37,7 +49,7 @@ class RegisterView(View):
         return render(request, "sspanel/register.html", {"form": form})
 
     def post(self, request):
-        if settings.ALLOW_REGISTER is False:
+        if not settings.ALLOW_REGISTER:
             return HttpResponse("已经关闭注册了喵")
 
         form = RegisterForm(data=request.POST)
@@ -57,14 +69,43 @@ class RegisterView(View):
         return render(request, "sspanel/register.html", {"form": form})
 
 
+class UserLogInView(View):
+    def post(self, request):
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+            )
+            if user and user.is_active:
+                login(request, user)
+                messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
+                return HttpResponseRedirect(reverse("sspanel:userinfo"))
+            else:
+                messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
+
+        context = {"form": LoginForm()}
+        return render(request, "sspanel/login.html", context=context)
+
+    def get(self, request):
+        context = {"form": LoginForm()}
+        return render(request, "sspanel/login.html", context=context)
+
+
+class UserLogOutView(View):
+    def get(self, request):
+        logout(request)
+        messages.warning(request, "欢迎下次再来", extra_tags="注销成功")
+        return HttpResponseRedirect(reverse("sspanel:index"))
+
+
 class InviteCodeView(View):
     def get(self, request):
         code_list = InviteCode.list_by_code_type(InviteCode.TYPE_PUBLIC)
         return render(request, "sspanel/invite.html", context={"code_list": code_list})
 
 
-class AffInviteView(View):
-    @method_decorator(login_required)
+class AffInviteView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         context = {
@@ -76,8 +117,7 @@ class AffInviteView(View):
         return render(request, "sspanel/aff_invite.html", context=context)
 
 
-class AffStatusView(View):
-    @method_decorator(login_required)
+class AffStatusView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         rebate_logs = RebateRecord.list_by_user_id_with_consumer_username(user.pk)
@@ -90,8 +130,7 @@ class AffStatusView(View):
         return render(request, "sspanel/aff_status.html", context=context)
 
 
-class UserInfoView(View):
-    @method_decorator(login_required)
+class UserInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_ss_config = user.user_ss_config
@@ -113,33 +152,49 @@ class UserInfoView(View):
             "sub_link": user.sub_link,
             "sub_types": User.SUB_TYPES,
             "user_sub_type": user.get_sub_type_display(),
+            "methods": [m[0] for m in METHOD_CHOICES],
         }
         return render(request, "sspanel/userinfo.html", context=context)
 
 
-class NodeInfoView(View):
-    @method_decorator(login_required)
+class NodeInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_ss_config = user.user_ss_config
-        node_list = [
+        # ss node
+        ss_node_list = [
             node.to_dict_with_extra_info(user_ss_config)
             for node in SSNode.get_active_nodes()
         ]
-        context = {"node_list": node_list, "user": user, "sub_link": user.sub_link}
+
+        # vmess node
+        vmess_node_list = [
+            node.to_dict_with_extra_info(user) for node in VmessNode.get_active_nodes()
+        ]
+
+        context = {
+            "ss_node_list": ss_node_list,
+            "vmess_node_list": vmess_node_list,
+            "user": user,
+            "sub_link": user.sub_link,
+        }
+        Announcement.send_first_visit_msg(request)
         return render(request, "sspanel/nodeinfo.html", context=context)
 
 
-class UserTrafficLog(View):
-    @method_decorator(login_required)
+class UserTrafficLog(LoginRequiredMixin, View):
     def get(self, request):
-        node_list = SSNode.get_active_nodes()
-        context = {"user": request.user, "node_list": node_list}
+        ss_node_list = SSNode.get_active_nodes()
+        vmess_node_list = VmessNode.get_active_nodes()
+        context = {
+            "user": request.user,
+            "ss_node_list": ss_node_list,
+            "vmess_node_list": vmess_node_list,
+        }
         return render(request, "sspanel/user_traffic_log.html", context=context)
 
 
-class UserSSNodeConfigView(View):
-    @method_decorator(login_required)
+class UserSSNodeConfigView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_ss_config = user.user_ss_config
@@ -150,16 +205,7 @@ class UserSSNodeConfigView(View):
         return JsonResponse({"configs": configs})
 
 
-class UserSettingView(View):
-    @method_decorator(login_required)
-    def get(self, request):
-        methods = [m[0] for m in METHOD_CHOICES]
-        context = {"user_ss_config": request.user.user_ss_config, "methods": methods}
-        return render(request, "sspanel/user_settings.html", context=context)
-
-
-class ShopView(View):
-    @method_decorator(login_required)
+class ShopView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         goods = Goods.objects.filter(status=1)
@@ -167,88 +213,39 @@ class ShopView(View):
         return render(request, "sspanel/shop.html", context=context)
 
 
-def index(request):
-    """跳转到首页"""
-
-    return render(
-        request, "sspanel/index.html", {"allow_register": settings.ALLOW_REGISTER}
-    )
+class ClientView(LoginRequiredMixin, View):
+    def get(self, request):
+        """跳转到客户端界面"""
+        return render(request, "sspanel/client.html")
 
 
-def sshelp(request):
-    """跳转到帮助界面"""
-    return render(request, "sspanel/help.html")
+class DonateView(LoginRequiredMixin, View):
+    def get(self, request):
+        """捐赠界面和支付宝当面付功能"""
+        donatelist = Donate.objects.all()[:8]
+        context = {"donatelist": donatelist}
+        return render(request, "sspanel/donate.html", context=context)
 
 
-@login_required
-def ssclient(request):
-    """跳转到客户端界面"""
-    return render(request, "sspanel/client.html")
+class PurchaseLogView(LoginRequiredMixin, View):
+    def get(self, request):
+        """用户购买记录页面"""
+
+        records = PurchaseHistory.objects.filter(user=request.user)[:10]
+        context = {"records": records}
+        return render(request, "sspanel/purchaselog.html", context=context)
 
 
-def user_login(request):
-    """用户登录函数"""
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            user = authenticate(
-                username=form.cleaned_data["username"],
-                password=form.cleaned_data["password"],
-            )
-            if user and user.is_active:
-                login(request, user)
-                messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
-                return HttpResponseRedirect(reverse("sspanel:userinfo"))
-            else:
-                messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
-    context = {"form": LoginForm(), "USE_SMTP": settings.USE_SMTP}
-    return render(request, "sspanel/login.html", context=context)
+class ChargeView(LoginRequiredMixin, View):
+    def get(self, request):
+        """充值界面的跳转"""
+        user = request.user
+        codelist = MoneyCode.objects.filter(user=user)
+        context = {"user": user, "codelist": codelist}
+        return render(request, "sspanel/chargecenter.html", context=context)
 
-
-def user_logout(request):
-    """用户登出函数"""
-    logout(request)
-    messages.success(request, "欢迎下次再来", extra_tags="注销成功")
-    return HttpResponseRedirect(reverse("index"))
-
-
-@login_required
-def donate(request):
-    """捐赠界面和支付宝当面付功能"""
-    donatelist = Donate.objects.all()[:8]
-    context = {"donatelist": donatelist}
-    if settings.USE_ALIPAY is True:
-        context["alipay"] = True
-    else:
-        # 关闭支付宝支付
-        context["alipay"] = False
-    return render(request, "sspanel/donate.html", context=context)
-
-
-@login_required
-def purchaselog(request):
-    """用户购买记录页面"""
-
-    records = PurchaseHistory.objects.filter(user=request.user)[:10]
-    context = {"records": records}
-    return render(request, "sspanel/purchaselog.html", context=context)
-
-
-@login_required
-def chargecenter(request):
-    """充值界面的跳转"""
-    user = request.user
-    codelist = MoneyCode.objects.filter(user=user)
-
-    context = {"user": user, "codelist": codelist}
-
-    return render(request, "sspanel/chargecenter.html", context=context)
-
-
-@login_required
-def charge(request):
-    user = request.user
-    if request.method == "POST":
+    def post(self, request):
+        user = request.user
         input_code = request.POST.get("chargecode")
         # 在数据库里检索充值
         code = MoneyCode.objects.filter(code=input_code).first()
@@ -275,56 +272,57 @@ def charge(request):
                 return HttpResponseRedirect(reverse("sspanel:chargecenter"))
 
 
-@login_required
-def announcement(request):
-    """网站公告列表"""
-    anno = Announcement.objects.all()
-    return render(request, "sspanel/announcement.html", {"anno": anno})
+class AnnouncementView(LoginRequiredMixin, View):
+    def get(self, request):
+        """网站公告列表"""
+        anno = Announcement.objects.all()
+        return render(request, "sspanel/announcement.html", {"anno": anno})
 
 
-@login_required
-def ticket(request):
-    """工单系统"""
-    ticket = Ticket.objects.filter(user=request.user)
-    context = {"ticket": ticket}
-    return render(request, "sspanel/ticket.html", context=context)
+class TicketsView(LoginRequiredMixin, View):
+    def get(self, request):
+        """工单系统"""
+        ticket = Ticket.objects.filter(user=request.user)
+        context = {"ticket": ticket}
+        return render(request, "sspanel/ticket.html", context=context)
 
 
-@login_required
-def ticket_create(request):
-    """工单提交"""
-    if request.method == "POST":
+class TicketCreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, "sspanel/ticketcreate.html")
+
+    def post(self, request):
+        """工单提交"""
         title = request.POST.get("title", "")
         body = request.POST.get("body", "")
         Ticket.objects.create(user=request.user, title=title, body=body)
         messages.success(request, "数据更新成功！", extra_tags="添加成功")
-        return HttpResponseRedirect(reverse("sspanel:ticket"))
-    else:
-        return render(request, "sspanel/ticketcreate.html")
+        return HttpResponseRedirect(reverse("sspanel:tickets"))
 
 
-@login_required
-def ticket_delete(request, pk):
-    """删除指定"""
-    ticket = Ticket.objects.get(pk=pk)
-    ticket.delete()
-    messages.success(request, "该工单已经删除", extra_tags="删除成功")
-    return HttpResponseRedirect(reverse("sspanel:ticket"))
-
-
-@login_required
-def ticket_edit(request, pk):
-    """工单编辑"""
-    ticket = Ticket.objects.get(pk=pk)
-    # 当为post请求时，修改数据
-    if request.method == "POST":
-        title = request.POST.get("title", "")
-        body = request.POST.get("body", "")
-        ticket.title = title
-        ticket.body = body
-        ticket.save()
-        messages.success(request, "数据更新成功", extra_tags="修改成功")
-        return HttpResponseRedirect(reverse("sspanel:ticket"))
-    else:
+class TicketDetailView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        """工单编辑"""
+        ticket = Ticket.objects.get(pk=pk)
         context = {"ticket": ticket}
         return render(request, "sspanel/ticketedit.html", context=context)
+
+    def post(self, request, pk):
+        ticket = Ticket.objects.get(pk=pk)
+        ticket.title = request.POST.get("title", "")
+        ticket.body = request.POST.get("body", "")
+        ticket.save()
+        messages.success(request, "数据更新成功", extra_tags="修改成功")
+        return HttpResponseRedirect(reverse("sspanel:tickets"))
+
+
+class TicketDeleteView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        """删除指定"""
+        ticket = Ticket.objects.filter(pk=pk, user=request.user).first()
+        if ticket:
+            ticket.delete()
+            messages.success(request, "该工单已经删除", extra_tags="删除成功")
+        else:
+            messages.error(request, "该工单不存在", extra_tags="删除失败")
+        return HttpResponseRedirect(reverse("sspanel:tickets"))

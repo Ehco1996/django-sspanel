@@ -1,0 +1,32 @@
+ {% extends 'adminbase.html' %} {% block main %} {% load ehcofilter %}
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    商品编辑：
+                </h1>
+                <h2 class="subtitle">
+                    编辑节点：{{ good.name }}
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box">
+        <form class="form" method="post">
+            {% csrf_token %} {{ form.non_field_errors }} {% for field in form %} {{ field.label_tag }} {{ field|add_class:"input" }}
+            {{ field.errors }} {% if field.help_text %}
+            <p class="help is-danger">{{ field.help_text|safe }}</p>
+            {% endif %} {% endfor %}
+            <hr/>
+            <div class="is-grouped">
+                <button type="submit" class="button is-danger is-outlined ">确认修改</button>
+                <a class="button is-success is-outlined" href="{% url 'sspanel:admin_goods' %}">取消修改</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock main %}

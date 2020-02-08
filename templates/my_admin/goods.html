@@ -1,0 +1,72 @@
+{% extends 'adminbase.html' %} {% block main %}
+<div class="column is-12">
+    <section class="hero is-light is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    商品列表：
+                </h1>
+                <h2 class="subtitle">
+                    添加或者删除商品：
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box table-container">
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th>操作:</th>
+                    <th>ID:</th>
+                    <th>商品描述:</th>
+                    <th>金额:</th>
+                    <th>流量:</th>
+                    <th>等级:</th>
+                </tr>
+            </thead>
+            {% for good in goods %}
+            <tr>
+                <td>
+                    <p class="control">
+                        <a class="button is-info" href="{% url 'sspanel:good_detail' good.pk  %}">编辑</a>
+                    </p>
+                    <p class="control">
+                        <a class="button is-danger modal-button" data-target="modal-{{ good.pk }}">删除</a>
+                    </p>
+                </td>
+                <td>#{{ good.pk }}</td>
+                <td>{{ good.name }}</td>
+                <td>{{ good.money }}</td>
+                <td>{{ good.total_transfer }}</td>
+                <td>{{ good.level }}</td>
+            </tr>
+            <div class="modal node_delete" id="modal-{{ good.pk }}">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">商品名:{{ good.name }}</p>
+                        <button class="delete"></button>
+                    </header>
+                    <section class="modal-card-body">
+                        <p class="subtitle">确定要删除:
+                            <code>{{ good.name }}</code>?</p>
+                        <p align="center">
+                            <a class="button is-danger is-outlined" href="{% url 'sspanel:good_delete' good.pk %}">确定删除</a>
+                        </p>
+                    </section>
+                </div>
+            </div>
+            {% empty %}
+            <h2 class="subtitle">
+                暂时没有商品，点击下方按钮添加商品
+            </h2>
+            {% endfor %}
+        </table>
+        <p align="right">
+            <a class="button is-danger is-outlined" href="{% url 'sspanel:good_create' %}">增加商品</a>
+        </p>
+    </div>
+</div>
+{% endblock main %}

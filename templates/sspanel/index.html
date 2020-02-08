@@ -1,12 +1,12 @@
-{% extends 'base.html' %} {% block main %}
+{% extends 'base.html' %} {% load ehcofilter %}{% block main %}
 <div class="columns">
     <div class="column is-one-third">
         <div class="notification is-danger">
             <button class="delete"></button>
             <p class="title is-4">
                 好像发现了一个
-                <br/>
-                <br/>了不得的地方！
+                <br />
+                <br />了不得的地方！
             </p>
         </div>
     </div>
@@ -15,8 +15,8 @@
             <button class="delete"></button>
             <p class="title is-4">
                 是啊是啊！
-                <br/>
-                <br/>要进去瞧瞧么？</p>
+                <br />
+                <br />要进去瞧瞧么？</p>
         </div>
     </div>
     <div class="column is-one-third">
@@ -24,12 +24,12 @@
             <button class="delete"></button>
             <p class="title is-4">
                 当然要去！
-                <br/>
-                <br/>魔王总要救公主！</p>
+                <br />
+                <br />魔王总要救公主！</p>
         </div>
     </div>
 </div>
-<br/> {% if user.is_authenticated %}
+<br /> {% if user.is_authenticated %}
 <div class="box">
     <p class="title">欢迎小主: {{ user.username }}</p>
     <p class="subtitle">点击下方按钮进入用户中心 </p>
@@ -40,6 +40,7 @@
 </div>
 {% else %}
 <div class="column box ">
+    {% settings_value "ALLOW_REGISTER" as allow_register %}
     {% if allow_register is True %}
     <h1 class="title"> 注册注册</h1>
     <h2 class="subtitle">没有账号？快去注册一个吧！</h2>
@@ -49,10 +50,10 @@
     <h2 class="subtitle">暂时关闭注册了呢~</h2>
     {% endif %}
 </div>
-<br/>
+<br />
 <div class="column box ">
     <h1 class="title"> 登录登录！</h1>
     <h2 class="subtitle">有账号了？登录吧少年！</h2>
     <a class="button is-danger is-outlined" href="{% url 'sspanel:login' %}">登录</a>
 </div>
-<br/> {% endif %} {% endblock main %}
+<br /> {% endif %} {% endblock main %}
