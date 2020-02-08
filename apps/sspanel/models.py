@@ -746,6 +746,8 @@ class VmessNode(BaseAbstractNode):
     alter_id = models.IntegerField("额外ID数量", default=1)
     grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
+    relay_host = models.CharField("中转地址", max_length=64, blank=True, null=True)
+    relay_port = models.CharField("中转端口", max_length=64, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Vmess节点"
@@ -788,6 +790,31 @@ class VmessNode(BaseAbstractNode):
         return "vmess"
 
     @property
+    def enable_relay(self):
+        return bool(self.relay_host and self.relay_port)
+
+    @property
+    def display_host(self):
+        if self.enable_relay:
+            return self.relay_host
+        return self.server
+
+    @property
+    def display_port(self):
+        """显示出去的端口"""
+        # NOTE 优先级 relay_port > offset_port > prot
+        if self.enable_relay:
+            return self.relay_port
+        if self.offset_port:
+            return self.offset_port
+        return self.port
+
+    @property
+    def human_speed_limit(self):
+        # NOTE vemss目前不支持限速
+        return "不限速"
+
+    @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
         return (
@@ -796,11 +823,27 @@ class VmessNode(BaseAbstractNode):
         )
 
     @property
+    def server_config_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/vmess_server_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def relay_config_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/relay_server_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
     def server_config(self):
         return {
             "stats": {},
             "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
-            "log": {"loglevel": "warning"},
+            "log": {"loglevel": "info"},
             "policy": {
                 "levels": {
                     self.level: {"statsUserUplink": True, "statsUserDownlink": True}
@@ -834,20 +877,34 @@ class VmessNode(BaseAbstractNode):
         }
 
     @property
-    def human_speed_limit(self):
-        # NOTE vemss目前不支持限速
-        return "不限速"
+    def relay_config(self):
+        return {
+            "log": {"loglevel": "info"},
+            "inbounds": [
+                {
+                    "port": self.relay_port,
+                    "listen": "0.0.0.0",
+                    "protocol": "dokodemo-door",
+                    "settings": {
+                        "address": self.server,
+                        "port": self.offset_port if self.offset_port else self.port,
+                        "network": "tcp,udp",
+                    },
+                    "tag": "",
+                    "sniffing": {"enabled": True, "destOverride": ["http", "tls"]},
+                },
+            ],
+            "outbounds": [{"protocol": "freedom", "settings": {}}],
+        }
 
     def get_vmess_link(self, user):
         # NOTE hardcode methoud to none
-        # NOTE 当有offset_port的时候应显示为offset_port(中继机器的端口)
-        port = self.port if not self.offset_port else self.offset_port
         data = {
-            "port": port,
+            "port": self.display_port,
             "aid": self.alter_id,
             "id": user.vmess_uuid,
             "ps": self.name,
-            "add": self.server,
+            "add": self.display_host,
             "tls": "none",
             "v": "2",
             "net": "tcp",
@@ -864,8 +921,8 @@ class VmessNode(BaseAbstractNode):
                 NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
             )
         )
-        if self.offset_port:
-            data["port"] = self.offset_port
+        data["server"] = self.display_host
+        data["port"] = self.display_port
         data["country"] = self.country.lower()
         data["uuid"] = user.vmess_uuid
         data["vmess_link"] = self.get_vmess_link(user)

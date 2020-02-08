@@ -167,6 +167,8 @@ class VmessNodeForm(ModelForm):
             "used_traffic": forms.NumberInput(attrs={"class": "input"}),
             "total_traffic": forms.NumberInput(attrs={"class": "input"}),
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "relay_host": forms.TextInput(attrs={"class": "input"}),
+            "relay_port": forms.TextInput(attrs={"class": "input"}),
         }
 
 

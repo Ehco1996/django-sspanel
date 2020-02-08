@@ -19,27 +19,27 @@
             <thead>
                 <tr>
                     <th>操作</th>
-                    <th>ID/Type</th>
+                    <th>ID/类型</th>
                     <th>名字</th>
-                    <th>节点地址</th>
+                    <th>地址</th>
                     <th>等级</th>
                     <th>上线</th>
-                    <th>人/连接数</th>
+                    <th>人/连接</th>
                     <th>已用/总流量</th>
                     <th>限速</th>
-                    <th>对接地址</th>
+                    <th>对接</th>
                 </tr>
             </thead>
             {% for node in node_list %}
             <tr>
                 <td>
                     <p class="control">
-                        <a class="button is-info"
+                        <a class="button is-info modal-button"
                             href="{% url 'sspanel:admin_node_detail' node_type=node.node_type node_id=node.node_id  %}">编辑</a>
                     </p>
                     <p class="control">
                         <a class="button is-danger modal-button"
-                            data-target="modal-{{ node.node_type }}-{{ node.node_id }}">删除</a>
+                            data-target="modal-delete-{{ node.node_type }}-{{ node.node_id }}">删除</a>
                     </p>
                 </td>
                 <td>{{ node.node_id }}/{{ node.node_type }}</td>
@@ -51,12 +51,70 @@
                 <td>{{ node.human_used_traffic}}/{{ node.human_total_traffic }}</td>
                 <td>{{ node.human_speed_limit }}</td>
                 <td>
-                    <p class="control is-expanded">
-                        <input class="input" value="{{ node.api_endpoint }}" readonly>
+                    <p class="control">
+                        <span class="icon  button modal-button is-medium"
+                            data-target="modal-node-{{ node.node_type }}-{{ node.node_id }}">
+                            <i class="fa fa-rocket"></i>
+                        </span>
                     </p>
                 </td>
             </tr>
-            <div class="modal node_delete" id="modal-{{ node.node_type }}-{{ node.node_id }}">
+            <div class="modal" id="modal-node-{{ node.node_type }}-{{ node.node_id }}">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">{{ node.name }} - 对接配置</p>
+                        <button class="delete"></button>
+                    </header>
+                    <section class="modal-card-body">
+                        {% if node.node_type == "ss" %}
+                        <p class="subtitle"><a class="is-link" href="https://github.com/Ehco1996/aioshadowsocks">专用SS后端
+                            </a>对接地址:</p>
+                        {% else %}
+                        <p class="subtitle"><a class="is-link" href="https://github.com/Ehco1996/v2scar">专用V2ray
+                            </a>后端对接地址:</p>
+                        {% endif %}
+                        <div class="field is-grouped">
+                            <p class="control is-expanded">
+                                <input class="input" id="id-api-endpoint-{{ node.node_type }}-{{ node.node_id }}"
+                                    value="{{ node.api_endpoint }}" readonly>
+                            </p>
+                            <a class="button is-rounded" id="id-button-clip"
+                                data-clipboard-target="#id-api-endpoint-{{ node.node_type }}-{{ node.node_id }}">
+                                <i class="fa fa-clipboard" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                        {% if node.node_type == "vmess" %}
+                        <hr>
+                        <p class="subtitle">Vmess 配置地址:</p>
+                        <div class="field is-grouped">
+                            <p class="control is-expanded">
+                                <input class="input" id="id-vmess-config-{{ node.node_type }}-{{ node.node_id }}"
+                                    value="{{ node.server_config_endpoint }}" readonly>
+                            </p>
+                            <a class="button is-rounded" id="id-button-clip"
+                                data-clipboard-target="#id-vmess-config-{{ node.node_type }}-{{ node.node_id }}">
+                                <i class="fa fa-clipboard" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                        {% if node.enable_relay %}
+                        <hr>
+                        <p class="subtitle">Relay 配置地址:</p>
+                        <div class="field is-grouped">
+                            <p class="control is-expanded">
+                                <input class="input" id="id-relay-config-{{ node.node_type }}-{{ node.node_id }}" value="{{ node.relay_config_endpoint }}" readonly>
+                            </p>
+                            <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-relay-config-{{ node.node_type }}-{{ node.node_id }}">
+                                <i class="fa fa-clipboard" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                        <span class="copied" hidden="true">Copied!</span>
+                    </section>
+                </div>
+            </div>
+            <div class="modal node_delete" id="modal-delete-{{ node.node_type }}-{{ node.node_id }}">
                 <div class="modal-background"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
@@ -85,4 +143,13 @@
         </p>
     </div>
 </div>
+
+<script>
+    // 点击复制
+    var clip = new Clipboard('#id-button-clip');
+    clip.on('success', function (e) {
+        $('.copied').show();
+        $('.copied').fadeOut(1000);
+    });
+</script>
 {% endblock main %}

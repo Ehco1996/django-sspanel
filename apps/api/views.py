@@ -279,16 +279,21 @@ class UserVmessConfigView(View):
 
 
 class VmessServerConfigView(View):
-    @csrf_exempt
-    def dispatch(self, *args, **kwargs):
-        return super(VmessServerConfigView, self).dispatch(*args, **kwargs)
-
     @method_decorator(api_authorized)
     def get(self, request, node_id):
         node = VmessNode.get_or_none_by_node_id(node_id)
         if not node:
             return HttpResponseNotFound()
         return JsonResponse(node.server_config)
+
+
+class RelayServerConfigView(View):
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        node = VmessNode.get_or_none_by_node_id(node_id)
+        if not node:
+            return HttpResponseNotFound()
+        return JsonResponse(node.relay_config)
 
 
 class UserCheckInView(View):
