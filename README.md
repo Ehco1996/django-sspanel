@@ -1,9 +1,11 @@
 # django-sspanel
 用diango开发的全新的shadowsocks网络面板
 
-专用SS后端：[地址：](https://github.com/Ehco1996/aioshadowsocks)
+专用SS后端:[地址](https://github.com/Ehco1996/aioshadowsocks)
 
-专用V2ray后端：[地址：](https://github.com/Ehco1996/v2scar)
+专用V2ray后端:[地址](https://github.com/Ehco1996/v2scar)
+
+节点对接教程: [地址](https://github.com/Ehco1996/django-sspanel/wiki/%5B%E6%9C%80%E6%96%B0%E6%95%99%E7%A8%8B-2020-2-8%5D%E5%AF%B9%E6%8E%A5%E5%90%8E%E7%AB%AF%E8%8A%82%E7%82%B9%E6%95%99%E7%A8%8B)
 
 Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
