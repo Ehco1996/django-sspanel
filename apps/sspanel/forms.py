@@ -169,6 +169,7 @@ class VmessNodeForm(ModelForm):
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "relay_host": forms.TextInput(attrs={"class": "input"}),
             "relay_port": forms.TextInput(attrs={"class": "input"}),
+            "relay_offset_port": forms.TextInput(attrs={"class": "input"}),
         }
 
 

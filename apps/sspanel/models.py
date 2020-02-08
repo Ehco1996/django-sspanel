@@ -748,6 +748,7 @@ class VmessNode(BaseAbstractNode):
     grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
     relay_host = models.CharField("中转地址", max_length=64, blank=True, null=True)
     relay_port = models.CharField("中转端口", max_length=64, blank=True, null=True)
+    relay_offset_port = models.IntegerField("中转偏移端口", blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Vmess节点"
@@ -802,8 +803,10 @@ class VmessNode(BaseAbstractNode):
     @property
     def display_port(self):
         """显示出去的端口"""
-        # NOTE 优先级 relay_port > offset_port > prot
+        # NOTE  优先级relay_offset_port> relay_port > offset_port > prot
         if self.enable_relay:
+            if self.relay_offset_port:
+                return self.relay_offset_port
             return self.relay_port
         if self.offset_port:
             return self.offset_port
