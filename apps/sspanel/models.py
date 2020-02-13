@@ -665,7 +665,7 @@ class NodeOnlineLog(models.Model):
     def get_latest_online_log_info(cls, node_type, node_id):
         data = {"online": False, "online_user_count": 0, "active_tcp_connections": 0}
         log = cls.get_latest_log_by_node_id(node_type, node_id)
-        if log:
+        if log and log.online:
             data["online"] = log.online
             data.update(model_to_dict(log))
         return data
