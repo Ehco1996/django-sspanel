@@ -34,7 +34,7 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
 
     list_display = ["user", "user_id", "node_id", "total_traffic", "date"]
     search_fields = ["user_id", "node_id"]
-    list_filter = ["date", "user_id", "node_id"]
+    list_filter = ["date", "node_type", "node_id"]
 
 
 class UserSSConfigAdmin(admin.ModelAdmin):
