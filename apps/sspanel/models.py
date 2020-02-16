@@ -1322,7 +1322,7 @@ class Goods(models.Model):
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
         )
-        inviter = User.get_by_pk(user.inviter_id)
+        inviter = User.get_or_none(user.inviter_id)
         if inviter != user:
             # 增加返利记录
             rebaterecord = RebateRecord(
