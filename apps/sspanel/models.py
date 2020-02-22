@@ -155,7 +155,7 @@ class User(AbstractUser):
     def ref_link(self):
         """ref地址"""
         params = {"ref": self.token}
-        return settings.HOST + f"/sspanel/register/?{urlencode(params)}"
+        return settings.HOST + f"/register/?{urlencode(params)}"
 
     @functional.cached_property
     def user_ss_config(self):
