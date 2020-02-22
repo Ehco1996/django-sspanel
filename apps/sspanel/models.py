@@ -193,7 +193,9 @@ class User(AbstractUser):
 
     def get_clash_sub_links(self):
         node_list = list(SSNode.get_active_nodes()) + list(VmessNode.get_active_nodes())
-        return render_to_string("yamls/clash.yml", {"nodes": node_list, "user": self})
+        for node in node_list:
+            node.clash_link = node.get_clash_proxy(self)
+        return render_to_string("yamls/clash.yml", {"nodes": node_list})
 
 
 class UserPropertyMixin:
@@ -1036,7 +1038,7 @@ class SSNode(BaseAbstractNode):
     def get_clash_proxy(self, user):
         method = user.user_ss_config.method if self.custom_method else self.method
         config = {
-            "name": "",
+            "name": self.name,
             "type": "ss",
             "server": self.server,
             "port": user.user_ss_config.port,
