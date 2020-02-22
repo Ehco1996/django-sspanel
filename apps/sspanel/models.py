@@ -19,6 +19,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models, transaction
 from django.forms.models import model_to_dict
 from django.utils import functional, timezone
+from django.template.loader import render_to_string
 
 from apps.constants import (
     COUNTRIES_CHOICES,
@@ -35,11 +36,13 @@ class User(AbstractUser):
     SUB_TYPE_SS = 0
     SUB_TYPE_VMESS = 1
     SUB_TYPE_ALL = 2
+    SUB_TYPE_CLASH = 3
 
     SUB_TYPES = (
         (SUB_TYPE_SS, "只订阅SS"),
         (SUB_TYPE_VMESS, "只订阅Vmess"),
         (SUB_TYPE_ALL, "订阅所有"),
+        (SUB_TYPE_CLASH, "通过Clash订阅所有"),
     )
 
     balance = models.DecimalField(
@@ -167,6 +170,8 @@ class User(AbstractUser):
         return encoder.int2string(self.pk)
 
     def get_sub_links(self):
+        if self.sub_type == self.SUB_TYPE_CLASH:
+            return self.get_clash_sub_links()
 
         if self.sub_type == self.SUB_TYPE_SS:
             node_list = list(SSNode.get_active_nodes())
@@ -183,7 +188,12 @@ class User(AbstractUser):
                 sub_links += node.get_ss_link(self.user_ss_config) + "\n"
             if type(node) == VmessNode:
                 sub_links += node.get_vmess_link(self) + "\n"
+        sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
+
+    def get_clash_sub_links(self):
+        node_list = list(SSNode.get_active_nodes()) + list(VmessNode.get_active_nodes())
+        return render_to_string("yamls/clash.yml", {"nodes": node_list, "user": self})
 
 
 class UserPropertyMixin:
@@ -736,6 +746,9 @@ class BaseAbstractNode(models.Model):
     def active_tcp_connections(self):
         return self.online_info["active_tcp_connections"]
 
+    def get_clash_proxy(self, user):
+        raise NotImplementedError
+
 
 class VmessNode(BaseAbstractNode):
 
@@ -932,6 +945,18 @@ class VmessNode(BaseAbstractNode):
 
         return data
 
+    def get_clash_proxy(self, user):
+        config = {
+            "name": self.name,
+            "type": "vmess",
+            "server": self.display_host,
+            "port": self.display_port,
+            "uuid": user.vmess_uuid,
+            "alterId": self.alter_id,
+            "cipher": "auto",
+        }
+        return json.dumps(config, ensure_ascii=False)
+
 
 class SSNode(BaseAbstractNode):
     KB = 1024
@@ -1007,6 +1032,18 @@ class SSNode(BaseAbstractNode):
         data["api_point"] = self.api_endpoint
         data["human_speed_limit"] = self.human_speed_limit
         return data
+
+    def get_clash_proxy(self, user):
+        method = user.user_ss_config.method if self.custom_method else self.method
+        config = {
+            "name": "",
+            "type": "ss",
+            "server": self.server,
+            "port": user.user_ss_config.port,
+            "cipher": method,
+            "password": user.user_ss_config.password,
+        }
+        return json.dumps(config, ensure_ascii=False)
 
 
 class UserTrafficLog(models.Model, UserPropertyMixin):

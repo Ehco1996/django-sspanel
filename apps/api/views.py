@@ -1,5 +1,3 @@
-import base64
-
 import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
@@ -87,7 +85,6 @@ class SubscribeView(View):
         if not user:
             return HttpResponseNotFound()
         sub_links = user.get_sub_links()
-        sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return HttpResponse(sub_links)
 
 
