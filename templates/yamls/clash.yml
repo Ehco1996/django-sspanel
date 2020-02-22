@@ -75,11 +75,51 @@ Proxy Group:
   url: 'http://www.gstatic.com/generate_204'
   interval: 300
 
-  - name: "Ads"
+- name: "Ads"
   type: select
   proxies:
     - "REJECT"
     - "DIRECT"
 {% endautoescape %}
+
+
+# 白名单模式 PROXY，黑名单模式 DIRECT
+- name: "Final"
+  type: select
+  proxies:
+    - "PROXY"
+    - "DIRECT"
+
+
+- name: "Domestic"
+  type: select
+  proxies:
+    - "DIRECT"
+{% for node in nodes %}    - {{ node.name }}
+{% endfor %}
+
+# Apple 服务代理
+- name: "Apple"
+  type: select
+  proxies:
+    - "DIRECT"
+    - "PROXY"
+
+- name: "GlobalMedia"
+  type: select
+  proxies:
+    - "PROXY"
+    - "DIRECT"
+{% for node in nodes %}    - {{ node.name }}
+{% endfor %}
+
+# 大陆流媒体面向港澳台限定服务
+- name: "HKMTMedia"
+  type: select
+  proxies:
+    - "DIRECT"
+    - "PROXY"
+{% for node in nodes %}    - {{ node.name }}
+{% endfor %}
 
 {% include "yamls/rules.yml" %}
