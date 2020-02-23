@@ -46,10 +46,8 @@ class UserSSConfigAdmin(admin.ModelAdmin):
         "method",
         "human_used_traffic",
         "human_total_traffic",
-        "enable",
     ]
-    search_fields = ["user_id", "port"]
-    list_filter = ["enable"]
+    search_fields = ["user", "user_id", "port"]
 
 
 class UserCheckInAdmin(admin.ModelAdmin):
@@ -68,11 +66,13 @@ class UserTrafficAdmin(admin.ModelAdmin):
     list_display = [
         "user",
         "user_id",
+        "level",
         "human_used_traffic",
         "used_percentage",
         "overflow",
     ]
     search_fields = ["user_id", "last_use_time"]
+    list_filter = ["level"]
 
 
 class NodeOnlineLogAdmin(admin.ModelAdmin):

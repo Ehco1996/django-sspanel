@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0031_auto_20200208_0928'),
+        ("sspanel", "0031_auto_20200208_0928"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='vmessnode',
-            name='relay_offset_port',
-            field=models.IntegerField(blank=True, null=True, verbose_name='中转偏移端口'),
+            model_name="vmessnode",
+            name="relay_offset_port",
+            field=models.IntegerField(blank=True, null=True, verbose_name="中转偏移端口"),
         ),
     ]

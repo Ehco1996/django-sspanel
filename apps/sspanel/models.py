@@ -1,9 +1,9 @@
-import re
 import base64
 import datetime
-import random
-import time
 import json
+import random
+import re
+import time
 from decimal import Decimal
 from urllib.parse import quote, urlencode
 from uuid import uuid4
@@ -18,8 +18,8 @@ from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models, transaction
 from django.forms.models import model_to_dict
-from django.utils import functional, timezone
 from django.template.loader import render_to_string
+from django.utils import functional, timezone
 
 from apps.constants import (
     COUNTRIES_CHOICES,
@@ -111,8 +111,10 @@ class User(AbstractUser):
         # 绑定uuid
         user.vmess_uuid = str(uuid4())
         user.save()
-        # 添加SSconfig
+        # 添加ss_config
         UserSSConfig.create_by_user_id(user.id)
+        # 添加当前等级user_traffic
+        UserTraffic.get_or_create_by_user_id_and_level(user, user.level)
         return user
 
     @classmethod
@@ -426,14 +428,14 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 
     @classmethod
     @transaction.atomic
-    def checkin(cls, user_id):
+    def checkin(cls, user):
         traffic = random.randint(
             settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
         )
-        user_traffic = UserTraffic.get_by_user_id(user_id)
+        user_traffic = UserTraffic.get_by_user_id_and_level(user.id, user.level)
         user_traffic.total_traffic += traffic
         user_traffic.save()
-        return cls.add_log(user_id, traffic)
+        return cls.add_log(user.id, traffic)
 
     @classmethod
     def get_today_is_checkin_by_user_id(cls, user_id):
@@ -456,6 +458,7 @@ class UserSSConfig(models.Model, UserPropertyMixin):
     user_id = models.IntegerField(unique=True, db_index=True)
     port = models.IntegerField("端口", unique=True, default=MIN_PORT)
     password = models.CharField("密码", max_length=32, default=get_short_random_string)
+    # TODO 这个字段被废弃了，之后把这个表也废弃
     enable = models.BooleanField("是否开启", default=True)
     method = models.CharField(
         "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
@@ -465,11 +468,8 @@ class UserSSConfig(models.Model, UserPropertyMixin):
         verbose_name_plural = "用户SS配置"
 
     @classmethod
-    @transaction.atomic
     def create_by_user_id(cls, user_id):
-        # TODO 暂时在这里创建usertraffic 以后如果再增加节点类型可以挪走
         config = cls.objects.create(user_id=user_id, port=cls.get_not_used_port())
-        UserTraffic.objects.create(user_id=user_id)
         return config
 
     @classmethod
@@ -496,7 +496,7 @@ class UserSSConfig(models.Model, UserPropertyMixin):
 
     @functional.cached_property
     def user_traffic(self):
-        return UserTraffic.get_by_user_id(self.user_id)
+        return UserTraffic.get_memory_agg_user_traffic(self.user)
 
     @property
     def human_total_traffic(self):
@@ -533,7 +533,10 @@ class UserSSConfig(models.Model, UserPropertyMixin):
 
 class UserTraffic(models.Model, UserPropertyMixin):
 
-    user_id = models.IntegerField(unique=True, db_index=True)
+    user_id = models.IntegerField(db_index=True)
+    level = models.PositiveIntegerField(
+        verbose_name="等级", default=0, validators=[MinValueValidator(0)]
+    )
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
@@ -541,14 +544,19 @@ class UserTraffic(models.Model, UserPropertyMixin):
 
     class Meta:
         verbose_name_plural = "用户流量"
+        unique_together = [["user_id", "level"]]
+
+    @classmethod
+    def get_or_create_by_user_id_and_level(cls, user_id, level):
+        return cls.objects.get_or_create(user_id=user_id, level=level)
+
+    @classmethod
+    def get_by_user_id_and_level(cls, user_id, level):
+        return cls.objects.get(user_id=user_id, level=level)
 
     @classmethod
     def get_never_used_user_count(cls):
         return cls.objects.filter(last_use_time__isnull=True).count()
-
-    @classmethod
-    def get_by_user_id(cls, user_id):
-        return cls.objects.get(user_id=user_id)
 
     @classmethod
     def get_overflow_user_ids(cls):
@@ -558,15 +566,12 @@ class UserTraffic(models.Model, UserPropertyMixin):
                 models.F("upload_traffic") + models.F("download_traffic")
             )
         ).values_list("user_id")
-        return [ut[0] for ut in uts]
+        return set([ut[0] for ut in uts])
 
     @classmethod
     def check_and_disable_out_of_traffic_user(cls):
-        need_disable_user_ids = UserTraffic.get_overflow_user_ids()
-        user_ss_configs = UserSSConfig.objects.filter(user_id__in=need_disable_user_ids)
-        need_set_user_ids = [c.user_id for c in user_ss_configs if c.enable]
-        UserSSConfig.objects.filter(user_id__in=need_set_user_ids).update(enable=False)
-        user_list = User.objects.filter(id__in=need_set_user_ids)
+        user_ids = UserTraffic.get_overflow_user_ids()
+        user_list = User.objects.filter(id__in=user_ids)
         if user_list and settings.EXPIRE_EMAIL_NOTICE:
             EmailSendLog.send_mail_to_users(
                 user_list,
@@ -574,6 +579,32 @@ class UserTraffic(models.Model, UserPropertyMixin):
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
             print(f"共有{len(user_list)}个用户流量用超啦")
+
+    @classmethod
+    def get_user_order_by_traffic(cls, count=10):
+        # NOTE 后台展示用 暂时不加索引
+        return cls.objects.all().order_by("-download_traffic")[:count]
+
+    @classmethod
+    def get_memory_agg_user_traffic(cls, user):
+        # NOTE 这里生成一个虚拟的聚合UserTraffic
+        uts = cls.objects.filter(user_id=user.id)
+        upload_traffic = sum([ut.upload_traffic for ut in uts])
+        download_traffic = sum([ut.download_traffic for ut in uts])
+        total_traffic = sum([ut.total_traffic for ut in uts])
+        ts = [ut.last_use_time for ut in uts if ut.last_use_time]
+        if ts:
+            last_use_time = max(ts)
+        else:
+            last_use_time = None
+        return cls(
+            user_id=user.id,
+            level=user.level,
+            upload_traffic=upload_traffic,
+            download_traffic=download_traffic,
+            total_traffic=total_traffic,
+            last_use_time=last_use_time,
+        )
 
     @property
     def overflow(self):
@@ -598,20 +629,10 @@ class UserTraffic(models.Model, UserPropertyMixin):
     def user(self):
         return User.get_by_pk(self.user_id)
 
-    @classmethod
-    def get_user_order_by_traffic(cls, count=10):
-        # NOTE 后台展示用 暂时不加索引
-        return cls.objects.all().order_by("-download_traffic")[:count]
-
     def reset_traffic(self, new_traffic):
         self.total_traffic = new_traffic
         self.upload_traffic = 0
         self.download_traffic = 0
-
-    def reset_to_fresh(self):
-        self.enable = False
-        self.reset_traffic(settings.DEFAULT_TRAFFIC)
-        self.save()
 
 
 class NodeOnlineLog(models.Model):
@@ -792,8 +813,9 @@ class VmessNode(BaseAbstractNode):
             )
         ut_overflow_map = {
             ut.user_id: ut.overflow
-            for ut in UserTraffic.objects.filter(user_id__in=user_ids)
+            for ut in UserTraffic.objects.filter(user_id__in=user_ids, level=node.level)
         }
+        # set enable
         for cfg in configs:
             if not node.enable:
                 cfg["enable"] = False
@@ -985,9 +1007,20 @@ class SSNode(BaseAbstractNode):
             ss_node.to_dict_with_user_ss_config(config)
             for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
         ]
-        if not ss_node.enable:
-            for config in configs["users"]:
-                config["enable"] = False
+
+        ut_overflow_map = {
+            ut.user_id: ut.overflow
+            for ut in UserTraffic.objects.filter(
+                user_id__in=[cfg["user_id"] for cfg in configs["users"]],
+                level=ss_node.level,
+            )
+        }
+        # set enable
+        for cfg in configs["users"]:
+            if not ss_node.enable:
+                cfg["enable"] = False
+            else:
+                cfg["enable"] = not ut_overflow_map[cfg["user_id"]]
         return configs
 
     @property
@@ -1338,32 +1371,36 @@ class Goods(models.Model):
     @transaction.atomic
     def purchase_by_user(self, user):
         """购买商品 返回是否成功"""
+        # 验证成功进行提权操作
         if user.balance < self.money:
             return False
-        # 验证成功进行提权操作
-        user_traffic = UserTraffic.get_by_user_id(user.pk)
+        # 添加流量
+        user_traffic, created = UserTraffic.get_or_create_by_user_id_and_level(
+            user.id, self.level
+        )
+        if created:
+            user_traffic.total_traffic = self.transfer
+        else:
+            user_traffic.total_traffic += self.transfer
+        # 用户相关
         user.balance -= self.money
         now = pendulum.now()
         days = pendulum.duration(days=self.days)
         if user.level == self.level and user.level_expire_time > now:
             user.level_expire_time += days
-            user_traffic.total_traffic += self.transfer
         else:
+            user.level = self.level
             user.level_expire_time = now + days
-            user_traffic.reset_traffic(self.transfer)
-        user_ss_config = user.user_ss_config
-        user_ss_config.enable = True
-        user.level = self.level
+        # 保存
         user.save()
         user_traffic.save()
-        user_ss_config.save()
         # 增加购买记录
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
         )
+        # 增加返利记录
         inviter = User.get_or_none(user.inviter_id)
         if inviter != user:
-            # 增加返利记录
             rebaterecord = RebateRecord(
                 user_id=inviter.pk,
                 consumer_id=user.pk,

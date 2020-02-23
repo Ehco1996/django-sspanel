@@ -10,7 +10,7 @@ def clear_user_get_by_pk_cache(sender, instance, *args, **kwargs):
 
 def clear_get_user_ss_configs_by_node_id_cache(sender, instance, *args, **kwargs):
 
-    if isinstance(instance, (m.UserSSConfig, m.UserTraffic)):
+    if isinstance(instance, m.UserTraffic):
         user = m.User.get_by_pk(instance.user_id)
         node_ids = m.SSNode.get_node_ids_by_level(user.level)
     elif isinstance(instance, m.SSNode):
@@ -27,13 +27,15 @@ def clear_get_user_ss_configs_by_node_id_cache(sender, instance, *args, **kwargs
     cache.delete_many(keys)
 
 
-def clear_get_user_vmess_configs_by_node_id(sender, instance, *args, **kwargs):
+def clear_get_user_vmess_configs_by_node_id_cache(sender, instance, *args, **kwargs):
 
     if isinstance(instance, m.UserTraffic):
         user = m.User.get_by_pk(instance.user_id)
         node_ids = m.VmessNode.get_node_ids_by_level(user.level)
     elif isinstance(instance, m.VmessNode):
         node_ids = [instance.node_id]
+    elif isinstance(instance, m.User):
+        node_ids = m.VmessNode.get_node_ids_by_level(instance.level)
     else:
         return
     keys = [
@@ -50,21 +52,28 @@ def register_connectors():
     post_save.connect(clear_user_get_by_pk_cache, sender=m.User)
     pre_delete.connect(clear_user_get_by_pk_cache, sender=m.User)
 
-    # clear_user_get_by_pk_cache
+    # clear_get_user_ss_configs_by_node_id
+    post_save.connect(clear_get_user_ss_configs_by_node_id_cache, sender=m.User)
+    pre_delete.connect(clear_get_user_ss_configs_by_node_id_cache, sender=m.User)
+
     post_save.connect(clear_get_user_ss_configs_by_node_id_cache, sender=m.SSNode)
     pre_delete.connect(clear_get_user_ss_configs_by_node_id_cache, sender=m.SSNode)
 
-    post_save.connect(clear_get_user_ss_configs_by_node_id_cache, sender=m.UserSSConfig)
-    pre_delete.connect(
-        clear_get_user_ss_configs_by_node_id_cache, sender=m.UserSSConfig
-    )
-
-    post_save.connect(clear_user_get_by_pk_cache, sender=m.UserTraffic)
-    pre_delete.connect(clear_user_get_by_pk_cache, sender=m.UserTraffic)
+    post_save.connect(clear_get_user_ss_configs_by_node_id_cache, sender=m.UserTraffic)
+    pre_delete.connect(clear_get_user_ss_configs_by_node_id_cache, sender=m.UserTraffic)
 
     # clear_get_user_vmess_configs_by_node_id
-    post_save.connect(clear_get_user_vmess_configs_by_node_id, sender=m.VmessNode)
-    pre_delete.connect(clear_get_user_vmess_configs_by_node_id, sender=m.VmessNode)
+    post_save.connect(clear_get_user_vmess_configs_by_node_id_cache, sender=m.User)
+    pre_delete.connect(clear_get_user_vmess_configs_by_node_id_cache, sender=m.User)
 
-    post_save.connect(clear_get_user_vmess_configs_by_node_id, sender=m.UserTraffic)
-    pre_delete.connect(clear_get_user_vmess_configs_by_node_id, sender=m.UserTraffic)
+    post_save.connect(clear_get_user_vmess_configs_by_node_id_cache, sender=m.VmessNode)
+    pre_delete.connect(
+        clear_get_user_vmess_configs_by_node_id_cache, sender=m.VmessNode
+    )
+
+    post_save.connect(
+        clear_get_user_vmess_configs_by_node_id_cache, sender=m.UserTraffic
+    )
+    pre_delete.connect(
+        clear_get_user_vmess_configs_by_node_id_cache, sender=m.UserTraffic
+    )

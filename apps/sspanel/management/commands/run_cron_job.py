@@ -48,7 +48,7 @@ class Command(BaseCommand):
         users = User.objects.filter(level=0)
 
         for user in users:
-            ut = UserTraffic.get_by_user_id(user.pk)
+            ut = UserTraffic.get_by_user_id_and_level(user.pk, user.level)
             ut.reset_traffic(settings.DEFAULT_TRAFFIC)
             ut.save()
 

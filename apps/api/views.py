@@ -146,7 +146,6 @@ class UserSSConfigView(View):
         active_tcp_connections = 0
         user_traffic_model_list = []
         online_ip_log_model_list = []
-        user_ss_config_model_list = []
 
         for user_data in data:
             user_id = user_data["user_id"]
@@ -154,15 +153,11 @@ class UserSSConfigView(View):
             d = int(user_data["download_traffic"] * ss_node.enlarge_scale)
 
             # 个人流量增量
-            user_traffic = UserTraffic.get_by_user_id(user_id)
+            user_traffic = UserTraffic.get_by_user_id_and_level(user_id, ss_node.level)
             user_traffic.download_traffic += d
             user_traffic.upload_traffic += u
             user_traffic.last_use_time = log_time
             user_traffic_model_list.append(user_traffic)
-            if user_traffic.overflow:
-                user_ss_config = UserSSConfig.get_by_user_id(user_id)
-                user_ss_config.enable = False
-                user_ss_config_model_list.append(user_ss_config)
             # 个人流量记录
             trafficlog_model_list.append(
                 UserTrafficLog(
@@ -194,8 +189,6 @@ class UserSSConfigView(View):
             user_traffic_model_list,
             ["download_traffic", "upload_traffic", "last_use_time"],
         )
-        # 用户开关
-        UserSSConfig.objects.bulk_update(user_ss_config_model_list, ["enable"])
         # 节点在线人数
         NodeOnlineLog.add_log(
             NodeOnlineLog.NODE_TYPE_SS, node_id, len(data), active_tcp_connections
@@ -203,7 +196,7 @@ class UserSSConfigView(View):
         # check node && user traffic
         if ss_node.overflow:
             ss_node.enable = False
-        if user_ss_config_model_list or ss_node.overflow:
+        if ss_node.overflow:
             # NOTE save for clear cache
             ss_node.save()
         return JsonResponse(data={})
@@ -237,7 +230,7 @@ class UserVmessConfigView(View):
             d = int(log["dt"] * node.enlarge_scale)
 
             # 个人流量增量
-            user_traffic = UserTraffic.get_by_user_id(user_id)
+            user_traffic = UserTraffic.get_by_user_id_and_level(user_id, node.level)
             user_traffic.download_traffic += d
             user_traffic.upload_traffic += u
             user_traffic.last_use_time = log_time
@@ -298,7 +291,7 @@ class UserCheckInView(View):
     def post(self, request):
         user = request.user
         if not user.today_is_checkin:
-            log = UserCheckInLog.checkin(user.pk)
+            log = UserCheckInLog.checkin(user)
             data = {
                 "title": "签到成功！",
                 "subtitle": f"获得{traffic_format(log.increased_traffic)}流量！",

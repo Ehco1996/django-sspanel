@@ -199,10 +199,9 @@ class UserForm(ModelForm):
 class UserSSConfigForm(ModelForm):
     class Meta:
         model = UserSSConfig
-        fields = ["port", "password", "method", "enable"]
+        fields = ["port", "password", "method"]
         widgets = {
             "port": forms.NumberInput(attrs={"class": "input"}),
             "password": forms.TextInput(attrs={"class": "input"}),
             "method": forms.Select(attrs={"class": "input"}),
-            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
         }

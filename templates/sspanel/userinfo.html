@@ -236,7 +236,7 @@
                         <li> 等级：
                             <code>{{ user.level }} 级 </code>
                         </li>
-                        {% if user.user_ss_config.enable == True %}
+                        {% if user.user_ss_config.user_traffic.overflow == False %}
                         <li> 状态：
                             <code>正常使用</code>
                         </li>
