@@ -166,15 +166,56 @@
                             <button class="delete"></button>
                         </header>
                         <section class="modal-card-body">
-                            <p class="subtitle">订阅链接</p>
-                            <strong>点击按钮复制链接至客户端的订阅处</strong>
+                            <p class="subtitle">订阅SS</p>
                             <div class="field is-grouped">
                                 <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link" value="{{ sub_link }}" readonly>
+                                    <input class="input" id="id-sub-link-ss" value="{{ sub_link }}&sub_type=0" readonly>
                                 </p>
                                 <p class="control">
                                     <a class="button is-rounded" id="id-button-clip"
-                                        data-clipboard-target="#id-sub-link">
+                                        data-clipboard-target="#id-sub-link-ss">
+                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                    </a>
+                                </p>
+                            </div>
+                            <hr>
+                            <p class="subtitle">订阅Vmess</p>
+                            <div class="field is-grouped">
+                                <p class="control is-expanded">
+                                    <input class="input" id="id-sub-link-vmess" value="{{ sub_link }}&sub_type=1"
+                                        readonly>
+                                </p>
+                                <p class="control">
+                                    <a class="button is-rounded" id="id-button-clip"
+                                        data-clipboard-target="#id-sub-link-vmess">
+                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                    </a>
+                                </p>
+                            </div>
+                            <hr>
+                            <p class="subtitle">订阅Clash</p>
+                            <div class="field is-grouped">
+                                <p class="control is-expanded">
+                                    <input class="input" id="id-sub-link-clash" value="{{ sub_link }}&sub_type=3"
+                                        readonly>
+                                </p>
+                                <p class="control">
+                                    <a class="button is-rounded" id="id-button-clip"
+                                        data-clipboard-target="#id-sub-link-clash">
+                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                    </a>
+                                </p>
+                            </div>
+                            <hr>
+                            <p class="subtitle">同时订阅SS/Vmess</p>
+                            <div class="field is-grouped">
+                                <p class="control is-expanded">
+                                    <input class="input" id="id-sub-link-all" value="{{ sub_link }}&sub_type=2"
+                                        readonly>
+                                </p>
+                                <p class="control">
+                                    <a class="button is-rounded" id="id-button-clip"
+                                        data-clipboard-target="#id-sub-link-all">
                                         <i class="fa fa-clipboard" aria-hidden="true"></i>
                                     </a>
                                 </p>

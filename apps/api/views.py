@@ -84,7 +84,9 @@ class SubscribeView(View):
         user = User.get_or_none(encoder.string2int(token))
         if not user:
             return HttpResponseNotFound()
-        sub_links = user.get_sub_links()
+
+        sub_type = request.GET.get("sub_type")
+        sub_links = user.get_sub_links(sub_type)
         return HttpResponse(sub_links)
 
 

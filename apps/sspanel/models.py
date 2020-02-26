@@ -37,7 +37,7 @@ class User(AbstractUser):
     SUB_TYPE_VMESS = 1
     SUB_TYPE_ALL = 2
     SUB_TYPE_CLASH = 3
-
+    SUB_TYPES_SET = {SUB_TYPE_SS, SUB_TYPE_VMESS, SUB_TYPE_ALL, SUB_TYPE_CLASH}
     SUB_TYPES = (
         (SUB_TYPE_SS, "只订阅SS"),
         (SUB_TYPE_VMESS, "只订阅Vmess"),
@@ -169,19 +169,23 @@ class User(AbstractUser):
     def token(self):
         return encoder.int2string(self.pk)
 
-    def get_sub_links(self):
-        if self.sub_type == self.SUB_TYPE_CLASH:
-            return self.get_clash_sub_links()
+    def get_sub_links(self, sub_type=None):
+        # TODO 等一段时间下调sub_type这个字段
+        if sub_type:
+            sub_type = int(sub_type)
+        if sub_type not in self.SUB_TYPES_SET:
+            sub_type = self.sub_type
 
-        if self.sub_type == self.SUB_TYPE_SS:
+        if sub_type == self.SUB_TYPE_CLASH:
+            return self.get_clash_sub_links()
+        if sub_type == self.SUB_TYPE_SS:
             node_list = list(SSNode.get_active_nodes())
-        if self.sub_type == self.SUB_TYPE_VMESS:
+        if sub_type == self.SUB_TYPE_VMESS:
             node_list = list(VmessNode.get_active_nodes())
-        if self.sub_type == self.SUB_TYPE_ALL:
+        if sub_type == self.SUB_TYPE_ALL:
             node_list = list(SSNode.get_active_nodes()) + list(
                 VmessNode.get_active_nodes()
             )
-
         sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
             if type(node) == SSNode:
