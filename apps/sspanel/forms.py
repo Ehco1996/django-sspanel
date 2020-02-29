@@ -86,7 +86,7 @@ class RegisterForm(UserCreationForm):
     def _clean_ref(self):
         ref = self.cleaned_data.get("ref")
         try:
-            user_id = encoder.string2int(ref)
+            user_id = int(ref)
         except ValueError:
             raise forms.ValidationError("ref不正确")
 

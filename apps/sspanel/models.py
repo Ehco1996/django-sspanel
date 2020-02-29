@@ -99,15 +99,17 @@ class User(AbstractUser):
         user = cls.objects.create_user(
             cleaned_data["username"], cleaned_data["email"], cleaned_data["password1"]
         )
+        inviter_id = None
         if "invitecode" in cleaned_data:
             code = InviteCode.objects.get(code=cleaned_data["invitecode"])
             code.consume()
             inviter_id = code.user_id
         elif "ref" in cleaned_data:
-            inviter_id = encoder.string2int(cleaned_data["ref"])
-        # 绑定邀请人
-        UserRefLog.log_ref(inviter_id, pendulum.today())
-        user.inviter_id = inviter_id
+            inviter_id = cleaned_data["ref"]
+        if inviter_id:
+            # 绑定邀请人
+            UserRefLog.log_ref(inviter_id, pendulum.today())
+            user.inviter_id = inviter_id
         # 绑定uuid
         user.vmess_uuid = str(uuid4())
         user.save()
@@ -154,7 +156,7 @@ class User(AbstractUser):
     @property
     def ref_link(self):
         """ref地址"""
-        params = {"ref": self.token}
+        params = {"ref": self.id}
         return settings.HOST + f"/register/?{urlencode(params)}"
 
     @functional.cached_property
