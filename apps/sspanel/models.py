@@ -272,12 +272,12 @@ class User(AbstractUser):
         if sub_type == self.SUB_TYPE_CLASH:
             return self.get_clash_sub_links()
         if sub_type == self.SUB_TYPE_SS:
-            node_list = list(SSNode.get_active_nodes())
+            node_list = list(SSNode.get_user_active_nodes(self))
         if sub_type == self.SUB_TYPE_VMESS:
-            node_list = list(VmessNode.get_active_nodes())
+            node_list = list(VmessNode.get_user_active_nodes(self))
         if sub_type == self.SUB_TYPE_ALL:
-            node_list = list(SSNode.get_active_nodes()) + list(
-                VmessNode.get_active_nodes()
+            node_list = list(SSNode.get_user_active_nodes(self)) + list(
+                VmessNode.get_user_active_nodes(self)
             )
         sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
@@ -289,7 +289,9 @@ class User(AbstractUser):
         return sub_links
 
     def get_clash_sub_links(self):
-        node_list = list(SSNode.get_active_nodes()) + list(VmessNode.get_active_nodes())
+        node_list = list(SSNode.get_user_active_nodes(self)) + list(
+            VmessNode.get_user_active_nodes(self)
+        )
         for node in node_list:
             node.clash_link = node.get_clash_proxy(self)
         return render_to_string("yamls/clash.yml", {"nodes": node_list})
