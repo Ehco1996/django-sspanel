@@ -10,7 +10,6 @@ from apps.sspanel.models import (
     User,
     SSNode,
     VmessNode,
-    UserSSConfig,
 )
 
 
@@ -188,21 +187,19 @@ class AnnoForm(ModelForm):
 class UserForm(ModelForm):
     class Meta:
         model = User
-        fields = ["balance", "level", "level_expire_time"]
+        fields = [
+            "balance",
+            "level",
+            "level_expire_time",
+            "ss_port",
+            "ss_password",
+            "ss_method",
+        ]
         widgets = {
             "balance": forms.NumberInput(attrs={"class": "input"}),
             "level": forms.NumberInput(attrs={"class": "input"}),
             "level_expire_time": forms.DateTimeInput(attrs={"class": "input"}),
-        }
-
-
-class UserSSConfigForm(ModelForm):
-    class Meta:
-        model = UserSSConfig
-        fields = ["port", "password", "method", "enable"]
-        widgets = {
-            "port": forms.NumberInput(attrs={"class": "input"}),
-            "password": forms.TextInput(attrs={"class": "input"}),
-            "method": forms.Select(attrs={"class": "input"}),
-            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "ss_port": forms.NumberInput(attrs={"class": "input"}),
+            "ss_password": forms.TextInput(attrs={"class": "input"}),
+            "ss_method": forms.Select(attrs={"class": "input"}),
         }

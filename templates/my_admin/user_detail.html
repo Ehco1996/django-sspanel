@@ -8,7 +8,7 @@
                     用户编辑：
                 </h1>
                 <h2 class="subtitle">
-                    编辑信息：{{ user_ss_config }}
+                    编辑信息：{{ user }}
                 </h2>
             </div>
         </div>
@@ -37,7 +37,7 @@
             <br>
             <div class="is-grouped">
                 <button type="submit" class="button is-danger is-outlined ">确认修改</button>
-                <a class="button is-success is-outlined" href="{% url 'sspanel:admin_user_ss_config_list' %}">取消修改</a>
+                <a class="button is-success is-outlined" href="{% url 'sspanel:admin_user_list' %}">取消修改</a>
             </div>
         </form>
     </div>

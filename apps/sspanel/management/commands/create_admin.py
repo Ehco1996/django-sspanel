@@ -3,7 +3,7 @@ from uuid import uuid4
 from django.contrib.auth.management.commands import createsuperuser
 from django.core.management import CommandError
 from django.db import transaction
-from apps.sspanel.models import UserSSConfig
+from apps.sspanel.models import User
 
 
 class Command(createsuperuser.Command):
@@ -40,12 +40,12 @@ class Command(createsuperuser.Command):
             "password": password,
             "email": email,
             "vmess_uuid": str(uuid4()),
+            "ss_password": User.get_not_used_port(),
         }
 
         with transaction.atomic():
             user = self.UserModel._default_manager.db_manager(
                 database
             ).create_superuser(**user_data)
-            UserSSConfig.create_by_user_id(user.id)
         if options.get("verbosity", 0) >= 1:
             self.stdout.write(f"Admin: {user} created successfully.")

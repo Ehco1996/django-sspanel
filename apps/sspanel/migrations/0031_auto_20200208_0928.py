@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0030_auto_20200206_1552'),
+        ("sspanel", "0030_auto_20200206_1552"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='vmessnode',
-            name='relay_host',
-            field=models.CharField(blank=True, max_length=64, null=True, verbose_name='中转地址'),
+            model_name="vmessnode",
+            name="relay_host",
+            field=models.CharField(
+                blank=True, max_length=64, null=True, verbose_name="中转地址"
+            ),
         ),
         migrations.AddField(
-            model_name='vmessnode',
-            name='relay_port',
-            field=models.CharField(blank=True, max_length=64, null=True, verbose_name='中转端口'),
+            model_name="vmessnode",
+            name="relay_port",
+            field=models.CharField(
+                blank=True, max_length=64, null=True, verbose_name="中转端口"
+            ),
         ),
     ]

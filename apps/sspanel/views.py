@@ -133,21 +133,15 @@ class AffStatusView(LoginRequiredMixin, View):
 class UserInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        user_ss_config = user.user_ss_config
-        user_traffic = user_ss_config.user_traffic
         # 获取公告
         anno = Announcement.objects.first()
         min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
         max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-        remain_traffic = "{:.2f}".format(100 - user_traffic.used_percentage)
         context = {
             "user": user,
-            "user_traffic": user_traffic,
             "anno": anno,
-            "remain_traffic": remain_traffic,
             "min_traffic": min_traffic,
             "max_traffic": max_traffic,
-            "import_links": user_ss_config.get_import_links(),
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
             "sub_types": User.SUB_TYPES,
@@ -160,23 +154,18 @@ class UserInfoView(LoginRequiredMixin, View):
 class NodeInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        user_ss_config = user.user_ss_config
         # ss node
         ss_node_list = [
-            node.to_dict_with_extra_info(user_ss_config)
-            for node in SSNode.get_active_nodes()
+            node.to_dict_with_extra_info(user) for node in SSNode.get_active_nodes()
         ]
-
         # vmess node
         vmess_node_list = [
             node.to_dict_with_extra_info(user) for node in VmessNode.get_active_nodes()
         ]
-
         context = {
             "ss_node_list": ss_node_list,
             "vmess_node_list": vmess_node_list,
             "user": user,
-            "sub_link": user.sub_link,
         }
         Announcement.send_first_visit_msg(request)
         return render(request, "sspanel/nodeinfo.html", context=context)
@@ -192,17 +181,6 @@ class UserTrafficLog(LoginRequiredMixin, View):
             "vmess_node_list": vmess_node_list,
         }
         return render(request, "sspanel/user_traffic_log.html", context=context)
-
-
-class UserSSNodeConfigView(LoginRequiredMixin, View):
-    def get(self, request):
-        user = request.user
-        user_ss_config = user.user_ss_config
-        configs = [
-            node.to_dict_with_user_ss_config(user_ss_config)
-            for node in SSNode.get_user_active_nodes(user)
-        ]
-        return JsonResponse({"configs": configs})
 
 
 class ShopView(LoginRequiredMixin, View):

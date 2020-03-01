@@ -5,7 +5,7 @@ from . import models
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ["username", "id", "level", "balance", "level_expire_time"]
+    list_display = ["username", "id", "level", "balance", "used_percentage"]
     search_fields = ["username", "email", "id"]
     list_filter = ["level"]
 
@@ -26,7 +26,6 @@ class UserOrderAdmin(admin.ModelAdmin):
 
 class UserOnLineIpLogAdmin(admin.ModelAdmin):
     list_display = ["user", "user_id", "node_id", "ip", "created_at"]
-
     search_fields = ["user_id"]
 
 
@@ -35,21 +34,6 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
     list_display = ["user", "user_id", "node_id", "total_traffic", "date"]
     search_fields = ["user_id", "node_id"]
     list_filter = ["date", "node_type", "node_id"]
-
-
-class UserSSConfigAdmin(admin.ModelAdmin):
-    list_display = [
-        "user",
-        "user_id",
-        "port",
-        "password",
-        "method",
-        "human_used_traffic",
-        "human_total_traffic",
-        "enable",
-    ]
-    search_fields = ["user_id", "port"]
-    list_filter = ["enable"]
 
 
 class UserCheckInAdmin(admin.ModelAdmin):
@@ -62,17 +46,6 @@ class UserRefLogAdmin(admin.ModelAdmin):
     list_display = ["user", "user_id", "register_count", "date"]
     search_fields = ["user_id", "date"]
     list_filter = ["date"]
-
-
-class UserTrafficAdmin(admin.ModelAdmin):
-    list_display = [
-        "user",
-        "user_id",
-        "human_used_traffic",
-        "used_percentage",
-        "overflow",
-    ]
-    search_fields = ["user_id", "last_use_time"]
 
 
 class NodeOnlineLogAdmin(admin.ModelAdmin):
@@ -147,10 +120,8 @@ admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserOrder, UserOrderAdmin)
 admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
-admin.site.register(models.UserSSConfig, UserSSConfigAdmin)
 admin.site.register(models.UserCheckInLog, UserCheckInAdmin)
 admin.site.register(models.UserRefLog, UserRefLogAdmin)
-admin.site.register(models.UserTraffic, UserTrafficAdmin)
 admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
 admin.site.register(models.VmessNode, VmessNodeAdmin)
