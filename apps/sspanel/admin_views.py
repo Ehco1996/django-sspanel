@@ -1,7 +1,6 @@
 import tomd
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import permission_required
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -11,11 +10,11 @@ from django.views import View
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
 from apps.sspanel.forms import (
+    UserForm,
     AnnoForm,
     GoodsForm,
     SSNodeForm,
     VmessNodeForm,
-    UserSSConfigForm,
 )
 from apps.sspanel.models import (
     Announcement,
@@ -31,8 +30,6 @@ from apps.sspanel.models import (
     User,
     UserOnLineIpLog,
     UserCheckInLog,
-    UserTraffic,
-    UserSSConfig,
 )
 
 
@@ -117,54 +114,49 @@ class UserOnlineIpLogView(StaffRequiredMixin, View):
         return render(request, "my_admin/user_online_ip_log.html", context=context)
 
 
-class UserSSConfigListView(StaffRequiredMixin, View):
+class UserListView(StaffRequiredMixin, View):
     def get(self, request):
         context = PageListView(
             request, User.objects.all().order_by("-date_joined")
         ).get_page_context()
+        return render(request, "my_admin/user_list.html", context)
 
-        return render(request, "my_admin/user_ss_config_list.html", context)
 
-
-class UserSSConfigDeleteView(StaffRequiredMixin, View):
-    def get(self, request, user_id):
-        user = User.get_by_pk(user_id)
+class UserDeleteView(StaffRequiredMixin, View):
+    def get(self, request, pk):
+        user = User.get_by_pk(pk)
         user.delete()
         messages.success(request, "成功啦", extra_tags="删除用户")
-        return HttpResponseRedirect(reverse("sspanel:admin_user_ss_config_list"))
+        return HttpResponseRedirect(reverse("sspanel:admin_user_list"))
 
 
-class UserSSConfigSearchView(StaffRequiredMixin, View):
+class UserSearchView(StaffRequiredMixin, View):
     def get(self, request):
         q = request.GET.get("q")
         contacts = User.objects.filter(
             Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
         )
         context = {"contacts": contacts}
-        return render(request, "my_admin/user_ss_config_list.html", context=context)
+        return render(request, "my_admin/user_list.html", context=context)
 
 
-class UserSSConfigDetailView(StaffRequiredMixin, View):
-    def get(self, request, user_id):
-        user_ss_config = UserSSConfig.get_by_user_id(user_id)
-        form = UserSSConfigForm(instance=user_ss_config)
-        return render(
-            request, "my_admin/user_ss_config_detail.html", context={"form": form}
-        )
+class UserDetailView(StaffRequiredMixin, View):
+    def get(self, request, pk):
+        user = User.get_by_pk(pk)
+        form = UserForm(instance=user)
+        return render(request, "my_admin/user_detail.html", context={"form": form})
 
-    def post(self, request, user_id):
-        user_ss_config = UserSSConfig.get_by_user_id(user_id)
-        form = UserSSConfigForm(request.POST, instance=user_ss_config)
+    def post(self, request, pk):
+        user = User.get_by_pk(pk)
+        form = UserForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:admin_user_ss_config_list"))
+            return HttpResponseRedirect(reverse("sspanel:admin_user_list"))
         else:
             messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "user_ss_config": user_ss_config}
-            return render(
-                request, "my_admin/user_ss_config_detail.html", context=context
-            )
+            context = {"form": form, "user": user}
+            return render(request, "my_admin/user_detail.html", context=context)
 
 
 class UserStatusView(StaffRequiredMixin, View):
@@ -182,7 +174,7 @@ class UserStatusView(StaffRequiredMixin, View):
             "alive_user_count": NodeOnlineLog.get_all_node_online_user_count(),
             "today_checked_user_count": UserCheckInLog.get_today_checkin_user_count(),
             "today_register_user_count": len(today_register_user),
-            "traffic_users": UserTraffic.get_user_order_by_traffic(count=10),
+            "traffic_users": User.get_user_order_by_traffic(count=10),
             "rich_users_data": Donate.get_most_donated_user_by_count(10),
             "today_register_user": today_register_user,
         }

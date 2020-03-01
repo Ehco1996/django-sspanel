@@ -1,9 +1,9 @@
-import re
 import base64
 import datetime
-import random
-import time
 import json
+import random
+import re
+import time
 from decimal import Decimal
 from urllib.parse import quote, urlencode
 from uuid import uuid4
@@ -18,8 +18,8 @@ from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models, transaction
 from django.forms.models import model_to_dict
-from django.utils import functional, timezone
 from django.template.loader import render_to_string
+from django.utils import functional, timezone
 
 from apps.constants import (
     COUNTRIES_CHOICES,
@@ -44,6 +44,12 @@ class User(AbstractUser):
         (SUB_TYPE_ALL, "订阅所有"),
         (SUB_TYPE_CLASH, "通过Clash订阅所有"),
     )
+
+    MIN_PORT = 1025
+    PORT_BLACK_SET = {6443, 8472}
+
+    class Meta(AbstractUser.Meta):
+        verbose_name_plural = "用户"
 
     balance = models.DecimalField(
         verbose_name="余额",
@@ -71,14 +77,21 @@ class User(AbstractUser):
         verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
     inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
+
+    # v2ray相关
     vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
 
-    class Meta(AbstractUser.Meta):
-        verbose_name_plural = "用户"
-
-    def delete(self):
-        self.user_ss_config.delete()
-        return super(User, self).delete()
+    # TODO 回头加上unique
+    ss_port = models.IntegerField("端口", unique=False, default=MIN_PORT)
+    ss_password = models.CharField("密码", max_length=32, default=get_short_random_string)
+    ss_method = models.CharField(
+        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+    )
+    # 流量相关
+    upload_traffic = models.BigIntegerField("上传流量", default=0)
+    download_traffic = models.BigIntegerField("下载流量", default=0)
+    total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
+    last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True, null=True)
 
     def __str__(self):
         return self.username
@@ -113,8 +126,8 @@ class User(AbstractUser):
         # 绑定uuid
         user.vmess_uuid = str(uuid4())
         user.save()
-        # 添加SSconfig
-        UserSSConfig.create_by_user_id(user.id)
+        # 添加UserTraffic
+        UserTraffic.objects.create(user_id=user.pk)
         return user
 
     @classmethod
@@ -122,7 +135,6 @@ class User(AbstractUser):
         return cls.objects.get(username=username)
 
     @classmethod
-    @cache.cached(ttl=60 * 60 * 24)
     def get_by_pk(cls, pk):
         return cls.objects.get(pk=pk)
 
@@ -147,6 +159,50 @@ class User(AbstractUser):
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
 
+    @classmethod
+    def check_and_disable_out_of_traffic_user(cls):
+        # NOTE cronjob用 先不加索引
+        out_of_traffic_users = list(
+            cls.objects.filter(
+                level__gt=0,
+                total_traffic__lte=(
+                    models.F("upload_traffic") + models.F("download_traffic")
+                ),
+            )
+        )
+        for user in out_of_traffic_users:
+            user.level = 0
+            user.save()
+            print(f"user: {user} traffic overflow!")
+
+        if out_of_traffic_users and settings.EXPIRE_EMAIL_NOTICE:
+            EmailSendLog.send_mail_to_users(
+                out_of_traffic_users,
+                f"您的{settings.TITLE}账号流量已全部用完",
+                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
+            )
+            print(f"共有{len(out_of_traffic_users)}个用户流量用超啦")
+
+    @classmethod
+    def get_not_used_port(cls):
+        port_set = {log["ss_port"] for log in cls.objects.all().values("ss_port")}
+        if not port_set:
+            return cls.MIN_PORT
+        max_port = max(port_set) + 1
+        port_set = {i for i in range(cls.MIN_PORT, max_port + 1)}.difference(
+            port_set.union(cls.PORT_BLACK_SET)
+        )
+        return random.choice(list(port_set))
+
+    @classmethod
+    def get_never_used_user_count(cls):
+        return cls.objects.filter(last_use_time__isnull=True).count()
+
+    @classmethod
+    def get_user_order_by_traffic(cls, count=10):
+        # NOTE 后台展示用 暂时不加索引
+        return cls.objects.all().order_by("-download_traffic")[:count]
+
     @property
     def sub_link(self):
         """订阅地址"""
@@ -159,10 +215,6 @@ class User(AbstractUser):
         params = {"ref": self.id}
         return settings.HOST + f"/register/?{urlencode(params)}"
 
-    @functional.cached_property
-    def user_ss_config(self):
-        return UserSSConfig.objects.get(user_id=self.id)
-
     @property
     def today_is_checkin(self):
         return UserCheckInLog.get_today_is_checkin_by_user_id(self.pk)
@@ -170,6 +222,45 @@ class User(AbstractUser):
     @property
     def token(self):
         return encoder.int2string(self.pk)
+
+    @property
+    def human_total_traffic(self):
+        return traffic_format(self.total_traffic)
+
+    @property
+    def human_used_traffic(self):
+        return traffic_format(self.used_traffic)
+
+    @property
+    def human_remain_traffic(self):
+        return traffic_format(self.total_traffic - self.used_traffic)
+
+    @property
+    def overflow(self):
+        return (self.upload_traffic + self.download_traffic) > self.total_traffic
+
+    @property
+    def used_traffic(self):
+        return self.upload_traffic + self.download_traffic
+
+    @property
+    def used_percentage(self):
+        try:
+            return round(self.used_traffic / self.total_traffic * 100, 2)
+        except ZeroDivisionError:
+            return 100.00
+
+    @property
+    def remain_percentage(self):
+        return 100.00 - self.used_percentage
+
+    @transaction.atomic
+    def reset_random_port(self):
+        cls = type(self)
+        port = cls.get_not_used_port()
+        self.port = port
+        self.save()
+        return port
 
     def get_sub_links(self, sub_type=None):
         # TODO 等一段时间下调sub_type这个字段
@@ -191,7 +282,7 @@ class User(AbstractUser):
         sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
             if type(node) == SSNode:
-                sub_links += node.get_ss_link(self.user_ss_config) + "\n"
+                sub_links += node.get_ss_link(self) + "\n"
             if type(node) == VmessNode:
                 sub_links += node.get_vmess_link(self) + "\n"
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
@@ -202,6 +293,28 @@ class User(AbstractUser):
         for node in node_list:
             node.clash_link = node.get_clash_proxy(self)
         return render_to_string("yamls/clash.yml", {"nodes": node_list})
+
+    def update_from_dict(self, data):
+        clean_fields = ["ss_password", "ss_method"]
+        for k, v in data.items():
+            if k in clean_fields:
+                setattr(self, k, v)
+        try:
+            self.full_clean()
+            self.save()
+            return True
+        except ValidationError:
+            return False
+
+    def reset_traffic(self, new_traffic):
+        self.total_traffic = new_traffic
+        self.upload_traffic = 0
+        self.download_traffic = 0
+
+    def reset_to_fresh(self):
+        self.enable = False
+        self.reset_traffic(settings.DEFAULT_TRAFFIC)
+        self.save()
 
 
 class UserPropertyMixin:
@@ -455,7 +568,7 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 
 
 class UserSSConfig(models.Model, UserPropertyMixin):
-
+    # TODO delete this table
     MIN_PORT = 1025
     PORT_BLACK_SET = {6443, 8472}
 
@@ -471,73 +584,12 @@ class UserSSConfig(models.Model, UserPropertyMixin):
         verbose_name_plural = "用户SS配置"
 
     @classmethod
-    @transaction.atomic
-    def create_by_user_id(cls, user_id):
-        # TODO 暂时在这里创建usertraffic 以后如果再增加节点类型可以挪走
-        config = cls.objects.create(user_id=user_id, port=cls.get_not_used_port())
-        UserTraffic.objects.create(user_id=user_id)
-        return config
-
-    @classmethod
-    def get_not_used_port(cls):
-        port_set = {log["port"] for log in cls.objects.all().values("port")}
-        if not port_set:
-            return cls.MIN_PORT
-        max_port = max(port_set) + 1
-        port_set = {i for i in range(cls.MIN_PORT, max_port + 1)}.difference(
-            port_set.union(cls.PORT_BLACK_SET)
-        )
-        return random.choice(list(port_set))
-
-    @classmethod
     def get_by_user_id(cls, user_id):
         return cls.objects.get(user_id=user_id)
 
-    @classmethod
-    def get_configs_by_user_level(cls, level):
-        user_ids = [
-            d[0] for d in User.objects.filter(level__gte=level).values_list("id")
-        ]
-        return UserSSConfig.objects.filter(user_id__in=user_ids)
-
-    @functional.cached_property
-    def user_traffic(self):
-        return UserTraffic.get_by_user_id(self.user_id)
-
-    @property
-    def human_total_traffic(self):
-        return traffic_format(self.user_traffic.total_traffic)
-
-    @property
-    def human_used_traffic(self):
-        return traffic_format(self.user_traffic.used_traffic)
-
-    @transaction.atomic
-    def reset_random_port(self):
-        cls = type(self)
-        port = cls.get_not_used_port()
-        self.port = port
-        self.save()
-        return port
-
-    def update_from_dict(self, data):
-        clean_fields = ["password", "method"]
-        for k, v in data.items():
-            if k in clean_fields:
-                setattr(self, k, v)
-        try:
-            self.full_clean()
-            self.save()
-            return True
-        except ValidationError:
-            return False
-
-    def get_import_links(self):
-        links = [node.get_ss_link(self) for node in SSNode.get_active_nodes()]
-        return "\n".join(links)
-
 
 class UserTraffic(models.Model, UserPropertyMixin):
+    # TODO delete this table
 
     user_id = models.IntegerField(unique=True, db_index=True)
     upload_traffic = models.BigIntegerField("上传流量", default=0)
@@ -549,75 +601,8 @@ class UserTraffic(models.Model, UserPropertyMixin):
         verbose_name_plural = "用户流量"
 
     @classmethod
-    def get_never_used_user_count(cls):
-        return cls.objects.filter(last_use_time__isnull=True).count()
-
-    @classmethod
     def get_by_user_id(cls, user_id):
         return cls.objects.get(user_id=user_id)
-
-    @classmethod
-    def get_overflow_user_ids(cls):
-        # NOTE cronjob用 先不加索引
-        uts = cls.objects.filter(
-            total_traffic__lte=(
-                models.F("upload_traffic") + models.F("download_traffic")
-            )
-        ).values_list("user_id")
-        return [ut[0] for ut in uts]
-
-    @classmethod
-    def check_and_disable_out_of_traffic_user(cls):
-        need_disable_user_ids = UserTraffic.get_overflow_user_ids()
-        user_ss_configs = UserSSConfig.objects.filter(user_id__in=need_disable_user_ids)
-        need_set_user_ids = [c.user_id for c in user_ss_configs if c.enable]
-        UserSSConfig.objects.filter(user_id__in=need_set_user_ids).update(enable=False)
-        user_list = User.objects.filter(id__in=need_set_user_ids)
-        if user_list and settings.EXPIRE_EMAIL_NOTICE:
-            EmailSendLog.send_mail_to_users(
-                user_list,
-                f"您的{settings.TITLE}账号流量已全部用完",
-                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
-            )
-            print(f"共有{len(user_list)}个用户流量用超啦")
-
-    @property
-    def overflow(self):
-        return (self.upload_traffic + self.download_traffic) > self.total_traffic
-
-    @property
-    def used_traffic(self):
-        return self.upload_traffic + self.download_traffic
-
-    @property
-    def used_percentage(self):
-        try:
-            return round(self.used_traffic / self.total_traffic * 100, 2)
-        except ZeroDivisionError:
-            return 100.00
-
-    @property
-    def human_used_traffic(self):
-        return traffic_format(self.used_traffic)
-
-    @property
-    def user(self):
-        return User.get_by_pk(self.user_id)
-
-    @classmethod
-    def get_user_order_by_traffic(cls, count=10):
-        # NOTE 后台展示用 暂时不加索引
-        return cls.objects.all().order_by("-download_traffic")[:count]
-
-    def reset_traffic(self, new_traffic):
-        self.total_traffic = new_traffic
-        self.upload_traffic = 0
-        self.download_traffic = 0
-
-    def reset_to_fresh(self):
-        self.enable = False
-        self.reset_traffic(settings.DEFAULT_TRAFFIC)
-        self.save()
 
 
 class NodeOnlineLog(models.Model):
@@ -781,12 +766,16 @@ class VmessNode(BaseAbstractNode):
         if not node:
             return {"tag": "", "configs": []}
 
-        user_ids = []
         configs = []
         for d in User.objects.filter(level__gte=node.level).values(
-            "id", "email", "vmess_uuid"
+            "id",
+            "email",
+            "vmess_uuid",
+            "total_traffic",
+            "upload_traffic",
+            "download_traffic",
         ):
-            user_ids.append(d["id"])
+            enable = d["total_traffic"] > (d["download_traffic"] + d["upload_traffic"])
             configs.append(
                 {
                     "user_id": d["id"],
@@ -794,17 +783,12 @@ class VmessNode(BaseAbstractNode):
                     "uuid": d["vmess_uuid"],
                     "level": node.level,
                     "alter_id": node.alter_id,
+                    "enable": enable,
                 }
             )
-        ut_overflow_map = {
-            ut.user_id: ut.overflow
-            for ut in UserTraffic.objects.filter(user_id__in=user_ids)
-        }
-        for cfg in configs:
-            if not node.enable:
+        if not node.enable:
+            for cfg in configs:
                 cfg["enable"] = False
-            else:
-                cfg["enable"] = not ut_overflow_map[cfg["user_id"]]
         return {"configs": configs, "tag": node.inbound_tag}
 
     @property
@@ -922,7 +906,7 @@ class VmessNode(BaseAbstractNode):
         }
 
     def get_vmess_link(self, user):
-        # NOTE hardcode methoud to none
+        # NOTE hardcode method to none
         data = {
             "port": self.display_port,
             "aid": self.alter_id,
@@ -987,13 +971,31 @@ class SSNode(BaseAbstractNode):
         configs = {"users": []}
         if not ss_node:
             return configs
-        configs["users"] = [
-            ss_node.to_dict_with_user_ss_config(config)
-            for config in UserSSConfig.get_configs_by_user_level(ss_node.level)
-        ]
+
+        for d in User.objects.filter(level__gte=ss_node.level).values(
+            "id",
+            "ss_port",
+            "ss_method",
+            "ss_password",
+            "total_traffic",
+            "upload_traffic",
+            "download_traffic",
+        ):
+            enable = d["total_traffic"] > (d["download_traffic"] + d["upload_traffic"])
+            method = d["ss_method"] if ss_node.custom_method else ss_node.method
+            configs["users"].append(
+                {
+                    "user_id": d["id"],
+                    "port": d["ss_port"],
+                    "password": d["ss_password"],
+                    "enable": enable,
+                    "method": method,
+                    "speed_limit": ss_node.speed_limit,
+                }
+            )
         if not ss_node.enable:
-            for config in configs["users"]:
-                config["enable"] = False
+            for cfg in configs["users"]:
+                cfg["enable"] = False
         return configs
 
     @property
@@ -1014,42 +1016,39 @@ class SSNode(BaseAbstractNode):
             settings.HOST + f"/api/user_ss_config/{self.node_id}/?{urlencode(params)}"
         )
 
-    def get_ss_link(self, user_ss_config):
-        method = user_ss_config.method if self.custom_method else self.method
-        code = f"{method}:{user_ss_config.password}@{self.server}:{user_ss_config.port}"
+    def get_ss_link(self, user):
+        method = user.ss_method if self.custom_method else self.method
+        code = f"{method}:{user.ss_password}@{self.server}:{user.ss_port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         ss_link = "ss://{}#{}".format(b64_code, quote(self.name))
         return ss_link
 
-    def to_dict_with_user_ss_config(self, user_ss_config):
+    def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
-        data.update(model_to_dict(user_ss_config))
-        if not self.custom_method:
-            data["method"] = self.method
-        return data
-
-    def to_dict_with_extra_info(self, user_ss_config):
-        data = self.to_dict_with_user_ss_config(user_ss_config)
         data.update(
             NodeOnlineLog.get_latest_online_log_info(
                 NodeOnlineLog.NODE_TYPE_SS, self.node_id
             )
         )
+        if self.custom_method:
+            data["method"] = user.ss_method
+        data["ss_port"] = user.ss_port
+        data["ss_password"] = user.ss_password
         data["country"] = self.country.lower()
-        data["ss_link"] = self.get_ss_link(user_ss_config)
+        data["ss_link"] = self.get_ss_link(user)
         data["api_point"] = self.api_endpoint
         data["human_speed_limit"] = self.human_speed_limit
         return data
 
     def get_clash_proxy(self, user):
-        method = user.user_ss_config.method if self.custom_method else self.method
+        method = user.ss_method if self.custom_method else self.method
         config = {
             "name": self.name,
             "type": "ss",
             "server": self.server,
-            "port": user.user_ss_config.port,
+            "port": user.ss_port,
             "cipher": method,
-            "password": user.user_ss_config.password,
+            "password": user.ss_password,
         }
         return json.dumps(config, ensure_ascii=False)
 
@@ -1347,22 +1346,17 @@ class Goods(models.Model):
         if user.balance < self.money:
             return False
         # 验证成功进行提权操作
-        user_traffic = UserTraffic.get_by_user_id(user.pk)
         user.balance -= self.money
         now = pendulum.now()
         days = pendulum.duration(days=self.days)
         if user.level == self.level and user.level_expire_time > now:
             user.level_expire_time += days
-            user_traffic.total_traffic += self.transfer
+            user.total_traffic += self.transfer
         else:
             user.level_expire_time = now + days
-            user_traffic.reset_traffic(self.transfer)
-        user_ss_config = user.user_ss_config
-        user_ss_config.enable = True
+            user.reset_traffic(self.transfer)
         user.level = self.level
         user.save()
-        user_traffic.save()
-        user_ss_config.save()
         # 增加购买记录
         PurchaseHistory.objects.create(
             good=self, user=user, money=self.money, purchtime=now
@@ -1461,7 +1455,7 @@ class Announcement(models.Model):
 
     @property
     def plain_text(self):
-        # TODO 现在db里存的二是md转换成的html，这里之后可能要优化。转换的逻辑移到前端去
+        # TODO 现在db里存的是md转换成的html，这里之后可能要优化。转换的逻辑移到前端去
         re_br = re.compile("<br\s*?/?>")  # 处理换行
         re_h = re.compile("</?\w+[^>]*>")  # HTML标签
         s = re_br.sub("", self.body)  # 去掉br

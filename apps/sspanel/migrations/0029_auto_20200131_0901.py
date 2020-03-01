@@ -6,17 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0028_auto_20200122_1534'),
+        ("sspanel", "0028_auto_20200122_1534"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='emailsendlog',
-            options={'verbose_name_plural': '邮件发送记录'},
+            name="emailsendlog", options={"verbose_name_plural": "邮件发送记录"},
         ),
         migrations.AddField(
-            model_name='nodeonlinelog',
-            name='active_tcp_connections',
+            model_name="nodeonlinelog",
+            name="active_tcp_connections",
             field=models.IntegerField(default=0),
         ),
     ]

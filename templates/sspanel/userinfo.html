@@ -138,23 +138,20 @@
                     </div>
                     <div class="message-body">
                         <li> 端口：
-                            <code><span id="port">{{ user.user_ss_config.port }}</span></code>
+                            <code><span id="port">{{ user.ss_port }}</span></code>
                         </li>
                         <li> 密码：
-                            <code>{{ user.user_ss_config.password }}</code>
+                            <code>{{ user.ss_password }}</code>
                         </li>
                         <li> 加密：
-                            <code>{{ user.user_ss_config.method }}</code>
+                            <code>{{ user.ss_method }}</code>
                         </li>
                         <li> UUID：
                             <code>{{ user.vmess_uuid }}</code>
                         </li>
                         <br>
                         <div class="buttons">
-                            <a class="button is-link is-rounded" href="{{ import_links }}">一键导入</a>
-                            <a class="button is-link is-rounded" href="{% url 'sspanel:ss_node_config' %}"
-                                download>配置下载</a>
-                            <span class="button is-link modal-button is-rounded" data-target="modal-sub">订阅</span>
+                            <span class="button is-link modal-button is-rounded" data-target="modal-sub">订阅地址</span>
                         </div>
                     </div>
                 </article>
@@ -233,7 +230,7 @@
                         <div class="columns">
                             <div class="column">
                                 <li>总量:
-                                    <code>{{ user.user_ss_config.human_total_traffic }}</code>
+                                    <code>{{ user.human_total_traffic }}</code>
                                 </li>
                             </div>
                             <div class="column">
@@ -243,20 +240,21 @@
                         <div class="columns">
                             <div class="column">
                                 <li>剩余:
-                                    <code>{{ remain_traffic }}% </code>
+                                    <code>{{ user.human_remain_traffic }} </code>
                                 </li>
                             </div>
                             <div class="column">
-                                <progress class="progress is-info" value="{{  remain_traffic }}" max="100"></progress>
+                                <progress class="progress is-info" value="{{ user.remain_percentage }}"
+                                    max="100"></progress>
                             </div>
                         </div>
                         <div class="columns">
                             <div class="column">
                                 <li>使用:
-                                    <code>{{ user.user_ss_config.human_used_traffic }}</code> </li>
+                                    <code>{{ user.human_used_traffic }}</code> </li>
                             </div>
                             <div class="column">
-                                <progress class="progress is-danger" value="{{ user_traffic.used_percentage }}"
+                                <progress class="progress is-danger" value="{{ user.used_percentage }}"
                                     max="100"></progress>
                             </div>
                         </div>
@@ -277,13 +275,13 @@
                         <li> 等级：
                             <code>{{ user.level }} 级 </code>
                         </li>
-                        {% if user.user_ss_config.enable == True %}
+                        {% if user.overflow %}
                         <li> 状态：
-                            <code>正常使用</code>
+                            <code>失效</code>
                         </li>
                         {% else %}
                         <li> 状态：
-                            <code>失效</code>
+                            <code>正常使用</code>
                         </li>
                         {% endif %}
                         <li> 主题：
@@ -296,7 +294,7 @@
                             <code>{{ user.level_expire_time }} </code>
                         </li>
                         <li>上次使用时间:
-                            <code>{{ user_traffic.last_use_time}}</code>
+                            <code>{{ user.last_use_time}}</code>
                         </li>
 
                     </div>
@@ -391,7 +389,7 @@
         var method = $("select[name=selects-method-types]").val();
         if (method) {
             data = {
-                method: method,
+                ss_method: method,
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             }
             url = "{% url 'api:user_settings' %}"
@@ -410,7 +408,7 @@
         var password = $("#id-password").val();
         if (password) {
             data = {
-                password: password,
+                ss_password: password,
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             }
             url = "{% url 'api:user_settings' %}"

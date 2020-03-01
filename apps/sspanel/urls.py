@@ -19,11 +19,6 @@ urlpatterns = [
     path("user_traffic_log/", views.UserTrafficLog.as_view(), name="user_traffic_log"),
     # 用户信息
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
-    path(
-        "users/ss_node_config/",
-        views.UserSSNodeConfigView.as_view(),
-        name="ss_node_config",
-    ),
     # 捐赠/充值
     path("donate/", views.DonateView.as_view(), name="donate"),
     path("shop/", views.ShopView.as_view(), name="shop"),
@@ -77,24 +72,24 @@ urlpatterns = [
     ),
     # 用户相关
     path(
-        "my_admin/user_ss_config_list/",
-        admin_views.UserSSConfigListView.as_view(),
-        name="admin_user_ss_config_list",
+        "my_admin/user_list/",
+        admin_views.UserListView.as_view(),
+        name="admin_user_list",
     ),
     path(
-        "my_admin/user_ss_config/delete/<int:pk>/",
-        admin_views.UserSSConfigDeleteView.as_view(),
-        name="admin_user_ss_config_delete",
+        "my_admin/user/delete/<int:pk>/",
+        admin_views.UserDeleteView.as_view(),
+        name="admin_user_delete",
     ),
     path(
-        "my_admin/user_ss_config/search/",
-        admin_views.UserSSConfigSearchView.as_view(),
-        name="admin_user_ss_config_search",
+        "my_admin/user/search/",
+        admin_views.UserSearchView.as_view(),
+        name="admin_user_search",
     ),
     path(
-        "my_admin/user_ss_config/<int:user_id>/",
-        admin_views.UserSSConfigDetailView.as_view(),
-        name="admin_user_ss_config_detail",
+        "my_admin/user/<int:pk>/",
+        admin_views.UserDetailView.as_view(),
+        name="admin_user_detail",
     ),
     path(
         "my_admin/user_status/",

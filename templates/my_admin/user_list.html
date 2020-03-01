@@ -14,7 +14,7 @@
     </section>
 </div>
 <div class="column is-12">
-    <form method="get" action="{% url 'sspanel:admin_user_ss_config_search' %}">
+    <form method="get" action="{% url 'sspanel:admin_user_search' %}">
         <div class="field has-addons">
             <div class="control">
                 <input name="q" class="input" type="search" placeholder="用户名/邮箱 模糊搜索" required>
@@ -68,8 +68,7 @@
                 <tr>
                     <td>
                         <p class="control">
-                            <a class="button is-info"
-                                href="{% url 'sspanel:admin_user_ss_config_detail' contact.user_ss_config.user_id %}">编辑</a>
+                            <a class="button is-info" href="{% url 'sspanel:admin_user_detail' contact.pk %}">编辑</a>
                         </p>
                         <p class="control">
                             <a class="button is-danger modal-button" data-target="modal-{{ contact.pk }}">删除</a>
@@ -78,9 +77,9 @@
                     <td>#{{ contact.id}}</td>
                     <td>{{ contact.username }}</td>
                     <td>{{ contact.email }}</td>
-                    <td>{{ contact.user_ss_config.port }}</td>
-                    <td>{{ contact.user_ss_config.human_used_traffic }} /
-                        {{ contact.user_ss_config.human_total_traffic }}
+                    <td>{{ contact.ss_port }}</td>
+                    <td>{{ contact.human_used_traffic }} /
+                        {{ contact.human_total_traffic }}
                     </td>
                 </tr>
                 <div class="modal user_delete" id="modal-{{ contact.pk }}">
@@ -95,7 +94,7 @@
                                 <code>{{ contact.username }}</code>?</p>
                             <p align="center">
                                 <a class="button is-danger is-outlined"
-                                    href="{% url 'sspanel:admin_user_ss_config_delete' contact.pk %}">确定删除</a>
+                                    href="{% url 'sspanel:admin_user_delete' contact.pk %}">确定删除</a>
                             </p>
                         </section>
                     </div>

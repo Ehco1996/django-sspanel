@@ -5,12 +5,11 @@ from django.core.management.base import BaseCommand, CommandError
 from apps.sspanel.models import (
     NodeOnlineLog,
     SSNode,
-    VmessNode,
     User,
     UserOnLineIpLog,
     UserOrder,
-    UserTraffic,
     UserTrafficLog,
+    VmessNode,
 )
 
 
@@ -41,16 +40,12 @@ class Command(BaseCommand):
     def check_user_state(self):
         """检测用户状态，将所有账号到期的用户状态重置"""
         User.check_and_disable_expired_users()
-        UserTraffic.check_and_disable_out_of_traffic_user()
+        User.check_and_disable_out_of_traffic_user()
 
     def auto_reset_traffic(self):
         """重置所有免费用户流量"""
-        users = User.objects.filter(level=0)
-
-        for user in users:
-            ut = UserTraffic.get_by_user_id(user.pk)
-            ut.reset_traffic(settings.DEFAULT_TRAFFIC)
-            ut.save()
+        for user in User.objects.filter(level=0):
+            user.reset_traffic(settings.DEFAULT_TRAFFIC)
 
     def reset_node_traffic(self):
         """月初重置节点使用流量"""
