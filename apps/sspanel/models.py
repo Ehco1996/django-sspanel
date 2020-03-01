@@ -545,14 +545,13 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 
     @classmethod
     @transaction.atomic
-    def checkin(cls, user_id):
+    def checkin(cls, user):
         traffic = random.randint(
             settings.MIN_CHECKIN_TRAFFIC, settings.MAX_CHECKIN_TRAFFIC
         )
-        user_traffic = UserTraffic.get_by_user_id(user_id)
-        user_traffic.total_traffic += traffic
-        user_traffic.save()
-        return cls.add_log(user_id, traffic)
+        user.total_traffic += traffic
+        user.save()
+        return cls.add_log(user.id, traffic)
 
     @classmethod
     def get_today_is_checkin_by_user_id(cls, user_id):

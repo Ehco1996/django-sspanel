@@ -291,7 +291,7 @@ class UserCheckInView(View):
     def post(self, request):
         user = request.user
         if not user.today_is_checkin:
-            log = UserCheckInLog.checkin(user.pk)
+            log = UserCheckInLog.checkin(user)
             data = {
                 "title": "签到成功！",
                 "subtitle": f"获得{traffic_format(log.increased_traffic)}流量！",
