@@ -96,21 +96,6 @@
                                 </table>
                                 <p class="subtitle">配置链接：</p>
                                 <a href={{ node.ss_link }}>手机上用默认浏览器打开点我就可以直接添加配置(SS版)</a>
-                                <hr>
-                                <p class="subtitle">订阅链接</p>
-                                <strong>点击按钮复制链接至客户端的订阅处</strong>
-                                <div class="field is-grouped">
-                                    <p class="control is-expanded">
-                                        <input class="input" id="id-sub-link" value="{{ sub_link }}">
-                                    </p>
-                                    <p class="control">
-                                        <a class="button is-rounded" id="id-button-clip"
-                                            data-clipboard-target="#id-sub-link">
-                                            <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                        </a>
-                                    </p>
-                                </div>
-                                <span class="copied" hidden="true">Copied!</span>
                             </section>
                         </div>
                     </div>
@@ -296,13 +281,6 @@
         }
         return out;
     }
-    // 点击复制
-    var clip = new Clipboard('#id-button-clip');
-    clip.on('success', function (e) {
-        $('.copied').show();
-        $('.copied').fadeOut(1000);
-    });
-
     var SSNodeList = $("#id-ss-node-list")
     // 事件委托绑定按钮
     SSNodeList.on('click', 'a', function (event) {
