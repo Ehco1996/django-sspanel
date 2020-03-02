@@ -81,8 +81,7 @@ class User(AbstractUser):
     # v2ray相关
     vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
 
-    # TODO 回头加上unique
-    ss_port = models.IntegerField("端口", unique=False, default=MIN_PORT)
+    ss_port = models.IntegerField("端口", unique=True, default=MIN_PORT)
     ss_password = models.CharField("密码", max_length=32, default=get_short_random_string)
     ss_method = models.CharField(
         "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
@@ -125,9 +124,8 @@ class User(AbstractUser):
             user.inviter_id = inviter_id
         # 绑定uuid
         user.vmess_uuid = str(uuid4())
+        user.ss_port = cls.get_not_used_port()
         user.save()
-        # 添加UserTraffic
-        UserTraffic.objects.create(user_id=user.pk)
         return user
 
     @classmethod
