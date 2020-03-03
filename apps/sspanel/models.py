@@ -109,7 +109,10 @@ class User(AbstractUser):
     @transaction.atomic
     def add_new_user(cls, cleaned_data):
         user = cls.objects.create_user(
-            cleaned_data["username"], cleaned_data["email"], cleaned_data["password1"]
+            cleaned_data["username"],
+            cleaned_data["email"],
+            cleaned_data["password1"],
+            ss_port=cls.get_not_used_port(),
         )
         inviter_id = None
         if "invitecode" in cleaned_data:
@@ -124,7 +127,6 @@ class User(AbstractUser):
             user.inviter_id = inviter_id
         # 绑定uuid
         user.vmess_uuid = str(uuid4())
-        user.ss_port = cls.get_not_used_port()
         user.save()
         return user
 
