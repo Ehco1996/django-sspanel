@@ -15,7 +15,7 @@ Markdown==3.1.1
 mysqlclient==1.4.6
 pendulum==2.0.5
 prometheus-client==0.7.1
-pycparser==2.19
+pycparser==2.20
 pycryptodomex==3.9.4
 pyOpenSSL==19.1.0
 python-alipay-sdk==2.0.1
