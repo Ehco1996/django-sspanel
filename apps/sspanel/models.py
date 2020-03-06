@@ -702,6 +702,12 @@ class BaseAbstractNode(models.Model):
         return cls.objects.filter(enable=True).order_by("level", "country")
 
     @classmethod
+    def get_user_active_nodes(cls, user):
+        return cls.objects.filter(enable=True, level__lte=user.level).order_by(
+            "level", "country"
+        )
+
+    @classmethod
     def get_node_ids_by_level(cls, level):
         node_list = cls.objects.filter(level__lte=level).values_list("node_id")
         return [node[0] for node in node_list]
@@ -711,10 +717,6 @@ class BaseAbstractNode(models.Model):
         cls.objects.filter(node_id=node_id).update(
             used_traffic=models.F("used_traffic") + used_traffic
         )
-
-    @classmethod
-    def get_user_active_nodes(cls, user):
-        return cls.objects.filter(enable=True, level__lte=user.level)
 
     @property
     def human_total_traffic(self):
