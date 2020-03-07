@@ -4,6 +4,7 @@ import json
 import random
 import re
 import time
+from copy import deepcopy
 from decimal import Decimal
 from urllib.parse import quote, urlencode
 from uuid import uuid4
@@ -748,6 +749,25 @@ class BaseAbstractNode(models.Model):
 
 class VmessNode(BaseAbstractNode):
 
+    BASE_CONFIG = {
+        "stats": {},
+        "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
+        "log": {"loglevel": "debug"},
+        "policy": {
+            "system": {"statsInboundUplink": True, "statsInboundDownlink": True},
+        },
+        "inbounds": [],
+        "outbounds": [{"protocol": "freedom", "settings": {}}],
+        "routing": {
+            "settings": {
+                "rules": [
+                    {"inboundTag": ["api"], "outboundTag": "api", "type": "field"}
+                ]
+            },
+            "strategy": "rules",
+        },
+    }
+
     server = models.CharField("服务器地址", max_length=128)
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
     port = models.IntegerField("端口", default=10086)
@@ -755,9 +775,12 @@ class VmessNode(BaseAbstractNode):
     alter_id = models.IntegerField("额外ID数量", default=1)
     grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
+    # TODO 抽成relayNode
     relay_host = models.CharField("中转地址", max_length=64, blank=True, null=True)
     relay_port = models.CharField("中转端口", max_length=64, blank=True, null=True)
     relay_offset_port = models.IntegerField("中转偏移端口", blank=True, null=True)
+    ws_host = models.CharField("域名", max_length=64, blank=True, null=True)
+    ws_path = models.CharField("ws_path", max_length=64, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Vmess节点"
@@ -803,7 +826,13 @@ class VmessNode(BaseAbstractNode):
         return bool(self.relay_host and self.relay_port)
 
     @property
+    def enable_ws(self):
+        return self.ws_host and self.ws_path
+
+    @property
     def display_host(self):
+        if self.enable_ws:
+            return self.ws_host
         if self.enable_relay:
             return self.relay_host
         return self.server
@@ -811,7 +840,9 @@ class VmessNode(BaseAbstractNode):
     @property
     def display_port(self):
         """显示出去的端口"""
-        # NOTE  优先级relay_offset_port> relay_port > offset_port > prot
+        # NOTE  优先级ws>relay_offset_port> relay_port > offset_port > prot
+        if self.enable_ws:
+            return 443
         if self.enable_relay:
             if self.relay_offset_port:
                 return self.relay_offset_port
@@ -850,42 +881,46 @@ class VmessNode(BaseAbstractNode):
         )
 
     @property
-    def server_config(self):
+    def level_policy(self):
+        return {self.level: {"statsUserUplink": True, "statsUserDownlink": True}}
+
+    @property
+    def grpc_inbound(self):
         return {
-            "stats": {},
-            "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
-            "log": {"loglevel": "info"},
-            "policy": {
-                "levels": {
-                    self.level: {"statsUserUplink": True, "statsUserDownlink": True}
-                },
-                "system": {"statsInboundUplink": True, "statsInboundDownlink": True},
-            },
-            "inbounds": [
-                {
-                    "tag": self.inbound_tag,
-                    "port": self.port,
-                    "protocol": "vmess",
-                    "settings": {"clients": []},
-                },
-                {
-                    "listen": self.grpc_host,
-                    "port": self.grpc_port,
-                    "protocol": "dokodemo-door",
-                    "settings": {"address": self.grpc_host},
-                    "tag": "api",
-                },
-            ],
-            "outbounds": [{"protocol": "freedom", "settings": {}}],
-            "routing": {
-                "settings": {
-                    "rules": [
-                        {"inboundTag": ["api"], "outboundTag": "api", "type": "field"}
-                    ]
-                },
-                "strategy": "rules",
-            },
+            "listen": self.grpc_host,
+            "port": self.grpc_port,
+            "protocol": "dokodemo-door",
+            "settings": {"address": self.grpc_host},
+            "tag": "api",
         }
+
+    @property
+    def vmess_inbound(self):
+        inbound = {
+            "listen": self.server,
+            "tag": self.inbound_tag,
+            "port": self.port,
+            "protocol": "vmess",
+            "settings": {"clients": []},
+        }
+        if self.ws_path and self.ws_path:
+            inbound["streamSettings"] = {
+                "network": "ws",
+                "wsSettings": {"path": self.ws_path},
+            }
+        return inbound
+
+    @property
+    def server_config(self):
+        config = deepcopy(self.BASE_CONFIG)
+        config["policy"]["levels"] = self.level_policy
+        config["inbounds"].append(self.vmess_inbound)
+        config["inbounds"].append(self.grpc_inbound)
+        return config
+
+    @property
+    def caddy_config(self):
+        return render_to_string("v2ray/caddyfile", {"node": self})
 
     @property
     def relay_config(self):
@@ -923,6 +958,8 @@ class VmessNode(BaseAbstractNode):
             "path": "",
             "type": "none",
         }
+        if self.enable_ws:
+            data.update({"net": "ws", "path": self.ws_path, "host": self.ws_host})
         return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
 
     def to_dict_with_extra_info(self, user):
@@ -950,6 +987,15 @@ class VmessNode(BaseAbstractNode):
             "alterId": self.alter_id,
             "cipher": "auto",
         }
+        if self.enable_ws:
+            config.update(
+                {
+                    "tls": True,
+                    "network": "ws",
+                    "ws-path": self.ws_path,
+                    "Host": self.ws_host,
+                }
+            )
         return json.dumps(config, ensure_ascii=False)
 
 

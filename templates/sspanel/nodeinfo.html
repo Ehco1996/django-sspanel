@@ -216,6 +216,16 @@
                                         <td class="notification">Level:</td>
                                         <td class="notification">{{ node.level }}</td>
                                     </tr>
+                                    {% if node.enable_ws %}
+                                    <tr>
+                                        <td class="notification">域名:</td>
+                                        <td class="notification">{{ node.ws_host }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">路径:</td>
+                                        <td class="notification">{{ node.ws_path }}</td>
+                                    </tr>
+                                    {% endif %}
                                 </table>
                                 <p class="subtitle">配置链接：</p>
                                 <a href={{ node.vmess_link }}>手机上用默认浏览器打开点我就可以直接添加配置(Vmess)</a>

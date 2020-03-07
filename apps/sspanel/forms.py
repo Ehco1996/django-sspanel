@@ -169,6 +169,8 @@ class VmessNodeForm(ModelForm):
             "relay_host": forms.TextInput(attrs={"class": "input"}),
             "relay_port": forms.TextInput(attrs={"class": "input"}),
             "relay_offset_port": forms.TextInput(attrs={"class": "input"}),
+            "ws_host": forms.TextInput(attrs={"class": "input"}),
+            "ws_path": forms.TextInput(attrs={"class": "input"}),
         }
 
 

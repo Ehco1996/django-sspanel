@@ -1,0 +1,6 @@
+{{ node.ws_host}} {
+    proxy {{ node.ws_path }} 127.0.0.1:{{ node.port }} {
+        websocket
+        header_upstream -Origin
+    }
+}
