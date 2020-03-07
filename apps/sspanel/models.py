@@ -897,7 +897,6 @@ class VmessNode(BaseAbstractNode):
     @property
     def vmess_inbound(self):
         inbound = {
-            "listen": self.server,
             "tag": self.inbound_tag,
             "port": self.port,
             "protocol": "vmess",
