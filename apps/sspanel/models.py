@@ -995,7 +995,7 @@ class VmessNode(BaseAbstractNode):
                     "tls": True,
                     "network": "ws",
                     "ws-path": self.ws_path,
-                    "Host": self.ws_host,
+                    "ws-headers": {"Host": self.ws_host},
                 }
             )
         return json.dumps(config, ensure_ascii=False)
