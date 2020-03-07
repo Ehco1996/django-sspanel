@@ -139,7 +139,7 @@
     <hr>
     <div id="id-vmess-node-list">
         {% for node in vmess_node_list %}
-        <div class="node-cell" data-id="{{ node.node_id }}" data-vmess_link="{{ node.vmess_link }}">
+        <div class="node-cell" data-id="{{ node.node_uid }}" data-vmess_link="{{ node.vmess_link }}">
             <div class="card">
                 <div class="card-header">
                     {% if node.online == True %}
@@ -158,15 +158,15 @@
                             <i class="flag-icon flag-icon-{{ node.country }}"></i>
                         </span>
                     </p>
-                    <a id="id-icon-{{ node.node_id }}" class="card-header-icon"
-                        onclick="$(`#id-vmess-card-body-${ {{ node.node_id }} }`).toggle('swing')">
+                    <a id="id-icon-{{ node.node_uid }}" class="card-header-icon"
+                        onclick="$(`#id-vmess-card-body-{{ node.node_uid }}`).toggle('swing')">
                         <span class="icon">
                             <i class="fa fa-ellipsis-v"></i>
                         </span>
                     </a>
                 </div>
                 {% if user.level >= node.level %}
-                <div id="id-vmess-card-body-{{ node.node_id }}" hidden="true">
+                <div id="id-vmess-card-body-{{ node.node_uid }}" hidden="true">
                     <div class="card-content">
                         <div class="content">
                             <p>{{ node.info }}</p>
@@ -176,10 +176,10 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_id }}"
-                            data-target="modal-qrcode-vmess-{{node.node_id }}-{{ node.name }}">二维码</a>
+                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_uid }}"
+                            data-target="modal-qrcode-vmess-{{node.node_uid }}-{{ node.name }}">二维码</a>
                         <a class="card-footer-item modal-button"
-                            data-target="vmess-modal-config-{{ node.node_id }}">配置</a>
+                            data-target="vmess-modal-config-{{ node.node_uid }}">配置</a>
                         <a class="card-footer-item">
                             <span class="icon">
                                 <i class="fa fa-user">「{{ node.online_user_count }}」</i>
@@ -187,7 +187,7 @@
                         </a>
                     </div>
                     <!--配置部分 -->
-                    <div class="modal nodeinfo" id="vmess-modal-config-{{ node.node_id }}">
+                    <div class="modal nodeinfo" id="vmess-modal-config-{{ node.node_uid }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
@@ -233,7 +233,7 @@
                         </div>
                     </div>
                     <!--二维码部分 -->
-                    <div class="modal" id="modal-qrcode-vmess-{{node.node_id }}-{{ node.name }}">
+                    <div class="modal" id="modal-qrcode-vmess-{{node.node_uid }}-{{ node.name }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
@@ -243,14 +243,14 @@
                             </header>
                             <section class="modal-card-body">
                                 <div class="box">
-                                    <div id="id-qr-code-vmess-{{ node.node_id }}"></div>
+                                    <div id="id-qr-code-vmess-{{ node.node_uid }}"></div>
                                 </div>
                             </section>
                         </div>
                     </div>
                 </div>
                 {% else %}
-                <div id="id-vmess-card-body-{{ node.node_id }}" hidden="true">
+                <div id="id-vmess-card-body-{{ node.node_uid }}" hidden="true">
                     <div class="card-content">
                         <article class="message is-danger">
                             <div class="message-body">
@@ -297,7 +297,7 @@
         var target = $(event.target)
         var node = target.closest('.node-cell')
         // 找到节点id
-        var node_id = node.data('id')
+        var node_uid = node.data('id')
         var ss = node.find(`#id-qr-code-ss-${node_id}`)
         if (ss.children().length == 0) { ss.qrcode(toUtf8(node.data("ss_link"))) }
     })
