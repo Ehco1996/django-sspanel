@@ -752,7 +752,7 @@ class VmessNode(BaseAbstractNode):
     BASE_CONFIG = {
         "stats": {},
         "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
-        "log": {"loglevel": "debug"},
+        "log": {"loglevel": "info"},
         "policy": {
             "system": {"statsInboundUplink": True, "statsInboundDownlink": True},
         },
@@ -959,7 +959,9 @@ class VmessNode(BaseAbstractNode):
             "type": "none",
         }
         if self.enable_ws:
-            data.update({"net": "ws", "path": self.ws_path, "host": self.ws_host})
+            data.update(
+                {"net": "ws", "path": self.ws_path, "host": self.ws_host, "tls": "tls"}
+            )
         return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
 
     def to_dict_with_extra_info(self, user):
