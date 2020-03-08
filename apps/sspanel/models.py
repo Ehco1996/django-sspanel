@@ -272,14 +272,11 @@ class User(AbstractUser):
 
         if sub_type == self.SUB_TYPE_CLASH:
             return self.get_clash_sub_links()
-        if sub_type == self.SUB_TYPE_SS:
-            node_list = list(SSNode.get_user_active_nodes(self))
-        if sub_type == self.SUB_TYPE_VMESS:
-            node_list = list(VmessNode.get_user_active_nodes(self))
-        if sub_type == self.SUB_TYPE_ALL:
-            node_list = list(SSNode.get_user_active_nodes(self)) + list(
-                VmessNode.get_user_active_nodes(self)
-            )
+        node_list = []
+        if sub_type in [self.SUB_TYPE_SS, self.SUB_TYPE_ALL]:
+            node_list.extend(SSNode.get_user_active_nodes(self))
+        if sub_type in [self.SUB_TYPE_VMESS, self.SUB_TYPE_ALL]:
+            node_list.extend(VmessNode.get_user_active_nodes(self, True))
         sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
             if type(node) == SSNode:
@@ -290,11 +287,12 @@ class User(AbstractUser):
         return sub_links
 
     def get_clash_sub_links(self):
-        node_list = list(SSNode.get_user_active_nodes(self)) + list(
-            VmessNode.get_user_active_nodes(self)
-        )
+        node_list = SSNode.get_user_active_nodes(
+            self
+        ) + VmessNode.get_user_active_nodes(self, sub_mode=True)
+
         for node in node_list:
-            node.clash_link = node.get_clash_proxy(self)
+            node.clash_link = node.get_clash_link(self)
         return render_to_string("yamls/clash.yml", {"nodes": node_list})
 
     def update_from_dict(self, data):
@@ -699,14 +697,20 @@ class BaseAbstractNode(models.Model):
         return cls.objects.filter(node_id=node_id).first()
 
     @classmethod
-    def get_active_nodes(cls):
-        return cls.objects.filter(enable=True).order_by("level", "country")
+    def get_active_nodes(cls, sub_mode=False):
+        return list(
+            cls.objects.filter(enable=True)
+            .select_related()
+            .order_by("level", "country")
+        )
 
     @classmethod
-    def get_user_active_nodes(cls, user):
-        return cls.objects.filter(enable=True, level__lte=user.level).order_by(
-            "level", "country"
-        )
+    def get_user_active_nodes(cls, user, sub_mode=False):
+        nodes = []
+        for node in cls.get_active_nodes(sub_mode):
+            if user.level > node.level:
+                nodes.append(node)
+        return nodes
 
     @classmethod
     def get_node_ids_by_level(cls, level):
@@ -743,7 +747,7 @@ class BaseAbstractNode(models.Model):
     def active_tcp_connections(self):
         return self.online_info["active_tcp_connections"]
 
-    def get_clash_proxy(self, user):
+    def get_clash_link(self, user):
         raise NotImplementedError
 
 
@@ -771,19 +775,17 @@ class VmessNode(BaseAbstractNode):
     server = models.CharField("服务器地址", max_length=128)
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
     port = models.IntegerField("端口", default=10086)
-    offset_port = models.IntegerField("偏移端口", blank=True, null=True)
     alter_id = models.IntegerField("额外ID数量", default=1)
     grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
-    # TODO 抽成relayNode
-    relay_host = models.CharField("中转地址", max_length=64, blank=True, null=True)
-    relay_port = models.CharField("中转端口", max_length=64, blank=True, null=True)
-    relay_offset_port = models.IntegerField("中转偏移端口", blank=True, null=True)
     ws_host = models.CharField("域名", max_length=64, blank=True, null=True)
     ws_path = models.CharField("ws_path", max_length=64, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Vmess节点"
+
+    def __str__(self):
+        return self.name
 
     @classmethod
     @cache.cached(ttl=60 * 60 * 24)
@@ -817,39 +819,35 @@ class VmessNode(BaseAbstractNode):
                 cfg["enable"] = False
         return {"configs": configs, "tag": node.inbound_tag}
 
+    @classmethod
+    def get_active_nodes(cls, sub_mode=False):
+        if not sub_mode:
+            return super().get_active_nodes()
+        # NOTE 在订阅模式下,如果一条节点配置了relay_rule,将一条线路变成多条,既然是py就写的魔幻一点
+        nodes = list()
+        for node in super().get_active_nodes():
+            if node.enable_relay:
+                for rule in node.relay_rules.all():
+                    node = deepcopy(node)
+                    node.name = rule.remark
+                    node.server = rule.relay_host
+                    node.port = rule.relay_port
+                    nodes.append(node)
+            else:
+                nodes.append(node)
+        return nodes
+
     @property
     def node_type(self):
         return "vmess"
-
-    @property
-    def enable_relay(self):
-        return bool(self.relay_host and self.relay_port)
 
     @property
     def enable_ws(self):
         return self.ws_host and self.ws_path
 
     @property
-    def display_host(self):
-        if self.enable_ws:
-            return self.ws_host
-        if self.enable_relay:
-            return self.relay_host
-        return self.server
-
-    @property
-    def display_port(self):
-        """显示出去的端口"""
-        # NOTE  优先级ws>relay_offset_port> relay_port > offset_port > prot
-        if self.enable_ws:
-            return 443
-        if self.enable_relay:
-            if self.relay_offset_port:
-                return self.relay_offset_port
-            return self.relay_port
-        if self.offset_port:
-            return self.offset_port
-        return self.port
+    def enable_relay(self):
+        return bool(self.relay_rules.exists())
 
     @property
     def human_speed_limit(self):
@@ -918,38 +916,40 @@ class VmessNode(BaseAbstractNode):
         return config
 
     @property
-    def caddy_config(self):
-        return render_to_string("v2ray/caddyfile", {"node": self})
-
-    @property
     def relay_config(self):
-        return {
+        if not self.enable_relay:
+            return {}
+        data = {
             "log": {"loglevel": "info"},
-            "inbounds": [
+            "inbounds": [],
+            "outbounds": [{"protocol": "freedom", "settings": {}}],
+        }
+
+        for rule in self.relay_rules.all():
+            data["inbounds"].append(
                 {
-                    "port": self.relay_port,
+                    "port": rule.relay_port,
                     "listen": "0.0.0.0",
                     "protocol": "dokodemo-door",
                     "settings": {
                         "address": self.server,
-                        "port": self.offset_port if self.offset_port else self.port,
+                        "port": self.port,
                         "network": "tcp,udp",
                     },
                     "tag": "",
                     "sniffing": {"enabled": True, "destOverride": ["http", "tls"]},
                 },
-            ],
-            "outbounds": [{"protocol": "freedom", "settings": {}}],
-        }
+            )
+        return data
 
     def get_vmess_link(self, user):
         # NOTE hardcode method to none
         data = {
-            "port": self.display_port,
+            "port": self.port,
             "aid": self.alter_id,
             "id": user.vmess_uuid,
             "ps": self.name,
-            "add": self.display_host,
+            "add": self.server,
             "tls": "none",
             "v": "2",
             "net": "tcp",
@@ -963,27 +963,12 @@ class VmessNode(BaseAbstractNode):
             )
         return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
 
-    def to_dict_with_extra_info(self, user):
-        data = model_to_dict(self)
-        data.update(
-            NodeOnlineLog.get_latest_online_log_info(
-                NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
-            )
-        )
-        data["server"] = self.display_host
-        data["port"] = self.display_port
-        data["country"] = self.country.lower()
-        data["uuid"] = user.vmess_uuid
-        data["vmess_link"] = self.get_vmess_link(user)
-
-        return data
-
-    def get_clash_proxy(self, user):
+    def get_clash_link(self, user):
         config = {
             "name": self.name,
             "type": "vmess",
-            "server": self.display_host,
-            "port": self.display_port,
+            "server": self.server,
+            "port": self.port,
             "uuid": user.vmess_uuid,
             "alterId": self.alter_id,
             "cipher": "auto",
@@ -998,6 +983,67 @@ class VmessNode(BaseAbstractNode):
                 }
             )
         return json.dumps(config, ensure_ascii=False)
+
+    def to_dict_with_extra_info(self, user):
+        data = model_to_dict(self)
+        data.update(
+            NodeOnlineLog.get_latest_online_log_info(
+                NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
+            )
+        )
+        data["node_uid"] = uuid4()
+        data["uuid"] = user.vmess_uuid
+        data["country"] = self.country.lower()
+        data["vmess_link"] = self.get_vmess_link(user)
+        if self.enable_relay:
+            data["enable_relay"] = True
+            data["relay_rules"] = [
+                rule.to_dict_with_extra_info(user)
+                for rule in RelayRule.get_by_node(self)
+            ]
+        return data
+
+
+class RelayRule(models.Model):
+
+    vmess_node = models.ForeignKey(
+        VmessNode,
+        on_delete=models.CASCADE,
+        verbose_name="Vmess节点",
+        related_name="relay_rules",
+    )
+    relay_host = models.CharField("中转地址", max_length=64, blank=False, null=False)
+    relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
+    remark = models.CharField("备注", max_length=256, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "转发规则"
+
+    @classmethod
+    def get_by_node(cls, node):
+        return cls.objects.filter(vmess_node=node)
+
+    def get_user_relay_link(self, user):
+        # NOTE hardcode method to none
+        data = {
+            "port": self.relay_port,
+            "aid": self.vmess_node.alter_id,
+            "id": user.vmess_uuid,
+            "ps": self.remark,
+            "add": self.relay_host,
+            "tls": "none",
+            "v": "2",
+            "net": "tcp",
+            "host": "",
+            "path": "",
+            "type": "none",
+        }
+        return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
+
+    def to_dict_with_extra_info(self, user):
+        data = model_to_dict(self)
+        data["relay_link"] = self.get_user_relay_link(user)
+        return data
 
 
 class SSNode(BaseAbstractNode):
@@ -1090,7 +1136,7 @@ class SSNode(BaseAbstractNode):
         data["human_speed_limit"] = self.human_speed_limit
         return data
 
-    def get_clash_proxy(self, user):
+    def get_clash_link(self, user):
         method = user.ss_method if self.custom_method else self.method
         config = {
             "name": self.name,

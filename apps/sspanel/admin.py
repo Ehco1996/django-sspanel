@@ -85,6 +85,10 @@ class VmessNodeAdmin(admin.ModelAdmin):
     ]
 
 
+class RelayRuleAdmin(admin.ModelAdmin):
+    list_display = ["vmess_node", "relay_host", "relay_port", "remark"]
+
+
 class PurchaseHistoryAdmin(admin.ModelAdmin):
     list_display = ["good", "user", "money", "purchtime"]
     search_fields = ["user"]
@@ -125,6 +129,7 @@ admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
 admin.site.register(models.VmessNode, VmessNodeAdmin)
+admin.site.register(models.RelayRule, RelayRuleAdmin)
 
 admin.site.register(models.InviteCode, InviteCodeAdmin)
 admin.site.register(models.Donate, DonateAdmin)

@@ -157,7 +157,6 @@ class VmessNodeForm(ModelForm):
             "inbound_tag": forms.TextInput(attrs={"class": "input"}),
             "alter_id": forms.NumberInput(attrs={"class": "input"}),
             "port": forms.NumberInput(attrs={"class": "input"}),
-            "offset_port": forms.NumberInput(attrs={"class": "input"}),
             "info": forms.TextInput(attrs={"class": "input"}),
             "server": forms.TextInput(attrs={"class": "input"}),
             "grpc_host": forms.TextInput(attrs={"class": "input"}),
@@ -166,9 +165,6 @@ class VmessNodeForm(ModelForm):
             "used_traffic": forms.NumberInput(attrs={"class": "input"}),
             "total_traffic": forms.NumberInput(attrs={"class": "input"}),
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
-            "relay_host": forms.TextInput(attrs={"class": "input"}),
-            "relay_port": forms.TextInput(attrs={"class": "input"}),
-            "relay_offset_port": forms.TextInput(attrs={"class": "input"}),
             "ws_host": forms.TextInput(attrs={"class": "input"}),
             "ws_path": forms.TextInput(attrs={"class": "input"}),
         }
