@@ -708,7 +708,7 @@ class BaseAbstractNode(models.Model):
     def get_user_active_nodes(cls, user, sub_mode=False):
         nodes = []
         for node in cls.get_active_nodes(sub_mode):
-            if user.level > node.level:
+            if user.level >= node.level:
                 nodes.append(node)
         return nodes
 
