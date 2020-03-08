@@ -78,7 +78,7 @@
                             <section class="modal-card-body">
                                 <table class="table is-fullwidth is-bordered is-striped ">
                                     <tr>
-                                        <td class="notification">节点ip:</td>
+                                        <td class="notification">节点地址:</td>
                                         <td class="notification">{{ node.server }}</td>
                                     </tr>
                                     <tr>
@@ -139,7 +139,7 @@
     <hr>
     <div id="id-vmess-node-list">
         {% for node in vmess_node_list %}
-        <div class="node-cell" data-id="{{ node.node_uid }}" data-vmess_link="{{ node.vmess_link }}">
+        <div class="node-cell" data-id="{{ node.node_uid }}">
             <div class="card">
                 <div class="card-header">
                     {% if node.online == True %}
@@ -195,7 +195,19 @@
                                 <button class="delete"></button>
                             </header>
                             <section class="modal-card-body">
-                                <table class="table is-fullwidth is-bordered is-striped ">
+                                <table class="table is-fullwidth is-bordered">
+                                    {% if node.enable_relay %}
+                                    {% for rule in node.relay_rules %}
+                                    <tr>
+                                        <td class="notification is-info">节点地址 - {{ rule.remark }}:</td>
+                                        <td class="notification">{{ rule.relay_host }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="notification">端口:</td>
+                                        <td class="notification">{{ rule.relay_port }}</td>
+                                    </tr>
+                                    {% endfor%}
+                                    {% else %}
                                     <tr>
                                         <td class="notification">节点ip:</td>
                                         <td class="notification">{{ node.server }}</td>
@@ -204,8 +216,9 @@
                                         <td class="notification">端口:</td>
                                         <td class="notification">{{ node.port }}</td>
                                     </tr>
+                                    {% endif %}
                                     <tr>
-                                        <td class="notification">UUID:</td>
+                                        <td class="notification">UUID: {{ node.enable_relay }}</td>
                                         <td class="notification">{{ node.uuid }}</td>
                                     </tr>
                                     <tr>
@@ -227,8 +240,16 @@
                                     </tr>
                                     {% endif %}
                                 </table>
+                                {% if node.enable_relay %}
+                                {% for rule in node.relay_rules %}
+                                <p class="subtitle">配置链接 - {{ rule.remark }}：</p>
+                                <a href={{ rule.relay_link }}>手机上用默认浏览器打开点我就可以直接添加配置(Vmess)</a>
+                                <hr>
+                                {% endfor%}
+                                {% else %}
                                 <p class="subtitle">配置链接：</p>
                                 <a href={{ node.vmess_link }}>手机上用默认浏览器打开点我就可以直接添加配置(Vmess)</a>
+                                {% endif %}
                             </section>
                         </div>
                     </div>
@@ -243,7 +264,17 @@
                             </header>
                             <section class="modal-card-body">
                                 <div class="box">
-                                    <div id="id-qr-code-vmess-{{ node.node_uid }}"></div>
+                                    {% if node.enable_relay %}
+                                    {% for rule in node.relay_rules %}
+                                    <p class="subtitle">{{ rule.remark }}:</p>
+                                    <div class="qr-code-vmess-{{ node.node_uid }}"
+                                        data-vmess_link={{ rule.relay_link }}></div>
+                                    <hr>
+                                    {% endfor%}
+                                    {% else %}
+                                    <div class="qr-code-vmess-{{ node.node_uid }}"
+                                        data-vmess_link={{ node.vmess_link }}></div>
+                                    {% endif %}
                                 </div>
                             </section>
                         </div>
@@ -297,7 +328,7 @@
         var target = $(event.target)
         var node = target.closest('.node-cell')
         // 找到节点id
-        var node_uid = node.data('id')
+        var node_id = node.data('id')
         var ss = node.find(`#id-qr-code-ss-${node_id}`)
         if (ss.children().length == 0) { ss.qrcode(toUtf8(node.data("ss_link"))) }
     })
@@ -309,7 +340,11 @@
         var node = target.closest('.node-cell')
         // 找到节点id
         var node_id = node.data('id')
-        var vmess = node.find(`#id-qr-code-vmess-${node_id}`)
-        if (vmess.children().length == 0) { vmess.qrcode(toUtf8(node.data("vmess_link"))) }
+        node.find(`.qr-code-vmess-${node_id}`).each(function (idx, vmess) {
+            vmess = $(vmess)
+            if (vmess.children().length == 0) {
+                vmess.qrcode(toUtf8(vmess.data("vmess_link")))
+            }
+        })
     })
 </script> {% endblock main %}

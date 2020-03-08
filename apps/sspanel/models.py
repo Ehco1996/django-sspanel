@@ -272,15 +272,11 @@ class User(AbstractUser):
 
         if sub_type == self.SUB_TYPE_CLASH:
             return self.get_clash_sub_links()
-        if sub_type == self.SUB_TYPE_SS:
-            node_list = SSNode.get_user_active_nodes(self)
-        if sub_type == self.SUB_TYPE_VMESS:
-            node_list = VmessNode.get_user_active_nodes(self)
-        if sub_type == self.SUB_TYPE_ALL:
-            node_list = SSNode.get_user_active_nodes(
-                self
-            ) + VmessNode.get_user_active_nodes(self)
-
+        node_list = []
+        if sub_type in [self.SUB_TYPE_SS, self.SUB_TYPE_ALL]:
+            node_list.extend(SSNode.get_user_active_nodes(self))
+        if sub_type in [self.SUB_TYPE_VMESS, self.SUB_TYPE_ALL]:
+            node_list.extend(VmessNode.get_user_active_nodes(self, True))
         sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
             if type(node) == SSNode:
@@ -293,7 +289,7 @@ class User(AbstractUser):
     def get_clash_sub_links(self):
         node_list = SSNode.get_user_active_nodes(
             self
-        ) + VmessNode.get_user_active_nodes(self)
+        ) + VmessNode.get_user_active_nodes(self, sub_mode=True)
 
         for node in node_list:
             node.clash_link = node.get_clash_link(self)
@@ -701,13 +697,17 @@ class BaseAbstractNode(models.Model):
         return cls.objects.filter(node_id=node_id).first()
 
     @classmethod
-    def get_active_nodes(cls):
-        return list(cls.objects.filter(enable=True).order_by("level", "country"))
+    def get_active_nodes(cls, sub_mode=False):
+        return list(
+            cls.objects.filter(enable=True)
+            .select_related()
+            .order_by("level", "country")
+        )
 
     @classmethod
-    def get_user_active_nodes(cls, user):
+    def get_user_active_nodes(cls, user, sub_mode=False):
         nodes = []
-        for node in cls.get_active_nodes():
+        for node in cls.get_active_nodes(sub_mode):
             if user.level > node.level:
                 nodes.append(node)
         return nodes
@@ -820,20 +820,18 @@ class VmessNode(BaseAbstractNode):
         return {"configs": configs, "tag": node.inbound_tag}
 
     @classmethod
-    def get_active_nodes(cls):
-        # NOTE 如果一条节点配置了relay_rule,将一条线路变成多条,既然是py就写的魔幻一点
+    def get_active_nodes(cls, sub_mode=False):
+        if not sub_mode:
+            return super().get_active_nodes()
+        # NOTE 在订阅模式下,如果一条节点配置了relay_rule,将一条线路变成多条,既然是py就写的魔幻一点
         nodes = list()
-        for node in (
-            cls.objects.filter(enable=True)
-            .select_related()
-            .order_by("level", "country")
-        ):
+        for node in super().get_active_nodes():
             if node.enable_relay:
                 for rule in node.relay_rules.all():
                     node = deepcopy(node)
+                    node.name = rule.remark
                     node.server = rule.relay_host
                     node.port = rule.relay_port
-                    node.name = rule.remark
                     nodes.append(node)
             else:
                 nodes.append(node)
@@ -849,7 +847,7 @@ class VmessNode(BaseAbstractNode):
 
     @property
     def enable_relay(self):
-        return self.relay_rules.exists()
+        return bool(self.relay_rules.exists())
 
     @property
     def human_speed_limit(self):
@@ -993,10 +991,16 @@ class VmessNode(BaseAbstractNode):
                 NodeOnlineLog.NODE_TYPE_VMESS, self.node_id
             )
         )
-        data["country"] = self.country.lower()
-        data["uuid"] = user.vmess_uuid
-        data["vmess_link"] = self.get_vmess_link(user)
         data["node_uid"] = uuid4()
+        data["uuid"] = user.vmess_uuid
+        data["country"] = self.country.lower()
+        data["vmess_link"] = self.get_vmess_link(user)
+        if self.enable_relay:
+            data["enable_relay"] = True
+            data["relay_rules"] = [
+                rule.to_dict_with_extra_info(user)
+                for rule in RelayRule.get_by_node(self)
+            ]
         return data
 
 
@@ -1014,6 +1018,32 @@ class RelayRule(models.Model):
 
     class Meta:
         verbose_name_plural = "转发规则"
+
+    @classmethod
+    def get_by_node(cls, node):
+        return cls.objects.filter(vmess_node=node)
+
+    def get_user_relay_link(self, user):
+        # NOTE hardcode method to none
+        data = {
+            "port": self.relay_port,
+            "aid": self.vmess_node.alter_id,
+            "id": user.vmess_uuid,
+            "ps": self.remark,
+            "add": self.relay_host,
+            "tls": "none",
+            "v": "2",
+            "net": "tcp",
+            "host": "",
+            "path": "",
+            "type": "none",
+        }
+        return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
+
+    def to_dict_with_extra_info(self, user):
+        data = model_to_dict(self)
+        data["relay_link"] = self.get_user_relay_link(user)
+        return data
 
 
 class SSNode(BaseAbstractNode):
