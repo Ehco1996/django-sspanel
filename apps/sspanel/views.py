@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
+from ratelimit.decorators import ratelimit
 
 from apps.constants import METHOD_CHOICES, THEME_CHOICES
 from apps.sspanel.forms import LoginForm, RegisterForm
@@ -38,6 +39,7 @@ class HelpView(View):
 
 
 class RegisterView(View):
+    @ratelimit(key="ip", rate="100/h", method="GET")
     def get(self, request):
         if request.user.is_authenticated:
             return HttpResponseRedirect(reverse("sspanel:userinfo"))
@@ -48,6 +50,7 @@ class RegisterView(View):
             form = RegisterForm(initial={"invitecode": request.GET.get("invitecode")})
         return render(request, "sspanel/register.html", {"form": form})
 
+    @ratelimit(key="ip", rate="100/h", method="POST")
     def post(self, request):
         if not settings.ALLOW_REGISTER:
             return HttpResponse("已经关闭注册了喵")
@@ -100,6 +103,7 @@ class UserLogOutView(View):
 
 
 class InviteCodeView(View):
+    @ratelimit(key="ip", rate="100/h", method="GET")
     def get(self, request):
         code_list = InviteCode.list_by_code_type(InviteCode.TYPE_PUBLIC)
         return render(request, "sspanel/invite.html", context={"code_list": code_list})

@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from ratelimit.decorators import ratelimit
 
 from apps.ext import encoder
 from apps.sspanel.models import (
@@ -75,6 +76,7 @@ class UserSettingsView(View):
 
 
 class SubscribeView(View):
+    @ratelimit(key="ip", rate="100/h", method="GET")
     def get(self, request):
         token = request.GET.get("token")
         if not token:
