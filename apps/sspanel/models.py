@@ -344,7 +344,7 @@ class UserOrder(models.Model, UserPropertyMixin):
     out_trade_no = models.CharField(
         verbose_name="流水号", max_length=64, unique=True, db_index=True
     )
-    qrcode_url = models.CharField(verbose_name="支付连接", max_length=64, null=True)
+    qrcode_url = models.CharField(verbose_name="支付连接", max_length=512, null=True)
     amount = models.DecimalField(
         verbose_name="金额", decimal_places=2, max_digits=10, default=0
     )
