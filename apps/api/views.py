@@ -393,16 +393,20 @@ class OrderView(View):
 
     @method_decorator(login_required)
     def post(self, request):
-        amount = int(request.POST.get("num"))
-        if amount < 1:
-            info = {"title": "失败", "subtitle": "请保证金额大于1元", "status": "error"}
-        else:
-            order = UserOrder.get_or_create_order(request.user, amount)
-            info = {
-                "title": "请求成功！",
-                "subtitle": "支付宝扫描下方二维码付款，付款完成记得按确认哟！",
-                "status": "success",
-            }
+        try:
+            amount = int(request.POST.get("num"))
+            if amount < 1 or amount > 99999:
+                raise ValueError
+        except ValueError:
+            return JsonResponse(
+                {"info": {"title": "失败", "subtitle": "请保证金额正确", "status": "error"}},
+            )
+        order = UserOrder.get_or_create_order(request.user, amount)
+        info = {
+            "title": "请求成功！",
+            "subtitle": "支付宝扫描下方二维码付款，付款完成记得按确认哟！",
+            "status": "success",
+        }
         return JsonResponse(
             {"info": info, "qrcode_url": order.qrcode_url, "order_id": order.id}
         )
