@@ -87,6 +87,7 @@ class VmessNodeAdmin(admin.ModelAdmin):
 
 class RelayRuleAdmin(admin.ModelAdmin):
     list_display = ["vmess_node", "relay_host", "relay_port", "remark"]
+    ordering = ["vmess_node"]
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
