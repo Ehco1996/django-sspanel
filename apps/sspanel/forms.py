@@ -2,7 +2,6 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
-from apps.ext import encoder
 from apps.sspanel.models import (
     Announcement,
     Goods,
@@ -159,6 +158,7 @@ class VmessNodeForm(ModelForm):
             "port": forms.NumberInput(attrs={"class": "input"}),
             "info": forms.TextInput(attrs={"class": "input"}),
             "server": forms.TextInput(attrs={"class": "input"}),
+            "listen_host": forms.TextInput(attrs={"class": "input"}),
             "grpc_host": forms.TextInput(attrs={"class": "input"}),
             "grpc_port": forms.TextInput(attrs={"class": "input"}),
             "country": forms.Select(attrs={"class": "input"}),
