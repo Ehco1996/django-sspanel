@@ -776,6 +776,7 @@ class VmessNode(BaseAbstractNode):
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
     port = models.IntegerField("端口", default=10086)
     alter_id = models.IntegerField("额外ID数量", default=1)
+    listen_host = models.CharField("本地监听地址", max_length=64, default="0.0.0.0")
     grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
     ws_host = models.CharField("域名", max_length=64, blank=True, null=True)
@@ -895,9 +896,10 @@ class VmessNode(BaseAbstractNode):
     @property
     def vmess_inbound(self):
         inbound = {
-            "tag": self.inbound_tag,
             "port": self.port,
             "protocol": "vmess",
+            "tag": self.inbound_tag,
+            "listen": self.listen_host,
             "settings": {"clients": []},
         }
         if self.ws_path and self.ws_path:
