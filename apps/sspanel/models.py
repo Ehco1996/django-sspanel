@@ -818,7 +818,11 @@ class VmessNode(BaseAbstractNode):
         if not node.enable:
             for cfg in configs:
                 cfg["enable"] = False
-        return {"configs": configs, "tag": node.inbound_tag}
+        return {
+            "configs": configs,
+            "tag": node.inbound_tag,
+            "grpc_endpoint": f"{node.grpc_host}:{node.grpc_port}",
+        }
 
     @classmethod
     def get_active_nodes(cls, sub_mode=False):
