@@ -5,8 +5,9 @@ from apps.sspanel import models as m
 
 
 def set_user_pre_save_level(sender, instance, *args, **kwargs):
-    old_user = m.User.get_by_pk(instance.pk)
-    instance._pre_level = old_user.level
+    old_user = m.User.get_or_none(instance.pk)
+    if old_user:
+        instance._pre_level = old_user.level
 
 
 def clear_get_user_ss_configs_by_node_id_cache(sender, instance, *args, **kwargs):
@@ -14,7 +15,11 @@ def clear_get_user_ss_configs_by_node_id_cache(sender, instance, *args, **kwargs
     if isinstance(instance, m.SSNode):
         node_ids = [instance.node_id]
     elif isinstance(instance, m.User):
-        node_ids = m.SSNode.get_node_ids_by_level(instance.level)
+        if hasattr(instance, "_pre_level"):
+            level = getattr(instance, "_pre_level")
+        else:
+            level = instance.level
+        node_ids = m.SSNode.get_node_ids_by_level(level)
     else:
         return
 
@@ -28,7 +33,11 @@ def clear_get_user_ss_configs_by_node_id_cache(sender, instance, *args, **kwargs
 def clear_get_user_vmess_configs_by_node_id_cache(sender, instance, *args, **kwargs):
 
     if isinstance(instance, m.User):
-        node_ids = m.VmessNode.get_node_ids_by_level(instance.level)
+        if hasattr(instance, "_pre_level"):
+            level = getattr(instance, "_pre_level")
+        else:
+            level = instance.level
+        node_ids = m.VmessNode.get_node_ids_by_level(level)
     elif isinstance(instance, m.VmessNode):
         node_ids = [instance.node_id]
     else:
