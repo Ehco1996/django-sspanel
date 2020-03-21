@@ -15,11 +15,11 @@ def clear_get_user_ss_configs_by_node_id_cache(sender, instance, *args, **kwargs
     if isinstance(instance, m.SSNode):
         node_ids = [instance.node_id]
     elif isinstance(instance, m.User):
+        node_ids = m.SSNode.get_node_ids_by_level(instance.level)
         if hasattr(instance, "_pre_level"):
             level = getattr(instance, "_pre_level")
-        else:
-            level = instance.level
-        node_ids = m.SSNode.get_node_ids_by_level(level)
+            node_ids.extend(m.SSNode.get_node_ids_by_level(level))
+            node_ids = set(node_ids)
     else:
         return
 
@@ -33,11 +33,11 @@ def clear_get_user_ss_configs_by_node_id_cache(sender, instance, *args, **kwargs
 def clear_get_user_vmess_configs_by_node_id_cache(sender, instance, *args, **kwargs):
 
     if isinstance(instance, m.User):
+        node_ids = m.VmessNode.get_node_ids_by_level(instance.level)
         if hasattr(instance, "_pre_level"):
             level = getattr(instance, "_pre_level")
-        else:
-            level = instance.level
-        node_ids = m.VmessNode.get_node_ids_by_level(level)
+            node_ids.extend(m.VmessNode.get_node_ids_by_level(level))
+            node_ids = set(node_ids)
     elif isinstance(instance, m.VmessNode):
         node_ids = [instance.node_id]
     else:

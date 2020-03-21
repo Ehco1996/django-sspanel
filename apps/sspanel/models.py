@@ -1464,7 +1464,7 @@ class Goods(models.Model):
             good=self, user=user, money=self.money, purchtime=now
         )
         inviter = User.get_or_none(user.inviter_id)
-        if inviter != user:
+        if inviter and inviter != user:
             # 增加返利记录
             rebaterecord = RebateRecord(
                 user_id=inviter.pk,
