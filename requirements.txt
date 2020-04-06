@@ -11,7 +11,7 @@ django-prometheus==2.0.0
 gevent==1.4.0
 greenlet==0.4.15
 idna==2.8
-Markdown==3.1.1
+Markdown==3.2.1
 mysqlclient==1.4.6
 pendulum==2.0.5
 prometheus-client==0.7.1
