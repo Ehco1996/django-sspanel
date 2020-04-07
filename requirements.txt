@@ -10,7 +10,7 @@ django-crontab==0.7.1
 django-prometheus==2.0.0
 gevent==1.4.0
 greenlet==0.4.15
-idna==2.8
+idna==2.9
 Markdown==3.2.1
 mysqlclient==1.4.6
 pendulum==2.0.5
