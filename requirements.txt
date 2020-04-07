@@ -2,7 +2,7 @@ asgiref==3.2.3
 certifi==2019.11.28
 cffi==1.14.0
 chardet==3.0.4
-cryptography==2.8
+cryptography==2.9
 Django==3.0.3
 django-anymail==7.0.0
 django-countries==5.5
