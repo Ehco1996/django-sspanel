@@ -86,7 +86,7 @@ class VmessNodeAdmin(admin.ModelAdmin):
 
 
 class RelayRuleAdmin(admin.ModelAdmin):
-    list_display = ["vmess_node", "relay_host", "relay_port", "remark"]
+    list_display = ["vmess_node", "relay_host", "relay_port", "remark", "isp"]
     ordering = ["vmess_node"]
 
 

@@ -675,6 +675,9 @@ class NodeOnlineLog(models.Model):
 
 
 class BaseAbstractNode(models.Model):
+
+    # TODO get_active_nodes的方法从这里移走
+
     node_id = models.IntegerField(unique=True)
     level = models.PositiveIntegerField(default=0)
     name = models.CharField("名字", max_length=32)
@@ -1012,6 +1015,17 @@ class VmessNode(BaseAbstractNode):
 
 class RelayRule(models.Model):
 
+    CMCC = "中国移动"
+    CUCC = "中国联通"
+    CTCC = "中国电信"
+    BGP = "BGP三线"
+    ISP_SET = {CMCC, CUCC, CTCC, BGP}
+    ISP_TYPES = (
+        (CMCC, "中国移动"),
+        (CUCC, "中国联通"),
+        (CTCC, "中国电信"),
+        (BGP, "BGP三线"),
+    )
     vmess_node = models.ForeignKey(
         VmessNode,
         on_delete=models.CASCADE,
@@ -1021,6 +1035,7 @@ class RelayRule(models.Model):
     relay_host = models.CharField("中转地址", max_length=64, blank=False, null=False)
     relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
     remark = models.CharField("备注", max_length=256, blank=True, null=True)
+    isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
 
     class Meta:
         verbose_name_plural = "转发规则"
