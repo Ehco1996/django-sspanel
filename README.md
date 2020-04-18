@@ -1,5 +1,5 @@
 # Clash-panel
-用diango开发的全新的Clash订阅网络面板
+
 相较于django-sspanel的区别
 
 * 去除SS相关内容，专注于V2ray
