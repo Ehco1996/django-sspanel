@@ -1,6 +1,9 @@
-# django-sspanel
+# Clash-panel
 用diango开发的全新的Clash订阅网络面板
 
+* 相较于django-sspanel的区别
+* 去除SS相关内容，专注于V2ray
+* 优化Clash订阅
 
 * 视频安装教程:[地址](https://youtu.be/BRHcdGeufvY)
 
@@ -11,7 +14,6 @@
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
 * Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
-
 
 ## 项目说明
 
