@@ -1,5 +1,5 @@
 # django-sspanel
-用diango开发的全新的shadowsocks网络面板
+用diango开发的全新的Clash订阅网络面板
 
 
 * 视频安装教程:[地址](https://youtu.be/BRHcdGeufvY)
@@ -55,12 +55,6 @@
 
 
 ## 部署教程：
-
-部署需要vps的支持  
-我推荐 Vultr 家，最便宜的机房2.5美金一个月  
-支持支付宝支付，对于新手来说，拿来练手最合适不过了  
-这里有一个推广链接 ：https://www.vultr.com/?ref=7914717-4F  
-**通过这个链接注册，你能得到50美元的回赠！,而我能得到25美元的回赠**
 
 硬核版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E9%83%A8%E7%BD%B2)
 
