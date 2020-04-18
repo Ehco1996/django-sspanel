@@ -1,22 +1,48 @@
-port: 7890
-socks-port: 7891
-redir-port: 7892
-allow-lan: true
-mode: Rule
-log-level: info
-external-controller: '0.0.0.0:9090'
-secret: ''
 
-dns:
-  enable: true
-  nameserver:
-    - 1.2.4.8
-    - 114.114.114.114
-    - 223.5.5.5
-    - tls://dns.rubyfish.cn:853
-  fallback:
-    - tls://1.0.0.1:853
-    - tls://dns.google:853
+# HTTP 端口
+port: 7890
+
+# SOCKS5 端口
+socks-port: 7891
+
+# Linux 及 macOS 的 redir 端口
+# redir-port: 7892
+
+allow-lan: false
+
+# Only applicable when setting allow-lan to true
+# "*": bind all IP addresses
+# 192.168.122.11: bind a single IPv4 address
+# "[aaaa::a8aa:ff:fe09:57d8]": bind a single IPv6 address
+# bind-address: "*"
+
+# Rule / Global/ Direct (默认为 Rule 模式)
+mode: Rule
+
+# 设置日志等级 (默认为 info)
+# info / warning / error / debug / silent
+log-level: info
+
+# RESTful API for clash
+external-controller: 0.0.0.0:9090
+
+# you can put the static web resource (such as clash-dashboard) to a directory, and clash would serve in `${API}/ui`
+# input is a relative path to the configuration directory or an absolute path
+# external-ui: folder
+
+# RESTful API 的口令 (可选)
+# secret: ""
+
+# experimental feature
+experimental:
+  ignore-resolve-fail: true # ignore dns resolve fail, default value is true
+
+# dns:
+#   enable: true
+#   nameserver:
+#     - 114.114.114.114
+#   fallback:
+#     - tls://1.0.0.1:853
 
 cfw-bypass:
   - qq.com
@@ -43,23 +69,20 @@ cfw-bypass:
   - 172.30.*
   - 172.31.*
   - 192.168.*
+  - <local>
 
 cfw-latency-timeout: 5000
 {% autoescape off %}
+
+# 代理节点
 Proxy:
 {% for node in nodes %}  - {{ node.clash_link }}
 {% endfor %}
 
+# 代理策略组
 Proxy Group:
-- name: "PROXY"
-  type: select
-  proxies:
-    - "URLTest 自动选择"
-    - "Fallback 故障转移"
-{% for node in nodes %}    - {{ node.name }}
-{% endfor %}
 
-- name: "URLTest 自动选择"
+- name: "UrlTest"
   type: url-test
   proxies:
 {% for node in nodes %}    - {{ node.name }}
@@ -67,7 +90,7 @@ Proxy Group:
   url: 'http://www.gstatic.com/generate_204'
   interval: 300
 
-- name: "Fallback 故障转移"
+- name: "Fallback"
   type: fallback
   proxies:
 {% for node in nodes %}    - {{ node.name }}
@@ -75,28 +98,13 @@ Proxy Group:
   url: 'http://www.gstatic.com/generate_204'
   interval: 300
 
-- name: "Ads"
+- name: "PROXY"
   type: select
   proxies:
-    - "REJECT"
-    - "DIRECT"
-{% endautoescape %}
-
-
-# 白名单模式 PROXY，黑名单模式 DIRECT
-- name: "Final"
-  type: select
-  proxies:
-    - "PROXY"
-    - "DIRECT"
-
-
-- name: "Domestic"
-  type: select
-  proxies:
-    - "DIRECT"
+    - "UrlTest"
 {% for node in nodes %}    - {{ node.name }}
 {% endfor %}
+{% endautoescape %}
 
 # Apple 服务代理
 - name: "Apple"
@@ -105,6 +113,7 @@ Proxy Group:
     - "DIRECT"
     - "PROXY"
 
+# 国际流媒体服务
 - name: "GlobalMedia"
   type: select
   proxies:
@@ -118,8 +127,21 @@ Proxy Group:
   type: select
   proxies:
     - "DIRECT"
-    - "PROXY"
 {% for node in nodes %}    - {{ node.name }}
 {% endfor %}
+
+# 运营商及声名狼藉网站劫持
+- name: "Hijacking"
+  type: select
+  proxies:
+    - "REJECT"
+    - "DIRECT"
+
+# 白名单模式 PROXY，黑名单模式 DIRECT
+- name: "Final"
+  type: select
+  proxies:
+    - "PROXY"
+    - "DIRECT"
 
 {% include "yamls/rules.yml" %}
