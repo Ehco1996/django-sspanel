@@ -5,6 +5,7 @@ METHOD_CHOICES = (
     ("salsa20", "salsa20"),
     ("chacha20", "chacha20"),
     ("none", "none"),
+    ("chacha20-ietf-poly1305", "chacha20-ietf-poly1305"),
 )
 
 
