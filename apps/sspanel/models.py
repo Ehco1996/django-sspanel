@@ -567,27 +567,6 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
         return traffic_format(self.increased_traffic)
 
 
-class UserSSConfig(models.Model, UserPropertyMixin):
-    # TODO delete this table
-    MIN_PORT = 1025
-    PORT_BLACK_SET = {6443, 8472}
-
-    user_id = models.IntegerField(unique=True, db_index=True)
-    port = models.IntegerField("端口", unique=True, default=MIN_PORT)
-    password = models.CharField("密码", max_length=32, default=get_short_random_string)
-    enable = models.BooleanField("是否开启", default=True)
-    method = models.CharField(
-        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
-    )
-
-    class Meta:
-        verbose_name_plural = "用户SS配置"
-
-    @classmethod
-    def get_by_user_id(cls, user_id):
-        return cls.objects.get(user_id=user_id)
-
-
 class UserTraffic(models.Model, UserPropertyMixin):
     # TODO delete this table
 
@@ -1077,6 +1056,7 @@ class SSNode(BaseAbstractNode):
     )
     custom_method = models.BooleanField("自定义加密", default=False)
     speed_limit = models.IntegerField("限速", default=0)
+    port = models.IntegerField("单端口", help_text="单端口多用户端口", null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "SS节点"
@@ -1100,10 +1080,11 @@ class SSNode(BaseAbstractNode):
         ):
             enable = d["total_traffic"] > (d["download_traffic"] + d["upload_traffic"])
             method = d["ss_method"] if ss_node.custom_method else ss_node.method
+            port = d["ss_port"] if not ss_node.port else ss_node.port
             configs["users"].append(
                 {
                     "user_id": d["id"],
-                    "port": d["ss_port"],
+                    "port": port,
                     "password": d["ss_password"],
                     "enable": enable,
                     "method": method,
@@ -1135,7 +1116,8 @@ class SSNode(BaseAbstractNode):
 
     def get_ss_link(self, user):
         method = user.ss_method if self.custom_method else self.method
-        code = f"{method}:{user.ss_password}@{self.server}:{user.ss_port}"
+        port = user.ss_port if not self.port else self.port
+        code = f"{method}:{user.ss_password}@{self.server}:{port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         ss_link = "ss://{}#{}".format(b64_code, quote(self.name))
         return ss_link
@@ -1149,7 +1131,7 @@ class SSNode(BaseAbstractNode):
         )
         if self.custom_method:
             data["method"] = user.ss_method
-        data["ss_port"] = user.ss_port
+        data["ss_port"] = user.ss_port if not self.port else self.port
         data["ss_password"] = user.ss_password
         data["country"] = self.country.lower()
         data["ss_link"] = self.get_ss_link(user)

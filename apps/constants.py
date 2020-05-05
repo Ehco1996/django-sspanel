@@ -9,6 +9,8 @@ METHOD_CHOICES = (
 )
 
 
+AEAD_METHODS = {"chacha20-ietf-poly1305"}
+
 COUNTRIES_CHOICES = (
     ("US", "美国"),
     ("CN", "中国"),

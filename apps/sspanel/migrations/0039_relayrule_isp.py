@@ -6,13 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0038_vmessnode_listen_host'),
+        ("sspanel", "0038_vmessnode_listen_host"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='relayrule',
-            name='isp',
-            field=models.CharField(choices=[('中国移动', '中国移动'), ('中国联通', '中国联通'), ('中国电信', '中国电信'), ('BGP三线', 'BGP三线')], default='BGP三线', max_length=64, verbose_name='ISP线路'),
+            model_name="relayrule",
+            name="isp",
+            field=models.CharField(
+                choices=[
+                    ("中国移动", "中国移动"),
+                    ("中国联通", "中国联通"),
+                    ("中国电信", "中国电信"),
+                    ("BGP三线", "BGP三线"),
+                ],
+                default="BGP三线",
+                max_length=64,
+                verbose_name="ISP线路",
+            ),
         ),
     ]

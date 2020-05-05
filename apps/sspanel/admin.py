@@ -62,6 +62,7 @@ class NodeOnlineLogAdmin(admin.ModelAdmin):
 class SSNodeAdmin(admin.ModelAdmin):
     list_display = [
         "name",
+        "port",
         "node_id",
         "level",
         "server",

@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
+from apps.constants import AEAD_METHODS
 from apps.sspanel.models import (
     Announcement,
     Goods,
@@ -132,6 +133,7 @@ class SSNodeForm(ModelForm):
             "level": forms.NumberInput(attrs={"class": "input"}),
             "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
             "name": forms.TextInput(attrs={"class": "input"}),
+            "port": forms.TextInput(attrs={"class": "input"}),
             "info": forms.TextInput(attrs={"class": "input"}),
             "server": forms.TextInput(attrs={"class": "input"}),
             "method": forms.Select(attrs={"class": "input"}),
@@ -142,6 +144,21 @@ class SSNodeForm(ModelForm):
             "custom_method": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "speed_limit": forms.NumberInput(attrs={"class": "input"}),
         }
+
+    def _clean_one_port_many_user(self):
+        if (
+            self.cleaned_data.get("port")
+            and self.cleaned_data.get("method") not in AEAD_METHODS
+        ):
+            raise forms.ValidationError("当前加密方式不支持单端口多用户")
+
+    def clean_port(self):
+        self._clean_one_port_many_user()
+        return self.cleaned_data.get("port")
+
+    def clean_method(self):
+        self._clean_one_port_many_user()
+        return self.cleaned_data.get("method")
 
 
 class VmessNodeForm(ModelForm):
