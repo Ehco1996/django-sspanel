@@ -50,3 +50,26 @@ services:
       - 8080:8080
     working_dir: /usr/src/app
     command: uwsgi uwsgi.ini
+  # 定时任务
+  cron:
+    container_name: cron
+    restart: always
+    image: ehco1996/django-sspanel:runtime
+    environment:
+      MYSQL_PASSWORD: yourpass
+      MYSQL_HOST: mysql
+      DJANGO_ENV: production
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - mysql
+      - web
+    networks:
+      - sspanel
+    working_dir: /usr/src/app
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "crond && python manage.py crontab add && tail -f logs/cron.log",
+      ]
