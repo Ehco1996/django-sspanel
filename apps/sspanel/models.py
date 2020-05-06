@@ -1141,11 +1141,12 @@ class SSNode(BaseAbstractNode):
 
     def get_clash_link(self, user):
         method = user.ss_method if self.custom_method else self.method
+        port = user.ss_port if not self.port else self.port
         config = {
             "name": self.name,
             "type": "ss",
             "server": self.server,
-            "port": user.ss_port,
+            "port": port,
             "cipher": method,
             "password": user.ss_password,
         }
