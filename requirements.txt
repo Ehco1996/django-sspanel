@@ -30,4 +30,4 @@ sqlparse==0.3.0
 tomd==0.1.3
 urllib3==1.25.8
 uWSGI==2.0.18
-django-simpleui==3.9
+django-simpleui==4.0.2
