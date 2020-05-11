@@ -83,7 +83,9 @@ class User(AbstractUser):
     vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
 
     ss_port = models.IntegerField("端口", unique=True, default=MIN_PORT)
-    ss_password = models.CharField("密码", max_length=32, default=get_short_random_string)
+    ss_password = models.CharField(
+        "密码", max_length=32, default=get_short_random_string, unique=True
+    )
     ss_method = models.CharField(
         "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
     )
@@ -1281,7 +1283,7 @@ class InviteCode(models.Model):
         self.save()
 
 
-class RebateRecord(models.Model):
+class RebateRecord(models.Model, UserPropertyMixin):
     """返利记录"""
 
     user_id = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
@@ -1299,6 +1301,7 @@ class RebateRecord(models.Model):
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = "返利记录"
         ordering = ("-created_at",)
 
     @classmethod

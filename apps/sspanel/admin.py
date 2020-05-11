@@ -27,6 +27,7 @@ class UserOrderAdmin(admin.ModelAdmin):
 class UserOnLineIpLogAdmin(admin.ModelAdmin):
     list_display = ["user", "user_id", "node_id", "ip", "created_at"]
     search_fields = ["user_id"]
+    list_filter = ["user_id", "node_id"]
 
 
 class UserTrafficLogAdmin(admin.ModelAdmin):
@@ -57,6 +58,7 @@ class NodeOnlineLogAdmin(admin.ModelAdmin):
         "created_at",
     ]
     search_fields = ["node_id", "node_type"]
+    list_filter = ["node_id", "node_type"]
 
 
 class SSNodeAdmin(admin.ModelAdmin):
@@ -121,6 +123,11 @@ class EmailSendLogAdmin(admin.ModelAdmin):
     search_fields = ["user__username", "subject"]
 
 
+class RebateRecordAdmin(admin.ModelAdmin):
+    list_display = ["user", "consumer_id", "money", "created_at"]
+    search_fields = ["user_id", "consumer_id"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserOrder, UserOrderAdmin)
@@ -141,6 +148,7 @@ admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.Announcement)
 admin.site.register(models.Ticket)
 admin.site.register(models.EmailSendLog, EmailSendLogAdmin)
+admin.site.register(models.RebateRecord, RebateRecordAdmin)
 
 
 admin.site.unregister(Group)

@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0041_auto_20200506_0722'),
+        ("sspanel", "0041_auto_20200506_0722"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ssnode',
-            name='port',
-            field=models.IntegerField(blank=True, help_text='单端口多用户端口', null=True, verbose_name='单端口'),
+            model_name="ssnode",
+            name="port",
+            field=models.IntegerField(
+                blank=True, help_text="单端口多用户端口", null=True, verbose_name="单端口"
+            ),
         ),
     ]
