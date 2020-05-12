@@ -1461,8 +1461,8 @@ class Goods(models.Model):
         user.level = self.level
         user.save()
         # 增加购买记录
-        PurchaseHistory.objects.create(
-            good=self, user=user, money=self.money, good_name=self.name
+        PurchaseHistory.add_log(
+            good_name=self.name, username=user.username, money=self.money
         )
         inviter = User.get_or_none(user.inviter_id)
         if inviter and inviter != user:
@@ -1526,6 +1526,10 @@ class PurchaseHistory(models.Model):
             .order_by("-c")
         ]
         return User.objects.find(username__in=username_list)
+
+    @classmethod
+    def add_log(cls, good_name, username, money):
+        cls.objects.create(good_name=good_name, user=username, money=money)
 
 
 class Announcement(models.Model):
