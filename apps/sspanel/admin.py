@@ -94,7 +94,7 @@ class RelayRuleAdmin(admin.ModelAdmin):
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
-    list_display = ["good", "user", "money", "created_at"]
+    list_display = ["good_name", "user", "money", "created_at"]
     search_fields = ["user"]
     list_filter = ["good_name", "created_at"]
 

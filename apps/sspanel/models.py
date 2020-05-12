@@ -1481,7 +1481,6 @@ class Goods(models.Model):
 class PurchaseHistory(models.Model):
     """购买记录"""
 
-    good = models.ForeignKey(Goods, on_delete=models.CASCADE, verbose_name="商品名")
     good_name = models.CharField(verbose_name="商品名", max_length=128, db_index=True)
     user = models.CharField(verbose_name="购买者", max_length=128)
     money = models.DecimalField(
