@@ -30,9 +30,9 @@
                 {% for record in records %}
                 <tr>
                     <td>#{{ record.pk }}</td>
-                    <td>{{ record.good }}</td>
+                    <td>{{ record.good_name }}</td>
                     <td>{{ record.money }}</td>
-                    <td>{{ record.purchtime}}</td>
+                    <td>{{ record.created_at}}</td>
                 </tr>
                 {% empty %}
                 <h2 class="subtitle">

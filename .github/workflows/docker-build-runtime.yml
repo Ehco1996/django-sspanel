@@ -1,9 +1,8 @@
-name: Publish Docker
+name: Build-Runtime
 on:
   push:
-    tags:
-      - "*"
-
+    branches:
+      - build
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -46,10 +46,10 @@
             {% for contact in contacts %}
             <tr>
                 <td>#{{ contact.pk}}</td>
-                <td>{{ contact.good }}</td>
+                <td>{{ contact.good_name }}</td>
                 <td>{{ contact.user }}</td>
                 <td>{{ contact.money }} 元</td>
-                <td>{{ contact.purchtime }}</td>
+                <td>{{ contact.created_at }}</td>
             </tr>
             {% empty %}
             <p class="subtitle">暂时还没有人购买哦</p>

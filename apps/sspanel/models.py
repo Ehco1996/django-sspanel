@@ -1462,7 +1462,7 @@ class Goods(models.Model):
         user.save()
         # 增加购买记录
         PurchaseHistory.objects.create(
-            good=self, user=user, money=self.money, purchtime=now
+            good=self, user=user, money=self.money, good_name=self.name
         )
         inviter = User.get_or_none(user.inviter_id)
         if inviter and inviter != user:
@@ -1482,6 +1482,7 @@ class PurchaseHistory(models.Model):
     """购买记录"""
 
     good = models.ForeignKey(Goods, on_delete=models.CASCADE, verbose_name="商品名")
+    good_name = models.CharField(verbose_name="商品名", max_length=128, db_index=True)
     user = models.CharField(verbose_name="购买者", max_length=128)
     money = models.DecimalField(
         verbose_name="金额",
@@ -1491,14 +1492,14 @@ class PurchaseHistory(models.Model):
         null=True,
         blank=True,
     )
-    purchtime = models.DateTimeField("购买时间", editable=False, auto_now_add=True)
+    created_at = models.DateTimeField("购买时间", editable=False, auto_now_add=True)
 
     def __str__(self):
         return self.user
 
     class Meta:
         verbose_name_plural = "购买记录"
-        ordering = ("-purchtime",)
+        ordering = ("-created_at",)
 
     @classmethod
     def cost_statistics(cls, good_id, start, end):
@@ -1508,9 +1509,7 @@ class PurchaseHistory(models.Model):
         if not good:
             print("商品不存在")
             return
-        query = cls.objects.filter(
-            good__id=good_id, purchtime__gte=start, purchtime__lte=end
-        )
+        query = cls.objects.filter(good_name=good.name, created_at__range=[start, end])
         count = query.count()
         amount = count * good.money
         print(
