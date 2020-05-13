@@ -758,7 +758,8 @@ class VmessNode(BaseAbstractNode):
 
     server = models.CharField("服务器地址", max_length=128)
     inbound_tag = models.CharField("标签", default="proxy", max_length=64)
-    port = models.IntegerField("端口", default=10086)
+    service_port = models.IntegerField("服务端端口", default=10086)
+    client_port = models.IntegerField("客户端端口", default=10086)
     alter_id = models.IntegerField("额外ID数量", default=1)
     listen_host = models.CharField("本地监听地址", max_length=64, default="0.0.0.0")
     grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
@@ -884,7 +885,7 @@ class VmessNode(BaseAbstractNode):
     @property
     def vmess_inbound(self):
         inbound = {
-            "port": self.port,
+            "port": self.service_port,
             "protocol": "vmess",
             "tag": self.inbound_tag,
             "listen": self.listen_host,
@@ -923,7 +924,7 @@ class VmessNode(BaseAbstractNode):
                     "protocol": "dokodemo-door",
                     "settings": {
                         "address": self.server,
-                        "port": self.port,
+                        "port": self.service_port,
                         "network": "tcp,udp",
                     },
                     "tag": "",
@@ -935,7 +936,7 @@ class VmessNode(BaseAbstractNode):
     def get_vmess_link(self, user):
         # NOTE hardcode method to none
         data = {
-            "port": self.port,
+            "port": self.client_port,
             "aid": self.alter_id,
             "id": user.vmess_uuid,
             "ps": self.name,
@@ -958,7 +959,7 @@ class VmessNode(BaseAbstractNode):
             "name": self.name,
             "type": "vmess",
             "server": self.server,
-            "port": self.port,
+            "port": self.client_port,
             "uuid": user.vmess_uuid,
             "alterId": self.alter_id,
             "cipher": "auto",
