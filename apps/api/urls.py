@@ -10,7 +10,6 @@ urlpatterns = [
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),
     path("change/theme/", views.change_theme, name="change_theme"),
-    path("change/sub_type/", views.change_sub_type, name="change_sub_type"),
     path("checkin/", views.UserCheckInView.as_view(), name="checkin"),
     # web api 接口
     path(

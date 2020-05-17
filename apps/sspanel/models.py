@@ -34,10 +34,10 @@ from apps.utils import get_long_random_string, get_short_random_string, traffic_
 
 class User(AbstractUser):
 
-    SUB_TYPE_SS = 0
-    SUB_TYPE_VMESS = 1
-    SUB_TYPE_ALL = 2
-    SUB_TYPE_CLASH = 3
+    SUB_TYPE_SS = "ss"
+    SUB_TYPE_VMESS = "vmess"
+    SUB_TYPE_ALL = "all"
+    SUB_TYPE_CLASH = "clash"
     SUB_TYPES_SET = {SUB_TYPE_SS, SUB_TYPE_VMESS, SUB_TYPE_ALL, SUB_TYPE_CLASH}
     SUB_TYPES = (
         (SUB_TYPE_SS, "只订阅SS"),
@@ -73,9 +73,6 @@ class User(AbstractUser):
         choices=THEME_CHOICES,
         default=settings.DEFAULT_THEME,
         max_length=10,
-    )
-    sub_type = models.SmallIntegerField(
-        verbose_name="订阅类型", choices=SUB_TYPES, default=SUB_TYPE_ALL
     )
     inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
 
@@ -265,12 +262,9 @@ class User(AbstractUser):
         self.save()
         return port
 
-    def get_sub_links(self, sub_type=None):
-        # TODO 等一段时间下掉sub_type这个字段
-        if sub_type:
-            sub_type = int(sub_type)
+    def get_sub_links(self, sub_type):
         if sub_type not in self.SUB_TYPES_SET:
-            sub_type = self.sub_type
+            sub_type = self.SUB_TYPE_CLASH
 
         if sub_type == self.SUB_TYPE_CLASH:
             return self.get_clash_sub_links()

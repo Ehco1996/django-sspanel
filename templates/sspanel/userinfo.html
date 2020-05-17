@@ -54,25 +54,6 @@
                 </div>
                 <div class="field is-grouped">
                     <div class="control has-icons-left">
-                        <div class="select is-rounded is-fullwidth is-primary">
-                            <select name="selects-sub-types">
-                                <option value="" disabled="" selected="">更换订阅类型</option>
-                                <option disabled="">───</option>
-                                {% for sub_type in  sub_types %}
-                                <option value="{{ sub_type.0 }}">{{ sub_type.1 }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="icon is-small is-left">
-                            <i class="fa fa-rocket"></i>
-                        </div>
-                    </div>
-                    <p class="control">
-                        <button class="button is-outlined is-primary is-rounded" id="id-button-sub">提交</button>
-                    </p>
-                </div>
-                <div class="field is-grouped">
-                    <div class="control has-icons-left">
                         <div class="select is-rounded is-fullwidth is-link">
                             <select name="selects-method-types">
                                 <option value="" disabled="" selected="">更换加密方式</option>
@@ -166,7 +147,8 @@
                             <p class="subtitle">订阅SS</p>
                             <div class="field is-grouped">
                                 <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-ss" value="{{ sub_link }}&sub_type=0" readonly>
+                                    <input class="input" id="id-sub-link-ss" value="{{ sub_link }}&sub_type=ss"
+                                        readonly>
                                 </p>
                                 <p class="control">
                                     <a class="button is-rounded" id="id-button-clip"
@@ -179,7 +161,7 @@
                             <p class="subtitle">订阅Vmess</p>
                             <div class="field is-grouped">
                                 <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-vmess" value="{{ sub_link }}&sub_type=1"
+                                    <input class="input" id="id-sub-link-vmess" value="{{ sub_link }}&sub_type=vmess"
                                         readonly>
                                 </p>
                                 <p class="control">
@@ -193,7 +175,7 @@
                             <p class="subtitle">订阅Clash</p>
                             <div class="field is-grouped">
                                 <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-clash" value="{{ sub_link }}&sub_type=3"
+                                    <input class="input" id="id-sub-link-clash" value="{{ sub_link }}&sub_type=clash"
                                         readonly>
                                 </p>
                                 <p class="control">
@@ -207,7 +189,7 @@
                             <p class="subtitle">同时订阅SS/Vmess</p>
                             <div class="field is-grouped">
                                 <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-all" value="{{ sub_link }}&sub_type=2"
+                                    <input class="input" id="id-sub-link-all" value="{{ sub_link }}&sub_type=all"
                                         readonly>
                                 </p>
                                 <p class="control">
@@ -287,9 +269,6 @@
                         <li> 主题：
                             <code>{{ user.theme }} </code>
                         </li>
-                        <li> 订阅类型：
-                            <code>{{ user_sub_type }} </code>
-                        </li>
                         <li> 等级到期时间：
                             <code>{{ user.level_expire_time }} </code>
                         </li>
@@ -362,26 +341,6 @@
         }
     }
     ThemeButton.click(changeTheme)
-
-    // 更换订阅类型
-    var SubButton = $("#id-button-sub")
-    var changeSub = function () {
-        var sub_type = $("select[name=selects-sub-types]").val();
-        if (sub_type) {
-            data = {
-                sub_type: sub_type,
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-            }
-            url = "{% url 'api:change_sub_type' %}"
-            $.post(url, data, function (results) {
-                info = results
-                swal(info.title, info.subtitle, info.status)
-            })
-        } else {
-            swal('错误！', '请选择你要更换的订阅类型', 'error')
-        }
-    }
-    SubButton.click(changeSub)
 
     // 更换加密方式
     var MethodButton = $("#id-button-method")

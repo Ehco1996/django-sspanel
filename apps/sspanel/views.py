@@ -144,8 +144,6 @@ class UserInfoView(LoginRequiredMixin, View):
             "max_traffic": max_traffic,
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
-            "sub_types": User.SUB_TYPES,
-            "user_sub_type": user.get_sub_type_display(),
             "methods": [m[0] for m in METHOD_CHOICES],
         }
         return render(request, "sspanel/userinfo.html", context=context)
