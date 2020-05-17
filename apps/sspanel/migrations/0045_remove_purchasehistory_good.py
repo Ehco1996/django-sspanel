@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0044_auto_20200513_0708'),
+        ("sspanel", "0044_auto_20200513_0708"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='purchasehistory',
-            name='good',
-        ),
+        migrations.RemoveField(model_name="purchasehistory", name="good",),
     ]

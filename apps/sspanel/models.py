@@ -266,7 +266,7 @@ class User(AbstractUser):
         return port
 
     def get_sub_links(self, sub_type=None):
-        # TODO 等一段时间下调sub_type这个字段
+        # TODO 等一段时间下掉sub_type这个字段
         if sub_type:
             sub_type = int(sub_type)
         if sub_type not in self.SUB_TYPES_SET:
@@ -276,7 +276,7 @@ class User(AbstractUser):
             return self.get_clash_sub_links()
         node_list = []
         if sub_type in [self.SUB_TYPE_SS, self.SUB_TYPE_ALL]:
-            node_list.extend(SSNode.get_user_active_nodes(self))
+            node_list.extend(SSNode.get_user_active_nodes(self, True))
         if sub_type in [self.SUB_TYPE_VMESS, self.SUB_TYPE_ALL]:
             node_list.extend(VmessNode.get_user_active_nodes(self, True))
         sub_links = "MAX={}\n".format(len(node_list))
@@ -290,7 +290,7 @@ class User(AbstractUser):
 
     def get_clash_sub_links(self):
         node_list = SSNode.get_user_active_nodes(
-            self
+            self, sub_mode=True
         ) + VmessNode.get_user_active_nodes(self, sub_mode=True)
 
         for node in node_list:
@@ -569,23 +569,6 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
         return traffic_format(self.increased_traffic)
 
 
-class UserTraffic(models.Model, UserPropertyMixin):
-    # TODO delete this table
-
-    user_id = models.IntegerField(unique=True, db_index=True)
-    upload_traffic = models.BigIntegerField("上传流量", default=0)
-    download_traffic = models.BigIntegerField("下载流量", default=0)
-    total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
-    last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True, null=True)
-
-    class Meta:
-        verbose_name_plural = "用户流量"
-
-    @classmethod
-    def get_by_user_id(cls, user_id):
-        return cls.objects.get(user_id=user_id)
-
-
 class NodeOnlineLog(models.Model):
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VMESS = "vmess"
@@ -657,8 +640,6 @@ class NodeOnlineLog(models.Model):
 
 class BaseAbstractNode(models.Model):
 
-    # TODO get_active_nodes的方法从这里移走
-
     node_id = models.IntegerField(unique=True)
     level = models.PositiveIntegerField(default=0)
     name = models.CharField("名字", max_length=32)
@@ -676,17 +657,35 @@ class BaseAbstractNode(models.Model):
     class Meta:
         abstract = True
 
-    @classmethod
-    def get_or_none_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).first()
+    def __str__(self):
+        return self.name
 
     @classmethod
     def get_active_nodes(cls, sub_mode=False):
-        return list(
+        active_nodes = (
             cls.objects.filter(enable=True)
             .select_related()
             .order_by("level", "country")
         )
+        if not sub_mode:
+            return list(active_nodes)
+        # NOTE 在订阅模式下,如果一条节点配置了relay_rule,将一条线路变成多条,既然是py就写的魔幻一点
+        nodes = list()
+        for node in active_nodes:
+            if node.enable_relay:
+                for rule in node.relay_rules.all():
+                    node = deepcopy(node)
+                    node.name = rule.remark
+                    node.server = rule.relay_host
+                    node.port = rule.relay_port
+                    nodes.append(node)
+            else:
+                nodes.append(node)
+        return nodes
+
+    @classmethod
+    def get_or_none_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).first()
 
     @classmethod
     def get_user_active_nodes(cls, user, sub_mode=False):
@@ -731,8 +730,9 @@ class BaseAbstractNode(models.Model):
     def active_tcp_connections(self):
         return self.online_info["active_tcp_connections"]
 
-    def get_clash_link(self, user):
-        raise NotImplementedError
+    @functional.cached_property
+    def enable_relay(self):
+        return bool(self.relay_rules.exists())
 
 
 class VmessNode(BaseAbstractNode):
@@ -762,16 +762,13 @@ class VmessNode(BaseAbstractNode):
     client_port = models.IntegerField("客户端端口", default=10086)
     alter_id = models.IntegerField("额外ID数量", default=1)
     listen_host = models.CharField("本地监听地址", max_length=64, default="0.0.0.0")
-    grpc_host = models.CharField("Grpc地址", max_length=64, default="0.0.0.0")
-    grpc_port = models.CharField("Grpc端口", max_length=64, default="8080")
+    grpc_host = models.CharField("grpc地址", max_length=64, default="0.0.0.0")
+    grpc_port = models.CharField("grpc端口", max_length=64, default="8080")
     ws_host = models.CharField("域名", max_length=64, blank=True, null=True)
     ws_path = models.CharField("ws_path", max_length=64, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Vmess节点"
-
-    def __str__(self):
-        return self.name
 
     @classmethod
     @cache.cached(ttl=60 * 60 * 24)
@@ -809,24 +806,6 @@ class VmessNode(BaseAbstractNode):
             "grpc_endpoint": f"{node.grpc_host}:{node.grpc_port}",
         }
 
-    @classmethod
-    def get_active_nodes(cls, sub_mode=False):
-        if not sub_mode:
-            return super().get_active_nodes()
-        # NOTE 在订阅模式下,如果一条节点配置了relay_rule,将一条线路变成多条,既然是py就写的魔幻一点
-        nodes = list()
-        for node in super().get_active_nodes():
-            if node.enable_relay:
-                for rule in node.relay_rules.all():
-                    node = deepcopy(node)
-                    node.name = rule.remark
-                    node.server = rule.relay_host
-                    node.port = rule.relay_port
-                    nodes.append(node)
-            else:
-                nodes.append(node)
-        return nodes
-
     @property
     def node_type(self):
         return "vmess"
@@ -834,10 +813,6 @@ class VmessNode(BaseAbstractNode):
     @property
     def enable_ws(self):
         return self.ws_host and self.ws_path
-
-    @property
-    def enable_relay(self):
-        return bool(self.relay_rules.exists())
 
     @property
     def human_speed_limit(self):
@@ -990,62 +965,8 @@ class VmessNode(BaseAbstractNode):
             data["enable_relay"] = True
             data["relay_rules"] = [
                 rule.to_dict_with_extra_info(user)
-                for rule in RelayRule.get_by_node(self)
+                for rule in VmessRelayRule.get_by_node(self)
             ]
-        return data
-
-
-class RelayRule(models.Model):
-
-    CMCC = "中国移动"
-    CUCC = "中国联通"
-    CTCC = "中国电信"
-    BGP = "BGP三线"
-    ISP_SET = {CMCC, CUCC, CTCC, BGP}
-    ISP_TYPES = (
-        (CMCC, "中国移动"),
-        (CUCC, "中国联通"),
-        (CTCC, "中国电信"),
-        (BGP, "BGP三线"),
-    )
-    vmess_node = models.ForeignKey(
-        VmessNode,
-        on_delete=models.CASCADE,
-        verbose_name="Vmess节点",
-        related_name="relay_rules",
-    )
-    relay_host = models.CharField("中转地址", max_length=64, blank=False, null=False)
-    relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
-    remark = models.CharField("备注", max_length=256, blank=True, null=True)
-    isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
-
-    class Meta:
-        verbose_name_plural = "转发规则"
-
-    @classmethod
-    def get_by_node(cls, node):
-        return cls.objects.filter(vmess_node=node)
-
-    def get_user_relay_link(self, user):
-        # NOTE hardcode method to none
-        data = {
-            "port": self.relay_port,
-            "aid": self.vmess_node.alter_id,
-            "id": user.vmess_uuid,
-            "ps": self.remark,
-            "add": self.relay_host,
-            "tls": "none",
-            "v": "2",
-            "net": "tcp",
-            "host": "",
-            "path": "",
-            "type": "none",
-        }
-        return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
-
-    def to_dict_with_extra_info(self, user):
-        data = model_to_dict(self)
-        data["relay_link"] = self.get_user_relay_link(user)
         return data
 
 
@@ -1125,8 +1046,22 @@ class SSNode(BaseAbstractNode):
         ss_link = "ss://{}#{}".format(b64_code, quote(self.name))
         return ss_link
 
+    def get_clash_link(self, user):
+        method = user.ss_method if self.custom_method else self.method
+        port = user.ss_port if not self.port else self.port
+        config = {
+            "name": self.name,
+            "type": "ss",
+            "server": self.server,
+            "port": port,
+            "cipher": method,
+            "password": user.ss_password,
+        }
+        return json.dumps(config, ensure_ascii=False)
+
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
+        data["node_uid"] = uuid4()
         data.update(
             NodeOnlineLog.get_latest_online_log_info(
                 NodeOnlineLog.NODE_TYPE_SS, self.node_id
@@ -1140,20 +1075,99 @@ class SSNode(BaseAbstractNode):
         data["ss_link"] = self.get_ss_link(user)
         data["api_point"] = self.api_endpoint
         data["human_speed_limit"] = self.human_speed_limit
+        if self.enable_relay:
+            data["enable_relay"] = True
+            data["relay_rules"] = [
+                rule.to_dict_with_extra_info(user)
+                for rule in SSRelayRule.get_by_node(self)
+            ]
         return data
 
-    def get_clash_link(self, user):
-        method = user.ss_method if self.custom_method else self.method
-        port = user.ss_port if not self.port else self.port
-        config = {
-            "name": self.name,
-            "type": "ss",
-            "server": self.server,
-            "port": port,
-            "cipher": method,
-            "password": user.ss_password,
+
+class BaseRelayRule(models.Model):
+
+    CMCC = "中国移动"
+    CUCC = "中国联通"
+    CTCC = "中国电信"
+    BGP = "BGP三线"
+    ISP_SET = {CMCC, CUCC, CTCC, BGP}
+    ISP_TYPES = (
+        (CMCC, "中国移动"),
+        (CUCC, "中国联通"),
+        (CTCC, "中国电信"),
+        (BGP, "BGP三线"),
+    )
+
+    relay_host = models.CharField("中转地址", max_length=64, blank=False, null=False)
+    relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
+    remark = models.CharField("备注", max_length=256, blank=True, null=True)
+    isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
+
+    class Meta:
+        abstract = True
+
+    def to_dict_with_extra_info(self, user):
+        data = model_to_dict(self)
+        data["relay_link"] = self.get_user_relay_link(user)
+        return data
+
+
+class VmessRelayRule(BaseRelayRule):
+
+    vmess_node = models.ForeignKey(
+        VmessNode,
+        on_delete=models.CASCADE,
+        verbose_name="Vmess节点",
+        related_name="relay_rules",
+    )
+
+    class Meta:
+        verbose_name_plural = "Vmess转发规则"
+
+    @classmethod
+    def get_by_node(cls, node):
+        return cls.objects.filter(vmess_node=node)
+
+    def get_user_relay_link(self, user):
+        # NOTE hardcode method to none
+        data = {
+            "port": self.relay_port,
+            "aid": self.vmess_node.alter_id,
+            "id": user.vmess_uuid,
+            "ps": self.remark,
+            "add": self.relay_host,
+            "tls": "none",
+            "v": "2",
+            "net": "tcp",
+            "host": "",
+            "path": "",
+            "type": "none",
         }
-        return json.dumps(config, ensure_ascii=False)
+        return f"vmess://{base64.urlsafe_b64encode(json.dumps(data).encode()).decode()}"
+
+
+class SSRelayRule(BaseRelayRule):
+
+    ss_node = models.ForeignKey(
+        SSNode,
+        on_delete=models.CASCADE,
+        verbose_name="SS节点",
+        related_name="relay_rules",
+    )
+
+    class Meta:
+        verbose_name_plural = "SS转发规则"
+
+    @classmethod
+    def get_by_node(cls, node):
+        return cls.objects.filter(ss_node=node)
+
+    def get_user_relay_link(self, user):
+        method = user.ss_method if self.ss_node.custom_method else self.ss_node.method
+        code = f"{method}:{user.ss_password}@{self.relay_host}:{self.relay_port}"
+        b64_code = base64.urlsafe_b64encode(code.encode()).decode()
+        ss_link = "ss://{}#{}".format(b64_code, quote(self.remark))
+        return ss_link
 
 
 class UserTrafficLog(models.Model, UserPropertyMixin):

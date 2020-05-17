@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0043_auto_20200512_0722'),
+        ("sspanel", "0043_auto_20200512_0722"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='purchasehistory',
-            options={'ordering': ('-created_at',), 'verbose_name_plural': '购买记录'},
+            name="purchasehistory",
+            options={"ordering": ("-created_at",), "verbose_name_plural": "购买记录"},
         ),
         migrations.RenameField(
-            model_name='purchasehistory',
-            old_name='purchtime',
-            new_name='created_at',
+            model_name="purchasehistory", old_name="purchtime", new_name="created_at",
         ),
         migrations.AddField(
-            model_name='purchasehistory',
-            name='good_name',
-            field=models.CharField(db_index=True, default='', max_length=128, verbose_name='商品名'),
+            model_name="purchasehistory",
+            name="good_name",
+            field=models.CharField(
+                db_index=True, default="", max_length=128, verbose_name="商品名"
+            ),
             preserve_default=False,
         ),
     ]

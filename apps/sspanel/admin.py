@@ -88,9 +88,14 @@ class VmessNodeAdmin(admin.ModelAdmin):
     ]
 
 
-class RelayRuleAdmin(admin.ModelAdmin):
+class VmessRelayRuleAdmin(admin.ModelAdmin):
     list_display = ["vmess_node", "relay_host", "relay_port", "remark", "isp"]
     ordering = ["vmess_node"]
+
+
+class SSRelayRuleAdmin(admin.ModelAdmin):
+    list_display = ["ss_node", "relay_host", "relay_port", "remark", "isp"]
+    ordering = ["ss_node"]
 
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
@@ -138,7 +143,8 @@ admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
 admin.site.register(models.VmessNode, VmessNodeAdmin)
-admin.site.register(models.RelayRule, RelayRuleAdmin)
+admin.site.register(models.VmessRelayRule, VmessRelayRuleAdmin)
+admin.site.register(models.SSRelayRule, SSRelayRuleAdmin)
 
 admin.site.register(models.InviteCode, InviteCodeAdmin)
 admin.site.register(models.Donate, DonateAdmin)
