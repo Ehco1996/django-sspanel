@@ -262,6 +262,8 @@ class UserVmessConfigView(View):
             NodeOnlineLog.NODE_TYPE_VMESS, node_id, len(request.json["user_traffics"])
         )
         # check node && user traffic
+        if node.overflow:
+            node.enable = False
         if need_clear_cache or node.overflow:
             node.save()
         return JsonResponse(data={})

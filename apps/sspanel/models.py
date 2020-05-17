@@ -678,6 +678,7 @@ class BaseAbstractNode(models.Model):
                     node.name = rule.remark
                     node.server = rule.relay_host
                     node.port = rule.relay_port
+                    node.client_port = rule.relay_port
                     nodes.append(node)
             else:
                 nodes.append(node)
