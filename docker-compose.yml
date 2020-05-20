@@ -71,5 +71,5 @@ services:
       [
         "/bin/sh",
         "-c",
-        "crond && python manage.py crontab add && tail -f logs/cron.log",
+        "crond && python manage.py crontab add && tail -f /var/log/django-cron.log",
       ]
