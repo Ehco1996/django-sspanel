@@ -888,9 +888,9 @@ class VmessNode(BaseAbstractNode):
 
         relay_ports = set()
         for rule in self.relay_rules.all():
-            if rule.port in relay_ports:
+            if rule.relay_port in relay_ports:
                 continue
-            relay_ports.add(rule.port)
+            relay_ports.add(rule.relay_port)
             data["inbounds"].append(
                 {
                     "port": rule.relay_port,
