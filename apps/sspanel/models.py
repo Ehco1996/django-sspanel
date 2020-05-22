@@ -886,7 +886,11 @@ class VmessNode(BaseAbstractNode):
             "outbounds": [{"protocol": "freedom", "settings": {}}],
         }
 
+        relay_ports = set()
         for rule in self.relay_rules.all():
+            if rule.port in relay_ports:
+                continue
+            relay_ports.add(rule.port)
             data["inbounds"].append(
                 {
                     "port": rule.relay_port,
