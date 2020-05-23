@@ -40,7 +40,7 @@ class Command(createsuperuser.Command):
             "password": password,
             "email": email,
             "vmess_uuid": str(uuid4()),
-            "ss_password": User.get_not_used_port(),
+            "ss_port": User.get_not_used_port(),
         }
 
         with transaction.atomic():
