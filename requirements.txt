@@ -4,7 +4,7 @@ django-countries==5.5
 django-crontab==0.7.1
 django-prometheus==2.0.0
 gevent==1.4.0
-Markdown==3.2.1
+Markdown==3.2.2
 mysqlclient==1.4.6
 pendulum==2.0.5
 python-alipay-sdk==2.0.1
