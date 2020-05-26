@@ -6,7 +6,7 @@ django-prometheus==2.0.0
 gevent==1.4.0
 Markdown==3.2.2
 mysqlclient==1.4.6
-pendulum==2.0.5
+pendulum==2.1.0
 python-alipay-sdk==2.0.1
 sentry-sdk==0.14.4
 short-url==1.2.2
