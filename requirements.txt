@@ -1,6 +1,6 @@
 Django==3.0.6
 django-anymail==7.1.0
-django-countries==5.5
+django-countries==6.1.2
 django-crontab==0.7.1
 django-prometheus==2.0.0
 gevent==20.5.1
