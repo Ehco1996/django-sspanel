@@ -41,9 +41,8 @@ class RegisterView(View):
     def get(self, request):
         if request.user.is_authenticated:
             return HttpResponseRedirect(reverse("sspanel:userinfo"))
-        ref = request.GET.get("ref")
-        if ref:
-            form = RegisterForm(initial={"ref": ref})
+        if request.GET.get("ref"):
+            form = RegisterForm(initial={"ref": request.GET.get("ref")})
         else:
             form = RegisterForm(initial={"invitecode": request.GET.get("invitecode")})
         return render(request, "sspanel/register.html", {"form": form})

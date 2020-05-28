@@ -52,6 +52,9 @@ class RegisterForm(UserCreationForm):
         super().__init__(*args, **kw)
         if "ref" in self.data or "ref" in self.initial.keys():
             self.fields.pop("invitecode")
+            self.fields["ref"].label = "not show"
+            self.fields["ref"].help_text = None
+            self.fields["ref"].widget = forms.HiddenInput()
         else:
             self.fields.pop("ref")
 

@@ -5,9 +5,10 @@ from . import models
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ["username", "id", "level", "balance", "used_percentage"]
+    list_display = ["username", "id", "level", "balance", "used_percentage", "sub_link"]
     search_fields = ["username", "email", "id"]
     list_filter = ["level"]
+    readonly_fields = ["sub_link"]
 
 
 class UserOrderAdmin(admin.ModelAdmin):
