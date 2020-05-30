@@ -1,15 +1,13 @@
-
-FROM python:3.8.2-alpine
+FROM python:3.8-alpine as base
 
 LABEL Name=django-sspanel
 
 COPY requirements.txt /tmp/requirements.txt
 
-RUN set -e; \
-    apk update \
-    && apk add --virtual .build-deps libffi-dev build-base \
-    # TODO workaround start
-    && apk add mariadb-dev \
-    # TODO workaround end
-    && pip install --no-cache-dir -r /tmp/requirements.txt \
-    && apk del .build-deps
+RUN apk add --update --no-cache mariadb-connector-c-dev \
+	&& apk add --no-cache --virtual .build-deps mariadb-dev gcc musl-dev libffi-dev make \
+	# TODO workaround start
+	&& pip install --upgrade pip \
+	&& pip install --no-cache-dir -r /tmp/requirements.txt \
+	# TODO workaround end
+	&& apk del .build-deps
