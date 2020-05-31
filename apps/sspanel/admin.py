@@ -134,6 +134,11 @@ class RebateRecordAdmin(admin.ModelAdmin):
     search_fields = ["user_id", "consumer_id"]
 
 
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ["user", "title", "status"]
+    search_fields = ["title", "user__id"]
+
+
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserOrder, UserOrderAdmin)
@@ -153,7 +158,7 @@ admin.site.register(models.MoneyCode, MoneyCodeAdmin)
 admin.site.register(models.Goods, GoodsAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.Announcement)
-admin.site.register(models.Ticket)
+admin.site.register(models.Ticket, TicketAdmin)
 admin.site.register(models.EmailSendLog, EmailSendLogAdmin)
 admin.site.register(models.RebateRecord, RebateRecordAdmin)
 
