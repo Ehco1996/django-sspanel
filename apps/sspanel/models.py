@@ -1083,6 +1083,13 @@ class SSNode(BaseAbstractNode):
         return data
 
 
+class RelayNode(BaseAbstractNode):
+    server = models.CharField("服务器地址", max_length=128)
+
+    class Meta:
+        verbose_name_plural = "中转节点"
+
+
 class BaseRelayRule(models.Model):
 
     CMCC = "中国移动"
@@ -1097,6 +1104,13 @@ class BaseRelayRule(models.Model):
         (BGP, "BGP三线"),
     )
 
+    relay_node = models.ForeignKey(
+        RelayNode,
+        on_delete=models.SET_NULL,
+        verbose_name="中转节点",
+        blank=True,
+        null=True,
+    )
     relay_host = models.CharField("中转地址", max_length=64, blank=False, null=False)
     relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
     remark = models.CharField("备注", max_length=256, blank=True, null=True)

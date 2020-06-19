@@ -89,6 +89,10 @@ class VmessNodeAdmin(admin.ModelAdmin):
     ]
 
 
+class RelayNodeAdmin(admin.ModelAdmin):
+    list_display = ["name", "node_id", "server", "country"]
+
+
 class VmessRelayRuleAdmin(admin.ModelAdmin):
     list_display = ["vmess_node", "relay_host", "relay_port", "remark", "isp"]
     ordering = ["vmess_node"]
@@ -149,6 +153,7 @@ admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
 admin.site.register(models.VmessNode, VmessNodeAdmin)
+admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.VmessRelayRule, VmessRelayRuleAdmin)
 admin.site.register(models.SSRelayRule, SSRelayRuleAdmin)
 
