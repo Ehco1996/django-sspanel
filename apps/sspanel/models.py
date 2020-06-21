@@ -760,7 +760,7 @@ class BaseAbstractNode(models.Model):
 
     @property
     def ehco_relay_host(self):
-        return self.server
+        return "0.0.0.0"
 
     def get_ehco_server_config(self):
         return {
