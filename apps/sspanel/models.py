@@ -1141,14 +1141,14 @@ class RelayNode(BaseAbstractNode):
         for rule in self.ss_relay_rules.select_related().all():
             node = rule.ss_node
             if node.enable_ehco:
-                remote = f"{node.ehco_listen_host}:{node.ehco_listen_port}"
+                remote = f"{node.server}:{node.ehco_listen_port}"
             else:
                 remote = f"{node.server}:{node.port}"
             if rule.transport_type in c.WS_TRANSPORTS:
                 remote = "wss://" + remote
             data.append(
                 {
-                    "listen": f"{self.server}:{rule.relay_port}",
+                    "listen": f"0.0.0.0:{rule.relay_port}",
                     "listen_type": rule.listen_type,
                     "remote": remote,
                     "transport_type": rule.transport_type,
@@ -1157,14 +1157,14 @@ class RelayNode(BaseAbstractNode):
         for rule in self.vmess_relay_rules.select_related().all():
             node = rule.vmess_node
             if node.enable_ehco:
-                remote = f"{node.ehco_listen_host}:{node.ehco_listen_port}"
+                remote = f"{node.server}:{node.ehco_listen_port}"
             else:
                 remote = f"{node.server}:{node.service_port}"
             if rule.transport_type in c.WS_TRANSPORTS:
                 remote = "wss://" + remote
             data.append(
                 {
-                    "listen": f"{self.server}:{rule.relay_port}",
+                    "listen": f"0.0.0.0:{rule.relay_port}",
                     "listen_type": rule.listen_type,
                     "remote": remote,
                     "transport_type": rule.transport_type,
