@@ -308,7 +308,7 @@ class EhcoServerConfigView(View):
         if node_type == "ss":
             node = SSNode.get_or_none_by_node_id(node_id)
         else:
-            node = RelayNode.get_or_none_by_node_id(node_id)
+            node = VmessNode.get_or_none_by_node_id(node_id)
         if not node:
             return HttpResponseNotFound()
         return JsonResponse(node.get_ehco_server_config())
