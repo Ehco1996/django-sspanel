@@ -63,3 +63,26 @@ THEME_CHOICES = (
 
 # 判断节点在线时间间隔
 NODE_TIME_OUT = 75
+
+
+# ehco隧道相关
+LISTEN_RAW = "raw"
+LISTEN_WSS = "wss"
+LISTEN_MWSS = "mwss"
+LISTEN_TYPES = (
+    (LISTEN_RAW, "raw"),
+    (LISTEN_WSS, "wss"),
+    (LISTEN_MWSS, "mwss"),
+)
+
+TRANSPORT_RAW = "raw"
+TRANSPORT_WSS = "wss"
+TRANSPORT_MWSS = "mwss"
+TRANSPORT_TYPES = (
+    (TRANSPORT_RAW, "raw"),
+    (TRANSPORT_WSS, "wss"),
+    (TRANSPORT_MWSS, "mwss"),
+)
+
+WS_LISTENERS = {LISTEN_WSS, LISTEN_MWSS}
+WS_TRANSPORTS = {TRANSPORT_WSS, TRANSPORT_MWSS}

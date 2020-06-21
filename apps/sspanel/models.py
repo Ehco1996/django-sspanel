@@ -22,12 +22,7 @@ from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import functional, timezone
 
-from apps.constants import (
-    COUNTRIES_CHOICES,
-    METHOD_CHOICES,
-    NODE_TIME_OUT,
-    THEME_CHOICES,
-)
+from apps import constants as c
 from apps.ext import cache, encoder, pay
 from apps.utils import get_long_random_string, get_short_random_string, traffic_format
 
@@ -70,7 +65,7 @@ class User(AbstractUser):
     level_expire_time = models.DateTimeField(verbose_name="等级有效期", default=timezone.now)
     theme = models.CharField(
         verbose_name="主题",
-        choices=THEME_CHOICES,
+        choices=c.THEME_CHOICES,
         default=settings.DEFAULT_THEME,
         max_length=10,
     )
@@ -84,7 +79,7 @@ class User(AbstractUser):
         "密码", max_length=32, default=get_short_random_string, unique=True
     )
     ss_method = models.CharField(
-        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
     )
     # 流量相关
     upload_traffic = models.BigIntegerField("上传流量", default=0)
@@ -514,7 +509,7 @@ class UserOnLineIpLog(models.Model, UserPropertyMixin):
         ret = []
         for log in cls.objects.filter(
             node_id=node_id,
-            created_at__range=[now.subtract(seconds=NODE_TIME_OUT), now],
+            created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
         ):
             if log.ip not in ip_set:
                 ret.append(log)
@@ -583,7 +578,7 @@ class NodeOnlineLog(models.Model):
 
     @property
     def online(self):
-        return pendulum.now().subtract(seconds=NODE_TIME_OUT) < self.created_at
+        return pendulum.now().subtract(seconds=c.NODE_TIME_OUT) < self.created_at
 
     @classmethod
     def truncate(cls):
@@ -639,13 +634,22 @@ class BaseAbstractNode(models.Model):
     name = models.CharField("名字", max_length=32)
     info = models.CharField("节点说明", max_length=1024)
     country = models.CharField(
-        "国家", default="CN", max_length=5, choices=COUNTRIES_CHOICES
+        "国家", default="CN", max_length=5, choices=c.COUNTRIES_CHOICES
     )
     used_traffic = models.BigIntegerField("已用流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
     enlarge_scale = models.DecimalField(
         "倍率", default=Decimal("1.0"), decimal_places=2, max_digits=10,
+    )
+
+    ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
+    ehco_listen_port = models.CharField("隧道监听端口", max_length=64, blank=True, null=True)
+    ehco_listen_type = models.CharField(
+        "隧道监听类型", max_length=64, choices=c.LISTEN_TYPES, default=c.LISTEN_RAW
+    )
+    ehco_transport_type = models.CharField(
+        "隧道传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
     )
 
     class Meta:
@@ -728,6 +732,47 @@ class BaseAbstractNode(models.Model):
     @functional.cached_property
     def enable_relay(self):
         return bool(self.relay_rules.exists())
+
+    @property
+    def enable_ehco(self):
+        # 是否开启ehco隧道
+        return (
+            self.ehco_listen_host
+            and self.ehco_listen_port
+            and self.ehco_listen_type in c.WS_LISTENERS
+        )
+
+    @property
+    def ehco_api_endpoint(self):
+        # 隧道监听配置api
+        params = {"token": settings.TOKEN, "node_type": self.node_type}
+        return (
+            settings.HOST
+            + f"/api/ehco_server_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def ehco_relay_port(self):
+        if self.node_type == "ss":
+            return self.port
+        else:
+            return self.service_port
+
+    @property
+    def ehco_relay_host(self):
+        return self.server
+
+    def get_ehco_server_config(self):
+        return {
+            "configs": [
+                {
+                    "listen": f"{self.ehco_listen_host}:{self.ehco_listen_port}",
+                    "listen_type": self.ehco_listen_type,
+                    "remote": f"{self.ehco_relay_host}:{self.ehco_relay_port}",
+                    "transport_type": self.ehco_transport_type,
+                }
+            ]
+        }
 
 
 class VmessNode(BaseAbstractNode):
@@ -960,6 +1005,7 @@ class VmessNode(BaseAbstractNode):
         data["uuid"] = user.vmess_uuid
         data["country"] = self.country.lower()
         data["vmess_link"] = self.get_vmess_link(user)
+        data["ehco_api_endpoint"] = self.ehco_api_endpoint
         if self.enable_relay:
             data["enable_relay"] = True
             data["relay_rules"] = [
@@ -975,7 +1021,7 @@ class SSNode(BaseAbstractNode):
 
     server = models.CharField("服务器地址", max_length=128)
     method = models.CharField(
-        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=METHOD_CHOICES
+        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
     )
     custom_method = models.BooleanField("自定义加密", default=False)
     speed_limit = models.IntegerField("限速", default=0)
@@ -1073,6 +1119,7 @@ class SSNode(BaseAbstractNode):
         data["country"] = self.country.lower()
         data["ss_link"] = self.get_ss_link(user)
         data["api_point"] = self.api_endpoint
+        data["ehco_api_endpoint"] = self.ehco_api_endpoint
         data["human_speed_limit"] = self.human_speed_limit
         if self.enable_relay:
             data["enable_relay"] = True
@@ -1089,6 +1136,50 @@ class RelayNode(BaseAbstractNode):
     class Meta:
         verbose_name_plural = "中转节点"
 
+    def get_relay_rules_configs(self):
+        data = []
+        for rule in self.ss_relay_rules.select_related().all():
+            node = rule.ss_node
+            if node.enable_ehco:
+                remote = f"{node.ehco_listen_host}:{node.ehco_listen_port}"
+            else:
+                remote = f"{node.server}:{node.port}"
+            if rule.transport_type in c.WS_TRANSPORTS:
+                remote = "wss://" + remote
+            data.append(
+                {
+                    "listen": f"{self.server}:{rule.relay_port}",
+                    "listen_type": rule.listen_type,
+                    "remote": remote,
+                    "transport_type": rule.transport_type,
+                }
+            )
+        for rule in self.vmess_relay_rules.select_related().all():
+            node = rule.vmess_node
+            if node.enable_ehco:
+                remote = f"{node.ehco_listen_host}:{node.ehco_listen_port}"
+            else:
+                remote = f"{node.server}:{node.service_port}"
+            if rule.transport_type in c.WS_TRANSPORTS:
+                remote = "wss://" + remote
+            data.append(
+                {
+                    "listen": f"{self.server}:{rule.relay_port}",
+                    "listen_type": rule.listen_type,
+                    "remote": remote,
+                    "transport_type": rule.transport_type,
+                }
+            )
+        return {"configs": data}
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/ehco_relay_config/{self.node_id}/?{urlencode(params)}"
+        )
+
 
 class BaseRelayRule(models.Model):
 
@@ -1096,7 +1187,6 @@ class BaseRelayRule(models.Model):
     CUCC = "中国联通"
     CTCC = "中国电信"
     BGP = "BGP三线"
-    ISP_SET = {CMCC, CUCC, CTCC, BGP}
     ISP_TYPES = (
         (CMCC, "中国移动"),
         (CUCC, "中国联通"),
@@ -1104,17 +1194,16 @@ class BaseRelayRule(models.Model):
         (BGP, "BGP三线"),
     )
 
-    relay_node = models.ForeignKey(
-        RelayNode,
-        on_delete=models.SET_NULL,
-        verbose_name="中转节点",
-        blank=True,
-        null=True,
-    )
     relay_host = models.CharField("中转地址", max_length=64, blank=False, null=False)
     relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
     remark = models.CharField("备注", max_length=256, blank=True, null=True)
     isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
+    listen_type = models.CharField(
+        "监听类型", max_length=64, choices=c.LISTEN_TYPES, default=c.LISTEN_RAW
+    )
+    transport_type = models.CharField(
+        "传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
+    )
 
     class Meta:
         abstract = True
@@ -1132,6 +1221,14 @@ class VmessRelayRule(BaseRelayRule):
         on_delete=models.CASCADE,
         verbose_name="Vmess节点",
         related_name="relay_rules",
+    )
+    relay_node = models.ForeignKey(
+        RelayNode,
+        on_delete=models.SET_NULL,
+        verbose_name="中转节点",
+        blank=True,
+        null=True,
+        related_name="vmess_relay_rules",
     )
 
     class Meta:
@@ -1166,6 +1263,14 @@ class SSRelayRule(BaseRelayRule):
         on_delete=models.CASCADE,
         verbose_name="SS节点",
         related_name="relay_rules",
+    )
+    relay_node = models.ForeignKey(
+        RelayNode,
+        on_delete=models.SET_NULL,
+        verbose_name="中转节点",
+        blank=True,
+        null=True,
+        related_name="ss_relay_rules",
     )
 
     class Meta:

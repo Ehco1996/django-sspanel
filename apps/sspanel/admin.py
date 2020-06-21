@@ -90,7 +90,7 @@ class VmessNodeAdmin(admin.ModelAdmin):
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
-    list_display = ["name", "node_id", "server", "country"]
+    list_display = ["name", "node_id", "server", "country", "api_endpoint"]
 
 
 class VmessRelayRuleAdmin(admin.ModelAdmin):

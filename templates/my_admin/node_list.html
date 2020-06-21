@@ -97,19 +97,33 @@
                                 <i class="fa fa-clipboard" aria-hidden="true"></i>
                             </a>
                         </div>
-                        {% if node.enable_relay %}
+                            {% if node.enable_relay %}
+                            <hr>
+                            <p class="subtitle">Relay 配置地址:</p>
+                            <div class="field is-grouped">
+                                <p class="control is-expanded">
+                                    <input class="input" id="id-relay-config-{{ node.node_type }}-{{ node.node_id }}" value="{{ node.relay_config_endpoint }}" readonly>
+                                </p>
+                                <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-relay-config-{{ node.node_type }}-{{ node.node_id }}">
+                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if node.enable_ehco %}
                         <hr>
-                        <p class="subtitle">Relay 配置地址:</p>
+                        <p class="subtitle"><a class="is-link" href="https://github.com/Ehco1996/ehco"></a>ehco隧道(落地机)对接地址:</p>
                         <div class="field is-grouped">
                             <p class="control is-expanded">
-                                <input class="input" id="id-relay-config-{{ node.node_type }}-{{ node.node_id }}" value="{{ node.relay_config_endpoint }}" readonly>
+                                <input class="input" id="id-ehco-server-config-{{ node.node_type }}-{{ node.node_id }}" value="{{ node.ehco_api_endpoint }}" readonly>
                             </p>
-                            <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-relay-config-{{ node.node_type }}-{{ node.node_id }}">
+                            <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-ehco-server-config-{{ node.node_type }}-{{ node.node_id }}">
                                 <i class="fa fa-clipboard" aria-hidden="true"></i>
                             </a>
                         </div>
                         {% endif %}
-                        {% endif %}
+
                         <span class="copied" hidden="true">Copied!</span>
                     </section>
                 </div>

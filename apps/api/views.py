@@ -13,6 +13,7 @@ from apps.sspanel.models import (
     Goods,
     InviteCode,
     NodeOnlineLog,
+    RelayNode,
     SSNode,
     User,
     UserCheckInLog,
@@ -285,6 +286,32 @@ class RelayServerConfigView(View):
         if not node:
             return HttpResponseNotFound()
         return JsonResponse(node.relay_config)
+
+
+class EhcoRelayConfigView(View):
+    """中转机器"""
+
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        node = RelayNode.get_or_none_by_node_id(node_id)
+        if not node:
+            return HttpResponseNotFound()
+        return JsonResponse(node.get_relay_rules_configs())
+
+
+class EhcoServerConfigView(View):
+    """落地机器"""
+
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        node_type = self.request.GET.get("node_type")
+        if node_type == "ss":
+            node = SSNode.get_or_none_by_node_id(node_id)
+        else:
+            node = RelayNode.get_or_none_by_node_id(node_id)
+        if not node:
+            return HttpResponseNotFound()
+        return JsonResponse(node.get_ehco_server_config())
 
 
 class UserCheckInView(View):
