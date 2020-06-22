@@ -671,7 +671,7 @@ class BaseAbstractNode(models.Model):
         nodes = list()
         for node in active_nodes:
             if node.enable_relay:
-                for rule in node.relay_rules.all():
+                for rule in node.get_enable_relay_rules():
                     node = deepcopy(node)
                     node.name = rule.remark
                     node.server = rule.relay_host
@@ -773,6 +773,9 @@ class BaseAbstractNode(models.Model):
                 }
             ]
         }
+
+    def get_enable_relay_rules(self):
+        return self.relay_rules.filter(relay_node__enable=True)
 
 
 class VmessNode(BaseAbstractNode):
@@ -1131,6 +1134,15 @@ class SSNode(BaseAbstractNode):
 
 
 class RelayNode(BaseAbstractNode):
+    #  去除一些不需要的字段
+    info = None
+    level = None
+    enlarge_scale = None
+    ehco_listen_host = None
+    ehco_listen_port = None
+    ehco_listen_type = None
+    ehco_transport_type = None
+
     server = models.CharField("服务器地址", max_length=128)
 
     class Meta:
@@ -1213,6 +1225,12 @@ class BaseRelayRule(models.Model):
         data["relay_link"] = self.get_user_relay_link(user)
         return data
 
+    @property
+    def enable(self):
+        if self.relay_node:
+            return self.relay_node.enable
+        return True
+
 
 class VmessRelayRule(BaseRelayRule):
 
@@ -1236,7 +1254,7 @@ class VmessRelayRule(BaseRelayRule):
 
     @classmethod
     def get_by_node(cls, node):
-        return cls.objects.filter(vmess_node=node)
+        return cls.objects.filter(vmess_node=node, relay_node__enable=True)
 
     def get_user_relay_link(self, user):
         # NOTE hardcode method to none
@@ -1278,7 +1296,7 @@ class SSRelayRule(BaseRelayRule):
 
     @classmethod
     def get_by_node(cls, node):
-        return cls.objects.filter(ss_node=node)
+        return cls.objects.filter(ss_node=node, relay_node__enable=True)
 
     def get_user_relay_link(self, user):
         method = user.ss_method if self.ss_node.custom_method else self.ss_node.method

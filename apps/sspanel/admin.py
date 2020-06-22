@@ -90,7 +90,7 @@ class VmessNodeAdmin(admin.ModelAdmin):
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
-    list_display = ["name", "node_id", "server", "country", "api_endpoint"]
+    list_display = ["name", "node_id", "server", "country", "enable", "api_endpoint"]
 
 
 class VmessRelayRuleAdmin(admin.ModelAdmin):
@@ -101,6 +101,7 @@ class VmessRelayRuleAdmin(admin.ModelAdmin):
         "relay_port",
         "remark",
         "isp",
+        "enable",
     ]
     ordering = ["vmess_node"]
 
@@ -113,6 +114,7 @@ class SSRelayRuleAdmin(admin.ModelAdmin):
         "relay_port",
         "remark",
         "isp",
+        "enable",
     ]
     ordering = ["ss_node"]
 

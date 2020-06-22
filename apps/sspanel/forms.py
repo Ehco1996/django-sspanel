@@ -146,6 +146,10 @@ class SSNodeForm(ModelForm):
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "custom_method": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "speed_limit": forms.NumberInput(attrs={"class": "input"}),
+            "ehco_listen_host": forms.TextInput(attrs={"class": "input"}),
+            "ehco_listen_port": forms.TextInput(attrs={"class": "input"}),
+            "ehco_listen_type": forms.Select(attrs={"class": "input"}),
+            "ehco_transport_type": forms.Select(attrs={"class": "input"}),
         }
 
     def _clean_one_port_many_user(self):
@@ -188,6 +192,10 @@ class VmessNodeForm(ModelForm):
             "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "ws_host": forms.TextInput(attrs={"class": "input"}),
             "ws_path": forms.TextInput(attrs={"class": "input"}),
+            "ehco_listen_host": forms.TextInput(attrs={"class": "input"}),
+            "ehco_listen_port": forms.TextInput(attrs={"class": "input"}),
+            "ehco_listen_type": forms.Select(attrs={"class": "input"}),
+            "ehco_transport_type": forms.Select(attrs={"class": "input"}),
         }
 
 
