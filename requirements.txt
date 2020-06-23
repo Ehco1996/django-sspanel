@@ -4,7 +4,7 @@ django-anymail==7.1.0
 django-countries==6.1.2
 django-crontab==0.7.1
 django-prometheus==2.0.0
-django-simpleui==4.0.2
+django-simpleui==4.0.3
 gevent==20.6.2
 Markdown==3.2.2
 mysqlclient==1.4.6
