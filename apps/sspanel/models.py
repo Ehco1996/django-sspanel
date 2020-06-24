@@ -1192,6 +1192,14 @@ class RelayNode(BaseAbstractNode):
             + f"/api/ehco_relay_config/{self.node_id}/?{urlencode(params)}"
         )
 
+    def rules_count(self):
+        return (
+            VmessRelayRule.objects.filter(relay_node=self).count()
+            + SSRelayRule.objects.filter(relay_node=self).count()
+        )
+
+    rules_count.short_description = "规则数量"
+
 
 class BaseRelayRule(models.Model):
 
