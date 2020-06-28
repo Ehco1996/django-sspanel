@@ -2,18 +2,16 @@
 用diango开发的全新的shadowsocks网络面板
 
 
-* 视频安装教程:[地址](https://youtu.be/BRHcdGeufvY)
-
-* 专用SS后端:[地址](https://github.com/Ehco1996/aioshadowsocks)
-
-* 专用V2ray后端:[地址](https://github.com/Ehco1996/v2scar)
-
-* 节点对接教程: [地址](https://github.com/Ehco1996/django-sspanel/wiki/%5B%E6%9C%80%E6%96%B0%E6%95%99%E7%A8%8B-2020-2-8%5D%E5%AF%B9%E6%8E%A5%E5%90%8E%E7%AB%AF%E8%8A%82%E7%82%B9%E6%95%99%E7%A8%8B)
-
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
 * Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
+
+## 视频安装教程
+
+* 面板视频安装教程: [地址](https://youtu.be/BRHcdGeufvY)
+
+* 后端对接视频教程: [地址](https://youtu.be/QNbnya1HHU0)
 
 ## 项目说明
 
@@ -62,8 +60,5 @@
 这里有一个推广链接 ：https://www.vultr.com/?ref=7914717-4F  
 **通过这个链接注册，你能得到50美元的回赠！,而我能得到25美元的回赠**
 
-硬核版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E9%83%A8%E7%BD%B2)
 
-萌新版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/%E9%9D%A2%E6%9D%BF%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B-%E8%90%8C%E6%96%B0%E7%89%88)
-
-Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/Docker-%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85)
+Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/docker%E9%83%A8%E7%BD%B2)

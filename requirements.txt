@@ -1,4 +1,4 @@
-pendulum==2.0.3
+#pendulum==2.0.3
 Django==3.0.7
 django-anymail==7.1.0
 django-countries==6.1.2
