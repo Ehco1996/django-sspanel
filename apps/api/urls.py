@@ -28,11 +28,6 @@ urlpatterns = [
         name="vmess_server_config",
     ),
     path(
-        "relay_server_config/<int:node_id>/",
-        views.RelayServerConfigView.as_view(),
-        name="relay_server_config",
-    ),
-    path(
         "ehco_relay_config/<int:node_id>/",
         views.EhcoRelayConfigView.as_view(),
         name="ehco_relay_config",

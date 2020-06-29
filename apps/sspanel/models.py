@@ -879,14 +879,6 @@ class VmessNode(BaseAbstractNode):
         )
 
     @property
-    def relay_config_endpoint(self):
-        params = {"token": settings.TOKEN}
-        return (
-            settings.HOST
-            + f"/api/relay_server_config/{self.node_id}/?{urlencode(params)}"
-        )
-
-    @property
     def level_policy(self):
         return {self.level: {"statsUserUplink": True, "statsUserDownlink": True}}
 
@@ -923,37 +915,6 @@ class VmessNode(BaseAbstractNode):
         config["inbounds"].append(self.vmess_inbound)
         config["inbounds"].append(self.grpc_inbound)
         return config
-
-    @property
-    def relay_config(self):
-        if not self.enable_relay:
-            return {}
-        data = {
-            "log": {"loglevel": "info"},
-            "inbounds": [],
-            "outbounds": [{"protocol": "freedom", "settings": {}}],
-        }
-
-        relay_ports = set()
-        for rule in self.relay_rules.all():
-            if rule.relay_port in relay_ports:
-                continue
-            relay_ports.add(rule.relay_port)
-            data["inbounds"].append(
-                {
-                    "port": rule.relay_port,
-                    "listen": "0.0.0.0",
-                    "protocol": "dokodemo-door",
-                    "settings": {
-                        "address": self.server,
-                        "port": self.service_port,
-                        "network": "tcp,udp",
-                    },
-                    "tag": "",
-                    "sniffing": {"enabled": True, "destOverride": ["http", "tls"]},
-                },
-            )
-        return data
 
     def get_vmess_link(self, user):
         # NOTE hardcode method to none
