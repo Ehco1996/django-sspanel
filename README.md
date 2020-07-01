@@ -1,4 +1,5 @@
 # django-sspanel
+
 用diango开发的全新的shadowsocks网络面板
 
 
@@ -12,6 +13,16 @@
 * 面板视频安装教程: [地址](https://youtu.be/BRHcdGeufvY)
 
 * 后端对接视频教程: [地址](https://youtu.be/QNbnya1HHU0)
+
+* 隧道对接视频教程: [地址](https://youtu.be/R4U0NZaMUeY)
+
+## 后端地址
+
+* ss: [地址](https://github.com/Ehco1996/aioshadowsocks)
+
+* v2ray: [地址](https://github.com/Ehco1996/v2scar)
+
+* 中转隧道: [地址](https://github.com/Ehco1996/ehco)
 
 ## 项目说明
 
