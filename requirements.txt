@@ -1,4 +1,4 @@
-Django==3.0.7
+Django==3.0.8
 django-anymail==7.1.0
 django-countries==6.1.2
 django-crontab==0.7.1
