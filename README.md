@@ -73,3 +73,7 @@
 
 
 Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/docker%E9%83%A8%E7%BD%B2)
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/Ehco1996/django-sspanel.svg)](https://starchart.cc/Ehco1996/django-sspanel)
