@@ -23,7 +23,12 @@ from apps.sspanel.models import (
     UserTrafficLog,
     VmessNode,
 )
-from apps.utils import api_authorized, handle_json_post, traffic_format
+from apps.utils import (
+    api_authorized,
+    handle_json_post,
+    traffic_format,
+    get_current_datetime,
+)
 
 
 class SystemStatusView(View):
@@ -94,7 +99,7 @@ class UserRefChartView(View):
     def get(self, request):
         # 最近10天的
         date = request.GET.get("date")
-        t = pendulum.parse(date) if date else pendulum.now()
+        t = pendulum.parse(date) if date else get_current_datetime()
         date_list = [t.add(days=i).date() for i in range(-7, 3)]
         bar_configs = UserRefLog.gen_bar_chart_configs(request.user.id, date_list)
         return JsonResponse(bar_configs)
@@ -106,8 +111,8 @@ class UserTrafficChartView(View):
         node_id = request.GET.get("node_id", 0)
         node_type = request.GET.get("node_type", "ss")
         user_id = request.user.pk
-        now = pendulum.now()
-        last_week = [now.subtract(days=i).date() for i in range(6, -1, -1)]
+        now = get_current_datetime()
+        last_week = [now.subtract(days=i) for i in range(6, -1, -1)]
         configs = UserTrafficLog.gen_line_chart_configs(
             user_id, node_type, node_id, last_week
         )
@@ -141,7 +146,7 @@ class UserSSConfigView(View):
 
         data = request.json["data"]
         node_total_traffic = 0
-        log_time = pendulum.now()
+        log_time = get_current_datetime()
         active_tcp_connections = 0
         need_clear_cache = False
         user_model_list = []
@@ -219,7 +224,7 @@ class UserVmessConfigView(View):
         if not node:
             return HttpResponseNotFound()
 
-        log_time = pendulum.now()
+        log_time = get_current_datetime()
         node_total_traffic = 0
         need_clear_cache = False
         trafficlog_model_list = []

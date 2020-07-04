@@ -4,8 +4,11 @@ import random
 import time
 from functools import wraps
 
+
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils import timezone
+import pendulum
 
 
 def get_random_string(
@@ -80,3 +83,7 @@ def handle_json_post(view_func):
         return view_func(request, *args, **kw)
 
     return wrapper
+
+
+def get_current_datetime() -> pendulum.DateTime:
+    return pendulum.now(tz=timezone.get_current_timezone())

@@ -1,4 +1,3 @@
-import pendulum
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
@@ -11,6 +10,7 @@ from apps.sspanel.models import (
     UserTrafficLog,
     VmessNode,
 )
+from apps.utils import get_current_datetime
 
 
 class Command(BaseCommand):
@@ -33,7 +33,7 @@ class Command(BaseCommand):
         if not job_func:
             raise CommandError(f"job: {job_name} not found")
 
-        now = pendulum.now().strftime("%Y-%m-%d %H:%M")
+        now = get_current_datetime().strftime("%Y-%m-%d %H:%M")
         print(f"RUNNING JOB: {job_name} .... Time: {now}")
         job_func()
 
@@ -63,7 +63,7 @@ class Command(BaseCommand):
 
     def clean_traffic_log(self):
         """清空七天前的所有流量记录"""
-        dt = pendulum.now().subtract(days=7).date()
+        dt = get_current_datetime().subtract(days=7).date()
         query = UserTrafficLog.objects.filter(date__lt=dt)
         count, res = query.delete()
         print(f"UserTrafficLog  removed count:{count}")

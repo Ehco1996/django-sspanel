@@ -24,7 +24,12 @@ from django.utils import functional, timezone
 
 from apps import constants as c
 from apps.ext import cache, encoder, pay
-from apps.utils import get_long_random_string, get_short_random_string, traffic_format
+from apps.utils import (
+    get_long_random_string,
+    get_short_random_string,
+    traffic_format,
+    get_current_datetime,
+)
 
 
 class User(AbstractUser):
@@ -139,7 +144,7 @@ class User(AbstractUser):
 
     @classmethod
     def check_and_disable_expired_users(cls):
-        now = pendulum.now()
+        now = get_current_datetime()
         expired_users = list(
             cls.objects.filter(level__gt=0, level_expire_time__lte=now)
         )
@@ -397,17 +402,17 @@ class UserOrder(models.Model, UserPropertyMixin):
 
     @classmethod
     def make_up_lost_orders(cls):
-        now = pendulum.now()
+        now = get_current_datetime()
         for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
             changed = order.check_order_status()
             if changed:
-                print(f"补单：{order.user,order.amount}")
+                print(f"补单：{order.user}={order.amount}")
 
     @classmethod
     def get_or_create_order(cls, user, amount):
         # NOTE 目前这里只支持支付宝 所以暂时写死
         # TODO 缺少一把分布式锁 目前还不想引入其他外部组件所以暂时忽略
-        now = pendulum.now()
+        now = get_current_datetime()
         order = cls.get_not_paid_order_by_amount(user, amount)
         if order and order.expired_at > now:
             return order
@@ -504,7 +509,7 @@ class UserOnLineIpLog(models.Model, UserPropertyMixin):
 
     @classmethod
     def get_recent_log_by_node_id(cls, node_id):
-        now = pendulum.now()
+        now = get_current_datetime()
         ip_set = set()
         ret = []
         for log in cls.objects.filter(
@@ -578,7 +583,9 @@ class NodeOnlineLog(models.Model):
 
     @property
     def online(self):
-        return pendulum.now().subtract(seconds=c.NODE_TIME_OUT) < self.created_at
+        return (
+            get_current_datetime().subtract(seconds=c.NODE_TIME_OUT) < self.created_at
+        )
 
     @classmethod
     def truncate(cls):
@@ -1286,7 +1293,7 @@ class UserTrafficLog(models.Model, UserPropertyMixin):
         "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
     )
     node_id = models.IntegerField()
-    date = models.DateField(auto_now_add=True, db_index=True)
+    date = models.DateTimeField(auto_now_add=True, db_index=True)
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
 
@@ -1315,9 +1322,14 @@ class UserTrafficLog(models.Model, UserPropertyMixin):
         return traffic_format(ut + dt)
 
     @classmethod
-    def calc_user_traffic_by_date(cls, user_id, node_type, node_id, date):
+    def calc_user_traffic_by_date(
+        cls, user_id, node_type, node_id, date: pendulum.DateTime
+    ):
         logs = cls.objects.filter(
-            node_type=node_type, node_id=node_id, user_id=user_id, date=date
+            node_type=node_type,
+            node_id=node_id,
+            user_id=user_id,
+            date__range=[date.start_of("day"), date.end_of("day")],
         )
         aggs = logs.aggregate(
             u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
@@ -1570,7 +1582,7 @@ class Goods(models.Model):
             return False
         # 验证成功进行提权操作
         user.balance -= self.money
-        now = pendulum.now()
+        now = get_current_datetime()
         days = pendulum.duration(days=self.days)
         if user.level == self.level and user.level_expire_time > now:
             user.level_expire_time += days
@@ -1622,8 +1634,8 @@ class PurchaseHistory(models.Model):
 
     @classmethod
     def cost_statistics(cls, good_id, start, end):
-        start = pendulum.parse(start, tz=timezone.get_current_timezone())
-        end = pendulum.parse(end, tz=timezone.get_current_timezone())
+        start = pendulum.parse(start, tz=timezone.get_current_datetimezone())
+        end = pendulum.parse(end, tz=timezone.get_current_datetimezone())
         good = Goods.objects.filter(pk=good_id).first()
         if not good:
             print("商品不存在")
