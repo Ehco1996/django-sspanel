@@ -1409,7 +1409,7 @@ rules:
 - DOMAIN,download.jetbrains.com,DIRECT
 - DOMAIN,images-cn.ssl-images-amazon.com,DIRECT
 - DOMAIN,cdn.angruo.com,DIRECT
-- DOMAIN,v2ex.com,DIRECT
+- DOMAIN-SUFFIX,v2ex.com,DIRECT
 
 # > Apple
 - DOMAIN-SUFFIX,aaplimg.com,Apple
