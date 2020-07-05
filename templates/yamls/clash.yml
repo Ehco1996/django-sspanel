@@ -35,6 +35,7 @@ proxy-groups:
 - name: "PROXY"
   type: select
   proxies:
+    - "UrlTest"
 {% for node in nodes %}    - {{ node.name }}
 {% endfor %}
 - name: "UrlTest"
