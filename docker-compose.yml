@@ -63,13 +63,14 @@ services:
       - .:/usr/src/app
     depends_on:
       - mysql
-      - web
     networks:
       - sspanel
     working_dir: /usr/src/app
     command:
-      [
-        "/bin/sh",
-        "-c",
-        "crond && python manage.py crontab add && tail -f /var/log/django-cron.log",
-      ]
+      - sh
+      - -c
+      - |
+        touch /var/log/django-cron.log
+        crond
+        python manage.py crontab add
+        tail -f /var/log/django-cron.log
