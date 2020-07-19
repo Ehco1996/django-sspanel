@@ -1102,6 +1102,18 @@ class SSNode(BaseAbstractNode):
 
 
 class RelayNode(BaseAbstractNode):
+
+    CMCC = "移动"
+    CUCC = "联通"
+    CTCC = "电信"
+    BGP = "BGP"
+    ISP_TYPES = (
+        (CMCC, "移动"),
+        (CUCC, "联通"),
+        (CTCC, "电信"),
+        (BGP, "BGP"),
+    )
+
     #  去除一些不需要的字段
     info = None
     level = None
@@ -1112,6 +1124,7 @@ class RelayNode(BaseAbstractNode):
     ehco_transport_type = None
 
     server = models.CharField("服务器地址", max_length=128)
+    isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
 
     class Meta:
         verbose_name_plural = "中转节点"
@@ -1171,19 +1184,7 @@ class RelayNode(BaseAbstractNode):
 
 class BaseRelayRule(models.Model):
 
-    CMCC = "移动"
-    CUCC = "联通"
-    CTCC = "电信"
-    BGP = "BGP"
-    ISP_TYPES = (
-        (CMCC, "移动"),
-        (CUCC, "联通"),
-        (CTCC, "电信"),
-        (BGP, "BGP"),
-    )
-
     relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
-    isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
     listen_type = models.CharField(
         "监听类型", max_length=64, choices=c.LISTEN_TYPES, default=c.LISTEN_RAW
     )
@@ -1211,7 +1212,7 @@ class BaseRelayRule(models.Model):
 
     @property
     def remark(self):
-        remark = f"{self.relay_node.name}-"
+        remark = f"{self.relay_node.name}{self.relay_node.isp}-"
         if self.node_type == "vmess":
             remark += f"{self.vmess_node.name}-vmess"
         else:

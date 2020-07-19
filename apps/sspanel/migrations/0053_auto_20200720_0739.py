@@ -6,34 +6,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0052_auto_20200704_0955'),
+        ("sspanel", "0052_auto_20200704_0955"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='ssrelayrule',
-            name='relay_host',
-        ),
-        migrations.RemoveField(
-            model_name='ssrelayrule',
-            name='remark',
-        ),
-        migrations.RemoveField(
-            model_name='vmessrelayrule',
-            name='relay_host',
-        ),
-        migrations.RemoveField(
-            model_name='vmessrelayrule',
-            name='remark',
+        migrations.RemoveField(model_name="ssrelayrule", name="relay_host",),
+        migrations.RemoveField(model_name="ssrelayrule", name="remark",),
+        migrations.RemoveField(model_name="vmessrelayrule", name="relay_host",),
+        migrations.RemoveField(model_name="vmessrelayrule", name="remark",),
+        migrations.AlterField(
+            model_name="ssrelayrule",
+            name="isp",
+            field=models.CharField(
+                choices=[("移动", "移动"), ("联通", "联通"), ("电信", "电信"), ("BGP", "BGP")],
+                default="BGP",
+                max_length=64,
+                verbose_name="ISP线路",
+            ),
         ),
         migrations.AlterField(
-            model_name='ssrelayrule',
-            name='isp',
-            field=models.CharField(choices=[('移动', '移动'), ('联通', '联通'), ('电信', '电信'), ('BGP', 'BGP')], default='BGP', max_length=64, verbose_name='ISP线路'),
-        ),
-        migrations.AlterField(
-            model_name='vmessrelayrule',
-            name='isp',
-            field=models.CharField(choices=[('移动', '移动'), ('联通', '联通'), ('电信', '电信'), ('BGP', 'BGP')], default='BGP', max_length=64, verbose_name='ISP线路'),
+            model_name="vmessrelayrule",
+            name="isp",
+            field=models.CharField(
+                choices=[("移动", "移动"), ("联通", "联通"), ("电信", "电信"), ("BGP", "BGP")],
+                default="BGP",
+                max_length=64,
+                verbose_name="ISP线路",
+            ),
         ),
     ]

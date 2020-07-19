@@ -107,7 +107,6 @@ class VmessRelayRuleAdmin(admin.ModelAdmin):
         "relay_host",
         "relay_port",
         "remark",
-        "isp",
         "enable",
     ]
     ordering = ["vmess_node"]
@@ -120,7 +119,6 @@ class SSRelayRuleAdmin(admin.ModelAdmin):
         "relay_host",
         "relay_port",
         "remark",
-        "isp",
         "enable",
     ]
     ordering = ["ss_node"]
