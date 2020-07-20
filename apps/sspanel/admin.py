@@ -93,7 +93,7 @@ class RelayNodeAdmin(admin.ModelAdmin):
     list_display = [
         "node_id",
         "name",
-        "isp"
+        "isp",
         "server",
         "rules_count",
         "enable",
