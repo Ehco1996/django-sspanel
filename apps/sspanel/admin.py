@@ -91,11 +91,12 @@ class VmessNodeAdmin(admin.ModelAdmin):
 class RelayNodeAdmin(admin.ModelAdmin):
 
     list_display = [
-        "name",
         "node_id",
+        "name",
+        "isp"
         "server",
-        "enable",
         "rules_count",
+        "enable",
         "api_endpoint",
     ]
 
