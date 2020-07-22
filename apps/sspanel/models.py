@@ -1198,6 +1198,7 @@ class BaseRelayRule(models.Model):
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
         data["relay_link"] = self.get_user_relay_link(user)
+        data["relay_host"] = self.relay_host
         return data
 
     @property
