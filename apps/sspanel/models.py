@@ -1199,6 +1199,7 @@ class BaseRelayRule(models.Model):
         data = model_to_dict(self)
         data["relay_link"] = self.get_user_relay_link(user)
         data["relay_host"] = self.relay_host
+        data["remark"] = self.remark
         return data
 
     @property
