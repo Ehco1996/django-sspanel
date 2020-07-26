@@ -667,13 +667,13 @@ class BaseAbstractNode(models.Model):
 
     @classmethod
     def get_active_nodes(cls, sub_mode=False):
-        active_nodes = (
+        active_nodes = list(
             cls.objects.filter(enable=True)
             .select_related()
             .order_by("level", "country")
         )
         if not sub_mode:
-            return list(active_nodes)
+            return active_nodes
         # NOTE 在订阅模式下,如果一条节点配置了relay_rule,将一条线路变成多条,既然是py就写的魔幻一点
         nodes = list()
         for node in active_nodes:
@@ -690,16 +690,29 @@ class BaseAbstractNode(models.Model):
         return nodes
 
     @classmethod
-    def get_or_none_by_node_id(cls, node_id):
-        return cls.objects.filter(node_id=node_id).first()
-
-    @classmethod
     def get_user_active_nodes(cls, user, sub_mode=False):
         nodes = []
         for node in cls.get_active_nodes(sub_mode):
             if user.level >= node.level:
                 nodes.append(node)
         return nodes
+
+    @classmethod
+    def get_enable_ehco_lb_nodes(cls, relay_node):
+        nodes = []
+        for node in cls.get_active_nodes():
+            if (
+                not node.enable_ehco
+                or node.ehco_listen_type != relay_node.ehco_transport_type
+            ):
+                continue
+            else:
+                nodes.append(node)
+        return nodes
+
+    @classmethod
+    def get_or_none_by_node_id(cls, node_id):
+        return cls.objects.filter(node_id=node_id).first()
 
     @classmethod
     def get_node_ids_by_level(cls, level):
@@ -785,6 +798,129 @@ class BaseAbstractNode(models.Model):
         return self.relay_rules.filter(relay_node__enable=True)
 
 
+class RelayNode(BaseAbstractNode):
+
+    CMCC = "移动"
+    CUCC = "联通"
+    CTCC = "电信"
+    BGP = "BGP"
+    ISP_TYPES = (
+        (CMCC, "移动"),
+        (CUCC, "联通"),
+        (CTCC, "电信"),
+        (BGP, "BGP"),
+    )
+
+    #  去除一些不需要的字段
+    info = None
+    used_traffic = None
+    total_traffic = None
+    enlarge_scale = None
+    ehco_listen_host = None
+    ehco_listen_port = None
+    ehco_ss_lb_port = models.IntegerField(
+        "ss负载均衡端口", help_text="ss负载均衡端口", null=True, blank=True
+    )
+    ehco_vmess_lb_port = models.IntegerField(
+        "vmess负载均衡端口", help_text="vmess负载均衡端口", null=True, blank=True
+    )
+
+    server = models.CharField("服务器地址", max_length=128)
+    isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
+
+    class Meta:
+        verbose_name_plural = "中转节点"
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+            settings.HOST
+            + f"/api/ehco_relay_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    def rules_count(self):
+        return (
+            VmessRelayRule.objects.filter(relay_node=self).count()
+            + SSRelayRule.objects.filter(relay_node=self).count()
+        )
+
+    rules_count.short_description = "规则数量"
+
+    def get_relay_rules_configs(self):
+        data = []
+        for rule in self.ss_relay_rules.select_related().all():
+            node = rule.ss_node
+            if node.enable_ehco:
+                remote = f"{node.server}:{node.ehco_listen_port}"
+            else:
+                remote = f"{node.server}:{node.port}"
+            if rule.transport_type in c.WS_TRANSPORTS:
+                remote = "wss://" + remote
+            data.append(
+                {
+                    "listen": f"0.0.0.0:{rule.relay_port}",
+                    "listen_type": rule.listen_type,
+                    "remote": remote,
+                    "transport_type": rule.transport_type,
+                }
+            )
+        for rule in self.vmess_relay_rules.select_related().all():
+            node = rule.vmess_node
+            if node.enable_ehco:
+                remote = f"{node.server}:{node.ehco_listen_port}"
+            else:
+                remote = f"{node.server}:{node.service_port}"
+            if rule.transport_type in c.WS_TRANSPORTS:
+                remote = "wss://" + remote
+            data.append(
+                {
+                    "listen": f"0.0.0.0:{rule.relay_port}",
+                    "listen_type": rule.listen_type,
+                    "remote": remote,
+                    "transport_type": rule.transport_type,
+                }
+            )
+
+        if self.ehco_ss_lb_port:
+            remotes = []
+            for node in SSNode.get_enable_ehco_lb_nodes(self):
+                remote = f"{node.server}:{node.ehco_listen_port}"
+                if self.ehco_transport_type in c.WS_TRANSPORTS:
+                    remote = "wss://" + remote
+                remotes.append(remote)
+            if remotes:
+                data.append(
+                    {
+                        "listen": f"0.0.0.0:{self.ehco_ss_lb_port}",
+                        "listen_type": self.ehco_listen_type,
+                        "remote": "",
+                        "transport_type": self.ehco_transport_type,
+                        "lb_remotes": remotes,
+                    }
+                )
+
+        if self.ehco_vmess_lb_port:
+            remotes = []
+            for node in VmessNode.get_enable_ehco_lb_nodes(self):
+                remote = f"{node.server}:{node.ehco_listen_port}"
+                if self.ehco_transport_type in c.WS_TRANSPORTS:
+                    remote = "wss://" + remote
+                remotes.append(remote)
+            if remotes:
+                data.append(
+                    {
+                        "listen": f"0.0.0.0:{self.ehco_vmess_lb_port}",
+                        "listen_type": self.ehco_listen_type,
+                        "remote": "",
+                        "transport_type": self.ehco_transport_type,
+                        "lb_remotes": remotes,
+                    }
+                )
+
+        return {"configs": data}
+
+
 class VmessNode(BaseAbstractNode):
 
     BASE_CONFIG = {
@@ -819,6 +955,24 @@ class VmessNode(BaseAbstractNode):
 
     class Meta:
         verbose_name_plural = "Vmess节点"
+
+    @classmethod
+    def get_user_active_nodes(cls, user, sub_mode=False):
+        nodes = super(VmessNode, cls).get_user_active_nodes(user, sub_mode)
+        if not nodes:
+            return
+        fake_template = nodes[0]
+        # NOTE 添加relay node fake to vmess node
+        for node in RelayNode.get_active_nodes():
+            if not node.ehco_vmess_lb_port:
+                continue
+            fake = deepcopy(fake_template)
+            fake.name = f"{node.name}-{node.isp}-负载均衡-vmess"
+            fake.server = node.server
+            fake.port = node.ehco_vmess_lb_port
+            fake.client_port = node.ehco_vmess_lb_port
+            nodes.append(fake)
+        return nodes
 
     @classmethod
     @cache.cached(ttl=60 * 60 * 24)
@@ -1036,6 +1190,23 @@ class SSNode(BaseAbstractNode):
                 cfg["enable"] = False
         return configs
 
+    @classmethod
+    def get_user_active_nodes(cls, user, sub_mode=False):
+        nodes = super(SSNode, cls).get_user_active_nodes(user, sub_mode)
+        if not nodes:
+            return
+        fake_template = nodes[0]
+        # NOTE 添加relay node fake to vmess node
+        for node in RelayNode.get_active_nodes():
+            if not node.ehco_ss_lb_port:
+                continue
+            fake = deepcopy(fake_template)
+            fake.name = f"{node.name}-{node.isp}-负载均衡-ss"
+            fake.server = node.server
+            fake.port = node.ehco_ss_lb_port
+            nodes.append(fake)
+        return nodes
+
     @property
     def node_type(self):
         return "ss"
@@ -1099,87 +1270,6 @@ class SSNode(BaseAbstractNode):
                 for rule in SSRelayRule.get_by_node(self)
             ]
         return data
-
-
-class RelayNode(BaseAbstractNode):
-
-    CMCC = "移动"
-    CUCC = "联通"
-    CTCC = "电信"
-    BGP = "BGP"
-    ISP_TYPES = (
-        (CMCC, "移动"),
-        (CUCC, "联通"),
-        (CTCC, "电信"),
-        (BGP, "BGP"),
-    )
-
-    #  去除一些不需要的字段
-    info = None
-    level = None
-    enlarge_scale = None
-    ehco_listen_host = None
-    ehco_listen_port = None
-    ehco_listen_type = None
-    ehco_transport_type = None
-
-    server = models.CharField("服务器地址", max_length=128)
-    isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
-
-    class Meta:
-        verbose_name_plural = "中转节点"
-
-    def get_relay_rules_configs(self):
-        data = []
-        for rule in self.ss_relay_rules.select_related().all():
-            node = rule.ss_node
-            if node.enable_ehco:
-                remote = f"{node.server}:{node.ehco_listen_port}"
-            else:
-                remote = f"{node.server}:{node.port}"
-            if rule.transport_type in c.WS_TRANSPORTS:
-                remote = "wss://" + remote
-            data.append(
-                {
-                    "listen": f"0.0.0.0:{rule.relay_port}",
-                    "listen_type": rule.listen_type,
-                    "remote": remote,
-                    "transport_type": rule.transport_type,
-                }
-            )
-        for rule in self.vmess_relay_rules.select_related().all():
-            node = rule.vmess_node
-            if node.enable_ehco:
-                remote = f"{node.server}:{node.ehco_listen_port}"
-            else:
-                remote = f"{node.server}:{node.service_port}"
-            if rule.transport_type in c.WS_TRANSPORTS:
-                remote = "wss://" + remote
-            data.append(
-                {
-                    "listen": f"0.0.0.0:{rule.relay_port}",
-                    "listen_type": rule.listen_type,
-                    "remote": remote,
-                    "transport_type": rule.transport_type,
-                }
-            )
-        return {"configs": data}
-
-    @property
-    def api_endpoint(self):
-        params = {"token": settings.TOKEN}
-        return (
-            settings.HOST
-            + f"/api/ehco_relay_config/{self.node_id}/?{urlencode(params)}"
-        )
-
-    def rules_count(self):
-        return (
-            VmessRelayRule.objects.filter(relay_node=self).count()
-            + SSRelayRule.objects.filter(relay_node=self).count()
-        )
-
-    rules_count.short_description = "规则数量"
 
 
 class BaseRelayRule(models.Model):
