@@ -960,7 +960,7 @@ class VmessNode(BaseAbstractNode):
     def get_user_active_nodes(cls, user, sub_mode=False):
         nodes = super(VmessNode, cls).get_user_active_nodes(user, sub_mode)
         if not nodes:
-            return
+            return []
         fake_template = nodes[0]
         # NOTE 添加relay node fake to vmess node
         for node in RelayNode.get_active_nodes():
@@ -1194,7 +1194,7 @@ class SSNode(BaseAbstractNode):
     def get_user_active_nodes(cls, user, sub_mode=False):
         nodes = super(SSNode, cls).get_user_active_nodes(user, sub_mode)
         if not nodes:
-            return
+            return []
         fake_template = nodes[0]
         # NOTE 添加relay node fake to vmess node
         for node in RelayNode.get_active_nodes():
