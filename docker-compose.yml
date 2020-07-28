@@ -8,7 +8,7 @@ volumes:
 
 services:
   nginx:
-    image: nginx
+    image: nginx:1.7.9
     restart: always
     container_name: nginx
     volumes:
