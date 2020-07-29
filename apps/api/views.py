@@ -163,7 +163,7 @@ class UserSSConfigView(View):
             user.upload_traffic += u
             user.last_use_time = log_time
             user_model_list.append(user)
-            if user.overflow:
+            if user.overflow or user.level < ss_node.level:
                 need_clear_cache = True
             # 个人流量记录
             trafficlog_model_list.append(
@@ -240,7 +240,7 @@ class UserVmessConfigView(View):
             user.upload_traffic += u
             user.last_use_time = log_time
             user_model_list.append(user)
-            if user.overflow:
+            if user.overflow or user.level < node.level:
                 need_clear_cache = True
             # 个人流量记录
             trafficlog_model_list.append(
