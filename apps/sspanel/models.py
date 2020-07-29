@@ -658,6 +658,7 @@ class BaseAbstractNode(models.Model):
     ehco_transport_type = models.CharField(
         "隧道传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
     )
+    enable_ehco_lb = models.BooleanField("是否负载均衡", default=True, db_index=True)
 
     class Meta:
         abstract = True
@@ -703,6 +704,7 @@ class BaseAbstractNode(models.Model):
         for node in cls.get_active_nodes():
             if (
                 not node.enable_ehco
+                or not node.enable_ehco_lb
                 or node.ehco_listen_type != relay_node.ehco_transport_type
             ):
                 continue
@@ -818,6 +820,7 @@ class RelayNode(BaseAbstractNode):
     enlarge_scale = None
     ehco_listen_host = None
     ehco_listen_port = None
+    enable_ehco_lb = None
     ehco_ss_lb_port = models.IntegerField(
         "ss负载均衡端口", help_text="ss负载均衡端口", null=True, blank=True
     )
@@ -1196,7 +1199,7 @@ class SSNode(BaseAbstractNode):
         if not nodes:
             return []
         fake_template = nodes[0]
-        # NOTE 添加relay node fake to vmess node
+        # NOTE 添加relay node fake to ss node
         for node in RelayNode.get_active_nodes():
             if not node.ehco_ss_lb_port:
                 continue

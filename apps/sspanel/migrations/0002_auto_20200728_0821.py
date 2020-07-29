@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sspanel', '0001_squashed_0055_auto_20200726_0847'),
+        ("sspanel", "0001_squashed_0055_auto_20200726_0847"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='purchasehistory',
-            name='good_name',
-            field=models.CharField(db_index=True, max_length=128, verbose_name='商品名'),
+            model_name="purchasehistory",
+            name="good_name",
+            field=models.CharField(db_index=True, max_length=128, verbose_name="商品名"),
         ),
     ]
