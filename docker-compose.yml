@@ -9,6 +9,8 @@ volumes:
 services:
   nginx:
     image: nginx:1.7.9
+    environment:
+      TZ: Asia/Shanghai
     restart: always
     container_name: nginx
     volumes:
@@ -40,6 +42,7 @@ services:
       MYSQL_PASSWORD: yourpass
       MYSQL_HOST: mysql
       DJANGO_ENV: production
+      TZ: Asia/Shanghai
     volumes:
       - .:/usr/src/app
     depends_on:
