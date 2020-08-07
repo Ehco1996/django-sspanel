@@ -669,9 +669,7 @@ class BaseAbstractNode(models.Model):
     @classmethod
     def get_active_nodes(cls, sub_mode=False):
         active_nodes = list(
-            cls.objects.filter(enable=True)
-            .select_related()
-            .order_by("level", "country")
+            cls.objects.filter(enable=True).select_related().order_by("country", "name")
         )
         if not sub_mode:
             return active_nodes

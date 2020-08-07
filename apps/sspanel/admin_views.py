@@ -36,8 +36,8 @@ from apps.sspanel.models import (
 class NodeListView(StaffRequiredMixin, View):
     def get(self, request):
         context = {
-            "node_list": list(SSNode.objects.all().order_by("level", "country"))
-            + list(VmessNode.objects.all().order_by("level", "country"))
+            "node_list": list(SSNode.objects.all().order_by("country", "name"))
+            + list(VmessNode.objects.all().order_by("country", "name"))
         }
         return render(request, "my_admin/node_list.html", context=context)
 
