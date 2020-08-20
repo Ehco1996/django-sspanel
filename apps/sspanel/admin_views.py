@@ -145,7 +145,9 @@ class UserDetailView(StaffRequiredMixin, View):
     def get(self, request, pk):
         user = User.get_by_pk(pk)
         form = UserForm(instance=user)
-        return render(request, "my_admin/user_detail.html", context={"form": form})
+        return render(
+            request, "my_admin/user_detail.html", context={"form": form, "user": user}
+        )
 
     def post(self, request, pk):
         user = User.get_by_pk(pk)
