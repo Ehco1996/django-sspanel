@@ -1,5 +1,6 @@
 import functools
-from django.core.cache import cache
+import pickle
+import redis
 
 DEFAULT_KEY_TYPES = (str, int, float, bool)
 
@@ -24,7 +25,8 @@ def make_default_key(f, *args, **kwargs):
 
 
 class cached:
-    client = cache
+
+    client = None
 
     def __init__(self, func=None, ttl=60 * 5, cache_key=make_default_key):
         self.ttl = ttl
@@ -68,11 +70,44 @@ class cached:
         return wrapper
 
 
-class Cache:
-    def __init__(self):
-        # register cached attr
-        self.cached = cached
-        self._client = self.cached.client
+class Redis:
+    def __init__(self, uri):
+        self._pool = redis.ConnectionPool.from_url(uri)
+        self._client = redis.Redis(connection_pool=self._pool)
 
-    def __getattr__(self, name):
-        return getattr(self._client, name)
+    def get(self, key):
+        v = self._client.get(key)
+        return v if v is None else pickle.loads(v)
+
+    def get_many(self, keys):
+        values = self._client.mget(keys)
+        return [v if v is None else pickle.loads(v) for v in values]
+
+    def set(self, key, value, ttl=60 * 5):
+        return self._client.set(key, pickle.dumps(value), ex=ttl)
+
+    def set_many(self, mapping, ttl=60 * 5):
+        mapping = {k: pickle.dumps(v) for k, v in mapping.items()}
+        rv = self._client.mset(mapping)
+        for k in mapping.keys():
+            self._client.expire(k, ttl)
+        return rv
+
+    def delete(self, key):
+        return self._client.delete(key)
+
+    def delete_many(self, keys):
+        if keys:
+            return self._client.delete(*keys)
+        return False
+
+
+class RedisCache:
+    def __init__(self, uri):
+        # register cached attr
+        self._client = Redis(uri)
+        self.cached = cached
+        self.cached.client = self._client
+
+    def __getattr__(self, attr):
+        return getattr(self._client, attr)

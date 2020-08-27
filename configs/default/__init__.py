@@ -5,3 +5,4 @@ from .email import *
 from .pay import *
 from .sentry import *
 from .sites import *
+from .redis import *
