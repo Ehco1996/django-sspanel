@@ -70,13 +70,10 @@ class cached:
         return wrapper
 
 
-class RedisCache:
+class Redis:
     def __init__(self, uri):
-        # register cached attr
         self._pool = redis.ConnectionPool.from_url(uri)
         self._client = redis.Redis(connection_pool=self._pool)
-        self.cached = cached
-        self.cached.client = self._client
 
     def get(self, key):
         v = self._client.get(key)
@@ -100,5 +97,17 @@ class RedisCache:
         return self._client.delete(key)
 
     def delete_many(self, keys):
-        self._client.delete(*keys)
+        if keys:
+            return self._client.delete(*keys)
+        return False
 
+
+class RedisCache:
+    def __init__(self, uri):
+        # register cached attr
+        self._client = Redis(uri)
+        self.cached = cached
+        self.cached.client = self._client
+
+    def __getattr__(self, attr):
+        return getattr(self._client, attr)
