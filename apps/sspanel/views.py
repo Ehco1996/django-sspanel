@@ -17,9 +17,9 @@ from apps.sspanel.models import (
     MoneyCode,
     PurchaseHistory,
     RebateRecord,
+    SSNode,
     Ticket,
     User,
-    SSNode,
     VmessNode,
 )
 from apps.utils import traffic_format

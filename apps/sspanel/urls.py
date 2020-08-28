@@ -1,6 +1,6 @@
 from django.urls import path
-from apps.sspanel import views, admin_views
 
+from apps.sspanel import admin_views, views
 
 app_name = "sspanel"
 urlpatterns = [

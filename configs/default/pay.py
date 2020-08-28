@@ -1,6 +1,5 @@
 import os
 
-
 # 是否启用支付宝系统
 USE_ALIPAY = bool(os.getenv("USE_ALIPAY"))
 

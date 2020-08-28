@@ -3,14 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
 from apps.constants import AEAD_METHODS
-from apps.sspanel.models import (
-    Announcement,
-    Goods,
-    InviteCode,
-    User,
-    SSNode,
-    VmessNode,
-)
+from apps.sspanel.models import Announcement, Goods, InviteCode, SSNode, User, VmessNode
 
 
 class RegisterForm(UserCreationForm):

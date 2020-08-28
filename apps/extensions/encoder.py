@@ -1,5 +1,5 @@
-from short_url import UrlEncoder
 from django.conf import settings
+from short_url import UrlEncoder
 
 
 class Encoder:
