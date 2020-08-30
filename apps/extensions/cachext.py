@@ -74,7 +74,7 @@ class cached:
 class RedisClient:
     def __init__(self, uri):
         self._pool = redis.ConnectionPool.from_url(uri)
-        self.client = redis.Redis(connection_pool=self._pool)
+        self._client = redis.Redis(connection_pool=self._pool)
 
     def get(self, key):
         v = self._client.get(key)
@@ -101,9 +101,6 @@ class RedisClient:
         if keys:
             return self._client.delete(*keys)
         return False
-
-    def __getattr__(self, attr):
-        return getattr(self._client, attr)
 
 
 class RedisCache:

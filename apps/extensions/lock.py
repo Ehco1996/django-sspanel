@@ -1,4 +1,3 @@
-from django.http import Http404
 from redis.lock import Lock, LockError
 
 
@@ -29,8 +28,7 @@ class GlobalLock(Lock):
         if self.acquire():
             return self
         else:
-            # TODO 全局补货异常的mw
-            raise Exception(f"key: {self.name} still locking")
+            raise LockError(f"key: {self.name} still locking, please retry it later")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
