@@ -23,7 +23,7 @@ from django.template.loader import render_to_string
 from django.utils import functional, timezone
 
 from apps import constants as c
-from apps.ext import cache, encoder, pay
+from apps.ext import cache, encoder, pay, lock
 from apps.utils import (
     get_current_datetime,
     get_long_random_string,
@@ -369,23 +369,63 @@ class UserOrder(models.Model, UserPropertyMixin):
         )
 
     @classmethod
+    def get_or_create_order(cls, user, amount):
+        # NOTE 目前这里只支持支付宝 所以暂时写死
+        with lock.user_create_order_lock(user.id):
+            now = get_current_datetime()
+            order = cls.get_not_paid_order_by_amount(user, amount)
+            if order and order.expired_at > now:
+                return order
+            with transaction.atomic():
+                out_trade_no = cls.gen_out_trade_no()
+                trade = pay.alipay.api_alipay_trade_precreate(
+                    out_trade_no=out_trade_no,
+                    total_amount=amount,
+                    subject=settings.ALIPAY_TRADE_INFO.format(amount),
+                    timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
+                    notify_url=cls.ALIPAY_CALLBACK_URL,
+                )
+                qrcode_url = trade.get("qr_code")
+                order = cls.objects.create(
+                    user=user,
+                    status=cls.STATUS_CREATED,
+                    out_trade_no=out_trade_no,
+                    amount=amount,
+                    qrcode_url=qrcode_url,
+                    expired_at=now.add(minutes=10),
+                )
+                return order
+
+    @classmethod
     def get_and_check_recent_created_order(cls, user):
-        with transaction.atomic():
-            order = (
-                cls.objects.select_for_update()
-                .filter(user=user)
-                .order_by("-created_at")
-                .first()
-            )
-            order and order.check_order_status()
-            return order
+        order = (
+            cls.objects.select_for_update()
+            .filter(user=user)
+            .order_by("-created_at")
+            .first()
+        )
+        if order is None:
+            return
+        with lock.order_lock(order.out_trade_no):
+            with transaction.atomic():
+                order.check_order_status()
+        return order
+
+    @classmethod
+    def make_up_lost_orders(cls):
+        now = get_current_datetime()
+        for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
+            with lock.order_lock(order.out_trade_no):
+                changed = order.check_order_status()
+                if changed:
+                    print(f"补单：{order.user}={order.amount}")
 
     @classmethod
     def handle_callback_by_alipay(cls, data):
-        with transaction.atomic():
-            order = UserOrder.objects.select_for_update().get(
-                out_trade_no=data["out_trade_no"]
-            )
+        order = UserOrder.objects.select_for_update().get(
+            out_trade_no=data["out_trade_no"]
+        )
+        with lock.order_lock(order.out_trade_no):
             if order.status != order.STATUS_CREATED:
                 return True
             signature = data.pop("sign")
@@ -394,47 +434,12 @@ class UserOrder(models.Model, UserPropertyMixin):
                 "TRADE_SUCCESS",
                 "TRADE_FINISHED",
             )
-            if success:
-                order.status = order.STATUS_PAID
-                order.save()
-            order.handle_paid()
+            with transaction.atomic():
+                if success:
+                    order.status = order.STATUS_PAID
+                    order.save()
+                order.handle_paid()
             return success
-
-    @classmethod
-    def make_up_lost_orders(cls):
-        now = get_current_datetime()
-        for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
-            changed = order.check_order_status()
-            if changed:
-                print(f"补单：{order.user}={order.amount}")
-
-    @classmethod
-    def get_or_create_order(cls, user, amount):
-        # NOTE 目前这里只支持支付宝 所以暂时写死
-        # TODO 缺少一把分布式锁 目前还不想引入其他外部组件所以暂时忽略
-        now = get_current_datetime()
-        order = cls.get_not_paid_order_by_amount(user, amount)
-        if order and order.expired_at > now:
-            return order
-        with transaction.atomic():
-            out_trade_no = cls.gen_out_trade_no()
-            trade = pay.alipay.api_alipay_trade_precreate(
-                out_trade_no=out_trade_no,
-                total_amount=amount,
-                subject=settings.ALIPAY_TRADE_INFO.format(amount),
-                timeout_express=cls.DEFAULT_ORDER_TIME_OUT,
-                notify_url=cls.ALIPAY_CALLBACK_URL,
-            )
-            qrcode_url = trade.get("qr_code")
-            order = cls.objects.create(
-                user=user,
-                status=cls.STATUS_CREATED,
-                out_trade_no=out_trade_no,
-                amount=amount,
-                qrcode_url=qrcode_url,
-                expired_at=now.add(minutes=10),
-            )
-            return order
 
     def handle_paid(self):
         # NOTE Must use in transaction
