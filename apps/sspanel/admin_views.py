@@ -9,27 +9,21 @@ from django.views import View
 
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.sspanel.forms import (
-    UserForm,
-    AnnoForm,
-    GoodsForm,
-    SSNodeForm,
-    VmessNodeForm,
-)
+from apps.sspanel.forms import AnnoForm, GoodsForm, SSNodeForm, UserForm, VmessNodeForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
     Goods,
     InviteCode,
     MoneyCode,
+    NodeOnlineLog,
     PurchaseHistory,
     SSNode,
-    VmessNode,
-    NodeOnlineLog,
     Ticket,
     User,
-    UserOnLineIpLog,
     UserCheckInLog,
+    UserOnLineIpLog,
+    VmessNode,
 )
 
 

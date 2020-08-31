@@ -4,11 +4,10 @@ import random
 import time
 from functools import wraps
 
-
+import pendulum
 from django.conf import settings
 from django.http import JsonResponse
 from django.utils import timezone
-import pendulum
 
 
 def get_random_string(

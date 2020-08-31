@@ -1,4 +1,4 @@
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import EmptyPage, Paginator
 
 
 class PageListView:

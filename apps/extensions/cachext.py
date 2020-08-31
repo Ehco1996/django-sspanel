@@ -1,5 +1,6 @@
 import functools
 import pickle
+
 import redis
 
 DEFAULT_KEY_TYPES = (str, int, float, bool)
@@ -70,7 +71,7 @@ class cached:
         return wrapper
 
 
-class Redis:
+class RedisClient:
     def __init__(self, uri):
         self._pool = redis.ConnectionPool.from_url(uri)
         self._client = redis.Redis(connection_pool=self._pool)
@@ -105,7 +106,7 @@ class Redis:
 class RedisCache:
     def __init__(self, uri):
         # register cached attr
-        self._client = Redis(uri)
+        self._client = RedisClient(uri)
         self.cached = cached
         self.cached.client = self._client
 

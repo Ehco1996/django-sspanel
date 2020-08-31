@@ -3,6 +3,7 @@ from uuid import uuid4
 from django.contrib.auth.management.commands import createsuperuser
 from django.core.management import CommandError
 from django.db import transaction
+
 from apps.sspanel.models import User
 
 

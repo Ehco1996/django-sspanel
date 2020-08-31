@@ -1,5 +1,4 @@
 from alipay import AliPay
-
 from django.conf import settings
 
 

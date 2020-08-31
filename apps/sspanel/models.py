@@ -25,10 +25,10 @@ from django.utils import functional, timezone
 from apps import constants as c
 from apps.ext import cache, encoder, pay
 from apps.utils import (
+    get_current_datetime,
     get_long_random_string,
     get_short_random_string,
     traffic_format,
-    get_current_datetime,
 )
 
 
