@@ -7,7 +7,7 @@ redir-port: 7892
 allow-lan: true
 # Rule / Global/ Direct (默认为 Rule 模式)
 mode: Rule
-log-level: warning
+log-level: info
 # RESTful API for clash
 external-controller: 0.0.0.0:9090
 experimental:
