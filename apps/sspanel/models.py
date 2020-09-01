@@ -398,12 +398,7 @@ class UserOrder(models.Model, UserPropertyMixin):
 
     @classmethod
     def get_and_check_recent_created_order(cls, user):
-        order = (
-            cls.objects.select_for_update()
-            .filter(user=user)
-            .order_by("-created_at")
-            .first()
-        )
+        order = cls.objects.filter(user=user).order_by("-created_at").first()
         if order is None:
             return
         with lock.order_lock(order.out_trade_no):
@@ -422,9 +417,7 @@ class UserOrder(models.Model, UserPropertyMixin):
 
     @classmethod
     def handle_callback_by_alipay(cls, data):
-        order = UserOrder.objects.select_for_update().get(
-            out_trade_no=data["out_trade_no"]
-        )
+        order = UserOrder.objects.get(out_trade_no=data["out_trade_no"])
         with lock.order_lock(order.out_trade_no):
             if order.status != order.STATUS_CREATED:
                 return True
