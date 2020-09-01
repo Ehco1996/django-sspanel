@@ -5,6 +5,7 @@ networks:
 
 volumes:
   mysql_data:
+  redis_aof:
 
 services:
   nginx:
@@ -32,6 +33,14 @@ services:
     volumes:
       - ./configs/mysqld/mysqld_charset.cnf:/etc/mysql/conf.d/mysqld_charset.cnf
       - mysql_data:/var/lib/mysql
+    networks:
+      - sspanel
+  redis:
+    image: redis:6.0
+    container_name: redis
+    restart: always
+    volumes:
+      - redis_aof:/var/data/redis
     networks:
       - sspanel
   web:

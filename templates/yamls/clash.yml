@@ -27,62 +27,46 @@ dns:
 # 代理节点
 proxies:
 {% autoescape off %}
-{% for node in nodes %}  - {{ node.clash_link }}
+{% for node in nodes %} - {{ node.clash_link }}
 {% endfor %}
 {% endautoescape%}
+
 # 代理策略组
 proxy-groups:
-- name: "PROXY"
-  type: select
-  proxies:
-    - "UrlTest"
-{% for node in nodes %}    - {{ node.name }}
-{% endfor %}
-- name: "UrlTest"
-  type: url-test
-  proxies:
-{% for node in nodes %}    - {{ node.name }}
-{% endfor %}
-  url: 'http://www.gstatic.com/generate_204'
-  interval: 300
-- name: "Fallback"
-  type: fallback
-  proxies:
-{% for node in nodes %}    - {{ node.name }}
-{% endfor %}
-  url: 'http://www.gstatic.com/generate_204'
-  interval: 300
-# Apple 服务代理
-- name: "Apple"
-  type: select
-  proxies:
-    - "DIRECT"
-    - "PROXY"
-# 国际流媒体服务
-- name: "GlobalMedia"
-  type: select
-  proxies:
-    - "PROXY"
-    - "DIRECT"
-{% for node in nodes %}    - {{ node.name }}
-{% endfor %}
-# 大陆流媒体面向港澳台限定服务
-- name: "HKMTMedia"
-  type: select
-  proxies:
-    - "DIRECT"
-{% for node in nodes %}    - {{ node.name }}
-{% endfor %}
-# 运营商及声名狼藉网站劫持
-- name: "Hijacking"
-  type: select
-  proxies:
-    - "REJECT"
-    - "DIRECT"
-# 白名单模式 PROXY，黑名单模式 DIRECT
-- name: "MATCH"
-  type: select
-  proxies:
-    - "PROXY"
-    - "DIRECT"
+  # select 用来允许用户手动选择 代理服务器 或 服务器组
+  # 您也可以使用 RESTful API 去切换服务器，这种方式推荐在 GUI 中使用
+  - name: Proxy
+    type: select
+    proxies:
+     - auto
+    {% for node in nodes %} - {{ node.name }}
+    {% endfor %}
+
+  # url-test 可以自动选择与指定 URL 测速后，延迟最短的服务器
+  - name: auto
+    type: url-test
+    proxies:
+    {% for node in nodes %} - {{ node.name }}
+    {% endfor %}
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+
+  # fallback 可以尽量按照用户书写的服务器顺序，在确保服务器可用的情况下，自动选择服务器
+  - name: fallback-auto
+    type: fallback
+    proxies:
+    {% for node in nodes %} - {{ node.name }}
+    {% endfor %}
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+
+  # load-balance 可以使相同 eTLD 请求在同一条代理线路上
+  - name: load-balance
+    type: load-balance
+    proxies:
+    {% for node in nodes %} - {{ node.name }}
+    {% endfor %}
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+
 {% include "yamls/rules.yml" %}
