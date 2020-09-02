@@ -52,10 +52,12 @@ services:
       MYSQL_HOST: mysql
       DJANGO_ENV: production
       TZ: Asia/Shanghai
+      REDIS_HOST: redis
     volumes:
       - .:/usr/src/app
     depends_on:
       - mysql
+      - redis
     networks:
       - sspanel
     ports:
@@ -71,10 +73,12 @@ services:
       MYSQL_PASSWORD: yourpass
       MYSQL_HOST: mysql
       DJANGO_ENV: production
+      REDIS_HOST: redis
     volumes:
       - .:/usr/src/app
     depends_on:
       - mysql
+      - redis
     networks:
       - sspanel
     working_dir: /usr/src/app
