@@ -1,5 +1,7 @@
 import os
 
+from sentry_sdk.integrations.celery import CeleryIntegration
+
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 SENTRY_RELEASE_TAG = os.environ.get("SENTRY_RELEASE_TAG")
 
@@ -8,5 +10,10 @@ if SENTRY_DSN:
     from sentry_sdk.integrations.django import DjangoIntegration
 
     sentry_sdk.init(
-        dsn=SENTRY_DSN, release=SENTRY_RELEASE_TAG, integrations=[DjangoIntegration()]
+        dsn=SENTRY_DSN,
+        release=SENTRY_RELEASE_TAG,
+        integrations=[
+            DjangoIntegration(transaction_style="function_name"),
+            CeleryIntegration(),
+        ],
     )
