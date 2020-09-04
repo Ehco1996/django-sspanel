@@ -90,3 +90,25 @@ services:
         crond
         python manage.py crontab add
         tail -f /var/log/django-cron.log
+  celery-worker:
+    container_name: celery-worker
+    restart: always
+    image: ehco1996/django-sspanel:runtime
+    environment:
+      MYSQL_PASSWORD: yourpass
+      MYSQL_HOST: mysql
+      DJANGO_ENV: production
+      REDIS_HOST: redis
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - sspanel
+    working_dir: /usr/src/app
+    command:
+      - celery
+      - worker
+      - -l
+      - info

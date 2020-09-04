@@ -23,7 +23,7 @@ from django.template.loader import render_to_string
 from django.utils import functional, timezone
 
 from apps import constants as c
-from apps.ext import cache, encoder, pay, lock
+from apps.ext import cache, encoder, lock, pay
 from apps.utils import (
     get_current_datetime,
     get_long_random_string,

@@ -1,6 +1,5 @@
-from redis.lock import LockError
-
 from django.http import JsonResponse
+from redis.lock import LockError
 
 
 class ErrorHandlerMiddleware:
