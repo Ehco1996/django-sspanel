@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from apps import celery_app
 from apps.sspanel import models as m
 from apps.utils import get_current_datetime
@@ -134,3 +136,60 @@ def sync_user_vmess_traffic_task(node_id, data):
         node.enable = False
     if need_clear_cache or node.overflow:
         node.save()
+
+
+@celery_app.task
+def check_user_state_task():
+    """检测用户状态，将所有账号到期的用户状态重置"""
+    m.User.check_and_disable_expired_users()
+    m.User.check_and_disable_out_of_traffic_user()
+
+
+@celery_app.task
+def auto_reset_free_user_traffic_task():
+    """重置所有免费用户流量"""
+    for user in m.User.objects.filter(level=0):
+        user.reset_traffic(settings.DEFAULT_TRAFFIC)
+
+
+@celery_app.task
+def reset_node_traffic_task():
+    """重置节点使用流量"""
+    for node in m.SSNode.objects.all():
+        node.used_traffic = 0
+        node.save()
+
+    for node in m.VmessNode.objects.all():
+        node.used_traffic = 0
+        node.save()
+
+
+@celery_app.task
+def make_up_lost_order_task():
+    """定时补单"""
+    m.UserOrder.make_up_lost_orders()
+
+
+@celery_app.task
+def clean_traffic_log_task():
+    """清空七天前的所有流量记录"""
+    dt = get_current_datetime().subtract(days=7).date()
+    query = m.UserTrafficLog.objects.filter(date__lt=dt)
+    count, res = query.delete()
+    print(f"UserTrafficLog  removed count:{count}")
+
+
+@celery_app.task
+def clean_node_online_log_task():
+    """清空所有在线记录"""
+    count = m.NodeOnlineLog.objects.count()
+    m.NodeOnlineLog.truncate()
+    print(f"NodeOnlineLog  removed count:{count}")
+
+
+@celery_app.task
+def clean_online_ip_log_task():
+    """清空在线ip记录"""
+    count = m.UserOnLineIpLog.objects.count()
+    m.UserOnLineIpLog.truncate()
+    print(f"UserOnLineIpLog  removed count:{count}")

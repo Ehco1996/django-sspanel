@@ -1,52 +1,17 @@
+from celery.schedules import crontab
+from pendulum import Duration
+
 # 定时任务相关
-CRONJOBS = [
-    (
-        "0 0 1 * *",
-        "django.core.management.call_command",
-        ["run_cron_job"],
-        {"jobname": "auto_reset_traffic"},
-        ">>" + "/var/log/django-cron.log",
+task_schedule = {
+    "apps.sspanel.tasks.auto_reset_free_user_traffic_task": crontab(
+        day_of_month=1, hour=0, minute=0
     ),
-    (
-        "1 0 1 * *",
-        "django.core.management.call_command",
-        ["run_cron_job"],
-        {"jobname": "reset_node_traffic"},
-        ">>" + "/var/log/django-cron.log",
+    "apps.sspanel.tasks.reset_node_traffic_task": crontab(
+        day_of_month=1, hour=0, minute=0
     ),
-    (
-        "0 2 * * *",
-        "django.core.management.call_command",
-        ["run_cron_job"],
-        {"jobname": "clean_traffic_log"},
-        ">>" + "/var/log/django-cron.log",
-    ),
-    (
-        "30 2 * * *",
-        "django.core.management.call_command",
-        ["run_cron_job"],
-        {"jobname": "clean_node_online_log"},
-        ">>" + "/var/log/django-cron.log",
-    ),
-    (
-        "30 1 * * *",
-        "django.core.management.call_command",
-        ["run_cron_job"],
-        {"jobname": "clean_online_ip_log"},
-        ">>" + "/var/log/django-cron.log",
-    ),
-    (
-        "*/5 * * * *",
-        "django.core.management.call_command",
-        ["run_cron_job"],
-        {"jobname": "make_up_lost_order"},
-        ">>" + "/var/log/django-cron.log",
-    ),
-    (
-        "*/1 * * * *",
-        "django.core.management.call_command",
-        ["run_cron_job"],
-        {"jobname": "check_user_state"},
-        ">>" + "/var/log/django-cron.log",
-    ),
-]
+    "apps.sspanel.tasks.check_user_state_task": Duration(minutes=1),
+    "apps.sspanel.tasks.make_up_lost_order_task": Duration(seconds=15),
+    "apps.sspanel.tasks.clean_traffic_log_task": Duration(days=1),
+    "apps.sspanel.tasks.clean_online_ip_log_task": Duration(days=1),
+    "apps.sspanel.tasks.clean_node_online_log_task": Duration(days=1),
+}

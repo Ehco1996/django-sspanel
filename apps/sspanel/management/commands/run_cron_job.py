@@ -1,15 +1,6 @@
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.sspanel.models import (
-    NodeOnlineLog,
-    SSNode,
-    User,
-    UserOnLineIpLog,
-    UserOrder,
-    UserTrafficLog,
-    VmessNode,
-)
+from apps.sspanel import tasks
 from apps.utils import get_current_datetime
 
 
@@ -39,43 +30,28 @@ class Command(BaseCommand):
 
     def check_user_state(self):
         """检测用户状态，将所有账号到期的用户状态重置"""
-        User.check_and_disable_expired_users()
-        User.check_and_disable_out_of_traffic_user()
+        tasks.check_user_state_task()
 
-    def auto_reset_traffic(self):
+    def auto_reset_free_user_traffic(self):
         """重置所有免费用户流量"""
-        for user in User.objects.filter(level=0):
-            user.reset_traffic(settings.DEFAULT_TRAFFIC)
+        tasks.auto_reset_free_user_traffic_task()
 
     def reset_node_traffic(self):
-        """月初重置节点使用流量"""
-        for node in SSNode.objects.all():
-            node.used_traffic = 0
-            node.save()
-
-        for node in VmessNode.objects.all():
-            node.used_traffic = 0
-            node.save()
+        """重置节点使用流量"""
+        tasks.reset_node_traffic_task()
 
     def make_up_lost_order(self):
         """定时补单"""
-        UserOrder.make_up_lost_orders()
+        tasks.make_up_lost_order_task()
 
     def clean_traffic_log(self):
         """清空七天前的所有流量记录"""
-        dt = get_current_datetime().subtract(days=7).date()
-        query = UserTrafficLog.objects.filter(date__lt=dt)
-        count, res = query.delete()
-        print(f"UserTrafficLog  removed count:{count}")
+        tasks.clean_traffic_log_task()
 
     def clean_node_online_log(self):
         """清空所有在线记录"""
-        count = NodeOnlineLog.objects.count()
-        NodeOnlineLog.truncate()
-        print(f"NodeOnlineLog  removed count:{count}")
+        tasks.clean_node_online_log_task()
 
     def clean_online_ip_log(self):
         """清空在线ip记录"""
-        count = UserOnLineIpLog.objects.count()
-        UserOnLineIpLog.truncate()
-        print(f"UserOnLineIpLog  removed count:{count}")
+        tasks.clean_online_ip_log_task()
