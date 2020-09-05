@@ -74,7 +74,7 @@
                         <p class="subtitle"><a class="is-link" href="https://github.com/Ehco1996/v2scar">专用V2ray
                             </a>后端对接地址:</p>
                         {% endif %}
-                        <div class="field is-grouped">
+                        <div class="field is-grouped is-grouped-multiline">
                             <p class="control is-expanded">
                                 <input class="input" id="id-api-endpoint-{{ node.node_type }}-{{ node.node_id }}"
                                     value="{{ node.api_endpoint }}" readonly>
@@ -87,7 +87,7 @@
                         {% if node.node_type == "vmess" %}
                         <hr>
                         <p class="subtitle">Vmess 配置地址:</p>
-                        <div class="field is-grouped">
+                        <div class="field is-grouped is-grouped-multiline">
                             <p class="control is-expanded">
                                 <input class="input" id="id-vmess-config-{{ node.node_type }}-{{ node.node_id }}"
                                     value="{{ node.server_config_endpoint }}" readonly>
@@ -102,7 +102,7 @@
                         {% if node.enable_ehco %}
                         <hr>
                         <p class="subtitle"><a class="is-link" href="https://github.com/Ehco1996/ehco">ehco隧道</a>(落地机)对接地址:</p>
-                        <div class="field is-grouped">
+                        <div class="field is-grouped is-grouped-multiline">
                             <p class="control is-expanded">
                                 <input class="input" id="id-ehco-server-config-{{ node.node_type }}-{{ node.node_id }}" value="{{ node.ehco_api_endpoint }}" readonly>
                             </p>
