@@ -378,7 +378,7 @@ class UserOrder(models.Model, UserPropertyMixin):
                 return order
             with transaction.atomic():
                 out_trade_no = cls.gen_out_trade_no()
-                trade = pay.alipay.api_alipay_trade_precreate(
+                trade = pay.api_alipay_trade_precreate(
                     out_trade_no=out_trade_no,
                     total_amount=amount,
                     subject=settings.ALIPAY_TRADE_INFO.format(amount),
@@ -410,7 +410,8 @@ class UserOrder(models.Model, UserPropertyMixin):
     def make_up_lost_orders(cls):
         now = get_current_datetime()
         for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
-            with lock.order_lock(order.out_trade_no):
+            # NOTE 定时任务跑，抢不到锁就算了吧
+            with lock.order_lock(order.out_trade_no, mute_ex=True):
                 changed = order.check_order_status()
                 if changed:
                     print(f"补单：{order.user}={order.amount}")
@@ -449,7 +450,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         changed = False
         if self.status != self.STATUS_CREATED:
             return changed
-        res = pay.alipay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
+        res = pay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             self.status = self.STATUS_PAID
             self.save()
@@ -788,6 +789,7 @@ class BaseAbstractNode(models.Model):
                     "listen_type": self.ehco_listen_type,
                     "remote": f"{self.ehco_relay_host}:{self.ehco_relay_port}",
                     "transport_type": self.ehco_transport_type,
+                    "white_ip_list": RelayNode.get_ip_list(),
                 }
             ]
         }
@@ -837,6 +839,10 @@ class RelayNode(BaseAbstractNode):
             settings.HOST
             + f"/api/ehco_relay_config/{self.node_id}/?{urlencode(params)}"
         )
+
+    @classmethod
+    def get_ip_list(cls):
+        return [node.server for node in cls.objects.filter(enable=True)]
 
     def rules_count(self):
         return (

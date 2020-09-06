@@ -11,6 +11,7 @@ class GlobalLock(Lock):
         blocking=True,
         blocking_timeout=None,
         thread_local=True,
+        mute_ex=False,
     ):
         if blocking is True:
             blocking_timeout = blocking_timeout or 5
@@ -23,12 +24,16 @@ class GlobalLock(Lock):
             blocking_timeout=blocking_timeout,
             thread_local=thread_local,
         )
+        self.mute_ex = mute_ex
 
     def __enter__(self):
         if self.acquire():
             return self
         else:
-            raise LockError(f"key: {self.name} still locking, please retry it later")
+            if not self.mute_ex:
+                raise LockError(
+                    f"key: {self.name} still locking, please retry it later"
+                )
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:

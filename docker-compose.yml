@@ -90,7 +90,7 @@ services:
       - info
   # 定时任务
   celery-beat:
-    container_name: celery-worker
+    container_name: celery-beat
     restart: always
     image: ehco1996/django-sspanel:runtime
     environment:
