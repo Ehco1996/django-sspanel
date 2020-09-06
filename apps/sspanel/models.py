@@ -378,7 +378,7 @@ class UserOrder(models.Model, UserPropertyMixin):
                 return order
             with transaction.atomic():
                 out_trade_no = cls.gen_out_trade_no()
-                trade = pay.api_alipay_trade_precreate(
+                trade = pay.trade_precreate(
                     out_trade_no=out_trade_no,
                     total_amount=amount,
                     subject=settings.ALIPAY_TRADE_INFO.format(amount),
@@ -423,7 +423,7 @@ class UserOrder(models.Model, UserPropertyMixin):
             if order.status != order.STATUS_CREATED:
                 return True
             signature = data.pop("sign")
-            res = pay.alipay.verify(data, signature)
+            res = pay.verify(data, signature)
             success = res and data["trade_status"] in (
                 "TRADE_SUCCESS",
                 "TRADE_FINISHED",
@@ -450,7 +450,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         changed = False
         if self.status != self.STATUS_CREATED:
             return changed
-        res = pay.api_alipay_trade_query(out_trade_no=self.out_trade_no)
+        res = pay.trade_query(out_trade_no=self.out_trade_no)
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             self.status = self.STATUS_PAID
             self.save()
