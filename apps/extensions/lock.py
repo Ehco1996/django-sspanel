@@ -48,7 +48,7 @@ class LockManager:
 
     def order_lock(self, order_number: str, mute_ex: bool = False):
         key = f"lock.order_lock.{order_number}"
-        return GlobalLock(key, self._redis_client, blocking=False)
+        return GlobalLock(key, self._redis_client, blocking=False, mute_ex=mute_ex)
 
     def user_create_order_lock(self, user_id: int):
         key = f"lock.user_create_order_lock.{user_id}"
