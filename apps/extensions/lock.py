@@ -46,7 +46,7 @@ class LockManager:
     def __init__(self, redis_client) -> None:
         self._redis_client = redis_client
 
-    def order_lock(self, order_number: str):
+    def order_lock(self, order_number: str, mute_ex: bool = False):
         key = f"lock.order_lock.{order_number}"
         return GlobalLock(key, self._redis_client, blocking=False)
 
