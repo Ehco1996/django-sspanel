@@ -1,4 +1,4 @@
-from alipay import AliPay
+from alipay import AliPay, AliPayConfig
 from django.conf import settings
 
 
@@ -12,6 +12,7 @@ class Pay:
             appid=settings.ALIPAY_APP_ID,
             app_private_key_string=settings.ALIPAY_APP_PRIVATE_KEY_STRING,
             alipay_public_key_string=settings.ALIPAY_PUBLIC_KEY_STRING,
+            config=AliPayConfig(timeout=3),
         )
 
     def trade_precreate(
