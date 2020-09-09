@@ -13,7 +13,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_prometheus",
-    "django_crontab",
     "anymail",
     "apps.sspanel",
 ]
