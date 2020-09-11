@@ -83,7 +83,7 @@ services:
     working_dir: /usr/src/app
     command:
       - celery
-      - A
+      - -A
       - apps
       - worker
       - -l
@@ -108,7 +108,7 @@ services:
     working_dir: /usr/src/app
     command:
       - celery
-      - A
+      - -A
       - apps
       - beat
       - -l
