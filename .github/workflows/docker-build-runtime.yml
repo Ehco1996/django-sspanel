@@ -14,5 +14,5 @@ jobs:
         name: ehco1996/django-sspanel
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        tags: "latest,runtime"
+        tags: "runtime"
         dockerfile: Dockerfile
