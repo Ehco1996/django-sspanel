@@ -16,7 +16,7 @@ HOST = os.getenv("HOST", "http://127.0.0.1:8000")
 SECRET_KEY = os.getenv("SECRET_KEY", "aasdasdas")
 
 # 是否开启注册
-ALLOW_REGISTER = os.getenv("ALLOW_REGISTER", True)
+ALLOW_REGISTER = bool(os.getenv("ALLOW_REGISTER", True))
 
 # 默认的theme
 # 可选列表在 apps/constants.py 里的THEME_CHOICES里
@@ -42,16 +42,15 @@ INVITE_NUM = os.getenv("INVITE_NUM ", 5)
 # 网站邀请界面提示语
 INVITEINFO = os.getenv("INVITEINFO", "邀请码实时更新，如果用完了就没了")
 
-
 # 部分API接口TOKEN
 TOKEN = os.getenv("TOKEN", "youowntoken")
 
 # 是否开启用户到期邮件通知
-EXPIRE_EMAIL_NOTICE = os.getenv("EXPIRE_EMAIL_NOTICE", False)
+EXPIRE_EMAIL_NOTICE = bool(os.getenv("EXPIRE_EMAIL_NOTICE", False))
 
 # SHORT_URL_ALPHABET 请随机生成,且不要重复
 DEFAULT_ALPHABET = os.getenv("DEFAULT_ALPHABET", "qwertyuiopasdfghjklzxcvbnm")
 
 # FOR SIMPLE UI
-SIMPLEUI_HOME_INFO = os.getenv("SIMPLEUI_HOME_INFO", False)
-SIMPLEUI_DEFAULT_ICON = os.getenv("SIMPLEUI_DEFAULT_ICON", False)
+SIMPLEUI_HOME_INFO = bool(os.getenv("SIMPLEUI_HOME_INFO", False))
+SIMPLEUI_DEFAULT_ICON = bool(os.getenv("SIMPLEUI_DEFAULT_ICON", False))
