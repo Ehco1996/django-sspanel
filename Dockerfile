@@ -9,4 +9,6 @@ RUN apk add --update --no-cache mariadb-connector-c-dev tzdata \
 	# TODO workaround start
 	&& pip install --no-cache-dir -r /tmp/requirements.txt \
 	# TODO workaround end
-	&& apk del .build-deps
+	&& apk del .build-deps \
+	&& cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+	&& echo "Asia/Shanghai" > /etc/timezone
