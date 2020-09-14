@@ -1,0 +1,5 @@
+FROM k8s.gcr.io/nginx:1.7.9
+
+WORKDIR /mnt/src/django-sspanel/
+
+COPY . /mnt/src/django-sspanel/
