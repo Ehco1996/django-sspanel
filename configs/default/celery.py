@@ -10,3 +10,5 @@ CELERY_BROKER_URL = os.getenv(
 CELERY_TASK_SOFT_TIME_LIMIT = 60 * 2
 # 任务返回后才会从队列拿走
 CELERY_ACKS_LATE = True
+# 每个worker最多执行1000条任务
+CELERY_MAX_TASKS_PER_CHILD = 1000

@@ -1,3 +1,5 @@
+from urllib.error import URLError
+
 from django.http import JsonResponse
 from redis.lock import LockError
 
@@ -13,3 +15,5 @@ class ErrorHandlerMiddleware:
     def process_exception(self, request, exception):
         if isinstance(exception, LockError):
             return JsonResponse({"msg": exception.args[0]})
+        elif isinstance(exception, URLError):
+            return JsonResponse({"msg": "对外请求异常，请稍后再试"})

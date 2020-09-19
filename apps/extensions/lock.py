@@ -53,3 +53,7 @@ class LockManager:
     def user_create_order_lock(self, user_id: int):
         key = f"lock.user_create_order_lock.{user_id}"
         return GlobalLock(key, self._redis_client, blocking=False)
+
+    def user_checkin_lock(self, user_id: int):
+        key = f"lock.user_checkin_lock.{user_id}"
+        return GlobalLock(key, self._redis_client, blocking=False)

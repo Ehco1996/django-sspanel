@@ -7,7 +7,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from apps.ext import encoder
+from apps.ext import encoder, lock
 from apps.sspanel import tasks
 from apps.sspanel.models import (
     Donate,
@@ -198,15 +198,16 @@ class UserCheckInView(View):
     @method_decorator(login_required)
     def post(self, request):
         user = request.user
-        if not user.today_is_checkin:
-            log = UserCheckInLog.checkin(user)
-            data = {
-                "title": "签到成功！",
-                "subtitle": f"获得{traffic_format(log.increased_traffic)}流量！",
-                "status": "success",
-            }
-        else:
-            data = {"title": "签到失败！", "subtitle": "今天已经签到过了", "status": "error"}
+        with lock.user_checkin_lock(user.pk):
+            if not user.today_is_checkin:
+                log = UserCheckInLog.checkin(user)
+                data = {
+                    "title": "签到成功！",
+                    "subtitle": f"获得{traffic_format(log.increased_traffic)}流量！",
+                    "status": "success",
+                }
+            else:
+                data = {"title": "签到失败！", "subtitle": "今天已经签到过了", "status": "error"}
         return JsonResponse(data)
 
 

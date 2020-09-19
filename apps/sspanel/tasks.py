@@ -1,3 +1,5 @@
+from urllib.error import URLError
+
 from django.conf import settings
 
 from apps import celery_app
@@ -167,7 +169,11 @@ def reset_node_traffic_task():
 @celery_app.task
 def make_up_lost_order_task():
     """定时补单"""
-    m.UserOrder.make_up_lost_orders()
+    try:
+        m.UserOrder.make_up_lost_orders()
+    except URLError:
+        # Note请求支付宝挂了，等下次retry就好
+        pass
 
 
 @celery_app.task
