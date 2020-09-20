@@ -402,6 +402,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         if order is None:
             return
         with lock.order_lock(order.out_trade_no):
+            order.refresh_from_db()
             with transaction.atomic():
                 order.check_order_status()
         return order
@@ -412,6 +413,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
             # NOTE 定时任务跑，抢不到锁就算了吧
             with lock.order_lock(order.out_trade_no, mute_ex=True):
+                order.refresh_from_db()
                 changed = order.check_order_status()
                 if changed:
                     print(f"补单：{order.user}={order.amount}")
@@ -420,6 +422,7 @@ class UserOrder(models.Model, UserPropertyMixin):
     def handle_callback_by_alipay(cls, data):
         order = UserOrder.objects.get(out_trade_no=data["out_trade_no"])
         with lock.order_lock(order.out_trade_no):
+            order.refresh_from_db()
             if order.status != order.STATUS_CREATED:
                 return True
             signature = data.pop("sign")
@@ -437,6 +440,7 @@ class UserOrder(models.Model, UserPropertyMixin):
 
     def handle_paid(self):
         # NOTE Must use in transaction
+        self.refresh_from_db()
         if self.status != self.STATUS_PAID:
             return
         self.user.balance += self.amount
