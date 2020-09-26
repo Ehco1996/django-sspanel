@@ -14,3 +14,4 @@ uWSGI==2.0.19.1
 pendulum==2.1.2
 redis==3.5.3
 celery==4.4.7
+python-telegram-bot==12.8

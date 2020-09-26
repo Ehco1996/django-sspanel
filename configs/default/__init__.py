@@ -7,3 +7,4 @@ from .pay import *
 from .redis import *
 from .sentry import *
 from .sites import *
+from .tgbot import *
