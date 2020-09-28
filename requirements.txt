@@ -2,7 +2,7 @@ Django==3.1.1
 django-anymail==7.2.1
 django-countries==6.1.2
 django-prometheus==2.1.0
-django-simpleui==2020.9
+django-simpleui==2020.9.26
 gevent==20.6.2
 Markdown==3.2.2
 mysqlclient==2.0.1
