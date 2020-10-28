@@ -1116,6 +1116,7 @@ class VmessNode(BaseAbstractNode):
             "uuid": user.vmess_uuid,
             "alterId": self.alter_id,
             "cipher": "auto",
+            "udp": True,
         }
         if self.enable_ws:
             config.update(
