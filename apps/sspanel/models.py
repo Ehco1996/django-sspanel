@@ -38,12 +38,20 @@ class User(AbstractUser):
     SUB_TYPE_VMESS = "vmess"
     SUB_TYPE_ALL = "all"
     SUB_TYPE_CLASH = "clash"
-    SUB_TYPES_SET = {SUB_TYPE_SS, SUB_TYPE_VMESS, SUB_TYPE_ALL, SUB_TYPE_CLASH}
+    SUB_TYPE_CLASH_PRO = "clash_pro"
+    SUB_TYPES_SET = {
+        SUB_TYPE_SS,
+        SUB_TYPE_VMESS,
+        SUB_TYPE_ALL,
+        SUB_TYPE_CLASH,
+        SUB_TYPE_CLASH_PRO,
+    }
     SUB_TYPES = (
         (SUB_TYPE_SS, "只订阅SS"),
         (SUB_TYPE_VMESS, "只订阅Vmess"),
         (SUB_TYPE_ALL, "订阅所有"),
         (SUB_TYPE_CLASH, "通过Clash订阅所有"),
+        (SUB_TYPE_CLASH_PRO, "通过ClashPro订阅所有"),
     )
 
     MIN_PORT = 1025
@@ -266,8 +274,8 @@ class User(AbstractUser):
         if sub_type not in self.SUB_TYPES_SET:
             sub_type = self.SUB_TYPE_CLASH
 
-        if sub_type == self.SUB_TYPE_CLASH:
-            return self.get_clash_sub_links()
+        if sub_type in [self.SUB_TYPE_CLASH, self.SUB_TYPE_CLASH_PRO]:
+            return self.get_clash_sub_links(sub_type)
         node_list = []
         if sub_type in [self.SUB_TYPE_SS, self.SUB_TYPE_ALL]:
             node_list.extend(SSNode.get_user_active_nodes(self, True))
@@ -282,14 +290,16 @@ class User(AbstractUser):
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 
-    def get_clash_sub_links(self):
+    def get_clash_sub_links(self, sub_type):
         node_list = SSNode.get_user_active_nodes(
             self, sub_mode=True
         ) + VmessNode.get_user_active_nodes(self, sub_mode=True)
 
         for node in node_list:
             node.clash_link = node.get_clash_link(self)
-        return render_to_string("yamls/clash.yml", {"nodes": node_list})
+        return render_to_string(
+            "yamls/clash.yml", {"nodes": node_list, "sub_type": sub_type}
+        )
 
     def update_from_dict(self, data):
         clean_fields = ["ss_password", "ss_method"]
