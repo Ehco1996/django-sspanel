@@ -11,14 +11,14 @@ services:
   nginx:
     image: nginx:1.7.9
     environment:
-      TZ: Asia/Shanghai
+      TZ: ${TZ:-Asia/Shanghai}
     restart: always
     container_name: nginx
     volumes:
       - ./configs/nginx/:/etc/nginx/conf.d
       - .:/usr/src/app
     ports:
-      - 80:80
+      - ${port:-80}:80
     depends_on:
       - web
     networks:
@@ -28,7 +28,7 @@ services:
     container_name: mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: yourpass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-yourpass}
       MYSQL_DATABASE: sspanel
     volumes:
       - ./configs/mysqld/mysqld_charset.cnf:/etc/mysql/conf.d/mysqld_charset.cnf
@@ -47,12 +47,14 @@ services:
     container_name: web
     restart: always
     image: ehco1996/django-sspanel:runtime
+    env_file:
+      - .env
     environment:
-      MYSQL_PASSWORD: yourpass
-      MYSQL_HOST: mysql
-      DJANGO_ENV: production
-      TZ: Asia/Shanghai
-      REDIS_HOST: redis
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-yourpass}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      DJANGO_ENV: ${DJANGO_ENV:-production}
+      TZ: ${TZ:-Asia/Shanghai}
+      REDIS_HOST: ${REDIS_HOST:-redis}
     volumes:
       - .:/usr/src/app
     depends_on:
@@ -63,16 +65,20 @@ services:
     ports:
       - 8080:8080
     working_dir: /usr/src/app
+    entrypoint: sh ./wait-for-it.sh mysql:3306 --
     command: uwsgi uwsgi.ini
   celery-worker:
     container_name: celery-worker
     restart: always
     image: ehco1996/django-sspanel:runtime
+    env_file:
+      - .env
     environment:
-      MYSQL_PASSWORD: yourpass
-      MYSQL_HOST: mysql
-      DJANGO_ENV: production
-      REDIS_HOST: redis
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-yourpass}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      DJANGO_ENV: ${DJANGO_ENV:-production}
+      TZ: ${TZ:-Asia/Shanghai}
+      REDIS_HOST: ${REDIS_HOST:-redis}
     volumes:
       - .:/usr/src/app
     depends_on:
@@ -81,6 +87,7 @@ services:
     networks:
       - sspanel
     working_dir: /usr/src/app
+    entrypoint: sh ./wait-for-it.sh mysql:3306 --
     command:
       - celery
       - -A
@@ -93,11 +100,14 @@ services:
     container_name: celery-beat
     restart: always
     image: ehco1996/django-sspanel:runtime
+    env_file:
+      - .env
     environment:
-      MYSQL_PASSWORD: yourpass
-      MYSQL_HOST: mysql
-      DJANGO_ENV: production
-      REDIS_HOST: redis
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-yourpass}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      DJANGO_ENV: ${DJANGO_ENV:-production}
+      TZ: ${TZ:-Asia/Shanghai}
+      REDIS_HOST: ${REDIS_HOST:-redis}
     volumes:
       - .:/usr/src/app
     depends_on:
@@ -106,6 +116,7 @@ services:
     networks:
       - sspanel
     working_dir: /usr/src/app
+    entrypoint: sh ./wait-for-it.sh mysql:3306 --
     command:
       - celery
       - -A
