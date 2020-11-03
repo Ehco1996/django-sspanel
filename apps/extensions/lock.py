@@ -11,7 +11,6 @@ class GlobalLock(Lock):
         blocking=True,
         blocking_timeout=None,
         thread_local=True,
-        mute_ex=False,
     ):
         if blocking is True:
             blocking_timeout = blocking_timeout or 5
@@ -24,16 +23,12 @@ class GlobalLock(Lock):
             blocking_timeout=blocking_timeout,
             thread_local=thread_local,
         )
-        self.mute_ex = mute_ex
 
     def __enter__(self):
         if self.acquire():
             return self
         else:
-            if not self.mute_ex:
-                raise LockError(
-                    f"key: {self.name} still locking, please retry it later"
-                )
+            raise LockError(f"key: {self.name} still locking, please retry it later")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
@@ -46,9 +41,9 @@ class LockManager:
     def __init__(self, redis_client) -> None:
         self._redis_client = redis_client
 
-    def order_lock(self, order_number: str, mute_ex: bool = False):
+    def order_lock(self, order_number: str):
         key = f"lock.order_lock.{order_number}"
-        return GlobalLock(key, self._redis_client, blocking=False, mute_ex=mute_ex)
+        return GlobalLock(key, self._redis_client, blocking=False)
 
     def user_create_order_lock(self, user_id: int):
         key = f"lock.user_create_order_lock.{user_id}"

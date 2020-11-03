@@ -21,6 +21,7 @@ from django.db import connection, models, transaction
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import functional, timezone
+from redis.exceptions import LockError
 
 from apps import constants as c
 from apps.ext import cache, encoder, lock, pay
@@ -421,12 +422,15 @@ class UserOrder(models.Model, UserPropertyMixin):
     def make_up_lost_orders(cls):
         now = get_current_datetime()
         for order in cls.objects.filter(status=cls.STATUS_CREATED, expired_at__gte=now):
-            # NOTE 定时任务跑，抢不到锁就算了吧
-            with lock.order_lock(order.out_trade_no, mute_ex=True):
-                order.refresh_from_db()
-                changed = order.check_order_status()
-                if changed:
-                    print(f"补单：{order.user}={order.amount}")
+            try:
+                with lock.order_lock(order.out_trade_no):
+                    order.refresh_from_db()
+                    changed = order.check_order_status()
+                    if changed:
+                        print(f"补单：{order.user}={order.amount}")
+            except LockError:
+                # NOTE 定时任务跑，抢不到锁就算了吧
+                pass
 
     @classmethod
     def handle_callback_by_alipay(cls, data):
