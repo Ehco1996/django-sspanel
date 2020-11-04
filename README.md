@@ -2,11 +2,15 @@
 
 用diango开发的全新的shadowsocks网络面板
 
-
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
 * Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
+## 捐赠
+
+欢迎大家给我捐赠,我的比特币钱包地址: `1Nb98htAPPGE8ihBa5hu5jXs4vXLfsC7Bo`
+
+> 捐赠不会为你带来什么，不捐也不会让你失去什么，但是如果你心情好，完全可以请我喝杯咖啡不是~
 
 ## 视频安装教程
 
@@ -46,7 +50,6 @@
 
 ![](https://user-images.githubusercontent.com/24697284/53059228-12e0dd00-34f1-11e9-8b15-e832c182d010.png)
 
-
 * 节点信息：
 
 ![](https://user-images.githubusercontent.com/24697284/53059231-13797380-34f1-11e9-8702-39c9063dd049.png)
@@ -55,22 +58,20 @@
 
 ![](https://user-images.githubusercontent.com/24697284/53059233-14120a00-34f1-11e9-94f3-b2ca2ab88882.png)
 
-
 **后台界面:**
 
 * 节点管理：
 
 ![](https://user-images.githubusercontent.com/24697284/53059234-14120a00-34f1-11e9-8937-ea56cf4077ed.png)
 
-
 ## 部署教程：
 
-部署需要vps的支持  
-我推荐 Vultr 家，最便宜的机房2.5美金一个月  
-支持支付宝支付，对于新手来说，拿来练手最合适不过了  
-这里有一个推广链接 ：https://www.vultr.com/?ref=7914717-4F  
-**通过这个链接注册，你能得到50美元的回赠！,而我能得到25美元的回赠**
+部署需要vps的支持
+我推荐 Vultr 家，最便宜的机房2.5美金一个月
+支持支付宝支付，对于新手来说，拿来练手最合适不过了
+这里有一个推广链接 ：https://www.vultr.com/?ref=7914717-4F
 
+**通过这个链接注册，你能得到50美元的回赠！, 而我能得到25美元的回赠**
 
 Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/docker%E9%83%A8%E7%BD%B2)
 
