@@ -21,7 +21,7 @@ USAGE
 
 wait_for() {
   for i in `seq $TIMEOUT` ; do
-    nc -z "$HOST" "$PORT" > /dev/null 2>&1
+    nc -z "$rHOST" "$rPORT" > /dev/null 2>&1
 
     result=$?
     if [ $result -eq 0 ] ; then
@@ -40,8 +40,8 @@ while [ $# -gt 0 ]
 do
   case "$1" in
     *:* )
-    HOST=$(printf "%s\n" "$1"| cut -d : -f 1)
-    PORT=$(printf "%s\n" "$1"| cut -d : -f 2)
+    rHOST=$(printf "%s\n" "$1"| cut -d : -f 1)
+    rPORT=$(printf "%s\n" "$1"| cut -d : -f 2)
     shift 1
     ;;
     -q | --quiet)
@@ -71,7 +71,7 @@ do
   esac
 done
 
-if [ "$HOST" = "" -o "$PORT" = "" ]; then
+if [ "$rHOST" = "" -o "$rPORT" = "" ]; then
   echoerr "Error: you need to provide a host and port to test."
   usage 2
 fi
