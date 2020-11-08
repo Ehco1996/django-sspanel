@@ -37,12 +37,14 @@ class User(AbstractUser):
 
     SUB_TYPE_SS = "ss"
     SUB_TYPE_VMESS = "vmess"
+    SUB_TYPE_TROJAN = "trojan"
     SUB_TYPE_ALL = "all"
     SUB_TYPE_CLASH = "clash"
     SUB_TYPE_CLASH_PRO = "clash_pro"
     SUB_TYPES_SET = {
         SUB_TYPE_SS,
         SUB_TYPE_VMESS,
+        SUB_TYPE_TROJAN,
         SUB_TYPE_ALL,
         SUB_TYPE_CLASH,
         SUB_TYPE_CLASH_PRO,
@@ -50,6 +52,7 @@ class User(AbstractUser):
     SUB_TYPES = (
         (SUB_TYPE_SS, "只订阅SS"),
         (SUB_TYPE_VMESS, "只订阅Vmess"),
+        (SUB_TYPE_TROJAN, "只订阅Trojan"),
         (SUB_TYPE_ALL, "订阅所有"),
         (SUB_TYPE_CLASH, "通过Clash订阅所有"),
         (SUB_TYPE_CLASH_PRO, "通过ClashPro订阅所有"),
@@ -282,19 +285,23 @@ class User(AbstractUser):
             node_list.extend(SSNode.get_user_active_nodes(self, True))
         if sub_type in [self.SUB_TYPE_VMESS, self.SUB_TYPE_ALL]:
             node_list.extend(VmessNode.get_user_active_nodes(self, True))
+        if sub_type in [self.SUB_TYPE_TROJAN, self.SUB_TYPE_ALL]:
+            node_list.extend(TrojanNode.get_user_active_nodes(self, True))
         sub_links = "MAX={}\n".format(len(node_list))
         for node in node_list:
             if type(node) == SSNode:
                 sub_links += node.get_ss_link(self) + "\n"
             if type(node) == VmessNode:
                 sub_links += node.get_vmess_link(self) + "\n"
+            if type(node) == TrojanNode:
+                sub_links += node.get_trojan_link(self) + "\n"
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 
     def get_clash_sub_links(self, sub_type):
         node_list = SSNode.get_user_active_nodes(
             self, sub_mode=True
-        ) + VmessNode.get_user_active_nodes(self, sub_mode=True)
+        ) + VmessNode.get_user_active_nodes(self, sub_mode=True) + TrojanNode.get_user_active_nodes(self, sub_mode=True)
 
         for node in node_list:
             node.clash_link = node.get_clash_link(self)
@@ -581,9 +588,11 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 
 
 class NodeOnlineLog(models.Model):
+    #NOTE add trojan
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VMESS = "vmess"
-    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
+    NODE_TYPE_TROJAN = "trojan"
+    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS), (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN))
 
     node_id = models.IntegerField()
     node_type = models.CharField(
@@ -637,6 +646,11 @@ class NodeOnlineLog(models.Model):
 
         for node in VmessNode.get_active_nodes():
             log = cls.get_latest_log_by_node_id(cls.NODE_TYPE_VMESS, node.node_id)
+            if log:
+                count += log.online_user_count
+
+        for node in TrojanNode.get_active_nodes():
+            log = cls.get_latest_log_by_node_id(cls.NODE_TYPE_TROJAN, node.node_id)
             if log:
                 count += log.online_user_count
         return count
@@ -843,6 +857,9 @@ class RelayNode(BaseAbstractNode):
     ehco_vmess_lb_port = models.IntegerField(
         "vmess负载均衡端口", help_text="vmess负载均衡端口", null=True, blank=True
     )
+    ehco_trojan_lb_port = models.IntegerField(
+        "trojan负载均衡端口", help_text="trojan负载均衡端口", null=True, blank=True
+    )
 
     server = models.CharField("服务器地址", max_length=128)
     isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
@@ -866,6 +883,7 @@ class RelayNode(BaseAbstractNode):
         return (
             VmessRelayRule.objects.filter(relay_node=self).count()
             + SSRelayRule.objects.filter(relay_node=self).count()
+            + TrojanRelayRule.objects.filter(relay_node=self).count()
         )
 
     rules_count.short_description = "规则数量"
@@ -894,6 +912,22 @@ class RelayNode(BaseAbstractNode):
                 remote = f"{node.server}:{node.ehco_listen_port}"
             else:
                 remote = f"{node.server}:{node.service_port}"
+            if rule.transport_type in c.WS_TRANSPORTS:
+                remote = "wss://" + remote
+            data.append(
+                {
+                    "listen": f"0.0.0.0:{rule.relay_port}",
+                    "listen_type": rule.listen_type,
+                    "remote": remote,
+                    "transport_type": rule.transport_type,
+                }
+            )
+        for rule in self.trojan_relay_rules.select_related().all():
+            node = rule.trojan_node
+            if node.enable_ehco:
+                remote = f"{node.server}:{node.ehco_listen_port}"
+            else:
+                remote = f"{node.server}:{node.port}"
             if rule.transport_type in c.WS_TRANSPORTS:
                 remote = "wss://" + remote
             data.append(
@@ -941,7 +975,243 @@ class RelayNode(BaseAbstractNode):
                     }
                 )
 
+        if self.ehco_trojan_lb_port:
+            remotes = []
+            for node in TrojanNode.get_enable_ehco_lb_nodes(self):
+                remote = f"{node.server}:{node.ehco_listen_port}"
+                if self.ehco_transport_type in c.WS_TRANSPORTS:
+                    remote = "wss://" + remote
+                remotes.append(remote)
+            if remotes:
+                data.append(
+                    {
+                        "listen": f"0.0.0.0:{self.ehco_trojan_lb_port}",
+                        "listen_type": self.ehco_listen_type,
+                        "remote": "",
+                        "transport_type": self.ehco_transport_type,
+                        "lb_remotes": remotes,
+                    }
+                )
+
         return {"configs": data}
+
+
+class TrojanNode(BaseAbstractNode):
+
+    BASE_CONFIG = {
+        "stats": {},
+        "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
+        "log": {"loglevel": "info"},
+        "policy": {
+            "system": {"statsInboundUplink": True, "statsInboundDownlink": True},
+        },
+        "inbounds": [],
+        "outbounds": [{"protocol": "freedom", "settings": {}}],
+        "routing": {
+            "settings": {
+                "rules": [
+                    {"inboundTag": ["api"], "outboundTag": "api", "type": "field"}
+                ]
+            },
+            "strategy": "rules",
+        },
+    }
+
+    server = models.CharField("服务器地址", max_length=128)
+    inbound_tag = models.CharField("标签", default="proxy", max_length=64)
+    service_port = models.IntegerField("服务端端口", default=443)
+    client_port = models.IntegerField("客户端端口", default=443)
+    listen_host = models.CharField("本地监听地址", max_length=64, default="0.0.0.0")
+    grpc_host = models.CharField("grpc地址", max_length=64, default="0.0.0.0")
+    grpc_port = models.CharField("grpc端口", max_length=64, default="8080")
+    network = models.CharField("连接方式", max_length=64, default="tcp")
+    security = models.CharField("加密方式", max_length=64, default="tls", blank=True, null=True)
+    alpn = models.CharField("alpn", max_length=64, default="http/1.1", blank=True, null=True)
+    certificateFile = models.CharField("crt地址", max_length=64, blank=True, null=True)
+    keyFile = models.CharField("key地址", max_length=64, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Trojan节点"
+
+    @classmethod
+    def get_user_active_nodes(cls, user, sub_mode=False):
+        nodes = super(TrojanNode, cls).get_user_active_nodes(user, sub_mode)
+        if not nodes:
+            return []
+        fake_template = nodes[0]
+        # NOTE 添加relay node fake to trojan node
+        for node in RelayNode.get_active_nodes():
+            if not node.ehco_trojan_lb_port:
+                continue
+            fake = deepcopy(fake_template)
+            fake.name = f"{node.name}-{node.isp}-负载均衡-trojan"
+            fake.server = node.server
+            fake.port = node.ehco_trojan_lb_port
+            fake.client_port = node.ehco_trojan_lb_port
+            nodes.append(fake)
+        return nodes
+
+    @classmethod
+    @cache.cached(ttl=60 * 60 * 24)
+    def get_user_trojan_configs_by_node_id(cls, node_id):
+        node = cls.get_or_none_by_node_id(node_id)
+        if not node:
+            return {"tag": "", "configs": []}
+
+        configs = []
+        for d in User.objects.filter(level__gte=node.level).values(
+                "id",
+                "email",
+                "ss_password",
+                "total_traffic",
+                "upload_traffic",
+                "download_traffic",
+        ):
+            enable = d["total_traffic"] > (d["download_traffic"] + d["upload_traffic"])
+            configs.append(
+                {
+                    "user_id": d["id"],
+                    "email": d["email"],
+                    "password": d["ss_password"],
+                    "level": node.level,
+                    "enable": enable,
+                }
+            )
+        if not node.enable:
+            for cfg in configs:
+                cfg["enable"] = False
+        return {
+            "configs": configs,
+            "grpc_endpoint": f"{node.grpc_host}:{node.grpc_port}",
+            "tag": node.inbound_tag,
+            "protocol": "trojan"
+        }
+
+    @property
+    def node_type(self):
+        return "trojan"
+
+    @property
+    def enable_tls(self):
+        return self.security and self.alpn and self.certificateFile and self.keyFile
+    @property
+    def human_speed_limit(self):
+        # NOTE vemss目前不支持限速
+        return "不限速"
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+                settings.HOST
+                + f"/api/user_trojan_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def server_config_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return (
+                settings.HOST
+                + f"/api/trojan_server_config/{self.node_id}/?{urlencode(params)}"
+        )
+
+    @property
+    def level_policy(self):
+        return {self.level: {"statsUserUplink": True, "statsUserDownlink": True}}
+
+    @property
+    def grpc_inbound(self):
+        return {
+            "listen": self.grpc_host,
+            "port": self.grpc_port,
+            "protocol": "dokodemo-door",
+            "settings": {"address": self.grpc_host},
+            "tag": "api",
+        }
+
+    @property
+    def trojan_inbound(self):
+        inbound = {
+            "port": self.service_port,
+            "protocol": "trojan",
+            "listen": self.listen_host,
+            "tag": self.inbound_tag,
+            "settings": {"clients": []},
+            "streamSettings": {"network": self.network}
+        }
+        if self.enable_tls:
+            inbound["streamSettings"]["security"] = self.security
+            tlsSettings = {
+                "alpn": [
+                    self.alpn
+                ],
+                "certificates": [
+                    {
+                        "certificateFile": self.certificateFile,
+                        "keyFile": self.keyFile
+                    }
+                ]
+
+            }
+            inbound["streamSettings"]["tlsSettings"] = tlsSettings
+        return inbound
+
+    @property
+    def server_config(self):
+        config = deepcopy(self.BASE_CONFIG)
+        config["policy"]["levels"] = self.level_policy
+        config["inbounds"].append(self.trojan_inbound)
+        config["inbounds"].append(self.grpc_inbound)
+        return config
+
+    def get_trojan_link(self, user):
+        # NOTE hardcode method to none
+        return "trojan://{}@{}:{}#{}".format(user.ss_password, self.server, self.client_port, quote(self.name))
+
+    def get_clash_link(self, user):
+        config = {
+            "name": self.name,
+            "type": "trojan",
+            "server": self.server,
+            "port": self.client_port,
+            "password": user.ss_password,
+            "udp": True,
+        }
+        #TODO 还得改改
+        #yaml配置是这样的：
+        # sni: example.com # aka server name
+        # alpn:
+        #   - h2
+        #   - http/1.1
+        # skip-cert-verify: true
+        #json不好转
+        # if self.enable_tls:
+        #     config.update(
+        #         {
+        #             "alpn": self.alpn
+        #         }
+        #     )
+        return json.dumps(config, ensure_ascii=False)
+
+    def to_dict_with_extra_info(self, user):
+        data = model_to_dict(self)
+        data.update(
+            NodeOnlineLog.get_latest_online_log_info(
+                NodeOnlineLog.NODE_TYPE_TROJAN, self.node_id
+            )
+        )
+        data["node_uid"] = uuid4()
+        data["password"] = user.ss_password
+        data["country"] = self.country.lower()
+        data["trojan_link"] = self.get_trojan_link(user)
+        data["ehco_api_endpoint"] = self.ehco_api_endpoint
+        if self.enable_relay:
+            data["enable_relay"] = True
+            data["relay_rules"] = [
+                rule.to_dict_with_extra_info(user)
+                for rule in TrojanRelayRule.get_by_node(self)
+            ]
+        return data
 
 
 class VmessNode(BaseAbstractNode):
@@ -1031,6 +1301,7 @@ class VmessNode(BaseAbstractNode):
             "configs": configs,
             "tag": node.inbound_tag,
             "grpc_endpoint": f"{node.grpc_host}:{node.grpc_port}",
+            "protocol": "vmess"
         }
 
     @property
@@ -1331,9 +1602,44 @@ class BaseRelayRule(models.Model):
         remark = f"{self.relay_node.name}{self.relay_node.isp}-"
         if self.node_type == "vmess":
             remark += f"{self.vmess_node.name}-vmess"
-        else:
+        elif self.node_type == "ss":
             remark += f"{self.ss_node.name}-ss"
+        elif self.node_type == "trojan":
+            remark += f"{self.trojan_node.name}-trojan"
         return remark
+
+
+class TrojanRelayRule(BaseRelayRule):
+
+    trojan_node = models.ForeignKey(
+        TrojanNode,
+        on_delete=models.CASCADE,
+        verbose_name="Trojan节点",
+        related_name="relay_rules",
+    )
+    relay_node = models.ForeignKey(
+        RelayNode,
+        on_delete=models.SET_NULL,
+        verbose_name="中转节点",
+        blank=True,
+        null=True,
+        related_name="trojan_relay_rules",
+    )
+
+    class Meta:
+        verbose_name_plural = "Trojan转发规则"
+
+    @classmethod
+    def get_by_node(cls, node):
+        return cls.objects.filter(trojan_node=node, relay_node__enable=True)
+
+    def get_user_relay_link(self, user):
+        # NOTE hardcode method to none
+        return "trojan://{}@{}:{}#{}".format(user.ss_password, self.relay_host, self.relay_port, quote(self.remark))
+
+    @property
+    def node_type(self):
+        return "trojan"
 
 
 class VmessRelayRule(BaseRelayRule):
@@ -1421,8 +1727,9 @@ class SSRelayRule(BaseRelayRule):
 class UserTrafficLog(models.Model, UserPropertyMixin):
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VMESS = "vmess"
-    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS))
-    NODE_MODEL_DICT = {NODE_TYPE_SS: SSNode, NODE_TYPE_VMESS: VmessNode}
+    NODE_TYPE_TROJAN = "trojan"
+    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS), (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN))
+    NODE_MODEL_DICT = {NODE_TYPE_SS: SSNode, NODE_TYPE_VMESS: VmessNode, NODE_TYPE_TROJAN: TrojanNode}
 
     user_id = models.IntegerField()
     node_type = models.CharField(

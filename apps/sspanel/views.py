@@ -20,7 +20,7 @@ from apps.sspanel.models import (
     SSNode,
     Ticket,
     User,
-    VmessNode,
+    VmessNode, TrojanNode,
 )
 from apps.utils import traffic_format
 
@@ -159,9 +159,14 @@ class NodeInfoView(LoginRequiredMixin, View):
         vmess_node_list = [
             node.to_dict_with_extra_info(user) for node in VmessNode.get_active_nodes()
         ]
+        # trojan node
+        trojan_node_list = [
+            node.to_dict_with_extra_info(user) for node in TrojanNode.get_active_nodes()
+        ]
         context = {
             "ss_node_list": ss_node_list,
             "vmess_node_list": vmess_node_list,
+            "trojan_node_list": trojan_node_list,
             "user": user,
         }
         Announcement.send_first_visit_msg(request)

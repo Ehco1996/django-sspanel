@@ -331,6 +331,152 @@
         {% endfor %}
     </div>
     {% endif %}
+    {% if trojan_node_list %}
+        <hr>
+        <div id="id-trojan-node-list">
+            {% for node in trojan_node_list %}
+                <div class="node-cell" data-id="{{ node.node_uid }}">
+                    <div class="card">
+                        <div class="card-header">
+                            {% if node.online == True %}
+                                <p class="card-header-title">
+                                    <span class="tag is-primary is-rounded is-hidden-mobile">Trojan</span>
+                                    <span class="tag is-success is-rounded">在线</span>&nbsp;{{ node.name }}
+                                </p>
+                            {% else %}
+                                <p class="card-header-title">
+                                    <span class="tag is-primary is-rounded is-hidden-mobile">Trojan</span>
+                                    <span class="tag is-danger is-rounded">掉线</span>&nbsp;{{ node.name }}
+                                </p>
+                            {% endif %}
+                            <p class="card-header-icon">地区：
+                                <span class="icon">
+                            <i class="flag-icon flag-icon-{{ node.country }}"></i>
+                        </span>
+                            </p>
+                            <a id="id-icon-{{ node.node_uid }}" class="card-header-icon"
+                               onclick="$(`#id-trojan-card-body-{{ node.node_uid }}`).toggle('swing')">
+                        <span class="icon">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </span>
+                            </a>
+                        </div>
+                        {% if user.level >= node.level %}
+                            <div id="id-trojan-card-body-{{ node.node_uid }}" hidden="true">
+                                <div class="card-content">
+                                    <div class="content">
+                                        <p>{{ node.info }}</p>
+                                        {%if node.enlarge_scale != 1.00 %}
+                                            <p>流量倍率：<code>{{ node.enlarge_scale }}</code></p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.node_uid }}"
+                                       data-target="modal-qrcode-trojan-{{node.node_uid }}-{{ node.name }}">二维码</a>
+                                    <a class="card-footer-item modal-button"
+                                       data-target="trojan-modal-config-{{ node.node_uid }}">配置</a>
+                                    <a class="card-footer-item">
+                                        <span class="icon">
+                                            <i class="fa fa-user">「{{ node.online_user_count }}」</i>
+                                        </span>
+                                    </a>
+                                </div>
+                                <!--配置部分 -->
+                                <div class="modal nodeinfo" id="trojan-modal-config-{{ node.node_uid }}">
+                                    <div class="modal-background"></div>
+                                    <div class="modal-card">
+                                        <header class="modal-card-head">
+                                            <p class="modal-card-title">节点配置信息:</p>
+                                            <button class="delete"></button>
+                                        </header>
+                                        <section class="modal-card-body">
+                                            <table class="table is-fullwidth is-bordered is-striped ">
+                                                {% if node.enable_relay %}
+                                                    {% for rule in node.relay_rules %}
+                                                        <tr>
+                                                            <td class="notification is-info">节点地址 - {{ rule.remark }}:</td>
+                                                            <td class="notification">{{ rule.relay_host }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="notification">端口:</td>
+                                                            <td class="notification">{{ rule.relay_port }}</td>
+                                                        </tr>
+                                                    {% endfor%}
+                                                {% else %}
+                                                    <tr>
+                                                        <td class="notification">节点地址:</td>
+                                                        <td class="notification">{{ node.server }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="notification">端口:</td>
+                                                        <td class="notification">{{ node.client_port }}</td>
+                                                    </tr>
+                                                {% endif %}
+                                                <tr>
+                                                    <td class="notification">密码:</td>
+                                                    <td class="notification">{{ node.password }}</td>
+                                                </tr>
+                                            </table>
+                                            {% if node.enable_relay %}
+                                                {% for rule in node.relay_rules %}
+                                                    <p class="subtitle">配置链接 - {{ rule.remark }}：</p>
+                                                    <a href={{ rule.relay_link }}>手机上用默认浏览器打开点我就可以直接添加配置(Trojan)</a>
+                                                    <hr>
+                                                {% endfor%}
+                                            {% else %}
+                                                <p class="subtitle">配置链接：</p>
+                                                <a href={{ node.trojan_link }}>手机上用默认浏览器打开点我就可以直接添加配置(Trojan)</a>
+                                            {% endif %}
+                                        </section>
+                                    </div>
+                                </div>
+                                <!--二维码部分 -->
+                                <div class="modal" id="modal-qrcode-trojan-{{node.node_uid }}-{{ node.name }}">
+                                    <div class="modal-background"></div>
+                                    <div class="modal-card">
+                                        <header class="modal-card-head">
+                                            <p class="modal-card-title">节点:
+                                                <strong>{{ node.name }}</strong> 配置二维码</p>
+                                            <button class="delete" aria-label="close"></button>
+                                        </header>
+                                        <section class="modal-card-body">
+                                            <div class="box">
+
+                                                {% if node.enable_relay %}
+                                                    {% for rule in node.relay_rules %}
+                                                        <p class="subtitle">{{ rule.remark }}:</p>
+                                                        <div class="qr-code-trojan-{{ node.node_uid }}" data-trojan_link={{ rule.relay_link }}>
+                                                        </div>
+                                                        <hr>
+                                                    {% endfor%}
+                                                {% else %}
+                                                    <div class="qr-code-trojan-{{ node.node_uid }}" data-trojan_link={{ node.trojan_link }}></div>
+                                                {% endif %}
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div id="id-ss-card-body-{{ node.node_uid }}" hidden="true">
+                                <div class="card-content">
+                                    <article class="message is-danger">
+                                        <div class="message-body">
+                                            <p>该线路为VIP线路
+                                                <strong>购买对应商品 提升至等级:「{{node.level}}」后</strong> 才能看见节点配置哟！</p>
+                                            <a class="is-link" href="{% url 'sspanel:shop' %}">点我购买！</a>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if not forloop.last %}<br>{% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 
 
@@ -382,6 +528,22 @@
             vmess = $(vmess)
             if (vmess.children().length == 0) {
                 vmess.qrcode(toUtf8(vmess.data("vmess_link")))
+            }
+        })
+    })
+
+    var TrojanNodeList = $("#id-trojan-node-list")
+    // 事件委托绑定按钮
+    TrojanNodeList.on('click', 'a', function (event) {
+        var target = $(event.target)
+        var node = target.closest('.node-cell')
+        // 找到节点id
+        var node_id = node.data('id')
+        node.find(`.qr-code-trojan-${node_id}`).each(function (idx, trojan) {
+            trojan = $(trojan)
+            console.log(trojan)
+            if (trojan.children().length === 0) {
+                trojan.qrcode(toUtf8(trojan.data("trojan_link")))
             }
         })
     })

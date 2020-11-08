@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
 from apps.constants import AEAD_METHODS
-from apps.sspanel.models import Announcement, Goods, InviteCode, SSNode, User, VmessNode
+from apps.sspanel.models import Announcement, Goods, InviteCode, SSNode, User, VmessNode, TrojanNode
 
 
 class RegisterForm(UserCreationForm):
@@ -193,6 +193,38 @@ class VmessNodeForm(ModelForm):
             "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
         }
 
+class TrojanNodeForm(ModelForm):
+    class Meta:
+        model = TrojanNode
+        fields = "__all__"
+        widgets = {
+            "node_id": forms.NumberInput(attrs={"class": "input"}),
+            "level": forms.NumberInput(attrs={"class": "input"}),
+            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
+            "name": forms.TextInput(attrs={"class": "input"}),
+            "inbound_tag": forms.TextInput(attrs={"class": "input"}),
+            "service_port": forms.NumberInput(attrs={"class": "input"}),
+            "client_port": forms.NumberInput(attrs={"class": "input"}),
+            "info": forms.TextInput(attrs={"class": "input"}),
+            "server": forms.TextInput(attrs={"class": "input"}),
+            "listen_host": forms.TextInput(attrs={"class": "input"}),
+            "grpc_host": forms.TextInput(attrs={"class": "input"}),
+            "grpc_port": forms.TextInput(attrs={"class": "input"}),
+            "country": forms.Select(attrs={"class": "input"}),
+            "used_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "total_traffic": forms.NumberInput(attrs={"class": "input"}),
+            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "ehco_listen_host": forms.TextInput(attrs={"class": "input"}),
+            "ehco_listen_port": forms.TextInput(attrs={"class": "input"}),
+            "ehco_listen_type": forms.Select(attrs={"class": "input"}),
+            "ehco_transport_type": forms.Select(attrs={"class": "input"}),
+            "network": forms.TextInput(attrs={"class": "input"}),
+            "alpn": forms.TextInput(attrs={"class": "input"}),
+            "certificateFile": forms.TextInput(attrs={"class": "input"}),
+            "keyFile": forms.TextInput(attrs={"class": "input"}),
+            "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
+            "security": forms.TextInput(attrs={"class": "input"})
+        }
 
 class GoodsForm(ModelForm):
     class Meta:

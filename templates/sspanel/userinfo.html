@@ -172,6 +172,20 @@
                                 </p>
                             </div>
                             <hr>
+                            <p class="subtitle">订阅Trojan</p>
+                            <div class="field is-grouped is-grouped-multiline">
+                                <p class="control is-expanded">
+                                    <input class="input" id="id-sub-link-trojan" value="{{ sub_link }}&sub_type=trojan"
+                                           readonly>
+                                </p>
+                                <p class="control">
+                                    <a class="button is-rounded" id="id-button-clip"
+                                       data-clipboard-target="#id-sub-link-trojan">
+                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                    </a>
+                                </p>
+                            </div>
+                            <hr>
                             <p class="subtitle">订阅Clash</p>
                             <div class="field is-grouped is-grouped-multiline">
                                 <p class="control is-expanded">
@@ -200,7 +214,7 @@
                                 </p>
                             </div>
                             <hr>
-                            <p class="subtitle">同时订阅SS/Vmess</p>
+                            <p class="subtitle">同时订阅SS/Vmess/Trojan</p>
                             <div class="field is-grouped is-grouped-multiline">
                                 <p class="control is-expanded">
                                     <input class="input" id="id-sub-link-all" value="{{ sub_link }}&sub_type=all"

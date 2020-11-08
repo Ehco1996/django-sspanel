@@ -9,7 +9,7 @@ from django.views import View
 
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.sspanel.forms import AnnoForm, GoodsForm, SSNodeForm, UserForm, VmessNodeForm
+from apps.sspanel.forms import AnnoForm, GoodsForm, SSNodeForm, UserForm, VmessNodeForm, TrojanNodeForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -23,7 +23,7 @@ from apps.sspanel.models import (
     User,
     UserCheckInLog,
     UserOnLineIpLog,
-    VmessNode,
+    VmessNode, TrojanNode,
 )
 
 
@@ -32,6 +32,7 @@ class NodeListView(StaffRequiredMixin, View):
         context = {
             "node_list": list(SSNode.objects.all().order_by("country", "name"))
             + list(VmessNode.objects.all().order_by("country", "name"))
+            + list(TrojanNode.objects.all().order_by("country", "name"))
         }
         return render(request, "my_admin/node_list.html", context=context)
 
@@ -42,6 +43,8 @@ class NodeView(StaffRequiredMixin, View):
             form = VmessNodeForm()
         elif node_type == "ss":
             form = SSNodeForm()
+        elif node_type == "trojan":
+            form = TrojanNodeForm()
         return render(request, "my_admin/node_detail.html", context={"form": form})
 
     def post(self, request, node_type):
@@ -49,6 +52,8 @@ class NodeView(StaffRequiredMixin, View):
             form = VmessNodeForm(request.POST)
         elif node_type == "ss":
             form = SSNodeForm(request.POST)
+        elif node_type == "trojan":
+            form = TrojanNodeForm(request.POST)
 
         if form.is_valid():
             form.save()
@@ -68,6 +73,9 @@ class NodeDetailView(StaffRequiredMixin, View):
         elif node_type == "ss":
             ss_node = SSNode.objects.get(node_id=node_id)
             form = SSNodeForm(instance=ss_node)
+        elif node_type == "trojan":
+            trojan_node = TrojanNode.objects.get(node_id=node_id)
+            form = TrojanNodeForm(instance=trojan_node)
 
         return render(request, "my_admin/node_detail.html", context={"form": form})
 
@@ -78,6 +86,9 @@ class NodeDetailView(StaffRequiredMixin, View):
         elif node_type == "ss":
             node = SSNode.objects.get(node_id=node_id)
             form = SSNodeForm(request.POST, instance=node)
+        elif node_type == "trojan":
+            node = TrojanNode.objects.get(node_id=node_id)
+            form = TrojanNodeForm(request.POST, instance=node)
 
         if form.is_valid():
             form.save()
@@ -96,6 +107,9 @@ class NodeDeleteView(StaffRequiredMixin, View):
         elif node_type == "ss":
             ss_node = SSNode.objects.get(node_id=node_id)
             ss_node.delete()
+        elif node_type == "trojan":
+            trojan_node = TrojanNode.objects.get(node_id=node_id)
+            trojan_node.delete()
         messages.success(request, "成功啦", extra_tags="删除节点")
         return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
 
