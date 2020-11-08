@@ -29,6 +29,16 @@ urlpatterns = [
         name="vmess_server_config",
     ),
     path(
+        "user_trojan_config/<int:node_id>/",
+        views.UserTrojanConfigView.as_view(),
+        name="user_trojan_config",
+    ),
+    path(
+        "trojan_server_config/<int:node_id>/",
+        views.TrojanServerConfigView.as_view(),
+        name="trojan_server_config",
+    ),
+    path(
         "ehco_relay_config/<int:node_id>/",
         views.EhcoRelayConfigView.as_view(),
         name="ehco_relay_config",

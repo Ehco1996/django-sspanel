@@ -87,6 +87,19 @@ class VmessNodeAdmin(admin.ModelAdmin):
     ]
 
 
+class TrojanNodeAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "node_id",
+        "level",
+        "server",
+        "enlarge_scale",
+        "human_used_traffic",
+        "human_total_traffic",
+        "enable",
+    ]
+
+
 class RelayNodeAdmin(admin.ModelAdmin):
 
     list_display = [
@@ -110,6 +123,18 @@ class VmessRelayRuleAdmin(admin.ModelAdmin):
         "enable",
     ]
     ordering = ["vmess_node"]
+
+
+class TrojanRelayRuleAdmin(admin.ModelAdmin):
+    list_display = [
+        "trojan_node",
+        "relay_node",
+        "relay_host",
+        "relay_port",
+        "remark",
+        "enable",
+    ]
+    ordering = ["trojan_node"]
 
 
 class SSRelayRuleAdmin(admin.ModelAdmin):
@@ -174,8 +199,10 @@ admin.site.register(models.UserRefLog, UserRefLogAdmin)
 admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.SSNode, SSNodeAdmin)
 admin.site.register(models.VmessNode, VmessNodeAdmin)
+admin.site.register(models.TrojanNode, TrojanNodeAdmin)
 admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.VmessRelayRule, VmessRelayRuleAdmin)
+admin.site.register(models.TrojanRelayRule, TrojanRelayRuleAdmin)
 admin.site.register(models.SSRelayRule, SSRelayRuleAdmin)
 
 admin.site.register(models.InviteCode, InviteCodeAdmin)

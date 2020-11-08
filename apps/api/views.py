@@ -21,7 +21,7 @@ from apps.sspanel.models import (
     UserOrder,
     UserRefLog,
     UserTrafficLog,
-    VmessNode,
+    VmessNode, TrojanNode,
 )
 from apps.utils import (
     api_authorized,
@@ -158,11 +158,39 @@ class UserVmessConfigView(View):
         tasks.sync_user_vmess_traffic_task.delay(node_id, request.json["user_traffics"])
         return JsonResponse(data={})
 
+class UserTrojanConfigView(View):
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(UserTrojanConfigView, self).dispatch(*args, **kwargs)
+
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        configs = TrojanNode.get_user_trojan_configs_by_node_id(node_id)
+        return JsonResponse(configs)
+
+    @method_decorator(handle_json_post)
+    @method_decorator(api_authorized)
+    def post(self, request, node_id):
+        node = TrojanNode.get_or_none_by_node_id(node_id)
+        if not node:
+            return HttpResponseNotFound()
+        tasks.sync_user_trojan_traffic_task.delay(node_id, request.json["user_traffics"])
+        return JsonResponse(data={})
+
 
 class VmessServerConfigView(View):
     @method_decorator(api_authorized)
     def get(self, request, node_id):
         node = VmessNode.get_or_none_by_node_id(node_id)
+        if not node:
+            return HttpResponseNotFound()
+        return JsonResponse(node.server_config)
+
+
+class TrojanServerConfigView(View):
+    @method_decorator(api_authorized)
+    def get(self, request, node_id):
+        node = TrojanNode.get_or_none_by_node_id(node_id)
         if not node:
             return HttpResponseNotFound()
         return JsonResponse(node.server_config)

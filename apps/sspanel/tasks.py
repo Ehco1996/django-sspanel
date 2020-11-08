@@ -141,6 +141,59 @@ def sync_user_vmess_traffic_task(node_id, data):
 
 
 @celery_app.task
+def sync_user_trojan_traffic_task(node_id, data):
+    node = m.TrojanNode.get_or_none_by_node_id(node_id)
+    if not node:
+        return
+
+    log_time = get_current_datetime()
+    node_total_traffic = 0
+    need_clear_cache = False
+    trafficlog_model_list = []
+    user_model_list = []
+
+    for log in data:
+        user_id = log["user_id"]
+        u = int(log["ut"] * node.enlarge_scale)
+        d = int(log["dt"] * node.enlarge_scale)
+        # 个人流量增量
+        user = m.User.get_by_pk(user_id)
+        user.download_traffic += d
+        user.upload_traffic += u
+        user.last_use_time = log_time
+        user_model_list.append(user)
+        if user.overflow or user.level < node.level:
+            need_clear_cache = True
+        # 个人流量记录
+        trafficlog_model_list.append(
+            m.UserTrafficLog(
+                node_type=m.UserTrafficLog.NODE_TYPE_VMESS,
+                node_id=node_id,
+                user_id=user_id,
+                download_traffic=u,
+                upload_traffic=d,
+            )
+        )
+        # 节点流量增量
+        node_total_traffic += u + d
+    # 节点流量记录
+    m.TrojanNode.increase_used_traffic(node_id, node_total_traffic)
+    # 流量记录
+    m.UserTrafficLog.objects.bulk_create(trafficlog_model_list)
+    # 个人流量记录
+    m.User.objects.bulk_update(
+        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
+    )
+    # 节点在线人数
+    m.NodeOnlineLog.add_log(m.NodeOnlineLog.NODE_TYPE_TROJAN, node_id, len(data))
+    # check node && user traffic
+    if node.overflow:
+        node.enable = False
+    if need_clear_cache or node.overflow:
+        node.save()
+
+
+@celery_app.task
 def check_user_state_task():
     """检测用户状态，将所有账号到期的用户状态重置"""
     m.User.check_and_disable_expired_users()

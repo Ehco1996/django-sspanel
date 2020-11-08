@@ -99,6 +99,21 @@
                         </div>
                         {% endif %}
 
+                        {% if node.node_type == "trojan" %}
+                            <hr>
+                            <p class="subtitle">Trojan 配置地址:</p>
+                            <div class="field is-grouped is-grouped-multiline">
+                                <p class="control is-expanded">
+                                    <input class="input" id="id-trojan-config-{{ node.node_type }}-{{ node.node_id }}"
+                                           value="{{ node.server_config_endpoint }}" readonly>
+                                </p>
+                                <a class="button is-rounded" id="id-button-clip"
+                                   data-clipboard-target="#id-trojan-config-{{ node.node_type }}-{{ node.node_id }}">
+                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        {% endif %}
+
                         {% if node.enable_ehco %}
                         <hr>
                         <p class="subtitle"><a class="is-link" href="https://github.com/Ehco1996/ehco">ehco隧道</a>(落地机)对接地址:</p>
@@ -142,6 +157,7 @@
         <p align="right">
             <a class="button is-danger is-outlined" href="{% url 'sspanel:admin_node' node_type='ss' %}">增加SS节点</a>
             <a class="button is-info is-outlined" href="{% url 'sspanel:admin_node' node_type='vmess' %}">增加VMESS节点</a>
+            <a class="button is-warning is-outlined" href="{% url 'sspanel:admin_node' node_type='trojan' %}">增加Trojan节点</a>
         </p>
     </div>
 </div>
