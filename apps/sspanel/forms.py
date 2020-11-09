@@ -3,7 +3,15 @@ from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
 from apps.constants import AEAD_METHODS
-from apps.sspanel.models import Announcement, Goods, InviteCode, SSNode, User, VmessNode, TrojanNode
+from apps.sspanel.models import (
+    Announcement,
+    Goods,
+    InviteCode,
+    SSNode,
+    TrojanNode,
+    User,
+    VmessNode,
+)
 
 
 class RegisterForm(UserCreationForm):
@@ -193,6 +201,7 @@ class VmessNodeForm(ModelForm):
             "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
         }
 
+
 class TrojanNodeForm(ModelForm):
     class Meta:
         model = TrojanNode
@@ -223,8 +232,9 @@ class TrojanNodeForm(ModelForm):
             "certificateFile": forms.TextInput(attrs={"class": "input"}),
             "keyFile": forms.TextInput(attrs={"class": "input"}),
             "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
-            "security": forms.TextInput(attrs={"class": "input"})
+            "security": forms.TextInput(attrs={"class": "input"}),
         }
+
 
 class GoodsForm(ModelForm):
     class Meta:

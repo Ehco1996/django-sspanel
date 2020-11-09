@@ -299,9 +299,11 @@ class User(AbstractUser):
         return sub_links
 
     def get_clash_sub_links(self, sub_type):
-        node_list = SSNode.get_user_active_nodes(
-            self, sub_mode=True
-        ) + VmessNode.get_user_active_nodes(self, sub_mode=True) + TrojanNode.get_user_active_nodes(self, sub_mode=True)
+        node_list = (
+            SSNode.get_user_active_nodes(self, sub_mode=True)
+            + VmessNode.get_user_active_nodes(self, sub_mode=True)
+            + TrojanNode.get_user_active_nodes(self, sub_mode=True)
+        )
 
         for node in node_list:
             node.clash_link = node.get_clash_link(self)
@@ -588,11 +590,15 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
 
 
 class NodeOnlineLog(models.Model):
-    #NOTE add trojan
+    # NOTE add trojan
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VMESS = "vmess"
     NODE_TYPE_TROJAN = "trojan"
-    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS), (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN))
+    NODE_CHOICES = (
+        (NODE_TYPE_SS, NODE_TYPE_SS),
+        (NODE_TYPE_VMESS, NODE_TYPE_VMESS),
+        (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
+    )
 
     node_id = models.IntegerField()
     node_type = models.CharField(
@@ -1025,8 +1031,12 @@ class TrojanNode(BaseAbstractNode):
     grpc_host = models.CharField("grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("grpc端口", max_length=64, default="8080")
     network = models.CharField("连接方式", max_length=64, default="tcp")
-    security = models.CharField("加密方式", max_length=64, default="tls", blank=True, null=True)
-    alpn = models.CharField("alpn", max_length=64, default="http/1.1", blank=True, null=True)
+    security = models.CharField(
+        "加密方式", max_length=64, default="tls", blank=True, null=True
+    )
+    alpn = models.CharField(
+        "alpn", max_length=64, default="http/1.1", blank=True, null=True
+    )
     certificateFile = models.CharField("crt地址", max_length=64, blank=True, null=True)
     keyFile = models.CharField("key地址", max_length=64, blank=True, null=True)
 
@@ -1052,20 +1062,21 @@ class TrojanNode(BaseAbstractNode):
         return nodes
 
     @classmethod
-    @cache.cached(ttl=60 * 60 * 24)
+    # @cache.cached(ttl=60 * 60 * 24)
     def get_user_trojan_configs_by_node_id(cls, node_id):
+        # TODO add cache
         node = cls.get_or_none_by_node_id(node_id)
         if not node:
             return {"tag": "", "configs": []}
 
         configs = []
         for d in User.objects.filter(level__gte=node.level).values(
-                "id",
-                "email",
-                "ss_password",
-                "total_traffic",
-                "upload_traffic",
-                "download_traffic",
+            "id",
+            "email",
+            "ss_password",
+            "total_traffic",
+            "upload_traffic",
+            "download_traffic",
         ):
             enable = d["total_traffic"] > (d["download_traffic"] + d["upload_traffic"])
             configs.append(
@@ -1084,7 +1095,7 @@ class TrojanNode(BaseAbstractNode):
             "configs": configs,
             "grpc_endpoint": f"{node.grpc_host}:{node.grpc_port}",
             "tag": node.inbound_tag,
-            "protocol": "trojan"
+            "protocol": "trojan",
         }
 
     @property
@@ -1094,6 +1105,7 @@ class TrojanNode(BaseAbstractNode):
     @property
     def enable_tls(self):
         return self.security and self.alpn and self.certificateFile and self.keyFile
+
     @property
     def human_speed_limit(self):
         # NOTE vemss目前不支持限速
@@ -1103,16 +1115,16 @@ class TrojanNode(BaseAbstractNode):
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
         return (
-                settings.HOST
-                + f"/api/user_trojan_config/{self.node_id}/?{urlencode(params)}"
+            settings.HOST
+            + f"/api/user_trojan_config/{self.node_id}/?{urlencode(params)}"
         )
 
     @property
     def server_config_endpoint(self):
         params = {"token": settings.TOKEN}
         return (
-                settings.HOST
-                + f"/api/trojan_server_config/{self.node_id}/?{urlencode(params)}"
+            settings.HOST
+            + f"/api/trojan_server_config/{self.node_id}/?{urlencode(params)}"
         )
 
     @property
@@ -1136,22 +1148,20 @@ class TrojanNode(BaseAbstractNode):
             "protocol": "trojan",
             "listen": self.listen_host,
             "tag": self.inbound_tag,
-            "settings": {"clients": []},
-            "streamSettings": {"network": self.network}
+            "settings": {
+                "clients": [
+                    {"password": uuid4(), "email": "love@v2fly.org", "level": 99,}
+                ]
+            },
+            "streamSettings": {"network": self.network},
         }
         if self.enable_tls:
             inbound["streamSettings"]["security"] = self.security
             tlsSettings = {
-                "alpn": [
-                    self.alpn
-                ],
+                "alpn": [self.alpn],
                 "certificates": [
-                    {
-                        "certificateFile": self.certificateFile,
-                        "keyFile": self.keyFile
-                    }
-                ]
-
+                    {"certificateFile": self.certificateFile, "keyFile": self.keyFile}
+                ],
             }
             inbound["streamSettings"]["tlsSettings"] = tlsSettings
         return inbound
@@ -1166,7 +1176,9 @@ class TrojanNode(BaseAbstractNode):
 
     def get_trojan_link(self, user):
         # NOTE hardcode method to none
-        return "trojan://{}@{}:{}#{}".format(user.ss_password, self.server, self.client_port, quote(self.name))
+        return "trojan://{}@{}:{}#{}".format(
+            user.ss_password, self.server, self.client_port, quote(self.name)
+        )
 
     def get_clash_link(self, user):
         config = {
@@ -1177,14 +1189,14 @@ class TrojanNode(BaseAbstractNode):
             "password": user.ss_password,
             "udp": True,
         }
-        #TODO 还得改改
-        #yaml配置是这样的：
+        # TODO 还得改改
+        # yaml配置是这样的：
         # sni: example.com # aka server name
         # alpn:
         #   - h2
         #   - http/1.1
         # skip-cert-verify: true
-        #json不好转
+        # json不好转
         # if self.enable_tls:
         #     config.update(
         #         {
@@ -1301,7 +1313,7 @@ class VmessNode(BaseAbstractNode):
             "configs": configs,
             "tag": node.inbound_tag,
             "grpc_endpoint": f"{node.grpc_host}:{node.grpc_port}",
-            "protocol": "vmess"
+            "protocol": "vmess",
         }
 
     @property
@@ -1635,7 +1647,9 @@ class TrojanRelayRule(BaseRelayRule):
 
     def get_user_relay_link(self, user):
         # NOTE hardcode method to none
-        return "trojan://{}@{}:{}#{}".format(user.ss_password, self.relay_host, self.relay_port, quote(self.remark))
+        return "trojan://{}@{}:{}#{}".format(
+            user.ss_password, self.relay_host, self.relay_port, quote(self.remark)
+        )
 
     @property
     def node_type(self):
@@ -1728,8 +1742,16 @@ class UserTrafficLog(models.Model, UserPropertyMixin):
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VMESS = "vmess"
     NODE_TYPE_TROJAN = "trojan"
-    NODE_CHOICES = ((NODE_TYPE_SS, NODE_TYPE_SS), (NODE_TYPE_VMESS, NODE_TYPE_VMESS), (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN))
-    NODE_MODEL_DICT = {NODE_TYPE_SS: SSNode, NODE_TYPE_VMESS: VmessNode, NODE_TYPE_TROJAN: TrojanNode}
+    NODE_CHOICES = (
+        (NODE_TYPE_SS, NODE_TYPE_SS),
+        (NODE_TYPE_VMESS, NODE_TYPE_VMESS),
+        (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
+    )
+    NODE_MODEL_DICT = {
+        NODE_TYPE_SS: SSNode,
+        NODE_TYPE_VMESS: VmessNode,
+        NODE_TYPE_TROJAN: TrojanNode,
+    }
 
     user_id = models.IntegerField()
     node_type = models.CharField(

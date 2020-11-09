@@ -16,12 +16,13 @@ from apps.sspanel.models import (
     NodeOnlineLog,
     RelayNode,
     SSNode,
+    TrojanNode,
     User,
     UserCheckInLog,
     UserOrder,
     UserRefLog,
     UserTrafficLog,
-    VmessNode, TrojanNode,
+    VmessNode,
 )
 from apps.utils import (
     api_authorized,
@@ -158,6 +159,7 @@ class UserVmessConfigView(View):
         tasks.sync_user_vmess_traffic_task.delay(node_id, request.json["user_traffics"])
         return JsonResponse(data={})
 
+
 class UserTrojanConfigView(View):
     @csrf_exempt
     def dispatch(self, *args, **kwargs):
@@ -174,7 +176,9 @@ class UserTrojanConfigView(View):
         node = TrojanNode.get_or_none_by_node_id(node_id)
         if not node:
             return HttpResponseNotFound()
-        tasks.sync_user_trojan_traffic_task.delay(node_id, request.json["user_traffics"])
+        tasks.sync_user_trojan_traffic_task.delay(
+            node_id, request.json["user_traffics"]
+        )
         return JsonResponse(data={})
 
 

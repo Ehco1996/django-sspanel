@@ -9,7 +9,14 @@ from django.views import View
 
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.sspanel.forms import AnnoForm, GoodsForm, SSNodeForm, UserForm, VmessNodeForm, TrojanNodeForm
+from apps.sspanel.forms import (
+    AnnoForm,
+    GoodsForm,
+    SSNodeForm,
+    TrojanNodeForm,
+    UserForm,
+    VmessNodeForm,
+)
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -20,10 +27,11 @@ from apps.sspanel.models import (
     PurchaseHistory,
     SSNode,
     Ticket,
+    TrojanNode,
     User,
     UserCheckInLog,
     UserOnLineIpLog,
-    VmessNode, TrojanNode,
+    VmessNode,
 )
 
 

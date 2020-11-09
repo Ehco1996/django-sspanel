@@ -19,8 +19,9 @@ from apps.sspanel.models import (
     RebateRecord,
     SSNode,
     Ticket,
+    TrojanNode,
     User,
-    VmessNode, TrojanNode,
+    VmessNode,
 )
 from apps.utils import traffic_format
 
