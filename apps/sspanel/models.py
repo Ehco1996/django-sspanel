@@ -895,23 +895,45 @@ class RelayNode(BaseAbstractNode):
     rules_count.short_description = "规则数量"
 
     def get_relay_rules_configs(self):
+        # TODO 优化一下这里的算法
         data = []
         for rule in self.ss_relay_rules.select_related().all():
             node = rule.ss_node
-            if node.enable_ehco:
-                remote = f"{node.server}:{node.ehco_listen_port}"
+            if "," in node.server:
+                server_list = node.server.split(",")
+                remotes = []
+                for server in server_list:
+                    if node.enable_ehco:
+                        remote = f"{server}:{node.ehco_listen_port}"
+                    else:
+                        remote = f"{server}:{node.port}"
+                    if rule.transport_type in c.WS_TRANSPORTS:
+                        remote = "wss://" + remote
+                    remotes.append(remote)
+                data.append(
+                    {
+                        "listen": f"0.0.0.0:{rule.relay_port}",
+                        "listen_type": rule.listen_type,
+                        "remote": "",
+                        "lb_remotes": remotes,
+                        "transport_type": rule.transport_type,
+                    }
+                )
             else:
-                remote = f"{node.server}:{node.port}"
-            if rule.transport_type in c.WS_TRANSPORTS:
-                remote = "wss://" + remote
-            data.append(
-                {
-                    "listen": f"0.0.0.0:{rule.relay_port}",
-                    "listen_type": rule.listen_type,
-                    "remote": remote,
-                    "transport_type": rule.transport_type,
-                }
-            )
+                if node.enable_ehco:
+                    remote = f"{node.server}:{node.ehco_listen_port}"
+                else:
+                    remote = f"{node.server}:{node.port}"
+                if rule.transport_type in c.WS_TRANSPORTS:
+                    remote = "wss://" + remote
+                data.append(
+                    {
+                        "listen": f"0.0.0.0:{rule.relay_port}",
+                        "listen_type": rule.listen_type,
+                        "remote": remote,
+                        "transport_type": rule.transport_type,
+                    }
+                )
         for rule in self.vmess_relay_rules.select_related().all():
             node = rule.vmess_node
             if node.enable_ehco:
@@ -1451,7 +1473,7 @@ class SSNode(BaseAbstractNode):
     KB = 1024
     MEGABIT = KB * 125
 
-    server = models.CharField("服务器地址", max_length=128)
+    server = models.CharField("服务器地址", help_text="支持逗号分隔传多个地址", max_length=128)
     method = models.CharField(
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
     )
