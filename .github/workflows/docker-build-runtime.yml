@@ -27,4 +27,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "nginx"
-          dockerfile: Dockerfile-NGINX
+          dockerfile: Dockerfile.NGINX

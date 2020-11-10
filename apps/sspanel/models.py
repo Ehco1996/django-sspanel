@@ -88,16 +88,13 @@ class User(AbstractUser):
     )
     inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
 
-    # v2ray相关
-    vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
-
+    # ss 相关
     ss_port = models.IntegerField("端口", unique=True, default=MIN_PORT)
     ss_password = models.CharField(
         "密码", max_length=32, default=get_short_random_string, unique=True
     )
-    ss_method = models.CharField(
-        "加密", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
-    )
+    # v2ray相关
+    vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
     # 流量相关
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
@@ -311,8 +308,8 @@ class User(AbstractUser):
             "yamls/clash.yml", {"nodes": node_list, "sub_type": sub_type}
         )
 
-    def update_from_dict(self, data):
-        clean_fields = ["ss_password", "ss_method"]
+    def update_ss_config_from_dict(self, data):
+        clean_fields = ["ss_password"]
         for k, v in data.items():
             if k in clean_fields:
                 setattr(self, k, v)
@@ -1465,7 +1462,6 @@ class SSNode(BaseAbstractNode):
     method = models.CharField(
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
     )
-    custom_method = models.BooleanField("自定义加密", default=False)
     speed_limit = models.IntegerField("限速", default=0)
     port = models.IntegerField("单端口", help_text="单端口多用户端口", null=True, blank=True)
 
@@ -1483,14 +1479,12 @@ class SSNode(BaseAbstractNode):
         for d in User.objects.filter(level__gte=ss_node.level).values(
             "id",
             "ss_port",
-            "ss_method",
             "ss_password",
             "total_traffic",
             "upload_traffic",
             "download_traffic",
         ):
             enable = d["total_traffic"] > (d["download_traffic"] + d["upload_traffic"])
-            method = d["ss_method"] if ss_node.custom_method else ss_node.method
             port = d["ss_port"] if not ss_node.port else ss_node.port
             configs["users"].append(
                 {
@@ -1498,7 +1492,7 @@ class SSNode(BaseAbstractNode):
                     "port": port,
                     "password": d["ss_password"],
                     "enable": enable,
-                    "method": method,
+                    "method": ss_node.method,
                     "speed_limit": ss_node.speed_limit,
                 }
             )
@@ -1543,22 +1537,20 @@ class SSNode(BaseAbstractNode):
         )
 
     def get_ss_link(self, user):
-        method = user.ss_method if self.custom_method else self.method
         port = user.ss_port if not self.port else self.port
-        code = f"{method}:{user.ss_password}@{self.server}:{port}"
+        code = f"{self.method}:{user.ss_password}@{self.server}:{port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         ss_link = "ss://{}#{}".format(b64_code, quote(self.name))
         return ss_link
 
     def get_clash_link(self, user):
-        method = user.ss_method if self.custom_method else self.method
         port = user.ss_port if not self.port else self.port
         config = {
             "name": self.name,
             "type": "ss",
             "server": self.server,
             "port": port,
-            "cipher": method,
+            "cipher": self.method,
             "password": user.ss_password,
         }
         return json.dumps(config, ensure_ascii=False)
@@ -1571,8 +1563,6 @@ class SSNode(BaseAbstractNode):
                 NodeOnlineLog.NODE_TYPE_SS, self.node_id
             )
         )
-        if self.custom_method:
-            data["method"] = user.ss_method
         data["ss_port"] = user.ss_port if not self.port else self.port
         data["ss_password"] = user.ss_password
         data["country"] = self.country.lower()
@@ -1737,8 +1727,7 @@ class SSRelayRule(BaseRelayRule):
         return cls.objects.filter(ss_node=node, relay_node__enable=True)
 
     def get_user_relay_link(self, user):
-        method = user.ss_method if self.ss_node.custom_method else self.ss_node.method
-        code = f"{method}:{user.ss_password}@{self.relay_host}:{self.relay_port}"
+        code = f"{self.ss_node.method}:{user.ss_password}@{self.relay_host}:{self.relay_port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         ss_link = "ss://{}#{}".format(b64_code, quote(self.remark))
         return ss_link
