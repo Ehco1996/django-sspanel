@@ -684,7 +684,10 @@ class BaseAbstractNode(models.Model):
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
     enlarge_scale = models.DecimalField(
-        "倍率", default=Decimal("1.0"), decimal_places=2, max_digits=10,
+        "倍率",
+        default=Decimal("1.0"),
+        decimal_places=2,
+        max_digits=10,
     )
 
     ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
@@ -1053,14 +1056,13 @@ class TrojanNode(BaseAbstractNode):
     grpc_host = models.CharField("grpc地址", max_length=64, default="0.0.0.0")
     grpc_port = models.CharField("grpc端口", max_length=64, default="8080")
     network = models.CharField("连接方式", max_length=64, default="tcp")
-    security = models.CharField(
-        "加密方式", max_length=64, default="tls", blank=True, null=True
+    security = models.CharField("加密方式", max_length=64, default="tls")
+    skip_cert_verify = models.BooleanField(
+        "是否允许不安全连接(跳过tls验证)", default=False, db_index=False
     )
-    alpn = models.CharField(
-        "alpn", max_length=64, default="http/1.1", blank=True, null=True
-    )
-    certificateFile = models.CharField("crt地址", max_length=64, blank=True, null=True)
-    keyFile = models.CharField("key地址", max_length=64, blank=True, null=True)
+    alpn = models.CharField("alpn", max_length=64, default="http/1.1")
+    certificate_file = models.CharField("crt地址", max_length=64, default="path/to/cert")
+    key_file = models.CharField("key地址", max_length=64, default="path/to/cert")
 
     class Meta:
         verbose_name_plural = "Trojan节点"
@@ -1084,9 +1086,8 @@ class TrojanNode(BaseAbstractNode):
         return nodes
 
     @classmethod
-    # @cache.cached(ttl=60 * 60 * 24)
+    @cache.cached(ttl=60 * 60 * 24)
     def get_user_trojan_configs_by_node_id(cls, node_id):
-        # TODO add cache
         node = cls.get_or_none_by_node_id(node_id)
         if not node:
             return {"tag": "", "configs": []}
@@ -1123,10 +1124,6 @@ class TrojanNode(BaseAbstractNode):
     @property
     def node_type(self):
         return "trojan"
-
-    @property
-    def enable_tls(self):
-        return self.security and self.alpn and self.certificateFile and self.keyFile
 
     @property
     def human_speed_limit(self):
@@ -1171,21 +1168,22 @@ class TrojanNode(BaseAbstractNode):
             "listen": self.listen_host,
             "tag": self.inbound_tag,
             "settings": {
-                "clients": [
-                    {"password": uuid4(), "email": "love@v2fly.org", "level": 99,}
-                ]
+                "clients": [],
             },
-            "streamSettings": {"network": self.network},
+            "streamSettings": {
+                "network": self.network,
+                "security": self.security,
+                "tlsSettings": {
+                    "alpn": [self.alpn],
+                    "certificates": [
+                        {
+                            "certificateFile": self.certificate_file,
+                            "keyFile": self.key_file,
+                        }
+                    ],
+                },
+            },
         }
-        if self.enable_tls:
-            inbound["streamSettings"]["security"] = self.security
-            tlsSettings = {
-                "alpn": [self.alpn],
-                "certificates": [
-                    {"certificateFile": self.certificateFile, "keyFile": self.keyFile}
-                ],
-            }
-            inbound["streamSettings"]["tlsSettings"] = tlsSettings
         return inbound
 
     @property
@@ -1210,6 +1208,8 @@ class TrojanNode(BaseAbstractNode):
             "port": self.client_port,
             "password": user.ss_password,
             "udp": True,
+            "alpn": [self.alpn],
+            "skip_cert_verify": self.skip_cert_verify,
         }
         # TODO 还得改改
         # yaml配置是这样的：
@@ -1218,13 +1218,6 @@ class TrojanNode(BaseAbstractNode):
         #   - h2
         #   - http/1.1
         # skip-cert-verify: true
-        # json不好转
-        # if self.enable_tls:
-        #     config.update(
-        #         {
-        #             "alpn": self.alpn
-        #         }
-        #     )
         return json.dumps(config, ensure_ascii=False)
 
     def to_dict_with_extra_info(self, user):

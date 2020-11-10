@@ -229,10 +229,11 @@ class TrojanNodeForm(ModelForm):
             "ehco_transport_type": forms.Select(attrs={"class": "input"}),
             "network": forms.TextInput(attrs={"class": "input"}),
             "alpn": forms.TextInput(attrs={"class": "input"}),
-            "certificateFile": forms.TextInput(attrs={"class": "input"}),
-            "keyFile": forms.TextInput(attrs={"class": "input"}),
+            "certificate_file": forms.TextInput(attrs={"class": "input"}),
+            "key_file": forms.TextInput(attrs={"class": "input"}),
             "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
             "security": forms.TextInput(attrs={"class": "input"}),
+            "skip_cert_verify": forms.CheckboxInput(attrs={"class": "checkbox"}),
         }
 
 
