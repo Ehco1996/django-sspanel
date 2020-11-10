@@ -51,6 +51,28 @@ def clear_get_user_vmess_configs_by_node_id_cache(sender, instance, *args, **kwa
     cache.delete_many(keys)
 
 
+def clear_get_user_trojan_configs_by_node_id_cache(sender, instance, *args, **kwargs):
+
+    if isinstance(instance, m.TrojanNode):
+        node_ids = [instance.node_id]
+    elif isinstance(instance, m.User):
+        node_ids = m.TrojanNode.get_node_ids_by_level(instance.level)
+        if hasattr(instance, "_pre_level"):
+            level = getattr(instance, "_pre_level")
+            node_ids.extend(m.TrojanNode.get_node_ids_by_level(level))
+            node_ids = set(node_ids)
+    else:
+        return
+
+    keys = [
+        m.TrojanNode.get_user_trojan_configs_by_node_id.make_cache_key(
+            m.TrojanNode, node_id
+        )
+        for node_id in node_ids
+    ]
+    cache.delete_many(keys)
+
+
 def register_connectors():
 
     # set old user level before save
@@ -68,4 +90,14 @@ def register_connectors():
     post_save.connect(clear_get_user_vmess_configs_by_node_id_cache, sender=m.VmessNode)
     pre_delete.connect(
         clear_get_user_vmess_configs_by_node_id_cache, sender=m.VmessNode
+    )
+
+    # clear_get_user_trojan_configs_by_node_id_cache
+    post_save.connect(clear_get_user_trojan_configs_by_node_id_cache, sender=m.User)
+    pre_delete.connect(clear_get_user_trojan_configs_by_node_id_cache, sender=m.User)
+    post_save.connect(
+        clear_get_user_trojan_configs_by_node_id_cache, sender=m.TrojanNode
+    )
+    pre_delete.connect(
+        clear_get_user_trojan_configs_by_node_id_cache, sender=m.TrojanNode
     )

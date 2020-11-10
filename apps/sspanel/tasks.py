@@ -16,13 +16,13 @@ def debug_task():
 @celery_app.task
 def sync_user_ss_traffic_task(node_id, data):
     """
-        这个接口操作比较重，所以为了避免发信号
-        所有写操作都需要用BULK的方式
-        1 更新节点流量
-        2 更新用户流量
-        3 记录节点在线IP
-        4 关闭超出流量的节点
-        """
+    这个接口操作比较重，所以为了避免发信号
+    所有写操作都需要用BULK的方式
+    1 更新节点流量
+    2 更新用户流量
+    3 记录节点在线IP
+    4 关闭超出流量的节点
+    """
     ss_node = m.SSNode.get_or_none_by_node_id(node_id)
     if not ss_node:
         return
@@ -68,7 +68,8 @@ def sync_user_ss_traffic_task(node_id, data):
 
     # 用户流量
     m.User.objects.bulk_update(
-        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
+        user_model_list,
+        ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点流量记录
     m.SSNode.increase_used_traffic(node_id, node_total_traffic)
@@ -129,7 +130,8 @@ def sync_user_vmess_traffic_task(node_id, data):
     m.UserTrafficLog.objects.bulk_create(trafficlog_model_list)
     # 个人流量记录
     m.User.objects.bulk_update(
-        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
+        user_model_list,
+        ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点在线人数
     m.NodeOnlineLog.add_log(m.NodeOnlineLog.NODE_TYPE_VMESS, node_id, len(data))
@@ -167,7 +169,7 @@ def sync_user_trojan_traffic_task(node_id, data):
         # 个人流量记录
         trafficlog_model_list.append(
             m.UserTrafficLog(
-                node_type=m.UserTrafficLog.NODE_TYPE_VMESS,
+                node_type=m.UserTrafficLog.NODE_TYPE_TROJAN,
                 node_id=node_id,
                 user_id=user_id,
                 download_traffic=u,
@@ -182,7 +184,8 @@ def sync_user_trojan_traffic_task(node_id, data):
     m.UserTrafficLog.objects.bulk_create(trafficlog_model_list)
     # 个人流量记录
     m.User.objects.bulk_update(
-        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
+        user_model_list,
+        ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点在线人数
     m.NodeOnlineLog.add_log(m.NodeOnlineLog.NODE_TYPE_TROJAN, node_id, len(data))

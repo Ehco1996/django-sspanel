@@ -42,6 +42,9 @@
                         {% for node in vmess_node_list %}
                         <option node-type="vmess" node-id={{ node.node_id }}>{{ node.name }}</option>
                         {% endfor %}
+                        {% for node in trojan_node_list %}
+                            <option node-type="trojan" node-id={{ node.node_id }}>{{ node.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
