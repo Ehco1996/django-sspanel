@@ -1,17 +1,9 @@
 METHOD_CHOICES = (
-    ("aes-256-cfb", "aes-256-cfb"),
-    ("aes-128-ctr", "aes-128-ctr"),
-    ("rc4-md5", "rc4-md5"),
-    ("salsa20", "salsa20"),
-    ("chacha20", "chacha20"),
-    ("none", "none"),
     ("chacha20-ietf-poly1305", "chacha20-ietf-poly1305"),
     ("aes-128-gcm", "aes-128-gcm"),
     ("aes-256-gcm", "aes-256-gcm"),
 )
 
-
-AEAD_METHODS = {"chacha20-ietf-poly1305", "aes-128-gcm", "aes-256-gcm"}
 
 COUNTRIES_CHOICES = (
     ("US", "美国"),

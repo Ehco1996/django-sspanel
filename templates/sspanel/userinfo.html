@@ -54,25 +54,6 @@
                 </div>
                 <div class="field is-grouped is-grouped-multiline">
                     <div class="control has-icons-left">
-                        <div class="select is-rounded is-fullwidth is-link">
-                            <select name="selects-method-types">
-                                <option value="" disabled="" selected="">更换加密方式</option>
-                                <option disabled="">───</option>
-                                {% for m in methods %}
-                                <option>{{ m }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="icon is-small is-left">
-                            <i class="fa fa-wrench"></i>
-                        </div>
-                    </div>
-                    <p class="control">
-                        <button class="button is-outlined is-link is-rounded" id="id-button-method">提交</button>
-                    </p>
-                </div>
-                <div class="field is-grouped is-grouped-multiline">
-                    <div class="control has-icons-left">
                         <input name="num" class="input is-rounded" placeholder="更换SS密码" id="id-password">
                         <div class="icon is-small is-left">
                             <i class="fa fa-key"></i>
@@ -124,9 +105,6 @@
                         <li> 密码：
                             <code>{{ user.ss_password }}</code>
                         </li>
-                        <li> 加密：
-                            <code>{{ user.ss_method }}</code>
-                        </li>
                         <li> UUID：
                             <code>{{ user.vmess_uuid }}</code>
                         </li>
@@ -176,11 +154,11 @@
                             <div class="field is-grouped is-grouped-multiline">
                                 <p class="control is-expanded">
                                     <input class="input" id="id-sub-link-trojan" value="{{ sub_link }}&sub_type=trojan"
-                                           readonly>
+                                        readonly>
                                 </p>
                                 <p class="control">
                                     <a class="button is-rounded" id="id-button-clip"
-                                       data-clipboard-target="#id-sub-link-trojan">
+                                        data-clipboard-target="#id-sub-link-trojan">
                                         <i class="fa fa-clipboard" aria-hidden="true"></i>
                                     </a>
                                 </p>
@@ -203,8 +181,8 @@
                             <p class="subtitle">订阅ClashPro</p>
                             <div class="field is-grouped is-grouped-multiline">
                                 <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-clash-pro" value="{{ sub_link }}&sub_type=clash_pro"
-                                        readonly>
+                                    <input class="input" id="id-sub-link-clash-pro"
+                                        value="{{ sub_link }}&sub_type=clash_pro" readonly>
                                 </p>
                                 <p class="control">
                                     <a class="button is-rounded" id="id-button-clip"
@@ -369,26 +347,6 @@
         }
     }
     ThemeButton.click(changeTheme)
-
-    // 更换加密方式
-    var MethodButton = $("#id-button-method")
-    var changeMethod = function () {
-        var method = $("select[name=selects-method-types]").val();
-        if (method) {
-            data = {
-                ss_method: method,
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-            }
-            url = "{% url 'api:user_settings' %}"
-            $.post(url, data, function (results) {
-                info = results
-                swal(info.title, info.subtitle, info.status)
-            })
-        } else {
-            swal('错误！', '请选择你要更换的加密类型', 'error')
-        }
-    }
-    MethodButton.click(changeMethod)
     // 更换密码
     var PasswordButton = $("#id-button-password")
     var changePassword = function () {

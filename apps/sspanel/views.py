@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
-from apps.constants import METHOD_CHOICES, THEME_CHOICES
+from apps.constants import THEME_CHOICES
 from apps.sspanel.forms import LoginForm, RegisterForm
 from apps.sspanel.models import (
     Announcement,
@@ -144,7 +144,6 @@ class UserInfoView(LoginRequiredMixin, View):
             "max_traffic": max_traffic,
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
-            "methods": [m[0] for m in METHOD_CHOICES],
         }
         return render(request, "sspanel/userinfo.html", context=context)
 

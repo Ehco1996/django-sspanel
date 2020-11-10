@@ -71,7 +71,7 @@ class UserSettingsView(View):
 
     @method_decorator(login_required)
     def post(self, request):
-        success = request.user.update_from_dict(
+        success = request.user.update_ss_config_from_dict(
             data={k: v for k, v in request.POST.items()}
         )
         if success:
