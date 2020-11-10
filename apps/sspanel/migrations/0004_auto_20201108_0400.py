@@ -192,9 +192,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "Trojan节点",
-            },
+            options={"verbose_name_plural": "Trojan节点",},
         ),
         migrations.AddField(
             model_name="relaynode",
@@ -285,8 +283,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "Trojan转发规则",
-            },
+            options={"verbose_name_plural": "Trojan转发规则",},
         ),
     ]

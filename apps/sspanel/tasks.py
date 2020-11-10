@@ -68,8 +68,7 @@ def sync_user_ss_traffic_task(node_id, data):
 
     # 用户流量
     m.User.objects.bulk_update(
-        user_model_list,
-        ["download_traffic", "upload_traffic", "last_use_time"],
+        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点流量记录
     m.SSNode.increase_used_traffic(node_id, node_total_traffic)
@@ -130,8 +129,7 @@ def sync_user_vmess_traffic_task(node_id, data):
     m.UserTrafficLog.objects.bulk_create(trafficlog_model_list)
     # 个人流量记录
     m.User.objects.bulk_update(
-        user_model_list,
-        ["download_traffic", "upload_traffic", "last_use_time"],
+        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点在线人数
     m.NodeOnlineLog.add_log(m.NodeOnlineLog.NODE_TYPE_VMESS, node_id, len(data))
@@ -184,8 +182,7 @@ def sync_user_trojan_traffic_task(node_id, data):
     m.UserTrafficLog.objects.bulk_create(trafficlog_model_list)
     # 个人流量记录
     m.User.objects.bulk_update(
-        user_model_list,
-        ["download_traffic", "upload_traffic", "last_use_time"],
+        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点在线人数
     m.NodeOnlineLog.add_log(m.NodeOnlineLog.NODE_TYPE_TROJAN, node_id, len(data))

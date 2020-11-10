@@ -684,10 +684,7 @@ class BaseAbstractNode(models.Model):
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
     enlarge_scale = models.DecimalField(
-        "倍率",
-        default=Decimal("1.0"),
-        decimal_places=2,
-        max_digits=10,
+        "倍率", default=Decimal("1.0"), decimal_places=2, max_digits=10,
     )
 
     ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
@@ -1167,9 +1164,7 @@ class TrojanNode(BaseAbstractNode):
             "protocol": "trojan",
             "listen": self.listen_host,
             "tag": self.inbound_tag,
-            "settings": {
-                "clients": [],
-            },
+            "settings": {"clients": [],},
             "streamSettings": {
                 "network": self.network,
                 "security": self.security,

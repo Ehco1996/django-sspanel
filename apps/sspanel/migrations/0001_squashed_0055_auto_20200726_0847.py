@@ -298,9 +298,7 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "用户",
                 "abstract": False,
             },
-            managers=[
-                ("objects", django.contrib.auth.models.UserManager()),
-            ],
+            managers=[("objects", django.contrib.auth.models.UserManager()),],
         ),
         migrations.CreateModel(
             name="Announcement",
@@ -317,10 +315,7 @@ class Migration(migrations.Migration):
                 ("time", models.DateTimeField(auto_now_add=True, verbose_name="时间")),
                 ("body", models.TextField(verbose_name="主体")),
             ],
-            options={
-                "verbose_name_plural": "系统公告",
-                "ordering": ("-time",),
-            },
+            options={"verbose_name_plural": "系统公告", "ordering": ("-time",),},
         ),
         migrations.CreateModel(
             name="Donate",
@@ -361,10 +356,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "捐赠记录",
-                "ordering": ("-time",),
-            },
+            options={"verbose_name_plural": "捐赠记录", "ordering": ("-time",),},
         ),
         migrations.CreateModel(
             name="Goods",
@@ -438,10 +430,7 @@ class Migration(migrations.Migration):
                     models.PositiveSmallIntegerField(default=1, verbose_name="排序"),
                 ),
             ],
-            options={
-                "verbose_name_plural": "商品",
-                "ordering": ["order"],
-            },
+            options={"verbose_name_plural": "商品", "ordering": ["order"],},
         ),
         migrations.CreateModel(
             name="InviteCode",
@@ -517,10 +506,7 @@ class Migration(migrations.Migration):
                 ),
                 ("isused", models.BooleanField(default=False, verbose_name="是否使用")),
             ],
-            options={
-                "verbose_name_plural": "充值码",
-                "ordering": ("isused",),
-            },
+            options={"verbose_name_plural": "充值码", "ordering": ("isused",),},
         ),
         migrations.CreateModel(
             name="PurchaseHistory",
@@ -557,10 +543,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "购买记录",
-                "ordering": ("-created_at",),
-            },
+            options={"verbose_name_plural": "购买记录", "ordering": ("-created_at",),},
         ),
         migrations.CreateModel(
             name="RebateRecord",
@@ -597,10 +580,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "ordering": ("-created_at",),
-                "verbose_name_plural": "返利记录",
-            },
+            options={"ordering": ("-created_at",), "verbose_name_plural": "返利记录",},
         ),
         migrations.CreateModel(
             name="Ticket",
@@ -632,10 +612,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "工单",
-                "ordering": ("-time",),
-            },
+            options={"verbose_name_plural": "工单", "ordering": ("-time",),},
         ),
         migrations.CreateModel(
             name="UserOrder",
@@ -839,9 +816,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "邮件发送记录",
-            },
+            options={"verbose_name_plural": "邮件发送记录",},
         ),
         migrations.CreateModel(
             name="NodeOnlineLog",
@@ -1032,9 +1007,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "Vmess节点",
-            },
+            options={"verbose_name_plural": "Vmess节点",},
         ),
         migrations.CreateModel(
             name="SSNode",
@@ -1180,9 +1153,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "SS节点",
-            },
+            options={"verbose_name_plural": "SS节点",},
         ),
         migrations.CreateModel(
             name="RelayNode",
@@ -1300,9 +1271,7 @@ class Migration(migrations.Migration):
                 ),
                 ("level", models.PositiveIntegerField(default=0)),
             ],
-            options={
-                "verbose_name_plural": "中转节点",
-            },
+            options={"verbose_name_plural": "中转节点",},
         ),
         migrations.CreateModel(
             name="SSRelayRule",
@@ -1356,9 +1325,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "SS转发规则",
-            },
+            options={"verbose_name_plural": "SS转发规则",},
         ),
         migrations.CreateModel(
             name="VmessRelayRule",
@@ -1412,8 +1379,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name_plural": "Vmess转发规则",
-            },
+            options={"verbose_name_plural": "Vmess转发规则",},
         ),
     ]
