@@ -2,6 +2,8 @@
 
 用diango开发的全新的shadowsocks网络面板
 
+[![CodeFactor](https://www.codefactor.io/repository/github/ehco1996/django-sspanel/badge)](https://www.codefactor.io/repository/github/ehco1996/django-sspanel)
+
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
 * Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
