@@ -4,10 +4,10 @@ from django.conf import settings
 from django.db import models
 
 from apps import constants as c
-from apps.mixin import SequenceMixin
+from apps.mixin import BaseModel, SequenceMixin
 
 
-class ProxyNode(SequenceMixin):
+class ProxyNode(BaseModel, SequenceMixin):
 
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VLESS = "vless"
@@ -35,13 +35,12 @@ class ProxyNode(SequenceMixin):
         "倍率", default=Decimal("1.0"), decimal_places=2, max_digits=10,
     )
 
-    # for ss node
-    method = None
-    multi_user_port = None
-
     class Meta:
         verbose_name_plural = "代理节点"
         ordering = ("sequence",)
+
+    def __str__(self) -> str:
+        return f"{self.node_type}-{self.name}"
 
 
 class SSConfig(models.Model):

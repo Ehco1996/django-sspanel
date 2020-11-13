@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.http import HttpResponseForbidden
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -18,6 +18,19 @@ class StaffRequiredMixin(LoginRequiredMixin):
         if not request.user.is_staff:
             return HttpResponseForbidden()
         return super().dispatch(request, *args, **kwargs)
+
+
+class BaseModel(models.Model):
+    """
+    增加一些常用方法
+    """
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def get_or_none(cls, pk):
+        return cls.objects.filter(pk=pk).first()
 
 
 class SequenceMixin(models.Model):
@@ -71,7 +84,6 @@ class SequenceMixin(models.Model):
         cls.objects.bulk_update(instance_list, ["sequence"])
 
     def update_all_sequence(self):
-        # NOTE model 发生变动的时候自动更新整个序列
         cls = type(self)
         instance_list = list(cls.objects.all().order_by("sequence"))
         seq = 1
@@ -82,13 +94,29 @@ class SequenceMixin(models.Model):
         cls.objects.bulk_update(instance_list, ["sequence"])
 
 
+def _set_pre_save_sequence(sender, instance, *args, **kwargs):
+    if issubclass(sender, SequenceMixin):
+        old = sender.get_or_none(instance.id)
+        if old:
+            instance._pre_sequence = old.sequence
+
+
 def _touch_sequence_model(sender, instance, **kw):
+    # NOTE model sequence字段发生变动的时候自动更新整个序列
     if issubclass(sender, SequenceMixin):
         created = kw.get("created")
-        if created is True or created is None:
+        if (
+            created is True
+            or created is None
+            or (
+                hasattr(instance, "_pre_sequence")
+                and instance._pre_sequence != instance.sequence
+            )
+        ):
             # NOTE from pose_save and post_delete
             instance.update_all_sequence()
 
 
+pre_save.connect(_set_pre_save_sequence)
 post_save.connect(_touch_sequence_model)
 post_delete.connect(_touch_sequence_model)
