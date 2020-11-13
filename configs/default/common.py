@@ -15,7 +15,7 @@ INSTALLED_APPS = [
     "django_prometheus",
     "anymail",
     "apps.sspanel",
-    "apps.proxy"
+    "apps.proxy",
 ]
 
 MIDDLEWARE = [
