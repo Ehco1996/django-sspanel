@@ -1,4 +1,5 @@
 from decimal import Decimal
+from functools import cached_property
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -6,9 +7,9 @@ from django.db import models
 from django.forms.models import model_to_dict
 
 from apps import constants as c
+from apps import utils
 from apps.mixin import BaseLogModel, BaseModel, SequenceMixin
 from apps.sspanel.models import User
-from apps.utils import traffic_format
 
 
 class BaseNodeModel(BaseModel):
@@ -52,6 +53,26 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def __str__(self) -> str:
         return f"{self.name}({self.node_type})"
 
+    @property
+    def human_total_traffic(self):
+        return utils.traffic_format(self.total_traffic)
+
+    @property
+    def human_used_traffic(self):
+        return utils.traffic_format(self.used_traffic)
+
+    @cached_property
+    def online_info(self):
+        return NodeOnlineLog.get_latest_online_log_info(self.id)
+
+    @property
+    def api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        if self.node_type == self.NODE_TYPE_SS:
+            return settings.HOST + f"/api/user_ss_config/{self.id}/?{urlencode(params)}"
+        # TODO vless/trojan
+        return ""
+
 
 class SSConfig(models.Model):
     node = models.OneToOneField(
@@ -60,6 +81,7 @@ class SSConfig(models.Model):
         on_delete=models.CASCADE,
         primary_key=True,
         help_text="代理节点",
+        verbose_name="代理节点",
     )
     method = models.CharField(
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
@@ -174,6 +196,26 @@ class NodeOnlineLog(BaseLogModel):
     def __str__(self) -> str:
         return f"{self.proxy_node.name}节点在线记录"
 
+    @property
+    def online(self):
+        return (
+            utils.get_current_datetime().subtract(seconds=c.NODE_TIME_OUT)
+            < self.created_at
+        )
+
+    @classmethod
+    def get_latest_log(cls, proxy_node):
+        return cls.objects.filter(proxy_node=proxy_node).order_by("-created_at").first()
+
+    @classmethod
+    def get_latest_online_log_info(cls, proxy_node):
+        data = {"online": False, "online_user_count": 0, "tcp_connections_count": 0}
+        log = cls.get_latest_log(proxy_node)
+        if log and log.online:
+            data["online"] = log.online
+            data.update(model_to_dict(log))
+        return data
+
 
 class UserTrafficLog(BaseLogModel):
 
@@ -194,7 +236,7 @@ class UserTrafficLog(BaseLogModel):
 
     @property
     def total_traffic(self):
-        return traffic_format(self.download_traffic + self.upload_traffic)
+        return utils.traffic_format(self.download_traffic + self.upload_traffic)
 
 
 class UserOnLineIpLog(BaseLogModel):

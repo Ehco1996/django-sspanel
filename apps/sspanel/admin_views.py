@@ -9,14 +9,8 @@ from django.views import View
 
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.sspanel.forms import (
-    AnnoForm,
-    GoodsForm,
-    SSNodeForm,
-    TrojanNodeForm,
-    UserForm,
-    VmessNodeForm,
-)
+from apps.proxy.models import ProxyNode
+from apps.sspanel.forms import AnnoForm, GoodsForm, UserForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -27,97 +21,22 @@ from apps.sspanel.models import (
     PurchaseHistory,
     SSNode,
     Ticket,
-    TrojanNode,
     User,
     UserCheckInLog,
     UserOnLineIpLog,
-    VmessNode,
 )
 
 
 class NodeListView(StaffRequiredMixin, View):
     def get(self, request):
-        context = {
-            "node_list": list(SSNode.objects.all().order_by("country", "name"))
-            + list(VmessNode.objects.all().order_by("country", "name"))
-            + list(TrojanNode.objects.all().order_by("country", "name"))
-        }
+        context = {"node_list": list(ProxyNode.objects.all())}
         return render(request, "my_admin/node_list.html", context=context)
 
 
-class NodeView(StaffRequiredMixin, View):
-    def get(self, request, node_type):
-        if node_type == "vmess":
-            form = VmessNodeForm()
-        elif node_type == "ss":
-            form = SSNodeForm()
-        elif node_type == "trojan":
-            form = TrojanNodeForm()
-        return render(request, "my_admin/node_detail.html", context={"form": form})
-
-    def post(self, request, node_type):
-        if node_type == "vmess":
-            form = VmessNodeForm(request.POST)
-        elif node_type == "ss":
-            form = SSNodeForm(request.POST)
-        elif node_type == "trojan":
-            form = TrojanNodeForm(request.POST)
-
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功！", extra_tags="添加成功")
-            return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form}
-            return render(request, "my_admin/node_detail.html", context=context)
-
-
-class NodeDetailView(StaffRequiredMixin, View):
-    def get(self, request, node_type, node_id):
-        if node_type == "vmess":
-            vmess_node = VmessNode.objects.get(node_id=node_id)
-            form = VmessNodeForm(instance=vmess_node)
-        elif node_type == "ss":
-            ss_node = SSNode.objects.get(node_id=node_id)
-            form = SSNodeForm(instance=ss_node)
-        elif node_type == "trojan":
-            trojan_node = TrojanNode.objects.get(node_id=node_id)
-            form = TrojanNodeForm(instance=trojan_node)
-
-        return render(request, "my_admin/node_detail.html", context={"form": form})
-
-    def post(self, request, node_type, node_id):
-        if node_type == "vmess":
-            node = VmessNode.objects.get(node_id=node_id)
-            form = VmessNodeForm(request.POST, instance=node)
-        elif node_type == "ss":
-            node = SSNode.objects.get(node_id=node_id)
-            form = SSNodeForm(request.POST, instance=node)
-        elif node_type == "trojan":
-            node = TrojanNode.objects.get(node_id=node_id)
-            form = TrojanNodeForm(request.POST, instance=node)
-
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            return render(request, "my_admin/node_detail.html", context={"form": form})
-
-
 class NodeDeleteView(StaffRequiredMixin, View):
-    def get(self, request, node_type, node_id):
-        if node_type == "vmess":
-            vmess_node = VmessNode.objects.get(node_id=node_id)
-            vmess_node.delete()
-        elif node_type == "ss":
-            ss_node = SSNode.objects.get(node_id=node_id)
-            ss_node.delete()
-        elif node_type == "trojan":
-            trojan_node = TrojanNode.objects.get(node_id=node_id)
-            trojan_node.delete()
+    def get(self, request, node_id):
+        node = ProxyNode.get_or_none(node_id)
+        node and node.delete()
         messages.success(request, "成功啦", extra_tags="删除节点")
         return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
 
