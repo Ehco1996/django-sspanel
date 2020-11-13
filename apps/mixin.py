@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.http import HttpResponseForbidden
 from django.utils.decorators import method_decorator
@@ -31,6 +31,20 @@ class BaseModel(models.Model):
     @classmethod
     def get_or_none(cls, pk):
         return cls.objects.filter(pk=pk).first()
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
+
+
+class BaseLogModel(BaseModel):
+    created_at = models.DateTimeField(
+        auto_now_add=True, db_index=True, help_text="创建时间", verbose_name="创建时间"
+    )
+
+    class Meta:
+        abstract = True
 
 
 class SequenceMixin(models.Model):

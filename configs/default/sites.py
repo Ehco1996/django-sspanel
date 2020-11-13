@@ -54,4 +54,12 @@ DEFAULT_ALPHABET = os.getenv("DEFAULT_ALPHABET", "qwertyuiopasdfghjklzxcvbnm")
 # FOR SIMPLE UI
 SIMPLEUI_HOME_INFO = bool(os.getenv("SIMPLEUI_HOME_INFO", False))
 SIMPLEUI_DEFAULT_ICON = bool(os.getenv("SIMPLEUI_DEFAULT_ICON", True))
-SIMPLEUI_ICON = {"代理节点": "fas fa-server", "SS节点配置": "fa fa-rocket"}
+SIMPLEUI_ICON = {
+    "代理节点": "fas fa-server",
+    "SS节点配置": "fa fa-rocket",
+    "中转节点": "fas fa-forward",
+    "中转规则": "fas fa-ruler",
+    "节点在线记录": "fas fa-signal",
+    "用户流量记录": "fas fa-filter",
+    "用户在线IP记录": "fas fa-map-marker",
+}
