@@ -9,3 +9,45 @@ include_trailing_comma = true
 line_length = 88
 multi_line_output = 3
 use_parentheses = true
+
+[[tool.poetry.source]]
+name = "douban"
+url = "https://pypi.doubanio.com/simple/"
+
+[tool.poetry]
+name = "django-sspanel"
+version = "0.1.0"
+description = "A Shadowsocks and V2Ray panel coding by django."
+authors = ["Ehco1996 <zh19960202@gmail.com>"]
+license = "GNU General Public License v3.0"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Django = "3.1.2"
+django-anymail = "8.0"
+django-countries = "6.1.3"
+django-prometheus = "2.1.0"
+django-simpleui = "2020.9.26"
+gevent = "20.9.0"
+Markdown = "3.2.2"
+mysqlclient = "2.0.1"
+python-alipay-sdk = "2.1.1"
+sentry-sdk = "0.18.0"
+short_url = "1.2.2"
+tomd = "0.1.3"
+uWSGI = "2.0.19.1"
+pendulum = "2.1.2"
+redis = "3.5.3"
+celery = "4.4.7"
+django = "3.1.2"
+markdown = "3.2.2"
+short-url = "1.2.2"
+uwsgi = "2.0.19.1"
+python-dotenv = "^0.15.0"
+
+[tool.poetry.dev-dependencies]
+django-environ = "^0.4.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
