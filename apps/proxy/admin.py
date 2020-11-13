@@ -3,6 +3,15 @@ from django.contrib import admin
 from apps.proxy import models
 
 
+class SSConfigInline(admin.StackedInline):
+    model = models.SSConfig
+    fields = [
+        "node",
+        "method",
+        "multi_user_port",
+    ]
+
+
 class ProxyNodeAdmin(admin.ModelAdmin):
 
     list_display = [
@@ -15,6 +24,8 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     ]
     search_fields = []
     list_filter = []
+
+    inlines = [SSConfigInline]
 
 
 class SSConfigAdmin(admin.ModelAdmin):
