@@ -71,7 +71,7 @@
                                 <i class="fa fa-clipboard" aria-hidden="true"></i>
                             </a>
                         </div>
-                        {% if node.enable_ehco %}
+                        {% if node.enable_ehco_tunnel %}
                         <hr>
                         <p class="subtitle"><a class="is-link"
                                 href="https://github.com/Ehco1996/ehco">ehco隧道</a>(落地机)对接地址:</p>
@@ -81,7 +81,7 @@
                                     value="{{ node.ehco_api_endpoint }}" readonly>
                             </p>
                             <a class="button is-rounded" id="id-button-clip"
-                                data-clipboard-target="#id-ehco-server-config-{{ node.node_id }}">
+                                data-clipboard-target="#id-ehco-server-config-{{ node.id }}">
                                 <i class="fa fa-clipboard" aria-hidden="true"></i>
                             </a>
                         </div>
@@ -93,7 +93,7 @@
             </div>
             {% empty %}
             <h2 class=" subtitle">
-                暂时没有节点，点击下方按钮添加节点
+                暂时没有节点，请去[数据后台-代理节点]里添加节点
             </h2>
             {% endfor %}
         </table>
