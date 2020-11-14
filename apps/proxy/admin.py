@@ -5,8 +5,9 @@ from apps.proxy import models
 
 class SSConfigInline(admin.StackedInline):
     model = models.SSConfig
+    verbose_name = "SS配置"
     fields = [
-        "node",
+        "proxy_node",
         "method",
         "multi_user_port",
     ]
@@ -14,6 +15,7 @@ class SSConfigInline(admin.StackedInline):
 
 class RelayRuleInline(admin.TabularInline):
     model = models.RelayRule
+    verbose_name = "中转规则配置"
     extra = 0
     fields = ["proxy_node", "relay_node", "relay_port", "listen_type", "transport_type"]
 
@@ -72,7 +74,7 @@ class RelayRuleAdmin(admin.ModelAdmin):
 class SSConfigAdmin(admin.ModelAdmin):
 
     list_display = [
-        "node",
+        "proxy_node",
         "method",
         "multi_user_port",
     ]
@@ -117,8 +119,10 @@ class UserOnLineIpLogAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(models.ProxyNode, ProxyNodeAdmin)
 admin.site.register(models.SSConfig, SSConfigAdmin)
+
 admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.RelayRule, RelayRuleAdmin)
+
 admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
 admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)

@@ -46,12 +46,31 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         "倍率", default=Decimal("1.0"), decimal_places=1, max_digits=10,
     )
 
+    ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
+    ehco_listen_port = models.CharField("隧道监听端口", max_length=64, blank=True, null=True)
+    ehco_listen_type = models.CharField(
+        "隧道监听类型", max_length=64, choices=c.LISTEN_TYPES, default=c.LISTEN_RAW
+    )
+    ehco_transport_type = models.CharField(
+        "隧道传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
+    )
+
     class Meta:
         verbose_name_plural = "代理节点"
         ordering = ("sequence",)
 
     def __str__(self) -> str:
         return f"{self.name}({self.node_type})"
+
+    @classmethod
+    def get_active_nodes(cls, sub_mode=False):
+        active_nodes = list(
+            cls.objects.filter(enable=True)
+            .select_related("ss_config")
+            .prefetch_related("relay_rules")
+            .order_by("sequence")
+        )
+        return active_nodes
 
     @property
     def human_total_traffic(self):
@@ -61,10 +80,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def human_used_traffic(self):
         return utils.traffic_format(self.used_traffic)
 
-    @cached_property
-    def online_info(self):
-        return NodeOnlineLog.get_latest_online_log_info(self.id)
-
     @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
@@ -73,9 +88,26 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         # TODO vless/trojan
         return ""
 
+    @property
+    def ehco_api_endpoint(self):
+        params = {"token": settings.TOKEN}
+        return settings.HOST + f"/api/ehco_server_config/{self.id}/?{urlencode(params)}"
+
+    @cached_property
+    def online_info(self):
+        return NodeOnlineLog.get_latest_online_log_info(self.id)
+
+    @cached_property
+    def enable_relay(self):
+        return bool(self.relay_rules.exists())
+
+    @cached_property
+    def enable_ehco_tunnel(self):
+        return self.ehco_listen_host and self.ehco_listen_port
+
 
 class SSConfig(models.Model):
-    node = models.OneToOneField(
+    proxy_node = models.OneToOneField(
         to=ProxyNode,
         related_name="ss_config",
         on_delete=models.CASCADE,
@@ -91,10 +123,10 @@ class SSConfig(models.Model):
     )
 
     class Meta:
-        verbose_name_plural = "SS节点配置"
+        verbose_name_plural = "SS配置"
 
     def __str__(self) -> str:
-        return self.node.__str__() + "-配置"
+        return self.proxy_node.__str__() + "-配置"
 
 
 class RelayNode(BaseNodeModel):
