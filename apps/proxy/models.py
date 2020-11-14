@@ -56,6 +56,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     )
 
     class Meta:
+        verbose_name = "代理节点"
         verbose_name_plural = "代理节点"
         ordering = ("sequence",)
 
@@ -72,6 +73,42 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         )
         return active_nodes
 
+    def get_ss_node_config(self):
+        configs = {"users": []}
+        ss_config = self.ss_config
+        for user in User.objects.filter(level__gte=self.level).values(
+            "id",
+            "ss_port",
+            "ss_password",
+            "total_traffic",
+            "upload_traffic",
+            "download_traffic",
+        ):
+            enable = self.enable and user["total_traffic"] > (
+                user["download_traffic"] + user["upload_traffic"]
+            )
+            if ss_config.multi_user_port:
+                # NOTE 单端口多用户
+                port = ss_config.multi_user_port
+            else:
+                port = port = user.ss_port
+            configs["users"].append(
+                {
+                    "user_id": user["id"],
+                    "port": port,
+                    "password": user["ss_password"],
+                    "enable": enable,
+                    "method": ss_config.method,
+                }
+            )
+        return configs
+
+    def get_proxy_configs(self):
+        # TODO add cache
+        if self.node_type == self.NODE_TYPE_SS:
+            return self.get_ss_node_config()
+        return {}
+
     @property
     def human_total_traffic(self):
         return utils.traffic_format(self.total_traffic)
@@ -84,7 +121,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
         if self.node_type == self.NODE_TYPE_SS:
-            return settings.HOST + f"/api/user_ss_config/{self.id}/?{urlencode(params)}"
+            return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
         # TODO vless/trojan
         return ""
 
@@ -123,6 +160,7 @@ class SSConfig(models.Model):
     )
 
     class Meta:
+        verbose_name = "SS配置"
         verbose_name_plural = "SS配置"
 
     def __str__(self) -> str:
@@ -145,6 +183,7 @@ class RelayNode(BaseNodeModel):
     isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
 
     class Meta:
+        verbose_name = "中转节点"
         verbose_name_plural = "中转节点"
 
     def __str__(self) -> str:
@@ -184,6 +223,7 @@ class RelayRule(BaseModel):
     )
 
     class Meta:
+        verbose_name = "中转规则"
         verbose_name_plural = "中转规则"
 
     def __str__(self) -> str:
@@ -221,19 +261,13 @@ class NodeOnlineLog(BaseLogModel):
     tcp_connections_count = models.IntegerField(default=0, verbose_name="tcp链接数")
 
     class Meta:
+        verbose_name = "节点在线记录"
         verbose_name_plural = "节点在线记录"
         ordering = ["-created_at"]
         index_together = ["proxy_node", "created_at"]
 
     def __str__(self) -> str:
         return f"{self.proxy_node.name}节点在线记录"
-
-    @property
-    def online(self):
-        return (
-            utils.get_current_datetime().subtract(seconds=c.NODE_TIME_OUT)
-            < self.created_at
-        )
 
     @classmethod
     def get_latest_log(cls, proxy_node):
@@ -248,6 +282,23 @@ class NodeOnlineLog(BaseLogModel):
             data.update(model_to_dict(log))
         return data
 
+    @classmethod
+    def get_all_node_online_user_count(cls):
+
+        count = 0
+        for node in ProxyNode.get_active_nodes():
+            log = cls.get_latest_log(node.id)
+            if log:
+                count += log.online_user_count
+        return count
+
+    @property
+    def online(self):
+        return (
+            utils.get_current_datetime().subtract(seconds=c.NODE_TIME_OUT)
+            < self.created_at
+        )
+
 
 class UserTrafficLog(BaseLogModel):
 
@@ -259,6 +310,7 @@ class UserTrafficLog(BaseLogModel):
     download_traffic = models.BigIntegerField("下载流量", default=0)
 
     class Meta:
+        verbose_name = "用户流量记录"
         verbose_name_plural = "用户流量记录"
         ordering = ["-created_at"]
         index_together = ["user", "proxy_node", "created_at"]
@@ -280,6 +332,7 @@ class UserOnLineIpLog(BaseLogModel):
     ip = models.CharField(max_length=128, verbose_name="IP地址")
 
     class Meta:
+        verbose_name = "用户在线IP记录"
         verbose_name_plural = "用户在线IP记录"
         ordering = ["-created_at"]
         index_together = ["user", "proxy_node", "created_at"]

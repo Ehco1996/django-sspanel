@@ -8,15 +8,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.ext import encoder, lock
+from apps.proxy import models as m
 from apps.sspanel import tasks
 from apps.sspanel.models import (
     Donate,
     Goods,
     InviteCode,
-    NodeOnlineLog,
     RelayNode,
     SSNode,
-    TrojanNode,
     User,
     UserCheckInLog,
     UserOrder,
@@ -36,7 +35,7 @@ class SystemStatusView(View):
     @method_decorator(permission_required("sspanel"))
     def get(self, request):
         user_status = [
-            NodeOnlineLog.get_all_node_online_user_count(),
+            m.NodeOnlineLog.get_all_node_online_user_count(),
             User.get_today_register_user().count(),
             UserCheckInLog.get_today_checkin_user_count(),
             User.get_never_used_user_count(),
@@ -48,7 +47,7 @@ class SystemStatusView(View):
             Donate.get_donate_money_by_date(date=pendulum.today()),
         ]
 
-        active_nodes = SSNode.get_active_nodes() + VmessNode.get_active_nodes()
+        active_nodes = m.ProxyNode.get_active_nodes()
 
         node_status = {
             "names": [node.name for node in active_nodes],
@@ -83,6 +82,7 @@ class UserSettingsView(View):
 
 class SubscribeView(View):
     def get(self, request):
+        # TODO change this
         token = request.GET.get("token")
         if not token:
             return HttpResponseNotFound()
@@ -120,84 +120,27 @@ class UserTrafficChartView(View):
         return JsonResponse(configs)
 
 
-class UserSSConfigView(View):
+class ProxyConfigsView(View):
     @csrf_exempt
     def dispatch(self, *args, **kwargs):
-        return super(UserSSConfigView, self).dispatch(*args, **kwargs)
+        return super(ProxyConfigsView, self).dispatch(*args, **kwargs)
 
     @method_decorator(api_authorized)
     def get(self, request, node_id):
-        configs = SSNode.get_user_ss_configs_by_node_id(node_id)
-        return JsonResponse(configs)
+        node = m.ProxyNode.get_or_none(node_id)
+        if not node:
+            return HttpResponseNotFound()
+        return JsonResponse(node.get_proxy_configs())
 
     @method_decorator(handle_json_post)
     @method_decorator(api_authorized)
     def post(self, request, node_id):
+        # TODO
         node = SSNode.get_or_none_by_node_id(node_id)
         if not node:
             return HttpResponseNotFound()
         tasks.sync_user_ss_traffic_task.delay(node_id, request.json["data"])
         return JsonResponse(data={})
-
-
-class UserVmessConfigView(View):
-    @csrf_exempt
-    def dispatch(self, *args, **kwargs):
-        return super(UserVmessConfigView, self).dispatch(*args, **kwargs)
-
-    @method_decorator(api_authorized)
-    def get(self, request, node_id):
-        configs = VmessNode.get_user_vmess_configs_by_node_id(node_id)
-        return JsonResponse(configs)
-
-    @method_decorator(handle_json_post)
-    @method_decorator(api_authorized)
-    def post(self, request, node_id):
-        node = VmessNode.get_or_none_by_node_id(node_id)
-        if not node:
-            return HttpResponseNotFound()
-        tasks.sync_user_vmess_traffic_task.delay(node_id, request.json["user_traffics"])
-        return JsonResponse(data={})
-
-
-class UserTrojanConfigView(View):
-    @csrf_exempt
-    def dispatch(self, *args, **kwargs):
-        return super(UserTrojanConfigView, self).dispatch(*args, **kwargs)
-
-    @method_decorator(api_authorized)
-    def get(self, request, node_id):
-        configs = TrojanNode.get_user_trojan_configs_by_node_id(node_id)
-        return JsonResponse(configs)
-
-    @method_decorator(handle_json_post)
-    @method_decorator(api_authorized)
-    def post(self, request, node_id):
-        node = TrojanNode.get_or_none_by_node_id(node_id)
-        if not node:
-            return HttpResponseNotFound()
-        tasks.sync_user_trojan_traffic_task.delay(
-            node_id, request.json["user_traffics"]
-        )
-        return JsonResponse(data={})
-
-
-class VmessServerConfigView(View):
-    @method_decorator(api_authorized)
-    def get(self, request, node_id):
-        node = VmessNode.get_or_none_by_node_id(node_id)
-        if not node:
-            return HttpResponseNotFound()
-        return JsonResponse(node.server_config)
-
-
-class TrojanServerConfigView(View):
-    @method_decorator(api_authorized)
-    def get(self, request, node_id):
-        node = TrojanNode.get_or_none_by_node_id(node_id)
-        if not node:
-            return HttpResponseNotFound()
-        return JsonResponse(node.server_config)
 
 
 class EhcoRelayConfigView(View):
