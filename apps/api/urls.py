@@ -14,29 +14,9 @@ urlpatterns = [
     path("checkin/", views.UserCheckInView.as_view(), name="checkin"),
     # web api 接口
     path(
-        "user_ss_config/<int:node_id>/",
-        views.UserSSConfigView.as_view(),
-        name="user_ss_config",
-    ),
-    path(
-        "user_vmess_config/<int:node_id>/",
-        views.UserVmessConfigView.as_view(),
-        name="user_vmess_config",
-    ),
-    path(
-        "vmess_server_config/<int:node_id>/",
-        views.VmessServerConfigView.as_view(),
-        name="vmess_server_config",
-    ),
-    path(
-        "user_trojan_config/<int:node_id>/",
-        views.UserTrojanConfigView.as_view(),
-        name="user_trojan_config",
-    ),
-    path(
-        "trojan_server_config/<int:node_id>/",
-        views.TrojanServerConfigView.as_view(),
-        name="trojan_server_config",
+        "proxy_configs/<int:node_id>/",
+        views.ProxyConfigsView.as_view(),
+        name="proxy_configs",
     ),
     path(
         "ehco_relay_config/<int:node_id>/",
