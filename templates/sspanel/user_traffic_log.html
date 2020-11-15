@@ -36,14 +36,8 @@
             <div class="control">
                 <div class="select">
                     <select id="id-select-nodes" name="nodes">
-                        {% for node in ss_node_list %}
-                        <option node-type="ss" node-id={{ node.node_id }}>{{ node.name }}</option>
-                        {% endfor %}
-                        {% for node in vmess_node_list %}
-                        <option node-type="vmess" node-id={{ node.node_id }}>{{ node.name }}</option>
-                        {% endfor %}
-                        {% for node in trojan_node_list %}
-                            <option node-type="trojan" node-id={{ node.node_id }}>{{ node.name }}</option>
+                        {% for node in node_list %}
+                        <option node-id={{ node.id }}>{{ node.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -63,7 +57,6 @@
         var options = $("#id-select-nodes option:selected")
         var data = {
             'node_id': options.attr("node-id"),
-            'node_type': options.attr("node-type")
         }
         $.get(url, data, function (results) {
             genLineChart('traffic', results)
