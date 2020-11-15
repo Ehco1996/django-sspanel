@@ -1,4 +1,5 @@
 import base64
+import json
 from decimal import Decimal
 from functools import cached_property
 from urllib.parse import quote, urlencode
@@ -69,10 +70,12 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return f"{self.name}({self.node_type})"
 
     @classmethod
-    def get_active_nodes(cls, sub_mode=False):
+    def get_active_nodes(cls, level=None):
+        query = cls.objects.filter(enable=True)
+        if level:
+            query = query.filter(level__lte=level)
         active_nodes = list(
-            cls.objects.filter(enable=True)
-            .select_related("ss_config")
+            query.select_related("ss_config")
             .prefetch_related("relay_rules")
             .order_by("sequence")
         )
@@ -154,6 +157,27 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             return ss_link
         return ""
 
+    def get_user_clash_config(self, user, relay_rule=None):
+        config = {}
+        if self.node_type == self.NODE_TYPE_SS:
+            if relay_rule:
+                host = relay_rule.relay_host
+                port = relay_rule.relay_port
+                remark = relay_rule.remark
+            else:
+                host = self.multi_server_address[0]
+                port = self.get_user_ss_port(user)
+                remark = self.name
+            config = {
+                "name": remark,
+                "type": self.NODE_TYPE_SS,
+                "server": host,
+                "port": port,
+                "cipher": self.ss_config.method,
+                "password": user.ss_password,
+            }
+        return json.dumps(config, ensure_ascii=False)
+
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
         data.update(NodeOnlineLog.get_latest_online_log_info(self))
@@ -169,7 +193,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         if self.enable_relay:
             data["enable_relay"] = True
             data["relay_rules"] = [
-                rule.to_dict_with_extra_info(user) for rule in self.relay_rules.all()
+                rule.to_dict_with_extra_info(user)
+                for rule in self.relay_rules.filter(relay_node__enable=True)
             ]
         return data
 

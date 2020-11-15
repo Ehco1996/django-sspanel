@@ -27,7 +27,7 @@ dns:
 # 代理节点
 proxies:
 {% autoescape off %}
-{% for node in nodes %} - {{ node.clash_link }}
+{% for node in nodes %} - {{ node.clash_config }}
 {% endfor %}
 {% endautoescape%}
 
