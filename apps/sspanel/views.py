@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.views import View
 
 from apps.constants import THEME_CHOICES
+from apps.proxy.models import ProxyNode
 from apps.sspanel.forms import LoginForm, RegisterForm
 from apps.sspanel.models import (
     Announcement,
@@ -151,22 +152,11 @@ class UserInfoView(LoginRequiredMixin, View):
 class NodeInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        # ss node
-        ss_node_list = [
-            node.to_dict_with_extra_info(user) for node in SSNode.get_active_nodes()
-        ]
-        # vmess node
-        vmess_node_list = [
-            node.to_dict_with_extra_info(user) for node in VmessNode.get_active_nodes()
-        ]
-        # trojan node
-        trojan_node_list = [
-            node.to_dict_with_extra_info(user) for node in TrojanNode.get_active_nodes()
+        node_list = [
+            node.to_dict_with_extra_info(user) for node in ProxyNode.get_active_nodes()
         ]
         context = {
-            "ss_node_list": ss_node_list,
-            "vmess_node_list": vmess_node_list,
-            "trojan_node_list": trojan_node_list,
+            "node_list": node_list,
             "user": user,
         }
         Announcement.send_first_visit_msg(request)

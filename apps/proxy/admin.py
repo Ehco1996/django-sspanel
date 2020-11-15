@@ -31,10 +31,11 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "sequence",
     ]
     inlines = [RelayRuleInline]
+    all_inlines = [SSConfigInline, RelayRuleInline]
 
     def get_inlines(self, request, instance):
         if not instance:
-            return self.inlines
+            return self.all_inlines
         elif instance.node_type == models.ProxyNode.NODE_TYPE_SS:
             return [SSConfigInline] + self.inlines
         return self.inlines

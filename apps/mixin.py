@@ -128,7 +128,16 @@ def _touch_sequence_model(sender, instance, **kw):
             )
         ):
             # NOTE from pose_save and post_delete
-            instance.update_all_sequence()
+            if (
+                hasattr(instance, "_pre_sequence")
+                and instance._pre_sequence != instance.sequence
+            ):
+                cls = type(instance)
+                instance.change_sequence(
+                    instance.sequence, cls.objects.all().order_by("sequence")
+                )
+            else:
+                instance.update_all_sequence()
 
 
 pre_save.connect(_set_pre_save_sequence)
