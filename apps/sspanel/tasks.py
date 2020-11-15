@@ -3,6 +3,7 @@ from urllib.error import URLError
 from django.conf import settings
 
 from apps import celery_app
+from apps.proxy.models import NodeOnlineLog, ProxyNode, UserOnLineIpLog, UserTrafficLog
 from apps.sspanel import models as m
 from apps.utils import get_current_datetime
 
@@ -14,7 +15,7 @@ def debug_task():
 
 
 @celery_app.task
-def sync_user_ss_traffic_task(node_id, data):
+def sync_user_traffic_task(node_id, data):
     """
     这个接口操作比较重，所以为了避免发信号
     所有写操作都需要用BULK的方式
@@ -23,12 +24,12 @@ def sync_user_ss_traffic_task(node_id, data):
     3 记录节点在线IP
     4 关闭超出流量的节点
     """
-    ss_node = m.SSNode.get_or_none_by_node_id(node_id)
-    if not ss_node:
+    node = ProxyNode.get_or_none(node_id)
+    if not node:
         return
     node_total_traffic = 0
     log_time = get_current_datetime()
-    active_tcp_connections = 0
+    tcp_connections_count = 0
     need_clear_cache = False
     user_model_list = []
     trafficlog_model_list = []
@@ -36,34 +37,30 @@ def sync_user_ss_traffic_task(node_id, data):
 
     for user_data in data:
         user_id = user_data["user_id"]
-        u = int(user_data["upload_traffic"] * ss_node.enlarge_scale)
-        d = int(user_data["download_traffic"] * ss_node.enlarge_scale)
+        u = int(user_data["upload_traffic"] * node.enlarge_scale)
+        d = int(user_data["download_traffic"] * node.enlarge_scale)
         # 个人流量增量
         user = m.User.get_by_pk(user_id)
         user.download_traffic += d
         user.upload_traffic += u
         user.last_use_time = log_time
         user_model_list.append(user)
-        if user.overflow or user.level < ss_node.level:
+        if user.overflow or user.level < node.level:
             need_clear_cache = True
         # 个人流量记录
         trafficlog_model_list.append(
-            m.UserTrafficLog(
-                node_type=m.UserTrafficLog.NODE_TYPE_SS,
-                node_id=node_id,
-                user_id=user_id,
-                download_traffic=u,
-                upload_traffic=d,
+            UserTrafficLog(
+                proxy_node=node, user=user, download_traffic=u, upload_traffic=d,
             )
         )
         # 节点流量增量
         node_total_traffic += u + d
         # active_tcp_connections
-        active_tcp_connections += user_data["tcp_conn_num"]
+        tcp_connections_count += user_data["tcp_conn_num"]
         # online ip log
         for ip in user_data.get("ip_list", []):
             online_ip_log_model_list.append(
-                m.UserOnLineIpLog(user_id=user_id, node_id=node_id, ip=ip)
+                UserOnLineIpLog(user=user, proxy_node=node, ip=ip)
             )
 
     # 用户流量
@@ -71,20 +68,19 @@ def sync_user_ss_traffic_task(node_id, data):
         user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点流量记录
-    m.SSNode.increase_used_traffic(node_id, node_total_traffic)
+    ProxyNode.increase_used_traffic(node_id, node_total_traffic)
     # 流量记录
-    m.UserTrafficLog.objects.bulk_create(trafficlog_model_list)
+    UserTrafficLog.objects.bulk_create(trafficlog_model_list)
     # 在线IP
-    m.UserOnLineIpLog.objects.bulk_create(online_ip_log_model_list)
+    UserOnLineIpLog.objects.bulk_create(online_ip_log_model_list)
     # 节点在线人数
-    m.NodeOnlineLog.add_log(
-        m.NodeOnlineLog.NODE_TYPE_SS, node_id, len(data), active_tcp_connections
-    )
+    NodeOnlineLog.add_log(node, len(data), tcp_connections_count)
     # check node && user traffic
-    if ss_node.overflow:
-        ss_node.enable = False
-    if need_clear_cache or ss_node.overflow:
-        ss_node.save()
+    if node.overflow:
+        node.enable = False
+    if need_clear_cache or node.overflow:
+        node.refresh_from_db()
+        node.save()
 
 
 @celery_app.task
@@ -104,11 +100,7 @@ def auto_reset_free_user_traffic_task():
 @celery_app.task
 def reset_node_traffic_task():
     """重置节点使用流量"""
-    for node in m.SSNode.objects.all():
-        node.used_traffic = 0
-        node.save()
-
-    for node in m.VmessNode.objects.all():
+    for node in ProxyNode.objects.all():
         node.used_traffic = 0
         node.save()
 
@@ -127,22 +119,22 @@ def make_up_lost_order_task():
 def clean_traffic_log_task():
     """清空七天前的所有流量记录"""
     dt = get_current_datetime().subtract(days=7).date()
-    query = m.UserTrafficLog.objects.filter(date__lt=dt)
-    count, res = query.delete()
+    query = UserTrafficLog.objects.filter(date__lt=dt)
+    count, _ = query.delete()
     print(f"UserTrafficLog  removed count:{count}")
 
 
 @celery_app.task
 def clean_node_online_log_task():
     """清空所有在线记录"""
-    count = m.NodeOnlineLog.objects.count()
-    m.NodeOnlineLog.truncate()
+    count = NodeOnlineLog.objects.count()
+    NodeOnlineLog.truncate()
     print(f"NodeOnlineLog  removed count:{count}")
 
 
 @celery_app.task
 def clean_online_ip_log_task():
     """清空在线ip记录"""
-    count = m.UserOnLineIpLog.objects.count()
-    m.UserOnLineIpLog.truncate()
+    count = UserOnLineIpLog.objects.count()
+    UserOnLineIpLog.truncate()
     print(f"UserOnLineIpLog  removed count:{count}")

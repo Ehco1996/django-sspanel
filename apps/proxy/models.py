@@ -73,6 +73,12 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         )
         return active_nodes
 
+    @classmethod
+    def increase_used_traffic(cls, id, used_traffic):
+        cls.objects.filter(id=id).update(
+            used_traffic=models.F("used_traffic") + used_traffic
+        )
+
     def get_ss_node_config(self):
         configs = {"users": []}
         ss_config = self.ss_config
@@ -116,6 +122,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     @property
     def human_used_traffic(self):
         return utils.traffic_format(self.used_traffic)
+
+    @property
+    def overflow(self):
+        return (self.used_traffic) > self.total_traffic
 
     @property
     def api_endpoint(self):
@@ -270,6 +280,14 @@ class NodeOnlineLog(BaseLogModel):
         return f"{self.proxy_node.name}节点在线记录"
 
     @classmethod
+    def add_log(cls, proxy_node, online_user_count, tcp_connections_count=0):
+        return cls.objects.create(
+            proxy_node=proxy_node,
+            online_user_count=online_user_count,
+            tcp_connections_count=tcp_connections_count,
+        )
+
+    @classmethod
     def get_latest_log(cls, proxy_node):
         return cls.objects.filter(proxy_node=proxy_node).order_by("-created_at").first()
 
@@ -317,6 +335,48 @@ class UserTrafficLog(BaseLogModel):
 
     def __str__(self) -> str:
         return f"{self.proxy_node.name}用户流量记录"
+
+    @classmethod
+    def calc_user_total_traffic(cls, proxy_node, user_id):
+        logs = cls.objects.filter(user_id=user_id, proxy_node=proxy_node)
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return utils.traffic_format(ut + dt)
+
+    @classmethod
+    def calc_user_traffic_by_date(cls, user_id, proxy_node, date):
+        logs = cls.objects.filter(
+            user_id=user_id,
+            proxy_node=proxy_node,
+            created_at__range=[date.start_of("day"), date.end_of("day")],
+        )
+        aggs = logs.aggregate(
+            u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
+        )
+        ut = aggs["u"] if aggs["u"] else 0
+        dt = aggs["d"] if aggs["d"] else 0
+        return (ut + dt) // settings.MB
+
+    @classmethod
+    def gen_line_chart_configs(cls, user_id, node_id, date_list):
+        proxy_node = ProxyNode.get_or_none(node_id)  # node must exists
+        user_total_traffic = cls.calc_user_total_traffic(proxy_node, user_id)
+        date_list = sorted(date_list)
+        line_config = {
+            "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
+            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+            "data": [
+                cls.calc_user_traffic_by_date(user_id, proxy_node, date)
+                for date in date_list
+            ],
+            "data_title": proxy_node.name,
+            "x_label": f"日期 最近{len(date_list)}天",
+            "y_label": "流量 单位：MB",
+        }
+        return line_config
 
     @property
     def total_traffic(self):

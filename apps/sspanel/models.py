@@ -4,7 +4,6 @@ import json
 import random
 import re
 import time
-import pytz
 from copy import deepcopy
 from decimal import Decimal
 from urllib.parse import quote, urlencode
@@ -12,6 +11,7 @@ from uuid import uuid4
 
 import markdown
 import pendulum
+import pytz
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import AbstractUser
@@ -285,15 +285,26 @@ class User(AbstractUser):
             node_list.extend(VmessNode.get_user_active_nodes(self, True))
         if sub_type in [self.SUB_TYPE_TROJAN, self.SUB_TYPE_ALL]:
             node_list.extend(TrojanNode.get_user_active_nodes(self, True))
-        
+
         # 假节点，用来给代理客户端展示账号的剩余流量等信息
         ONE_GIGA_BYTES = 1073741824
-        remaining_traffics = round((self.total_traffic - self.upload_traffic - self.download_traffic) / ONE_GIGA_BYTES, 3)
+        remaining_traffics = round(
+            (self.total_traffic - self.upload_traffic - self.download_traffic)
+            / ONE_GIGA_BYTES,
+            3,
+        )
         now = datetime.datetime.now().replace(tzinfo=pytz.timezone("UTC"))
         expire = self.level_expire_time
         minus = (self.level_expire_time - now).days
         level_remaining_days = minus if minus >= 0 else 0
-        info_node = SSNode(node_id=999, name="剩余{}GB，等级{}，等级剩余{}天".format(remaining_traffics, self.level, level_remaining_days), info="None", server="127.0.0.1")
+        info_node = SSNode(
+            node_id=999,
+            name="剩余{}GB，等级{}，等级剩余{}天".format(
+                remaining_traffics, self.level, level_remaining_days
+            ),
+            info="None",
+            server="127.0.0.1",
+        )
         sub_links = "MAX={}\n".format(len(node_list))
         sub_links += info_node.get_ss_link(self) + "\n"
 
