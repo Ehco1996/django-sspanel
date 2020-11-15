@@ -18,11 +18,8 @@ from apps.sspanel.models import (
     MoneyCode,
     PurchaseHistory,
     RebateRecord,
-    SSNode,
     Ticket,
-    TrojanNode,
     User,
-    VmessNode,
 )
 from apps.utils import traffic_format
 
@@ -165,14 +162,10 @@ class NodeInfoView(LoginRequiredMixin, View):
 
 class UserTrafficLog(LoginRequiredMixin, View):
     def get(self, request):
-        ss_node_list = SSNode.get_active_nodes()
-        vmess_node_list = VmessNode.get_active_nodes()
-        trojan_node_list = TrojanNode.get_active_nodes()
+        node_list = ProxyNode.get_active_nodes()
         context = {
             "user": request.user,
-            "ss_node_list": ss_node_list,
-            "vmess_node_list": vmess_node_list,
-            "trojan_node_list": trojan_node_list,
+            "node_list": node_list,
         }
         return render(request, "sspanel/user_traffic_log.html", context=context)
 

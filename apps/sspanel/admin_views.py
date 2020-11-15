@@ -9,7 +9,7 @@ from django.views import View
 
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.proxy.models import ProxyNode
+from apps.proxy.models import NodeOnlineLog, ProxyNode, UserOnLineIpLog
 from apps.sspanel.forms import AnnoForm, GoodsForm, UserForm
 from apps.sspanel.models import (
     Announcement,
@@ -17,12 +17,10 @@ from apps.sspanel.models import (
     Goods,
     InviteCode,
     MoneyCode,
-    NodeOnlineLog,
     PurchaseHistory,
     Ticket,
     User,
     UserCheckInLog,
-    UserOnLineIpLog,
 )
 
 

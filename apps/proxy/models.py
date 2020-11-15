@@ -513,3 +513,18 @@ class UserOnLineIpLog(BaseLogModel):
 
     def __str__(self) -> str:
         return f"{self.proxy_node.name}用户在线IP记录"
+
+    @classmethod
+    def get_recent_log_by_node_id(cls, node_id):
+        # TODO 优化一下IP的存储方式
+        now = utils.get_current_datetime()
+        ip_set = set()
+        ret = []
+        for log in cls.objects.filter(
+            node_id=node_id,
+            created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
+        ):
+            if log.ip not in ip_set:
+                ret.append(log)
+            ip_set.add(log.ip)
+        return ret
