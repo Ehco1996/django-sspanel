@@ -32,6 +32,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     ]
     inlines = [RelayRuleInline]
     all_inlines = [SSConfigInline, RelayRuleInline]
+    list_editable = ["sequence"]
 
     def get_inlines(self, request, instance):
         if not instance:

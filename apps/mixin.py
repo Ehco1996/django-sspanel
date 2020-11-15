@@ -60,7 +60,9 @@ class SequenceMixin(models.Model):
     MOVE_FORWARD = "forward"
     MOVE_BACK = "back"
 
-    sequence = models.IntegerField(default=1, db_index=True, help_text="处于序列中的第几位")
+    sequence = models.IntegerField(
+        "顺序", default=1, db_index=True, help_text="处于序列中的第几位"
+    )
 
     @transaction.atomic()
     def change_sequence(self, new_sequence, all_query):
