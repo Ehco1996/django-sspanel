@@ -19,6 +19,7 @@ from apps.sspanel.models import (
     UserOrder,
     UserRefLog,
 )
+from apps.sub import UserSubManager
 from apps.utils import (
     api_authorized,
     get_current_datetime,
@@ -78,7 +79,6 @@ class UserSettingsView(View):
 
 class SubscribeView(View):
     def get(self, request):
-        # TODO change this
         token = request.GET.get("token")
         if not token:
             return HttpResponseNotFound()
@@ -87,7 +87,7 @@ class SubscribeView(View):
             return HttpResponseNotFound()
 
         sub_type = request.GET.get("sub_type")
-        sub_links = user.get_sub_links(sub_type)
+        sub_links = UserSubManager(user, sub_type).get_sub_links()
         return HttpResponse(sub_links)
 
 
