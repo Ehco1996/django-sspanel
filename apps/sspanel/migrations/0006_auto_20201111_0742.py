@@ -10,8 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="ssnode", name="custom_method",),
-        migrations.RemoveField(model_name="user", name="ss_method",),
+        migrations.RemoveField(
+            model_name="ssnode",
+            name="custom_method",
+        ),
+        migrations.RemoveField(
+            model_name="user",
+            name="ss_method",
+        ),
         migrations.AlterField(
             model_name="ssnode",
             name="method",

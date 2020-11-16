@@ -50,7 +50,10 @@ def sync_user_traffic_task(node_id, data):
         # 个人流量记录
         trafficlog_model_list.append(
             UserTrafficLog(
-                proxy_node=node, user=user, download_traffic=u, upload_traffic=d,
+                proxy_node=node,
+                user=user,
+                download_traffic=u,
+                upload_traffic=d,
             )
         )
         # 节点流量增量
@@ -65,7 +68,8 @@ def sync_user_traffic_task(node_id, data):
 
     # 用户流量
     m.User.objects.bulk_update(
-        user_model_list, ["download_traffic", "upload_traffic", "last_use_time"],
+        user_model_list,
+        ["download_traffic", "upload_traffic", "last_use_time"],
     )
     # 节点流量记录
     ProxyNode.increase_used_traffic(node_id, node_total_traffic)

@@ -10,8 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="trojannode", name="certificateFile",),
-        migrations.RemoveField(model_name="trojannode", name="keyFile",),
+        migrations.RemoveField(
+            model_name="trojannode",
+            name="certificateFile",
+        ),
+        migrations.RemoveField(
+            model_name="trojannode",
+            name="keyFile",
+        ),
         migrations.AddField(
             model_name="trojannode",
             name="certificate_file",

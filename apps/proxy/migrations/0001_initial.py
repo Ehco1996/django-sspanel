@@ -202,7 +202,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"verbose_name": "中转节点", "verbose_name_plural": "中转节点",},
+            options={
+                "verbose_name": "中转节点",
+                "verbose_name_plural": "中转节点",
+            },
         ),
         migrations.CreateModel(
             name="SSConfig",
@@ -242,7 +245,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"verbose_name": "SS配置", "verbose_name_plural": "SS配置",},
+            options={
+                "verbose_name": "SS配置",
+                "verbose_name_plural": "SS配置",
+            },
         ),
         migrations.CreateModel(
             name="RelayRule",
@@ -294,7 +300,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"verbose_name": "中转规则", "verbose_name_plural": "中转规则",},
+            options={
+                "verbose_name": "中转规则",
+                "verbose_name_plural": "中转规则",
+            },
         ),
         migrations.CreateModel(
             name="UserTrafficLog",
