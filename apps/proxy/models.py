@@ -302,7 +302,8 @@ class RelayNode(BaseNodeModel):
                 if node.enable_ehco_tunnel:
                     remote = f"{server}:{node.ehco_listen_port}"
                 else:
-                    remote = f"{server}:{node.port}"
+                    # TODO other node type
+                    remote = f"{server}:{node.ss_config.multi_user_port}"
                 if rule.transport_type in c.WS_TRANSPORTS:
                     remote = "wss://" + remote
                 remotes.append(remote)
@@ -515,13 +516,13 @@ class UserOnLineIpLog(BaseLogModel):
         return f"{self.proxy_node.name}用户在线IP记录"
 
     @classmethod
-    def get_recent_log_by_node_id(cls, node_id):
+    def get_recent_log_by_node_id(cls, proxy_node):
         # TODO 优化一下IP的存储方式
         now = utils.get_current_datetime()
         ip_set = set()
         ret = []
         for log in cls.objects.filter(
-            node_id=node_id,
+            proxy_node=proxy_node,
             created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
         ):
             if log.ip not in ip_set:

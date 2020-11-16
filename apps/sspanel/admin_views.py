@@ -42,7 +42,7 @@ class UserOnlineIpLogView(StaffRequiredMixin, View):
     def get(self, request):
         data = []
         for node in ProxyNode.get_active_nodes():
-            data.extend(UserOnLineIpLog.get_recent_log_by_node_id(node.id))
+            data.extend(UserOnLineIpLog.get_recent_log_by_node_id(node))
         context = PageListView(request, data).get_page_context()
         return render(request, "my_admin/user_online_ip_log.html", context=context)
 
