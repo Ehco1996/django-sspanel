@@ -49,7 +49,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     used_traffic = models.BigIntegerField("已用流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enlarge_scale = models.DecimalField(
-        "倍率", default=Decimal("1.0"), decimal_places=1, max_digits=10,
+        "倍率",
+        default=Decimal("1.0"),
+        decimal_places=1,
+        max_digits=10,
     )
 
     ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
@@ -118,7 +121,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return configs
 
     def get_proxy_configs(self):
-        # TODO add cache
         if self.node_type == self.NODE_TYPE_SS:
             return self.get_ss_node_config()
         return {}
@@ -380,7 +382,9 @@ class RelayRule(BaseModel):
 class NodeOnlineLog(BaseLogModel):
 
     proxy_node = models.ForeignKey(
-        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点",
+        ProxyNode,
+        on_delete=models.CASCADE,
+        verbose_name="代理节点",
     )
     online_user_count = models.IntegerField(default=0, verbose_name="用户数")
     tcp_connections_count = models.IntegerField(default=0, verbose_name="tcp链接数")
@@ -437,7 +441,9 @@ class UserTrafficLog(BaseLogModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     proxy_node = models.ForeignKey(
-        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点",
+        ProxyNode,
+        on_delete=models.CASCADE,
+        verbose_name="代理节点",
     )
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
@@ -502,7 +508,9 @@ class UserOnLineIpLog(BaseLogModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     proxy_node = models.ForeignKey(
-        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点",
+        ProxyNode,
+        on_delete=models.CASCADE,
+        verbose_name="代理节点",
     )
     ip = models.CharField(max_length=128, verbose_name="IP地址")
 

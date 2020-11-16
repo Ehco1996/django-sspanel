@@ -38,7 +38,7 @@ class UserSubManager:
 
     def _fill_fake_node(self):
         """根据用户信息拿出所有需要的node
-            - TODO 增加用户 等级，流量使用百分比,官网地址 的虚拟节点
+        - TODO 增加用户 等级，流量使用百分比,官网地址 的虚拟节点
         """
         return pm.ProxyNode.get_active_nodes(level=self.user.level)
 

@@ -14,3 +14,6 @@ uWSGI==2.0.19.1
 pendulum==2.1.2
 redis==3.5.3
 celery==4.4.7
+black==20.8b1
+isort
+autoflake

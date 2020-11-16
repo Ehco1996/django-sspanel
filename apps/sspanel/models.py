@@ -14,7 +14,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import connection, models, transaction
+from django.db import models, transaction
 from django.utils import functional, timezone
 from redis.exceptions import LockError
 
@@ -32,9 +32,6 @@ class User(AbstractUser):
 
     MIN_PORT = 1025
     PORT_BLACK_SET = {6443, 8472}
-
-    class Meta(AbstractUser.Meta):
-        verbose_name_plural = "用户"
 
     balance = models.DecimalField(
         verbose_name="余额",
@@ -72,6 +69,10 @@ class User(AbstractUser):
     download_traffic = models.BigIntegerField("下载流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
     last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True, null=True)
+
+    class Meta(AbstractUser.Meta):
+        verbose_name = "用户"
+        verbose_name_plural = "用户"
 
     def __str__(self):
         return self.username
@@ -266,13 +267,13 @@ class User(AbstractUser):
         self.save()
 
 
-class UserPropertyMixin:
+class UserMixin:
     @functional.cached_property
     def user(self):
         return User.get_by_pk(self.user_id)
 
 
-class UserOrder(models.Model, UserPropertyMixin):
+class UserOrder(models.Model, UserMixin):
 
     ALIPAY_CALLBACK_URL = f"{settings.HOST}/api/callback/alipay"
     DEFAULT_ORDER_TIME_OUT = "10m"
@@ -305,6 +306,7 @@ class UserOrder(models.Model, UserPropertyMixin):
         return f"<{self.id,self.user}>:{self.amount}"
 
     class Meta:
+        verbose_name = "用户订单"
         verbose_name_plural = "用户订单"
         index_together = ["user", "status"]
 
@@ -418,12 +420,13 @@ class UserOrder(models.Model, UserPropertyMixin):
         return changed
 
 
-class UserRefLog(models.Model, UserPropertyMixin):
+class UserRefLog(models.Model, UserMixin):
     user_id = models.PositiveIntegerField()
     register_count = models.IntegerField(default=0)
     date = models.DateField("记录日期", default=pendulum.today, db_index=True)
 
     class Meta:
+        verbose_name = "用户推荐记录"
         verbose_name_plural = "用户推荐记录"
         unique_together = [["user_id", "date"]]
 
@@ -453,44 +456,13 @@ class UserRefLog(models.Model, UserPropertyMixin):
         return bar_config
 
 
-class UserOnLineIpLog(models.Model, UserPropertyMixin):
-
-    user_id = models.IntegerField(db_index=True)
-    node_id = models.IntegerField()
-    ip = models.CharField(max_length=128)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    class Meta:
-        verbose_name_plural = "用户在线IP"
-        ordering = ["-created_at"]
-        index_together = ["node_id", "created_at"]
-
-    @classmethod
-    def get_recent_log_by_node_id(cls, node_id):
-        now = get_current_datetime()
-        ip_set = set()
-        ret = []
-        for log in cls.objects.filter(
-            node_id=node_id,
-            created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
-        ):
-            if log.ip not in ip_set:
-                ret.append(log)
-            ip_set.add(log.ip)
-        return ret
-
-    @classmethod
-    def truncate(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
-
-
-class UserCheckInLog(models.Model, UserPropertyMixin):
+class UserCheckInLog(models.Model, UserMixin):
     user_id = models.PositiveIntegerField()
     date = models.DateField("记录日期", default=pendulum.today, db_index=True)
     increased_traffic = models.BigIntegerField("增加的流量", default=0)
 
     class Meta:
+        verbose_name = "用户签到记录"
         verbose_name_plural = "用户签到记录"
         unique_together = [["user_id", "date"]]
 
@@ -521,7 +493,419 @@ class UserCheckInLog(models.Model, UserPropertyMixin):
         return traffic_format(self.increased_traffic)
 
 
+class InviteCode(models.Model):
+    """邀请码"""
+
+    TYPE_PUBLIC = 1
+    TYPE_PRIVATE = 0
+    INVITE_CODE_TYPE = ((TYPE_PUBLIC, "公开"), (TYPE_PRIVATE, "不公开"))
+
+    code = models.CharField(
+        verbose_name="邀请码",
+        primary_key=True,
+        blank=True,
+        max_length=40,
+        default=get_long_random_string,
+    )
+    code_type = models.IntegerField(
+        verbose_name="类型", choices=INVITE_CODE_TYPE, default=TYPE_PRIVATE
+    )
+    user_id = models.PositiveIntegerField(verbose_name="邀请人ID", default=1)
+    used = models.BooleanField(verbose_name="是否使用", default=False)
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
+
+    def __str__(self):
+        return f"<{self.user_id}>-<{self.code}>"
+
+    class Meta:
+        verbose_name = "邀请码"
+        verbose_name_plural = "邀请码"
+        ordering = ("used", "-created_at")
+
+    @classmethod
+    def calc_num_by_user(cls, user):
+        return user.invitecode_num - cls.list_not_used_by_user_id(user.pk).count()
+
+    @classmethod
+    def create_by_user(cls, user):
+        num = cls.calc_num_by_user(user)
+        if num > 0:
+            models = [cls(code_type=0, user_id=user.pk) for _ in range(num)]
+            cls.objects.bulk_create(models)
+        return num
+
+    @classmethod
+    def list_by_code_type(cls, code_type, num=20):
+        return cls.objects.filter(code_type=code_type, used=False)[:num]
+
+    @classmethod
+    def list_by_user_id(cls, user_id, num=10):
+        return cls.objects.filter(user_id=user_id)[:num]
+
+    @classmethod
+    def list_not_used_by_user_id(cls, user_id):
+        return cls.objects.filter(user_id=user_id, used=False)
+
+    def consume(self):
+        self.used = True
+        self.save()
+
+
+class RebateRecord(models.Model, UserMixin):
+    """返利记录"""
+
+    user_id = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
+    consumer_id = models.PositiveIntegerField(
+        verbose_name="消费者ID", null=True, blank=True
+    )
+    money = models.DecimalField(
+        verbose_name="金额",
+        decimal_places=2,
+        null=True,
+        default=0,
+        max_digits=10,
+        blank=True,
+    )
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
+
+    class Meta:
+        verbose_name = "返利记录"
+        verbose_name_plural = "返利记录"
+        ordering = ("-created_at",)
+
+    @classmethod
+    def list_by_user_id_with_consumer_username(cls, user_id, num=10):
+        logs = cls.objects.filter(user_id=user_id)[:num]
+        user_ids = [log.consumer_id for log in logs]
+        username_map = {u.id: u.username for u in User.objects.filter(id__in=user_ids)}
+        for log in logs:
+            setattr(log, "consumer_username", username_map.get(log.consumer_id, ""))
+        return logs
+
+
+class Donate(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="捐赠人")
+    time = models.DateTimeField(
+        "捐赠时间", editable=False, auto_now_add=True, db_index=True
+    )
+    money = models.DecimalField(
+        verbose_name="捐赠金额",
+        decimal_places=2,
+        max_digits=10,
+        default=0,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+
+    def __str__(self):
+        return "{}-{}".format(self.user, self.money)
+
+    class Meta:
+        verbose_name = "捐赠记录"
+        verbose_name_plural = "捐赠记录"
+        ordering = ("-time",)
+
+    @classmethod
+    def get_donate_money_by_date(cls, date=None):
+        qs = cls.objects.filter()
+        if date:
+            qs = qs.filter(time__gte=date, time__lte=date.add(days=1))
+        res = qs.aggregate(amount=models.Sum("money"))["amount"]
+        return int(res) if res else 0
+
+    @classmethod
+    def get_donate_count_by_date(cls, date=None):
+        if date:
+            return cls.objects.filter(time__gte=date).count()
+        return cls.objects.all().count()
+
+    @classmethod
+    def get_most_donated_user_by_count(cls, count):
+        return (
+            cls.objects.values("user__username")
+            .annotate(amount=models.Sum("money"))
+            .order_by("-amount")[:count]
+        )
+
+
+class MoneyCode(models.Model):
+    """充值码"""
+
+    user = models.CharField(verbose_name="用户名", max_length=128, blank=True, null=True)
+    time = models.DateTimeField("捐赠时间", editable=False, auto_now_add=True)
+    code = models.CharField(
+        verbose_name="充值码",
+        unique=True,
+        blank=True,
+        max_length=40,
+        default=get_long_random_string,
+    )
+    number = models.DecimalField(
+        verbose_name="捐赠金额",
+        decimal_places=2,
+        max_digits=10,
+        default=10,
+        null=True,
+        blank=True,
+    )
+    isused = models.BooleanField(verbose_name="是否使用", default=False)
+
+    class Meta:
+        verbose_name = "充值码"
+        verbose_name_plural = "充值码"
+        ordering = ("isused",)
+
+    def clean(self):
+        # 保证充值码不会重复
+        code_length = len(self.code or "")
+        if 0 < code_length < 12:
+            self.code = "{}{}".format(self.code, get_long_random_string())
+        else:
+            self.code = get_long_random_string()
+
+    def __str__(self):
+        return self.code
+
+
+class Goods(models.Model):
+    """商品"""
+
+    STATUS_TYPE = ((1, "上架"), (-1, "下架"))
+
+    name = models.CharField(verbose_name="商品名字", max_length=128, default="待编辑")
+    content = models.CharField(verbose_name="商品描述", max_length=256, default="待编辑")
+    transfer = models.BigIntegerField(verbose_name="增加的流量", default=settings.GB)
+    money = models.DecimalField(
+        verbose_name="金额",
+        decimal_places=2,
+        max_digits=10,
+        default=0,
+        null=True,
+        blank=True,
+    )
+    level = models.PositiveIntegerField(
+        verbose_name="设置等级",
+        default=0,
+        validators=[MaxValueValidator(9), MinValueValidator(0)],
+    )
+    days = models.PositiveIntegerField(
+        verbose_name="设置等级时间(天)",
+        default=1,
+        validators=[MaxValueValidator(365), MinValueValidator(1)],
+    )
+    status = models.SmallIntegerField("商品状态", default=1, choices=STATUS_TYPE)
+    order = models.PositiveSmallIntegerField("排序", default=1)
+
+    class Meta:
+        verbose_name = "商品"
+        verbose_name_plural = "商品"
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def total_transfer(self):
+        """增加的流量"""
+        return traffic_format(self.transfer)
+
+    def get_days(self):
+        """返回增加的天数"""
+        return "{}".format(self.days)
+
+    @transaction.atomic
+    def purchase_by_user(self, user):
+        """购买商品 返回是否成功"""
+        if user.balance < self.money:
+            return False
+        # 验证成功进行提权操作
+        user.balance -= self.money
+        now = get_current_datetime()
+        days = pendulum.duration(days=self.days)
+        if user.level == self.level and user.level_expire_time > now:
+            user.level_expire_time += days
+            user.total_traffic += self.transfer
+        else:
+            user.level_expire_time = now + days
+            user.reset_traffic(self.transfer)
+        user.level = self.level
+        user.save()
+        # 增加购买记录
+        PurchaseHistory.add_log(
+            good_name=self.name, username=user.username, money=self.money
+        )
+        inviter = User.get_or_none(user.inviter_id)
+        if inviter and inviter != user:
+            # 增加返利记录
+            rebaterecord = RebateRecord(
+                user_id=inviter.pk,
+                consumer_id=user.pk,
+                money=self.money * Decimal(settings.INVITE_PERCENT),
+            )
+            inviter.balance += rebaterecord.money
+            inviter.save()
+            rebaterecord.save()
+        return True
+
+
+class PurchaseHistory(models.Model):
+    """购买记录"""
+
+    good_name = models.CharField(verbose_name="商品名", max_length=128, db_index=True)
+    user = models.CharField(verbose_name="购买者", max_length=128)
+    money = models.DecimalField(
+        verbose_name="金额",
+        decimal_places=2,
+        max_digits=10,
+        default=0,
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField("购买时间", editable=False, auto_now_add=True)
+
+    def __str__(self):
+        return self.user
+
+    class Meta:
+        verbose_name = "购买记录"
+        verbose_name_plural = "购买记录"
+        ordering = ("-created_at",)
+
+    @classmethod
+    def cost_statistics(cls, good_id, start, end):
+        start = pendulum.parse(start, tz=timezone.get_current_datetimezone())
+        end = pendulum.parse(end, tz=timezone.get_current_datetimezone())
+        good = Goods.objects.filter(pk=good_id).first()
+        if not good:
+            print("商品不存在")
+            return
+        query = cls.objects.filter(good_name=good.name, created_at__range=[start, end])
+        count = query.count()
+        amount = count * good.money
+        print(
+            "{} ~ {} 时间内 商品: {} 共销售 {} 次 总金额 {} 元".format(
+                start.date(), end.date(), good, count, amount
+            )
+        )
+
+    @classmethod
+    def get_all_purchase_user(cls):
+        username_list = [
+            u["user"]
+            for u in cls.objects.values("user")
+            .annotate(c=models.Count("user"))
+            .order_by("-c")
+        ]
+        return User.objects.find(username__in=username_list)
+
+    @classmethod
+    def add_log(cls, good_name, username, money):
+        cls.objects.create(good_name=good_name, user=username, money=money)
+
+
+class Announcement(models.Model):
+    """公告界面"""
+
+    time = models.DateTimeField("时间", auto_now_add=True)
+    body = models.TextField("主体")
+
+    class Meta:
+        verbose_name = "系统公告"
+        verbose_name_plural = "系统公告"
+        ordering = ("-time",)
+
+    def __str__(self):
+        return "日期:{}".format(str(self.time)[:9])
+
+    def save(self, *args, **kwargs):
+        md = markdown.Markdown(extensions=["markdown.extensions.extra"])
+        self.body = md.convert(self.body)
+        super(Announcement, self).save(*args, **kwargs)
+
+    @classmethod
+    def send_first_visit_msg(cls, request):
+        anno = cls.objects.order_by("-time").first()
+        if not anno or request.session.get("first_visit"):
+            return
+        request.session["first_visit"] = True
+        messages.warning(request, anno.plain_text, extra_tags="最新通知！")
+
+    @property
+    def plain_text(self):
+        # TODO 现在db里存的是md转换成的html，这里之后可能要优化。转换的逻辑移到前端去
+        re_br = re.compile("<br\s*?/?>")  # 处理换行
+        re_h = re.compile("</?\w+[^>]*>")  # HTML标签
+        s = re_br.sub("", self.body)  # 去掉br
+        s = re_h.sub("", s)  # 去掉HTML 标签
+        blank_line = re.compile("\n+")  # 去掉多余的空行
+        s = blank_line.sub("", s)
+        return s
+
+
+class Ticket(models.Model):
+    """工单"""
+
+    TICKET_CHOICE = ((1, "开启"), (-1, "关闭"))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    time = models.DateTimeField(verbose_name="时间", editable=False, auto_now_add=True)
+    title = models.CharField(verbose_name="标题", max_length=128)
+    body = models.TextField(verbose_name="内容主体")
+    status = models.SmallIntegerField(
+        verbose_name="状态", choices=TICKET_CHOICE, default=1
+    )
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "工单"
+        verbose_name_plural = "工单"
+        ordering = ("-time",)
+
+
+class EmailSendLog(models.Model):
+    """邮件发送记录"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    subject = models.CharField(max_length=128, db_index=True)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "邮件发送记录"
+        verbose_name_plural = "邮件发送记录"
+
+    @classmethod
+    def send_mail_to_users(cls, users, subject, message):
+        address = [user.email for user in users]
+        if send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, address):
+            logs = [cls(user=user, subject=subject, message=message) for user in users]
+            cls.objects.bulk_create(logs)
+            print(f"send email success user: address: {address}")
+        else:
+            raise Exception(f"Could not send mail {address} subject: {subject}")
+
+    @classmethod
+    def get_user_dict_by_subject(cls, subject):
+        return {l.user: 1 for l in cls.objects.filter(subject=subject)}
+
+
 # TODO del those model 下面几张表都挪走啦，过段时间删掉，留在这里是怕需要迁移数据
+
+
+class UserOnLineIpLog(models.Model, UserMixin):
+
+    user_id = models.IntegerField(db_index=True)
+    node_id = models.IntegerField()
+    ip = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name_plural = "用户在线IP"
+        ordering = ["-created_at"]
+        index_together = ["node_id", "created_at"]
 
 
 class NodeOnlineLog(models.Model):
@@ -562,7 +946,10 @@ class BaseAbstractNode(models.Model):
     total_traffic = models.BigIntegerField("总流量", default=settings.GB)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
     enlarge_scale = models.DecimalField(
-        "倍率", default=Decimal("1.0"), decimal_places=2, max_digits=10,
+        "倍率",
+        default=Decimal("1.0"),
+        decimal_places=2,
+        max_digits=10,
     )
 
     ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
@@ -786,7 +1173,7 @@ class SSRelayRule(BaseRelayRule):
         verbose_name_plural = "SS转发规则"
 
 
-class UserTrafficLog(models.Model, UserPropertyMixin):
+class UserTrafficLog(models.Model, UserMixin):
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VMESS = "vmess"
     NODE_TYPE_TROJAN = "trojan"
@@ -817,393 +1204,3 @@ class UserTrafficLog(models.Model, UserPropertyMixin):
 
 
 # END TODO del
-
-
-class InviteCode(models.Model):
-    """邀请码"""
-
-    TYPE_PUBLIC = 1
-    TYPE_PRIVATE = 0
-    INVITE_CODE_TYPE = ((TYPE_PUBLIC, "公开"), (TYPE_PRIVATE, "不公开"))
-
-    code = models.CharField(
-        verbose_name="邀请码",
-        primary_key=True,
-        blank=True,
-        max_length=40,
-        default=get_long_random_string,
-    )
-    code_type = models.IntegerField(
-        verbose_name="类型", choices=INVITE_CODE_TYPE, default=TYPE_PRIVATE
-    )
-    user_id = models.PositiveIntegerField(verbose_name="邀请人ID", default=1)
-    used = models.BooleanField(verbose_name="是否使用", default=False)
-    created_at = models.DateTimeField(editable=False, auto_now_add=True)
-
-    def __str__(self):
-        return f"<{self.user_id}>-<{self.code}>"
-
-    class Meta:
-        verbose_name_plural = "邀请码"
-        ordering = ("used", "-created_at")
-
-    @classmethod
-    def calc_num_by_user(cls, user):
-        return user.invitecode_num - cls.list_not_used_by_user_id(user.pk).count()
-
-    @classmethod
-    def create_by_user(cls, user):
-        num = cls.calc_num_by_user(user)
-        if num > 0:
-            models = [cls(code_type=0, user_id=user.pk) for _ in range(num)]
-            cls.objects.bulk_create(models)
-        return num
-
-    @classmethod
-    def list_by_code_type(cls, code_type, num=20):
-        return cls.objects.filter(code_type=code_type, used=False)[:num]
-
-    @classmethod
-    def list_by_user_id(cls, user_id, num=10):
-        return cls.objects.filter(user_id=user_id)[:num]
-
-    @classmethod
-    def list_not_used_by_user_id(cls, user_id):
-        return cls.objects.filter(user_id=user_id, used=False)
-
-    def consume(self):
-        self.used = True
-        self.save()
-
-
-class RebateRecord(models.Model, UserPropertyMixin):
-    """返利记录"""
-
-    user_id = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
-    consumer_id = models.PositiveIntegerField(
-        verbose_name="消费者ID", null=True, blank=True
-    )
-    money = models.DecimalField(
-        verbose_name="金额",
-        decimal_places=2,
-        null=True,
-        default=0,
-        max_digits=10,
-        blank=True,
-    )
-    created_at = models.DateTimeField(editable=False, auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = "返利记录"
-        ordering = ("-created_at",)
-
-    @classmethod
-    def list_by_user_id_with_consumer_username(cls, user_id, num=10):
-        logs = cls.objects.filter(user_id=user_id)[:num]
-        user_ids = [log.consumer_id for log in logs]
-        username_map = {u.id: u.username for u in User.objects.filter(id__in=user_ids)}
-        for log in logs:
-            setattr(log, "consumer_username", username_map.get(log.consumer_id, ""))
-        return logs
-
-
-class Donate(models.Model):
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="捐赠人")
-    time = models.DateTimeField(
-        "捐赠时间", editable=False, auto_now_add=True, db_index=True
-    )
-    money = models.DecimalField(
-        verbose_name="捐赠金额",
-        decimal_places=2,
-        max_digits=10,
-        default=0,
-        null=True,
-        blank=True,
-        db_index=True,
-    )
-
-    def __str__(self):
-        return "{}-{}".format(self.user, self.money)
-
-    class Meta:
-        verbose_name_plural = "捐赠记录"
-        ordering = ("-time",)
-
-    @classmethod
-    def get_donate_money_by_date(cls, date=None):
-        qs = cls.objects.filter()
-        if date:
-            qs = qs.filter(time__gte=date, time__lte=date.add(days=1))
-        res = qs.aggregate(amount=models.Sum("money"))["amount"]
-        return int(res) if res else 0
-
-    @classmethod
-    def get_donate_count_by_date(cls, date=None):
-        if date:
-            return cls.objects.filter(time__gte=date).count()
-        return cls.objects.all().count()
-
-    @classmethod
-    def get_most_donated_user_by_count(cls, count):
-        return (
-            cls.objects.values("user__username")
-            .annotate(amount=models.Sum("money"))
-            .order_by("-amount")[:count]
-        )
-
-
-class MoneyCode(models.Model):
-    """充值码"""
-
-    user = models.CharField(verbose_name="用户名", max_length=128, blank=True, null=True)
-    time = models.DateTimeField("捐赠时间", editable=False, auto_now_add=True)
-    code = models.CharField(
-        verbose_name="充值码",
-        unique=True,
-        blank=True,
-        max_length=40,
-        default=get_long_random_string,
-    )
-    number = models.DecimalField(
-        verbose_name="捐赠金额",
-        decimal_places=2,
-        max_digits=10,
-        default=10,
-        null=True,
-        blank=True,
-    )
-    isused = models.BooleanField(verbose_name="是否使用", default=False)
-
-    def clean(self):
-        # 保证充值码不会重复
-        code_length = len(self.code or "")
-        if 0 < code_length < 12:
-            self.code = "{}{}".format(self.code, get_long_random_string())
-        else:
-            self.code = get_long_random_string()
-
-    def __str__(self):
-        return self.code
-
-    class Meta:
-        verbose_name_plural = "充值码"
-        ordering = ("isused",)
-
-
-class Goods(models.Model):
-    """商品"""
-
-    STATUS_TYPE = ((1, "上架"), (-1, "下架"))
-
-    name = models.CharField(verbose_name="商品名字", max_length=128, default="待编辑")
-    content = models.CharField(verbose_name="商品描述", max_length=256, default="待编辑")
-    transfer = models.BigIntegerField(verbose_name="增加的流量", default=settings.GB)
-    money = models.DecimalField(
-        verbose_name="金额",
-        decimal_places=2,
-        max_digits=10,
-        default=0,
-        null=True,
-        blank=True,
-    )
-    level = models.PositiveIntegerField(
-        verbose_name="设置等级",
-        default=0,
-        validators=[MaxValueValidator(9), MinValueValidator(0)],
-    )
-    days = models.PositiveIntegerField(
-        verbose_name="设置等级时间(天)",
-        default=1,
-        validators=[MaxValueValidator(365), MinValueValidator(1)],
-    )
-    status = models.SmallIntegerField("商品状态", default=1, choices=STATUS_TYPE)
-    order = models.PositiveSmallIntegerField("排序", default=1)
-
-    class Meta:
-        verbose_name_plural = "商品"
-        ordering = ["order"]
-
-    def __str__(self):
-        return self.name
-
-    @property
-    def total_transfer(self):
-        """增加的流量"""
-        return traffic_format(self.transfer)
-
-    def get_days(self):
-        """返回增加的天数"""
-        return "{}".format(self.days)
-
-    @transaction.atomic
-    def purchase_by_user(self, user):
-        """购买商品 返回是否成功"""
-        if user.balance < self.money:
-            return False
-        # 验证成功进行提权操作
-        user.balance -= self.money
-        now = get_current_datetime()
-        days = pendulum.duration(days=self.days)
-        if user.level == self.level and user.level_expire_time > now:
-            user.level_expire_time += days
-            user.total_traffic += self.transfer
-        else:
-            user.level_expire_time = now + days
-            user.reset_traffic(self.transfer)
-        user.level = self.level
-        user.save()
-        # 增加购买记录
-        PurchaseHistory.add_log(
-            good_name=self.name, username=user.username, money=self.money
-        )
-        inviter = User.get_or_none(user.inviter_id)
-        if inviter and inviter != user:
-            # 增加返利记录
-            rebaterecord = RebateRecord(
-                user_id=inviter.pk,
-                consumer_id=user.pk,
-                money=self.money * Decimal(settings.INVITE_PERCENT),
-            )
-            inviter.balance += rebaterecord.money
-            inviter.save()
-            rebaterecord.save()
-        return True
-
-
-class PurchaseHistory(models.Model):
-    """购买记录"""
-
-    good_name = models.CharField(verbose_name="商品名", max_length=128, db_index=True)
-    user = models.CharField(verbose_name="购买者", max_length=128)
-    money = models.DecimalField(
-        verbose_name="金额",
-        decimal_places=2,
-        max_digits=10,
-        default=0,
-        null=True,
-        blank=True,
-    )
-    created_at = models.DateTimeField("购买时间", editable=False, auto_now_add=True)
-
-    def __str__(self):
-        return self.user
-
-    class Meta:
-        verbose_name_plural = "购买记录"
-        ordering = ("-created_at",)
-
-    @classmethod
-    def cost_statistics(cls, good_id, start, end):
-        start = pendulum.parse(start, tz=timezone.get_current_datetimezone())
-        end = pendulum.parse(end, tz=timezone.get_current_datetimezone())
-        good = Goods.objects.filter(pk=good_id).first()
-        if not good:
-            print("商品不存在")
-            return
-        query = cls.objects.filter(good_name=good.name, created_at__range=[start, end])
-        count = query.count()
-        amount = count * good.money
-        print(
-            "{} ~ {} 时间内 商品: {} 共销售 {} 次 总金额 {} 元".format(
-                start.date(), end.date(), good, count, amount
-            )
-        )
-
-    @classmethod
-    def get_all_purchase_user(cls):
-        username_list = [
-            u["user"]
-            for u in cls.objects.values("user")
-            .annotate(c=models.Count("user"))
-            .order_by("-c")
-        ]
-        return User.objects.find(username__in=username_list)
-
-    @classmethod
-    def add_log(cls, good_name, username, money):
-        cls.objects.create(good_name=good_name, user=username, money=money)
-
-
-class Announcement(models.Model):
-    """公告界面"""
-
-    time = models.DateTimeField("时间", auto_now_add=True)
-    body = models.TextField("主体")
-
-    def __str__(self):
-        return "日期:{}".format(str(self.time)[:9])
-
-    def save(self, *args, **kwargs):
-        md = markdown.Markdown(extensions=["markdown.extensions.extra"])
-        self.body = md.convert(self.body)
-        super(Announcement, self).save(*args, **kwargs)
-
-    class Meta:
-        verbose_name_plural = "系统公告"
-        ordering = ("-time",)
-
-    @classmethod
-    def send_first_visit_msg(cls, request):
-        anno = cls.objects.order_by("-time").first()
-        if not anno or request.session.get("first_visit"):
-            return
-        request.session["first_visit"] = True
-        messages.warning(request, anno.plain_text, extra_tags="最新通知！")
-
-    @property
-    def plain_text(self):
-        # TODO 现在db里存的是md转换成的html，这里之后可能要优化。转换的逻辑移到前端去
-        re_br = re.compile("<br\s*?/?>")  # 处理换行
-        re_h = re.compile("</?\w+[^>]*>")  # HTML标签
-        s = re_br.sub("", self.body)  # 去掉br
-        s = re_h.sub("", s)  # 去掉HTML 标签
-        blank_line = re.compile("\n+")  # 去掉多余的空行
-        s = blank_line.sub("", s)
-        return s
-
-
-class Ticket(models.Model):
-    """工单"""
-
-    TICKET_CHOICE = ((1, "开启"), (-1, "关闭"))
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    time = models.DateTimeField(verbose_name="时间", editable=False, auto_now_add=True)
-    title = models.CharField(verbose_name="标题", max_length=128)
-    body = models.TextField(verbose_name="内容主体")
-    status = models.SmallIntegerField(
-        verbose_name="状态", choices=TICKET_CHOICE, default=1
-    )
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name_plural = "工单"
-        ordering = ("-time",)
-
-
-class EmailSendLog(models.Model):
-    """邮件发送记录"""
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    subject = models.CharField(max_length=128, db_index=True)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    class Meta:
-        verbose_name_plural = "邮件发送记录"
-
-    @classmethod
-    def send_mail_to_users(cls, users, subject, message):
-        address = [user.email for user in users]
-        if send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, address):
-            logs = [cls(user=user, subject=subject, message=message) for user in users]
-            cls.objects.bulk_create(logs)
-            print(f"send email success user: address: {address}")
-        else:
-            raise Exception(f"Could not send mail {address} subject: {subject}")
-
-    @classmethod
-    def get_user_dict_by_subject(cls, subject):
-        return {l.user: 1 for l in cls.objects.filter(subject=subject)}
