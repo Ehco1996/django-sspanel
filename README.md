@@ -33,13 +33,14 @@
 
 ## 项目说明
 
-* 后端支援（shadowsocks/V2ray）
+* 智能**订阅系统**, 支持ss/v2ray/clash/clash高级版
+* 和[中转隧道](https://github.com/Ehco1996/ehco)深度集成，方便快速的搭建中转隧道
+* 后端支援（shadowsocks/v2ray/trojan）
 * 注册采用邀请系统，告别不良用户
 * 统一完善的后台管理界面
 * 完善的商品购买逻辑
 * 支付宝当面付模块
 * 邀请返利系统
-* ...
 
 ## 预览图
 
@@ -55,17 +56,29 @@
 
 * 节点信息：
 
-![流量查询](https://user-images.githubusercontent.com/24697284/53059231-13797380-34f1-11e9-8702-39c9063dd049.png)
+![节点信息：](https://user-images.githubusercontent.com/24697284/53059231-13797380-34f1-11e9-8702-39c9063dd049.png)
 
 * 流量查询:
 
 ![流量查询](https://user-images.githubusercontent.com/24697284/53059233-14120a00-34f1-11e9-94f3-b2ca2ab88882.png)
 
+* 订阅提示-没流量时:
+
+![订阅提示-没流量时](https://user-images.githubusercontent.com/24697284/99466113-c7ce5500-2976-11eb-9fab-15930166d77f.png)
+
+* 订阅提示-有流量时:
+
+![订阅提示-有流量时](https://user-images.githubusercontent.com/24697284/99466125-cbfa7280-2976-11eb-9b42-d3cf539ab449.png)
+
 **后台界面:**
+
+* 面板管理：
+
+![面板管理：](https://user-images.githubusercontent.com/24697284/99465482-80939480-2975-11eb-9ab5-b0b88a6f6f1a.png)
 
 * 节点管理：
 
-![节点管理：](https://user-images.githubusercontent.com/24697284/53059234-14120a00-34f1-11e9-8937-ea56cf4077ed.png)
+![节点管理：](https://user-images.githubusercontent.com/24697284/99465561-a751cb00-2975-11eb-87bb-a35303ef1a8d.png)
 
 ## 部署教程
 
