@@ -1,8 +1,9 @@
 import base64
-
+from uuid import uuid4
 from django.template.loader import render_to_string
 
 from apps.proxy import models as pm
+from django.conf import settings
 
 
 class UserSubManager:
@@ -37,10 +38,32 @@ class UserSubManager:
         self.node_list = self._fill_fake_node()
 
     def _fill_fake_node(self):
-        """根据用户信息拿出所有需要的node
-        - TODO 增加用户 等级，流量使用百分比,官网地址 的虚拟节点
+        """根据用户信息拿出所有需要的node并添加一些虚拟节点
+        - 官网地址
+        - 增加用户 等级，
+        - 流量使用情况
         """
-        return pm.ProxyNode.get_active_nodes(level=self.user.level)
+        node_list = pm.ProxyNode.get_active_nodes(level=self.user.level)
+        fake_node = []
+        note_list = [
+            f"{settings.TITLE}官网: {settings.HOST}",
+        ]
+        if len(node_list) > 0:
+            note_list.extend(
+                [
+                    f"等级: {self.user.level} 到期时间: {self.user.level_expire_time.date()}",
+                    f"剩余流量:{self.user.human_remain_traffic},总流量:{self.user.human_total_traffic}",
+                ]
+            )
+        else:
+            note_list.append("没有可以用的节点哦 请去官网购买")
+
+        for note in note_list:
+            node = pm.ProxyNode(name=note, server=uuid4().hex)
+            pm.SSConfig(proxy_node=node)
+            fake_node.append(node)
+
+        return fake_node + node_list
 
     def get_clash_sub_links(self):
         node_configs = []
