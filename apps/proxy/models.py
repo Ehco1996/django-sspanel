@@ -75,7 +75,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     @classmethod
     def get_active_nodes(cls, level=None):
         query = cls.objects.filter(enable=True)
-        if level:
+        if level is not None:
             query = query.filter(level__lte=level)
         active_nodes = list(
             query.select_related("ss_config")
