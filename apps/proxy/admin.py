@@ -24,7 +24,7 @@ class RelayRuleInline(admin.TabularInline):
 
 class ProxyNodeAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
-        if "instance" in kwargs:
+        if "instance" in kwargs and kwargs["instance"]:
             # NOTE trans model traffic to GB
             kwargs["instance"].total_traffic = (
                 kwargs["instance"].total_traffic // settings.GB
