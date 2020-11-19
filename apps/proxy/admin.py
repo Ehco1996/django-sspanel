@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.contrib import admin
+from django.forms import ModelForm
 
 from apps.proxy import models
 
@@ -20,7 +22,36 @@ class RelayRuleInline(admin.TabularInline):
     fields = ["proxy_node", "relay_node", "relay_port", "listen_type", "transport_type"]
 
 
+class ProxyNodeAdminForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        if "instance" in kwargs:
+            # NOTE trans model traffic to GB
+            kwargs["instance"].total_traffic = (
+                kwargs["instance"].total_traffic // settings.GB
+            )
+            kwargs["instance"].used_traffic = (
+                kwargs["instance"].used_traffic // settings.GB
+            )
+
+        super(ProxyNodeAdminForm, self).__init__(*args, **kwargs)
+        self.fields["used_traffic"].help_text = (
+            self.fields["used_traffic"].help_text + "单位GB"
+        )
+        self.fields["total_traffic"].help_text = (
+            self.fields["total_traffic"].help_text + "单位GB"
+        )
+
+    def clean_used_traffic(self):
+        used_traffic = self.cleaned_data.get("used_traffic")
+        return used_traffic * settings.GB
+
+    def clean_total_traffic(self):
+        total_traffic = self.cleaned_data.get("total_traffic")
+        return total_traffic * settings.GB
+
+
 class ProxyNodeAdmin(admin.ModelAdmin):
+    form = ProxyNodeAdminForm
 
     list_display = [
         "id",
@@ -28,6 +59,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "node_type",
         "country",
         "enable",
+        "traffic",
         "sequence",
     ]
     inlines = [RelayRuleInline]
@@ -40,6 +72,11 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         elif instance.node_type == models.ProxyNode.NODE_TYPE_SS:
             return [SSConfigInline] + self.inlines
         return self.inlines
+
+    def traffic(self, instance):
+        return f"{instance.human_used_traffic}/{instance.human_total_traffic}"
+
+    traffic.short_description = "流量"
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
