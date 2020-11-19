@@ -1,9 +1,10 @@
 import base64
 from uuid import uuid4
+
+from django.conf import settings
 from django.template.loader import render_to_string
 
 from apps.proxy import models as pm
-from django.conf import settings
 
 
 class UserSubManager:

@@ -2,15 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
-from apps.sspanel.models import (
-    Announcement,
-    Goods,
-    InviteCode,
-    SSNode,
-    TrojanNode,
-    User,
-    VmessNode,
-)
+from apps.sspanel.models import Announcement, Goods, InviteCode, User
 
 
 class RegisterForm(UserCreationForm):
@@ -125,100 +117,6 @@ class LoginForm(forms.Form):
             raise forms.ValidationError("用户名和密码为必填项")
         else:
             self.cleaned_data = super(LoginForm, self).clean()
-
-
-class SSNodeForm(ModelForm):
-    class Meta:
-        model = SSNode
-        fields = "__all__"
-        widgets = {
-            "node_id": forms.NumberInput(attrs={"class": "input"}),
-            "level": forms.NumberInput(attrs={"class": "input"}),
-            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
-            "name": forms.TextInput(attrs={"class": "input"}),
-            "port": forms.TextInput(attrs={"class": "input"}),
-            "info": forms.TextInput(attrs={"class": "input"}),
-            "server": forms.TextInput(attrs={"class": "input"}),
-            "method": forms.Select(attrs={"class": "input"}),
-            "country": forms.Select(attrs={"class": "input"}),
-            "used_traffic": forms.NumberInput(attrs={"class": "input"}),
-            "total_traffic": forms.NumberInput(attrs={"class": "input"}),
-            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
-            "custom_method": forms.CheckboxInput(attrs={"class": "checkbox"}),
-            "speed_limit": forms.NumberInput(attrs={"class": "input"}),
-            "ehco_listen_host": forms.TextInput(attrs={"class": "input"}),
-            "ehco_listen_port": forms.TextInput(attrs={"class": "input"}),
-            "ehco_listen_type": forms.Select(attrs={"class": "input"}),
-            "ehco_transport_type": forms.Select(attrs={"class": "input"}),
-            "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
-        }
-
-
-class VmessNodeForm(ModelForm):
-    class Meta:
-        model = VmessNode
-        fields = "__all__"
-        widgets = {
-            "node_id": forms.NumberInput(attrs={"class": "input"}),
-            "level": forms.NumberInput(attrs={"class": "input"}),
-            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
-            "name": forms.TextInput(attrs={"class": "input"}),
-            "inbound_tag": forms.TextInput(attrs={"class": "input"}),
-            "alter_id": forms.NumberInput(attrs={"class": "input"}),
-            "service_port": forms.NumberInput(attrs={"class": "input"}),
-            "client_port": forms.NumberInput(attrs={"class": "input"}),
-            "info": forms.TextInput(attrs={"class": "input"}),
-            "server": forms.TextInput(attrs={"class": "input"}),
-            "listen_host": forms.TextInput(attrs={"class": "input"}),
-            "grpc_host": forms.TextInput(attrs={"class": "input"}),
-            "grpc_port": forms.TextInput(attrs={"class": "input"}),
-            "country": forms.Select(attrs={"class": "input"}),
-            "used_traffic": forms.NumberInput(attrs={"class": "input"}),
-            "total_traffic": forms.NumberInput(attrs={"class": "input"}),
-            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
-            "ws_host": forms.TextInput(attrs={"class": "input"}),
-            "ws_path": forms.TextInput(attrs={"class": "input"}),
-            "ehco_listen_host": forms.TextInput(attrs={"class": "input"}),
-            "ehco_listen_port": forms.TextInput(attrs={"class": "input"}),
-            "ehco_listen_type": forms.Select(attrs={"class": "input"}),
-            "ehco_transport_type": forms.Select(attrs={"class": "input"}),
-            "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
-        }
-
-
-class TrojanNodeForm(ModelForm):
-    class Meta:
-        model = TrojanNode
-        fields = "__all__"
-        widgets = {
-            "node_id": forms.NumberInput(attrs={"class": "input"}),
-            "level": forms.NumberInput(attrs={"class": "input"}),
-            "enlarge_scale": forms.NumberInput(attrs={"class": "input"}),
-            "name": forms.TextInput(attrs={"class": "input"}),
-            "inbound_tag": forms.TextInput(attrs={"class": "input"}),
-            "service_port": forms.NumberInput(attrs={"class": "input"}),
-            "client_port": forms.NumberInput(attrs={"class": "input"}),
-            "info": forms.TextInput(attrs={"class": "input"}),
-            "server": forms.TextInput(attrs={"class": "input"}),
-            "listen_host": forms.TextInput(attrs={"class": "input"}),
-            "grpc_host": forms.TextInput(attrs={"class": "input"}),
-            "grpc_port": forms.TextInput(attrs={"class": "input"}),
-            "country": forms.Select(attrs={"class": "input"}),
-            "used_traffic": forms.NumberInput(attrs={"class": "input"}),
-            "total_traffic": forms.NumberInput(attrs={"class": "input"}),
-            "enable": forms.CheckboxInput(attrs={"class": "checkbox"}),
-            "ehco_listen_host": forms.TextInput(attrs={"class": "input"}),
-            "ehco_listen_port": forms.TextInput(attrs={"class": "input"}),
-            "ehco_listen_type": forms.Select(attrs={"class": "input"}),
-            "ehco_transport_type": forms.Select(attrs={"class": "input"}),
-            "network": forms.TextInput(attrs={"class": "input"}),
-            "alpn": forms.TextInput(attrs={"class": "input"}),
-            "certificate_file": forms.TextInput(attrs={"class": "input"}),
-            "key_file": forms.TextInput(attrs={"class": "input"}),
-            "enable_ehco_lb": forms.CheckboxInput(attrs={"class": "checkbox"}),
-            "security": forms.TextInput(attrs={"class": "input"}),
-            "skip_cert_verify": forms.CheckboxInput(attrs={"class": "checkbox"}),
-        }
 
 
 class GoodsForm(ModelForm):
