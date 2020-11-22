@@ -87,7 +87,7 @@ class SubscribeView(View):
             return HttpResponseNotFound()
 
         sub_type = request.GET.get("sub_type")
-        sub_links = UserSubManager(user, sub_type).get_sub_links()
+        sub_links = UserSubManager(user, sub_type, request).get_sub_links()
         return HttpResponse(sub_links)
 
 
