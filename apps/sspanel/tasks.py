@@ -122,8 +122,8 @@ def make_up_lost_order_task():
 @celery_app.task
 def clean_traffic_log_task():
     """清空七天前的所有流量记录"""
-    dt = get_current_datetime().subtract(days=7).date()
-    query = UserTrafficLog.objects.filter(date__lt=dt)
+    dt = get_current_datetime().subtract(days=7)
+    query = UserTrafficLog.objects.filter(created_at__lt=dt)
     count, _ = query.delete()
     print(f"UserTrafficLog  removed count:{count}")
 
