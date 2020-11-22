@@ -43,13 +43,13 @@ class UserSubManager:
         node_list = pm.ProxyNode.get_active_nodes(level=self.user.level)
         fake_node = []
         note_list = [
-            f"{settings.TITLE}官网: {settings.HOST}",
+            f"{settings.TITLE}官网：{settings.HOST}",
         ]
         if len(node_list) > 0:
             note_list.extend(
                 [
-                    f"等级: {self.user.level} 到期时间: {self.user.level_expire_time.date()}",
-                    f"剩余流量:{self.user.human_remain_traffic},总流量:{self.user.human_total_traffic}",
+                    f"等级：{self.user.level} 到期时间：{self.user.level_expire_time.date()}",
+                    f"剩余流量：{self.user.human_remain_traffic},总流量：{self.user.human_total_traffic}",
                 ]
             )
         else:

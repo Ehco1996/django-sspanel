@@ -78,7 +78,7 @@ class TicketAdmin(admin.ModelAdmin):
 
 class UserSubLogAdmin(admin.ModelAdmin):
     list_display = ["user", "sub_type", "ip", "created_at"]
-    search_fields = ["user", "sub_type"]
+    list_filter = ["user", "sub_type"]
 
 
 # Register your models here.
