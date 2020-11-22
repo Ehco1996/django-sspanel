@@ -76,4 +76,5 @@ SIMPLEUI_ICON = {
     "系统公告": "fas fa-bullhorn",
     "工单": "fas fa-tasks",
     "邮件发送记录": "fas fa-envelope",
+    "用户订阅记录": "fas fa-download",
 }
