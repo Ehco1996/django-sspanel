@@ -63,7 +63,8 @@ class GoodsAdmin(admin.ModelAdmin):
 class EmailSendLogAdmin(admin.ModelAdmin):
     list_display = ["user", "subject", "created_at"]
     list_filter = ["subject", "created_at"]
-    search_fields = ["user__username", "subject"]
+    search_fields = ["user", "subject"]
+    list_select_related = ["user"]
 
 
 class RebateRecordAdmin(admin.ModelAdmin):
@@ -79,6 +80,7 @@ class TicketAdmin(admin.ModelAdmin):
 class UserSubLogAdmin(admin.ModelAdmin):
     list_display = ["user", "sub_type", "ip", "created_at"]
     list_filter = ["user", "sub_type"]
+    list_select_related = ["user"]
 
 
 # Register your models here.

@@ -129,6 +129,7 @@ class NodeOnlineLogAdmin(admin.ModelAdmin):
         "created_at",
     ]
     list_filter = ["proxy_node"]
+    list_select_related = ["proxy_node"]
 
 
 class UserTrafficLogAdmin(admin.ModelAdmin):
@@ -138,7 +139,8 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
         "total_traffic",
         "created_at",
     ]
-    list_filter = ["proxy_node", "user"]
+    list_filter = ["user", "proxy_node"]
+    list_select_related = ["user", "proxy_node"]
 
     def total_traffic(self, instance):
         return instance.total_traffic
@@ -152,7 +154,8 @@ class UserOnLineIpLogAdmin(admin.ModelAdmin):
         "proxy_node",
         "ip",
     ]
-    list_filter = ["proxy_node", "user"]
+    list_filter = ["user", "proxy_node"]
+    list_select_related = ["user", "proxy_node"]
 
 
 # Register your models here.
