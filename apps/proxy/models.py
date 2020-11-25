@@ -10,7 +10,7 @@ from django.forms.models import model_to_dict
 
 from apps import constants as c
 from apps import utils
-from apps.mixin import BaseLogModel, BaseModel, SequenceMixin
+from apps.mixin import BaseLogModel, BaseModel, CacheMixin, SequenceMixin
 from apps.sspanel.models import User
 
 
@@ -27,7 +27,7 @@ class BaseNodeModel(BaseModel):
         return self.server.split(",")
 
 
-class ProxyNode(BaseNodeModel, SequenceMixin):
+class ProxyNode(BaseNodeModel, SequenceMixin, CacheMixin):
 
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VLESS = "vless"
@@ -455,7 +455,7 @@ class UserTrafficLog(BaseLogModel):
         index_together = ["user", "proxy_node", "created_at"]
 
     def __str__(self) -> str:
-        return f"{self.proxy_node.name}用户流量记录"
+        return f"用户流量记录:{self.id}"
 
     @classmethod
     def calc_user_total_traffic(cls, proxy_node, user_id):

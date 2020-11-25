@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.forms import ModelForm
 
 from apps.proxy import models
+from apps.sspanel.models import User
 
 
 class SSConfigInline(admin.StackedInline):
@@ -134,17 +135,25 @@ class NodeOnlineLogAdmin(admin.ModelAdmin):
 
 class UserTrafficLogAdmin(admin.ModelAdmin):
     list_display = [
-        "user",
-        "proxy_node",
+        "username",
+        "nodename",
         "total_traffic",
         "created_at",
     ]
     list_filter = ["user", "proxy_node"]
-    list_select_related = ["user", "proxy_node"]
+    list_per_page = 10
+
+    def username(self, instance):
+        return User.get_by_id_with_cache(instance.user_id).username
+
+    def nodename(self, instance):
+        return models.ProxyNode.get_by_id_with_cache(instance.proxy_node_id).name
 
     def total_traffic(self, instance):
         return instance.total_traffic
 
+    username.short_description = "用户名"
+    nodename.short_description = "节点名"
     total_traffic.short_description = "流量"
 
 

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
@@ -8,3 +9,8 @@ urlpatterns = [
     path("admin/", admin.site.urls, name="admin"),
     path("prom/", include("django_prometheus.urls")),
 ]
+
+if settings.DEBUG is True:
+    import debug_toolbar
+
+    urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
