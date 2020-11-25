@@ -130,15 +130,17 @@ def clean_traffic_log_task():
 
 @celery_app.task
 def clean_node_online_log_task():
-    """清空所有在线记录"""
-    count = NodeOnlineLog.objects.count()
-    NodeOnlineLog.truncate()
+    """清空一天前在线记录"""
+    dt = get_current_datetime().subtract(days=1)
+    query = NodeOnlineLog.objects.filter(created_at__lt=dt)
+    count, _ = query.delete()
     print(f"NodeOnlineLog  removed count:{count}")
 
 
 @celery_app.task
 def clean_online_ip_log_task():
-    """清空在线ip记录"""
-    count = UserOnLineIpLog.objects.count()
-    UserOnLineIpLog.truncate()
+    """清空一天前在线ip记录"""
+    dt = get_current_datetime().subtract(days=1)
+    query = UserOnLineIpLog.objects.filter(created_at__lt=dt)
+    count, _ = query.delete()
     print(f"UserOnLineIpLog  removed count:{count}")

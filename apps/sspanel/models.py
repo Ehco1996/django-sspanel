@@ -19,7 +19,7 @@ from django.utils import functional, timezone
 from redis.exceptions import LockError
 
 from apps import constants as c
-from apps.ext import encoder, lock, pay
+from apps.ext import cache, encoder, lock, pay
 from apps.utils import (
     get_current_datetime,
     get_long_random_string,
@@ -76,6 +76,11 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    @classmethod
+    @cache.cached()
+    def get_by_id_with_cache(cls, id):
+        return cls.objects.get(id=id)
 
     @classmethod
     def get_total_user_num(cls):

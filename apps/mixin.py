@@ -6,6 +6,8 @@ from django.http import HttpResponseForbidden
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+from apps.ext import cache
+
 
 class CSRFExemptMixin:
     @method_decorator(csrf_exempt)
@@ -18,6 +20,13 @@ class StaffRequiredMixin(LoginRequiredMixin):
         if not request.user.is_staff:
             return HttpResponseForbidden()
         return super().dispatch(request, *args, **kwargs)
+
+
+class CacheMixin:
+    @classmethod
+    @cache.cached()
+    def get_by_id_with_cache(cls, id):
+        return cls.objects.get(id=id)
 
 
 class BaseModel(models.Model):
