@@ -29,7 +29,7 @@ class cached:
 
     client = None
 
-    def __init__(self, func=None, ttl=60 * 5, cache_key=make_default_key):
+    def __init__(self, func=None, ttl=60 * 60, cache_key=make_default_key):
         self.ttl = ttl
         self.cache_key = cache_key
         if func is not None:
