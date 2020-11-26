@@ -140,8 +140,10 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
         "total_traffic",
         "created_at",
     ]
-    list_filter = ["user", "proxy_node"]
+    search_fields = ["user__username"]
+    list_filter = ["proxy_node"]
     list_per_page = 10
+    show_full_result_count = False
 
     def username(self, instance):
         return User.get_by_id_with_cache(instance.user_id).username
@@ -163,8 +165,10 @@ class UserOnLineIpLogAdmin(admin.ModelAdmin):
         "proxy_node",
         "ip",
     ]
-    list_filter = ["user", "proxy_node"]
-    list_select_related = ["user", "proxy_node"]
+    search_fields = ["user__username"]
+    list_filter = ["proxy_node"]
+    list_per_page = 10
+    show_full_result_count = False
 
 
 # Register your models here.
