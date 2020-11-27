@@ -108,7 +108,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin, CacheMixin):
                 # NOTE 单端口多用户
                 port = ss_config.multi_user_port
             else:
-                port = port = user.ss_port
+                port = port = user["ss_port"]
             configs["users"].append(
                 {
                     "user_id": user["id"],
