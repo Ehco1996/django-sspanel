@@ -537,3 +537,14 @@ class UserOnLineIpLog(BaseLogModel):
                 ret.append(log)
             ip_set.add(log.ip)
         return ret
+
+    @classmethod
+    def get_user_online_device_count(cls, user, minutes=10):
+        """获取最近一段时间内用户在线设备数量"""
+        now = utils.get_current_datetime()
+        ips = set()
+        for data in cls.objects.filter(
+            user=user, created_at__range=[now.add(minutes=minutes * -1), now]
+        ).values("ip"):
+            ips.add(data["ip"])
+        return len(ips)

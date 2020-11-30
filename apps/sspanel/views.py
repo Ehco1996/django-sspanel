@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.views import View
 
 from apps.constants import THEME_CHOICES
-from apps.proxy.models import ProxyNode
+from apps.proxy.models import ProxyNode, UserOnLineIpLog
 from apps.sspanel.forms import LoginForm, RegisterForm
 from apps.sspanel.models import (
     Announcement,
@@ -142,6 +142,7 @@ class UserInfoView(LoginRequiredMixin, View):
             "max_traffic": max_traffic,
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
+            "online_device_count": UserOnLineIpLog.get_user_online_device_count(user),
         }
         return render(request, "sspanel/userinfo.html", context=context)
 
@@ -166,6 +167,9 @@ class UserTrafficLog(LoginRequiredMixin, View):
         context = {
             "user": request.user,
             "node_list": node_list,
+            "online_device_count": UserOnLineIpLog.get_user_online_device_count(
+                request.user
+            ),
         }
         return render(request, "sspanel/user_traffic_log.html", context=context)
 
