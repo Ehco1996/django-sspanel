@@ -9,11 +9,13 @@
 
 * Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
 
-## 捐赠
+## 捐赠支持
 
 欢迎大家给我捐赠, 我的比特币钱包地址: `1Nb98htAPPGE8ihBa5hu5jXs4vXLfsC7Bo`
 
 > 捐赠不会为你带来什么，不捐也不会让你失去什么，但是如果你心情好，完全可以请我喝杯咖啡不是~
+
+[![Donate with Bitcoin](https://en.cryptobadges.io/badge/big/1Nb98htAPPGE8ihBa5hu5jXs4vXLfsC7Bo?showBalance=true)](https://en.cryptobadges.io/donate/1Nb98htAPPGE8ihBa5hu5jXs4vXLfsC7Bo)
 
 ## 视频安装教程
 
