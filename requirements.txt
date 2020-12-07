@@ -3,7 +3,6 @@ django-anymail==8.1
 django-countries==6.1.3
 django-prometheus==2.1.0
 django-simpleui==2021.1.1
-gevent==20.9.0
 Markdown==3.3.3
 mysqlclient==2.0.1
 python-alipay-sdk==2.1.1
