@@ -421,11 +421,10 @@ class NodeOnlineLog(BaseLogModel):
 
     @classmethod
     def get_all_node_online_user_count(cls):
-
         count = 0
         for node in ProxyNode.get_active_nodes():
             log = cls.get_latest_log(node.id)
-            if log:
+            if log and log.online:
                 count += log.online_user_count
         return count
 

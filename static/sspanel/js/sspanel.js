@@ -20,10 +20,7 @@ $(function () {
 document.addEventListener('DOMContentLoaded', function () {
 
   // Toggles
-
   var $burgers = getAll('.burger');
-  var $fries = getAll('.fries');
-
   if ($burgers.length > 0) {
     $burgers.forEach(function ($el) {
       $el.addEventListener('click', function () {
@@ -36,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Modals
-
   var $html = document.documentElement;
   var $modals = getAll('.modal');
   var $modalButtons = getAll('.modal-button');

@@ -11,7 +11,6 @@ from apps.ext import encoder, lock
 from apps.proxy import models as m
 from apps.sspanel import tasks
 from apps.sspanel.models import (
-    Donate,
     Goods,
     InviteCode,
     User,
@@ -31,21 +30,15 @@ from apps.utils import (
 class SystemStatusView(View):
     @method_decorator(permission_required("sspanel"))
     def get(self, request):
+        # TODO 增加每日用户统计，活跃用户统计
         user_status = [
             m.NodeOnlineLog.get_all_node_online_user_count(),
             User.get_today_register_user().count(),
             UserCheckInLog.get_today_checkin_user_count(),
             User.get_never_used_user_count(),
         ]
-        donate_status = [
-            Donate.get_donate_count_by_date(),
-            Donate.get_donate_money_by_date(),
-            Donate.get_donate_count_by_date(date=pendulum.today()),
-            Donate.get_donate_money_by_date(date=pendulum.today()),
-        ]
 
         active_nodes = m.ProxyNode.get_active_nodes()
-
         node_status = {
             "names": [node.name for node in active_nodes],
             "traffics": [
@@ -54,8 +47,8 @@ class SystemStatusView(View):
         }
         data = {
             "user_status": user_status,
-            "donate_status": donate_status,
             "node_status": node_status,
+            "order_status": UserOrder.get_last_week_status_data(),
         }
         return JsonResponse(data)
 
