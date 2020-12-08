@@ -467,6 +467,15 @@ class UserTrafficLog(BaseLogModel):
         return utils.traffic_format(ut + dt)
 
     @classmethod
+    def get_user_count_by_date(cls, date):
+        return cls.objects.filter(
+            created_at__range=[
+                date.start_of("day"),
+                date.end_of("day"),
+            ]
+        ).aggregate(count=models.Count("user__id"))["count"]
+
+    @classmethod
     def calc_user_traffic_by_date(cls, user_id, proxy_node, date):
         logs = cls.objects.filter(
             user_id=user_id,
