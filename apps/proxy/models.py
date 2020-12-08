@@ -4,12 +4,14 @@ from decimal import Decimal
 from functools import cached_property
 from urllib.parse import quote, urlencode
 
+import pendulum
 from django.conf import settings
 from django.db import models
 from django.forms.models import model_to_dict
 
 from apps import constants as c
 from apps import utils
+from apps.ext import cache
 from apps.mixin import BaseLogModel, BaseModel, CacheMixin, SequenceMixin
 from apps.sspanel.models import User
 
@@ -89,6 +91,12 @@ class ProxyNode(BaseNodeModel, SequenceMixin, CacheMixin):
         cls.objects.filter(id=id).update(
             used_traffic=models.F("used_traffic") + used_traffic
         )
+
+    @classmethod
+    def calc_total_traffic(cls):
+        aggs = cls.objects.all().aggregate(used_traffic=models.Sum("used_traffic"))
+        used_traffic = aggs["used_traffic"] if aggs["used_traffic"] else 0
+        return utils.traffic_format(used_traffic)
 
     def get_ss_node_config(self):
         configs = {"users": []}
@@ -467,32 +475,58 @@ class UserTrafficLog(BaseLogModel):
         return utils.traffic_format(ut + dt)
 
     @classmethod
-    def get_user_count_by_date(cls, date):
+    @cache.cached(ttl=c.CACHE_TTL_MONTH)
+    def _get_active_user_count_by_date(cls, dt: pendulum.DateTime):
         qs = (
-            cls.objects.filter(
-                created_at__range=[
-                    date.start_of("day"),
-                    date.end_of("day"),
-                ]
-            )
+            cls.objects.filter(created_at__range=[dt.start_of("day"), dt.end_of("day")])
             .values("user_id")
             .distinct()
         )
         return qs.count()
 
     @classmethod
-    def calc_user_traffic_by_date(cls, user_id, proxy_node, date):
-        logs = cls.objects.filter(
-            user_id=user_id,
-            proxy_node=proxy_node,
-            created_at__range=[date.start_of("day"), date.end_of("day")],
+    def get_active_user_count_by_date(cls, date: pendulum.DateTime):
+        """获取指定日期的活跃用户数量,只有今天的数据会hit db"""
+        date = date.start_of("day")
+        today = utils.get_current_datetime()
+        if date.date() == today.date():
+            return cls._get_active_user_count_by_date.uncached(cls, date)
+        return cls._get_active_user_count_by_date(date)
+
+    @classmethod
+    @cache.cached(ttl=c.CACHE_TTL_MONTH)
+    def _calc_traffic_by_date(cls, date, user_id=None, proxy_node_id=None):
+        qs = cls.objects.filter(
+            created_at__range=[date.start_of("day"), date.end_of("day")]
         )
-        aggs = logs.aggregate(
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+        if proxy_node_id:
+            qs = qs.filter(proxy_node_id=proxy_node_id)
+        aggs = qs.aggregate(
             u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
         )
         ut = aggs["u"] if aggs["u"] else 0
         dt = aggs["d"] if aggs["d"] else 0
-        return (ut + dt) // settings.MB
+        return round((ut + dt) / settings.GB, 2)
+
+    @classmethod
+    def calc_traffic_by_date(cls, user_id, proxy_node, date: pendulum.DateTime):
+        """获取指定日期指定用户的流量,只有今天的数据会hit db"""
+        date = date.start_of("day")
+        today = utils.get_current_datetime()
+        if date.date() == today.date():
+            return cls._calc_traffic_by_date.uncached(
+                cls,
+                date,
+                user_id,
+                proxy_node.id,
+            )
+        return cls._calc_traffic_by_date(
+            date,
+            user_id,
+            proxy_node.id,
+        )
 
     @property
     def total_traffic(self):

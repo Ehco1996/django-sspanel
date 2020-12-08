@@ -88,8 +88,8 @@ def get_current_datetime() -> pendulum.DateTime:
     return pendulum.now(tz=timezone.get_current_timezone())
 
 
-def gen_date_list(t: pendulum.datetime = get_current_datetime(), days: int = 6):
-    """根据日期和天数生成日期列表，啥都不传的话会"""
+def gen_date_list(t: pendulum.DateTime, days: int = 6):
+    """根据日期和天数生成日期列表"""
     return [t.subtract(days=i) for i in range(days, -1, -1)]
 
 

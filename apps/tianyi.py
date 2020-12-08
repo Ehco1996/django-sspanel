@@ -15,68 +15,57 @@ from apps.sspanel import models as sm
 class DashBoardManger:
     """
     无情的dashboard生成器
-
-    TODO 每日/每小时使用流量统计
     """
-
-    @classmethod
-    def _gen_userorder_bar_chart_configs(cls, date_list):
-        """获取指定日期的的订单统计"""
-        bar_config = {
-            "labels": [f"{date.month}-{date.day}" for date in date_list],
-            "data": [
-                sm.UserOrder.objects.filter(
-                    created_at__range=[
-                        t.start_of("day"),
-                        t.end_of("day"),
-                    ]
-                ).count()
-                for t in date_list
-            ],
-            "data_title": "每日订单数量",
-        }
-        return bar_config
-
-    @classmethod
-    def _gen_user_line_chart_configs(cls, date_list):
-        active_user_count = [
-            pm.UserTrafficLog.get_user_count_by_date(date) for date in date_list
-        ]
-        active_user_line_config = {
-            "title": f"最近{len(date_list)}天 总活跃人数为{sum(active_user_count)}人",
-            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
-            "data": active_user_count,
-            "data_title": "活跃用户",
-            "x_label": f"日期 最近{len(date_list)}天",
-            "y_label": "人",
-        }
-        new_user_count = [
-            sm.User.get_new_user_count_by_date(date) for date in date_list
-        ]
-        new_user_line_config = {
-            "title": f"最近{len(date_list)}天 新增人数为{sum(new_user_count)}人",
-            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
-            "data": new_user_count,
-            "data_title": "新增用户",
-            "x_label": f"日期 最近{len(date_list)}天",
-            "y_label": "人",
-        }
-        return {
-            "active_user_line_config": active_user_line_config,
-            "new_user_line_config": new_user_line_config,
-        }
 
     @classmethod
     def get_user_last_week_status_data(cls):
         """统计用户信息"""
-        user_status = [
-            pm.NodeOnlineLog.get_all_node_online_user_count(),
-            sm.User.get_today_register_user().count(),
-            sm.UserCheckInLog.get_today_checkin_user_count(),
-        ]
-        data = {"user_status": user_status}
-        last_week = utils.gen_date_list()
-        data.update(cls._gen_user_line_chart_configs(last_week))
+
+        def gen_line_configs(date_list):
+            active_user_count = [
+                pm.UserTrafficLog.get_active_user_count_by_date(date)
+                for date in date_list
+            ]
+            active_user_line_config = {
+                "title": f"最近{len(date_list)}天 总活跃人数为{sum(active_user_count)}人",
+                "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+                "data": active_user_count,
+                "data_title": "活跃用户",
+                "x_label": f"最近{len(date_list)}天",
+                "y_label": "活跃用户数",
+            }
+            new_user_count = [
+                sm.User.get_new_user_count_by_date(date) for date in date_list
+            ]
+            new_user_line_config = {
+                "title": f"最近{len(date_list)}天 新增人数为{sum(new_user_count)}人",
+                "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+                "data": new_user_count,
+                "data_title": "新增用户",
+                "x_label": f"最近{len(date_list)}天",
+                "y_label": "新用户数",
+            }
+            return {
+                "active_user_line_config": active_user_line_config,
+                "new_user_line_config": new_user_line_config,
+            }
+
+        def gen_doughnut_config():
+            user_status = [
+                pm.NodeOnlineLog.get_all_node_online_user_count(),
+                sm.User.get_today_register_user().count(),
+                sm.UserCheckInLog.get_today_checkin_user_count(),
+            ]
+            return {
+                "title": f"总用户数量{sm.User.objects.all().count()}人",
+                "labels": ["在线人数", "今日注册", "今日签到"],
+                "data": user_status,
+                "data_title": "活跃用户",
+            }
+
+        data = {"doughnut_config": gen_doughnut_config()}
+        last_week = utils.gen_date_list(utils.get_current_datetime())
+        data.update(gen_line_configs(last_week))
         return data
 
     @classmethod
@@ -86,44 +75,91 @@ class DashBoardManger:
         2. 一周的收入统计
         3. 今日的收入统计
         """
+
+        def gen_bar_config(date_list):
+            success_order_count = [
+                sm.UserOrder.get_success_order_count(t) for t in date_list
+            ]
+            bar_config = {
+                "title": f"一周总订单数量:{sum(success_order_count)}",
+                "labels": [f"{date.month}-{date.day}" for date in date_list],
+                "data": success_order_count,
+                "data_title": "每日订单数量",
+                "x_label": f"最近{len(date_list)}天",
+                "y_label": "订单数量",
+            }
+            return bar_config
+
+        def gen_doughnut_config():
+            today_amount = (
+                sm.UserOrder.objects.filter(
+                    status=sm.UserOrder.STATUS_FINISHED,
+                    created_at__range=[
+                        now.start_of("day"),
+                        now.end_of("day"),
+                    ],
+                ).aggregate(amount=models.Sum("amount"))["amount"]
+                or "0"
+            )
+            week_amount = (
+                sm.UserOrder.objects.filter(
+                    status=sm.UserOrder.STATUS_FINISHED,
+                    created_at__range=[
+                        last_week[0].start_of("day"),
+                        last_week[-1].end_of("day"),
+                    ],
+                ).aggregate(amount=models.Sum("amount"))["amount"]
+                or "0"
+            )
+            return {
+                "title": "收入分析 单位:元",
+                "labels": ["一周收入", "今日收入"],
+                "data": [
+                    int(decimal.Decimal(week_amount)),
+                    int(decimal.Decimal(today_amount)),
+                ],
+                "data_title": "收入分析",
+            }
+
         now = utils.get_current_datetime()
         last_week = utils.gen_date_list(now)
-        today_amount = (
-            sm.UserOrder.objects.filter(
-                status=sm.UserOrder.STATUS_FINISHED,
-                created_at__range=[
-                    now.start_of("day"),
-                    now.end_of("day"),
-                ],
-            ).aggregate(amount=models.Sum("amount"))["amount"]
-            or "0"
-        )
-        week_amount = (
-            sm.UserOrder.objects.filter(
-                status=sm.UserOrder.STATUS_FINISHED,
-                created_at__range=[
-                    last_week[0].start_of("day"),
-                    last_week[-1].end_of("day"),
-                ],
-            ).aggregate(amount=models.Sum("amount"))["amount"]
-            or "0"
-        )
+
         return {
-            "bar_chart_configs": cls._gen_userorder_bar_chart_configs(last_week),
-            "amount_status": [
-                int(decimal.Decimal(week_amount)),
-                int(decimal.Decimal(today_amount)),
-            ],
+            "bar_config": gen_bar_config(last_week),
+            "doughnut_config": gen_doughnut_config(),
         }
 
     @classmethod
     def get_node_status(cls):
-        active_nodes = pm.ProxyNode.get_active_nodes()
+        def gen_line_config(date_list):
+            node_total_traffic = pm.ProxyNode.calc_total_traffic()
+            line_config = {
+                "title": f"所有节点当月共消耗:{node_total_traffic}",
+                "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+                "data": [
+                    pm.UserTrafficLog._calc_traffic_by_date(date) for date in date_list
+                ],
+                "data_title": "每日流量(GB)",
+                "x_label": f"最近{len(date_list)}天",
+                "y_label": "单位:GB",
+            }
+            return line_config
+
+        def gen_doughnut_config():
+            active_nodes = pm.ProxyNode.get_active_nodes()
+            return {
+                "title": "节点流量 单位:GB",
+                "labels": [node.name for node in active_nodes],
+                "data": [
+                    round(node.used_traffic / settings.GB, 2) for node in active_nodes
+                ],
+                "data_title": "节点流量",
+            }
+
+        date_list = utils.gen_date_list(utils.get_current_datetime())
         return {
-            "names": [node.name for node in active_nodes],
-            "traffics": [
-                round(node.used_traffic / settings.GB, 2) for node in active_nodes
-            ],
+            "doughnut_config": gen_doughnut_config(),
+            "line_config": gen_line_config(date_list),
         }
 
     @classmethod
@@ -137,12 +173,12 @@ class DashBoardManger:
             "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
             "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
             "data": [
-                pm.UserTrafficLog.calc_user_traffic_by_date(user_id, proxy_node, date)
+                pm.UserTrafficLog.calc_traffic_by_date(user_id, proxy_node, date)
                 for date in date_list
             ],
             "data_title": proxy_node.name,
-            "x_label": f"日期 最近{len(date_list)}天",
-            "y_label": "流量 单位：MB",
+            "x_label": f"最近{len(date_list)}天",
+            "y_label": "单位:GB",
         }
         return line_config
 
@@ -155,8 +191,11 @@ class DashBoardManger:
             for log in sm.UserRefLog.list_by_user_id_and_date_list(user_id, date_list)
         }
         bar_config = {
+            "title": f"总共邀请用户:{sm.UserRefLog.calc_user_total_ref_count(user_id)}人",
             "labels": [f"{date.month}-{date.day}" for date in date_list],
             "data": [logs.get(date, 0) for date in date_list],
             "data_title": "每日邀请注册人数",
+            "x_label": f"最近{len(date_list)}天",
+            "y_label": "人",
         }
         return bar_config

@@ -80,7 +80,7 @@ class UserTrafficChartView(View):
     def get(self, request):
         node_id = request.GET.get("node_id", 0)
         user_id = request.user.pk
-        last_week = gen_date_list()
+        last_week = gen_date_list(get_current_datetime())
         configs = DashBoardManger.gen_traffic_line_chart_configs(
             user_id, node_id, last_week
         )

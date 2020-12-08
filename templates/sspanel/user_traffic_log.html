@@ -67,7 +67,7 @@
             'node_id': options.attr("node-id"),
         }
         $.get(url, data, function (results) {
-            genLineChart('traffic', results)
+            genChart('traffic', 'line', results)
         })
     }
     queryButton.click(traffic_query)

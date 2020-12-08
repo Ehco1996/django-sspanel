@@ -33,7 +33,10 @@
     </div>
 </div>
 <div class="columns">
-    <div class="column is-12">
+    <div class="column">
+        <canvas id="id-node-traffic-status"></canvas>
+    </div>
+    <div class="column">
         <canvas id="id-order-status"></canvas>
     </div>
 </div>
@@ -42,16 +45,13 @@
     // 获取后台首页状态
     var getSystemStatus = function () {
         $.getJSON("{% url 'api:system_status' %}", function (res) {
-            genDoughnutChart('id-user-status', '总用户:{{ total_user_num }} ',
-                ['在线人数', '今日注册', '今日签到'],
-                res.user_status.user_status)
-            genDoughnutChart('id-node-status', '节点流量 单位:GB',
-                res.node_status.names, res.node_status.traffics)
-            genDoughnutChart('id-amount-status', '收入分析 单位:元',
-                ['一周收入', '今日收入'], res.order_status.amount_status)
-            genLineChart('id-active-user-status', res.user_status.active_user_line_config)
-            genLineChart('id-new-user-status', res.user_status.new_user_line_config)
-            genBarChart('id-order-status', res.order_status.bar_chart_configs)
+            genChart('id-user-status', 'doughnut', res.user_status.doughnut_config)
+            genChart('id-node-status', 'doughnut', res.node_status.doughnut_config)
+            genChart('id-amount-status', 'doughnut', res.order_status.doughnut_config)
+            genChart('id-active-user-status', 'line', res.user_status.active_user_line_config)
+            genChart('id-new-user-status', 'line', res.user_status.new_user_line_config)
+            genChart('id-node-traffic-status', 'line', res.node_status.line_config)
+            genChart('id-order-status', 'bar', res.order_status.bar_config)
         })
     }
     getSystemStatus()
