@@ -112,7 +112,7 @@ class DashBoardManger:
                 or "0"
             )
             return {
-                "title": "收入分析 单位:元",
+                "title": f"一周收入{week_amount}元",
                 "labels": ["一周收入", "今日收入"],
                 "data": [
                     int(decimal.Decimal(week_amount)),
@@ -131,9 +131,9 @@ class DashBoardManger:
 
     @classmethod
     def get_node_status(cls):
-        def gen_line_config(date_list):
+        def gen_bar_config(date_list):
             node_total_traffic = pm.ProxyNode.calc_total_traffic()
-            line_config = {
+            bar_config = {
                 "title": f"所有节点当月共消耗:{node_total_traffic}",
                 "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
                 "data": [
@@ -143,13 +143,14 @@ class DashBoardManger:
                 "x_label": f"最近{len(date_list)}天",
                 "y_label": "单位:GB",
             }
-            return line_config
+            return bar_config
 
         def gen_doughnut_config():
             active_nodes = pm.ProxyNode.get_active_nodes()
+            labels = [node.name for node in active_nodes]
             return {
-                "title": "节点流量 单位:GB",
-                "labels": [node.name for node in active_nodes],
+                "title": f"总共{len(labels)}条节点",
+                "labels": labels,
                 "data": [
                     round(node.used_traffic / settings.GB, 2) for node in active_nodes
                 ],
@@ -159,7 +160,7 @@ class DashBoardManger:
         date_list = utils.gen_date_list(utils.get_current_datetime())
         return {
             "doughnut_config": gen_doughnut_config(),
-            "line_config": gen_line_config(date_list),
+            "bar_config": gen_bar_config(date_list),
         }
 
     @classmethod
