@@ -74,6 +74,10 @@
 
 **后台界面:**
 
+* 运行状态：
+
+![运行状态：](https://user-images.githubusercontent.com/24697284/101553287-515dc980-39ef-11eb-9e96-7b05f10befc6.png)
+
 * 面板管理：
 
 ![面板管理：](https://user-images.githubusercontent.com/24697284/99465482-80939480-2975-11eb-9ab5-b0b88a6f6f1a.png)

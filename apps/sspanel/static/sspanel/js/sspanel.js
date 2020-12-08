@@ -174,15 +174,13 @@ var genChart = function (chartId, chartType, config) {
     datasets: [{
       label: config.data_title,
       data: config.data,
-      backgroundColor: getRandomColor(),
-      borderColor: getRandomColor(),
+      backgroundColor: getRandomColorSets(config.data.length),
+      borderColor: getRandomColorSets(config.data.length),
       steppedLine: false,
       fill: false,
     }]
   }
   if (chartType == 'doughnut') {
-    data.datasets[0].backgroundColor = getRandomColorSets(config.data.length)
-    data.datasets[0].borderColor = getRandomColorSets(config.data.length)
     options = {
       title: {
         display: true,
@@ -198,8 +196,13 @@ var genChart = function (chartId, chartType, config) {
       },
       scaleOverlay: true,
     }
+    if (config.labels.length > 3) {
+      options.legend.display = false
+    }
   }
   if (chartType == 'line') {
+    data.datasets[0].backgroundColor = getRandomColor()
+    data.datasets[0].borderColor = getRandomColor()
     options = {
       responsive: true,
       title: {
