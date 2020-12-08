@@ -42,7 +42,7 @@
     var genRefChart = function () {
         url = "{% url 'api:user_ref_chart' %}"
         $.get(url, function (results) {
-            genBarChart('id-ref-canvas', results)
+            genChart('id-ref-canvas', "bar", results)
         })
     }
     genRefChart()

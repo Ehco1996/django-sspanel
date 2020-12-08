@@ -2,8 +2,9 @@ import functools
 import pickle
 
 import redis
+from pendulum import DateTime
 
-DEFAULT_KEY_TYPES = (str, int, float, bool)
+DEFAULT_KEY_TYPES = (str, int, float, bool, DateTime)
 
 
 def norm_cache_key(v):
@@ -16,7 +17,9 @@ def norm_cache_key(v):
     if v is None or isinstance(v, DEFAULT_KEY_TYPES):
         return str(v)
     else:
-        raise ValueError("only str, int, float, bool, django.WSGIRequest can be key")
+        raise ValueError(
+            "only str, int, float, bool, django.WSGIRequest,DateTime can be key"
+        )
 
 
 def make_default_key(f, *args, **kwargs):

@@ -19,6 +19,7 @@ from django.utils import functional, timezone
 from redis.exceptions import LockError
 
 from apps import constants as c
+from apps import utils
 from apps.ext import cache, encoder, lock, pay
 from apps.utils import (
     get_current_datetime,
@@ -409,6 +410,23 @@ class UserOrder(models.Model, UserMixin):
                 order.handle_paid()
             return success
 
+    @classmethod
+    @cache.cached(ttl=c.CACHE_TTL_MONTH)
+    def _get_success_order_count(cls, dt: pendulum.DateTime):
+        return cls.objects.filter(
+            created_at__range=[dt.start_of("day"), dt.end_of("day")],
+            status=cls.STATUS_FINISHED,
+        ).count()
+
+    @classmethod
+    def get_success_order_count(cls, date: pendulum.DateTime):
+        """获取指定日期的订单数量,只有今天的数据会hit db"""
+        date = date.start_of("day")
+        today = utils.get_current_datetime()
+        if date.date() == today.date():
+            return cls._get_success_order_count.uncached(cls, date)
+        return cls._get_success_order_count(date)
+
     def handle_paid(self):
         # NOTE Must use in transaction
         self.refresh_from_db()
@@ -453,6 +471,13 @@ class UserRefLog(models.Model, UserMixin):
     @classmethod
     def list_by_user_id_and_date_list(cls, user_id, date_list):
         return cls.objects.filter(user_id=user_id, date__in=date_list)
+
+    @classmethod
+    def calc_user_total_ref_count(cls, user_id):
+        aggs = cls.objects.filter(user_id=user_id).aggregate(
+            register_count=models.Sum("register_count")
+        )
+        return aggs["register_count"] if aggs["register_count"] else 0
 
 
 class UserCheckInLog(models.Model, UserMixin):
