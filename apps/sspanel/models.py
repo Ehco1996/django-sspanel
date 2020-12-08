@@ -1,5 +1,4 @@
 import datetime
-import decimal
 import random
 import re
 import time
@@ -20,7 +19,6 @@ from django.utils import functional, timezone
 from redis.exceptions import LockError
 
 from apps import constants as c
-from apps import utils
 from apps.ext import cache, encoder, lock, pay
 from apps.utils import (
     get_current_datetime,
@@ -191,6 +189,15 @@ class User(AbstractUser):
     def get_user_order_by_traffic(cls, count=10):
         # NOTE 后台展示用 暂时不加索引
         return cls.objects.all().order_by("-download_traffic")[:count]
+
+    @classmethod
+    def get_new_user_count_by_date(cls, date):
+        return cls.objects.filter(
+            date_joined__range=[
+                date.start_of("day"),
+                date.end_of("day"),
+            ]
+        ).aggregate(count=models.Count("id"))["count"]
 
     @property
     def sub_link(self):
@@ -401,55 +408,6 @@ class UserOrder(models.Model, UserMixin):
                     order.save()
                 order.handle_paid()
             return success
-
-    @classmethod
-    def gen_bar_chart_configs(cls, last_week):
-        """获取指定日期的的订单统计"""
-        bar_config = {
-            "labels": [f"{date.month}-{date.day}" for date in last_week],
-            "data": [
-                cls.objects.filter(
-                    created_at__range=[
-                        t.start_of("day"),
-                        t.end_of("day"),
-                    ]
-                ).count()
-                for t in last_week
-            ],
-            "data_title": "每日订单数量",
-        }
-        return bar_config
-
-    @classmethod
-    def get_last_week_status_data(cls):
-        """获取最近一周的订单统计数据
-        1. 一周的订单趋势
-        2. 一周的收入统计
-        3. 今日的收入统计
-        """
-        now = utils.get_current_datetime()
-        last_week = [now.subtract(days=i) for i in range(6, -1, -1)]
-        today_amount = cls.objects.filter(
-            status=cls.STATUS_FINISHED,
-            created_at__range=[
-                now.start_of("day"),
-                now.end_of("day"),
-            ],
-        ).aggregate(amount=models.Sum("amount"))["amount"]
-        week_amount = cls.objects.filter(
-            status=cls.STATUS_FINISHED,
-            created_at__range=[
-                last_week[0].start_of("day"),
-                last_week[-1].end_of("day"),
-            ],
-        ).aggregate(amount=models.Sum("amount"))["amount"]
-        return {
-            "bar_chart_configs": cls.gen_bar_chart_configs(last_week),
-            "amount_status": [
-                int(decimal.Decimal(week_amount)),
-                int(decimal.Decimal(today_amount)),
-            ],
-        }
 
     def handle_paid(self):
         # NOTE Must use in transaction
