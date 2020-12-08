@@ -75,8 +75,7 @@ class DashBoardManger:
             sm.UserCheckInLog.get_today_checkin_user_count(),
         ]
         data = {"user_status": user_status}
-        now = utils.get_current_datetime()
-        last_week = [now.subtract(days=i) for i in range(6, -1, -1)]
+        last_week = utils.gen_date_list()
         data.update(cls._gen_user_line_chart_configs(last_week))
         return data
 
@@ -88,7 +87,7 @@ class DashBoardManger:
         3. 今日的收入统计
         """
         now = utils.get_current_datetime()
-        last_week = [now.subtract(days=i) for i in range(6, -1, -1)]
+        last_week = utils.gen_date_list(now)
         today_amount = (
             sm.UserOrder.objects.filter(
                 status=sm.UserOrder.STATUS_FINISHED,
@@ -126,3 +125,38 @@ class DashBoardManger:
                 round(node.used_traffic / settings.GB, 2) for node in active_nodes
             ],
         }
+
+    @classmethod
+    def gen_traffic_line_chart_configs(cls, user_id, node_id, date_list):
+        proxy_node = pm.ProxyNode.get_or_none(node_id)  # node must exists
+        user_total_traffic = pm.UserTrafficLog.calc_user_total_traffic(
+            proxy_node, user_id
+        )
+        date_list = sorted(date_list)
+        line_config = {
+            "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
+            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
+            "data": [
+                pm.UserTrafficLog.calc_user_traffic_by_date(user_id, proxy_node, date)
+                for date in date_list
+            ],
+            "data_title": proxy_node.name,
+            "x_label": f"日期 最近{len(date_list)}天",
+            "y_label": "流量 单位：MB",
+        }
+        return line_config
+
+    @classmethod
+    def gen_ref_log_bar_chart_configs(cls, user_id, date_list):
+        """set register_count to 0 if the query date log not exists"""
+        date_list = sorted(date_list)
+        logs = {
+            log.date: log.register_count
+            for log in sm.UserRefLog.list_by_user_id_and_date_list(user_id, date_list)
+        }
+        bar_config = {
+            "labels": [f"{date.month}-{date.day}" for date in date_list],
+            "data": [logs.get(date, 0) for date in date_list],
+            "data_title": "每日邀请注册人数",
+        }
+        return bar_config

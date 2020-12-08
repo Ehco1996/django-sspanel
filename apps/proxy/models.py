@@ -468,12 +468,17 @@ class UserTrafficLog(BaseLogModel):
 
     @classmethod
     def get_user_count_by_date(cls, date):
-        return cls.objects.filter(
-            created_at__range=[
-                date.start_of("day"),
-                date.end_of("day"),
-            ]
-        ).aggregate(count=models.Count("user__id"))["count"]
+        qs = (
+            cls.objects.filter(
+                created_at__range=[
+                    date.start_of("day"),
+                    date.end_of("day"),
+                ]
+            )
+            .values("user_id")
+            .distinct()
+        )
+        return qs.count()
 
     @classmethod
     def calc_user_traffic_by_date(cls, user_id, proxy_node, date):
@@ -488,24 +493,6 @@ class UserTrafficLog(BaseLogModel):
         ut = aggs["u"] if aggs["u"] else 0
         dt = aggs["d"] if aggs["d"] else 0
         return (ut + dt) // settings.MB
-
-    @classmethod
-    def gen_line_chart_configs(cls, user_id, node_id, date_list):
-        proxy_node = ProxyNode.get_or_none(node_id)  # node must exists
-        user_total_traffic = cls.calc_user_total_traffic(proxy_node, user_id)
-        date_list = sorted(date_list)
-        line_config = {
-            "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
-            "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
-            "data": [
-                cls.calc_user_traffic_by_date(user_id, proxy_node, date)
-                for date in date_list
-            ],
-            "data_title": proxy_node.name,
-            "x_label": f"日期 最近{len(date_list)}天",
-            "y_label": "流量 单位：MB",
-        }
-        return line_config
 
     @property
     def total_traffic(self):
