@@ -88,6 +88,11 @@ def get_current_datetime() -> pendulum.DateTime:
     return pendulum.now(tz=timezone.get_current_timezone())
 
 
+def gen_date_list(t: pendulum.datetime = get_current_datetime(), days: int = 6):
+    """根据日期和天数生成日期列表，啥都不传的话会"""
+    return [t.subtract(days=i) for i in range(days, -1, -1)]
+
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:

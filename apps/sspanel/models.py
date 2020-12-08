@@ -454,21 +454,6 @@ class UserRefLog(models.Model, UserMixin):
     def list_by_user_id_and_date_list(cls, user_id, date_list):
         return cls.objects.filter(user_id=user_id, date__in=date_list)
 
-    @classmethod
-    def gen_bar_chart_configs(cls, user_id, date_list):
-        """set register_count to 0 if the query date log not exists"""
-        date_list = sorted(date_list)
-        logs = {
-            log.date: log.register_count
-            for log in cls.list_by_user_id_and_date_list(user_id, date_list)
-        }
-        bar_config = {
-            "labels": [f"{date.month}-{date.day}" for date in date_list],
-            "data": [logs.get(date, 0) for date in date_list],
-            "data_title": "每日邀请注册人数",
-        }
-        return bar_config
-
 
 class UserCheckInLog(models.Model, UserMixin):
     user_id = models.PositiveIntegerField()

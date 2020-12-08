@@ -126,7 +126,6 @@ class SystemStatusView(StaffRequiredMixin, View):
 class InviteCodeView(StaffRequiredMixin, View):
     def get(self, request):
         """邀请码生成"""
-        # TODO 这里加入一些统计功能
         code_list = InviteCode.objects.filter(
             code_type=InviteCode.TYPE_PUBLIC, used=False
         )
