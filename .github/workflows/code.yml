@@ -1,0 +1,19 @@
+name: code
+on:
+  push:
+    branches:
+      - dev
+      - master
+jobs:
+  build-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: build code image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: ehco1996/django-sspanel
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: "refactor"
+          dockerfile: Dockerfile.CODE
