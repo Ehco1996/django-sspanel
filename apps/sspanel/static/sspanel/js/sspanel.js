@@ -12,9 +12,6 @@ $(function () {
   $(window).resize(footerPosition);
 });
 
-
-
-
 'use strict';
 
 document.addEventListener('DOMContentLoaded', function () {

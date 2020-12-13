@@ -27,17 +27,20 @@ from apps.utils import traffic_format
 class IndexView(View):
     def get(self, request):
         """跳转到首页"""
-        return render(request, "sspanel/index.html")
+        context = {"simple_extra_static": True}
+        return render(request, "sspanel/index.html", context=context)
 
 
 class HelpView(View):
     def get(self, request):
         """跳转到帮助界面"""
-        return render(request, "sspanel/help.html")
+        context = {"simple_extra_static": True}
+        return render(request, "sspanel/help.html", context=context)
 
 
 class RegisterView(View):
     def get(self, request):
+        context = {"simple_extra_static": True}
         if request.user.is_authenticated:
             return HttpResponseRedirect(reverse("sspanel:userinfo"))
         if request.GET.get("ref"):
@@ -47,6 +50,7 @@ class RegisterView(View):
         return render(request, "sspanel/register.html", {"form": form})
 
     def post(self, request):
+        context = {"simple_extra_static": True}
         if not settings.ALLOW_REGISTER:
             return HttpResponse("已经关闭注册了喵")
 
@@ -64,7 +68,8 @@ class RegisterView(View):
                 )
                 login(request, user)
                 return HttpResponseRedirect(reverse("sspanel:userinfo"))
-        return render(request, "sspanel/register.html", {"form": form})
+        context["form":form]
+        return render(request, "sspanel/register.html", context=context)
 
 
 class UserLogInView(View):
@@ -82,11 +87,11 @@ class UserLogInView(View):
             else:
                 messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
 
-        context = {"form": LoginForm()}
+        context = {"form": LoginForm(), "simple_extra_static": True}
         return render(request, "sspanel/login.html", context=context)
 
     def get(self, request):
-        context = {"form": LoginForm()}
+        context = {"form": LoginForm(), "simple_extra_static": True}
         return render(request, "sspanel/login.html", context=context)
 
 
