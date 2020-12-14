@@ -47,7 +47,8 @@ class RegisterView(View):
             form = RegisterForm(initial={"ref": request.GET.get("ref")})
         else:
             form = RegisterForm(initial={"invitecode": request.GET.get("invitecode")})
-        return render(request, "sspanel/register.html", {"form": form})
+        context["form"] = form
+        return render(request, "sspanel/register.html", context=context)
 
     def post(self, request):
         context = {"simple_extra_static": True}
@@ -68,7 +69,7 @@ class RegisterView(View):
                 )
                 login(request, user)
                 return HttpResponseRedirect(reverse("sspanel:userinfo"))
-        context["form":form]
+        context["form"] = form
         return render(request, "sspanel/register.html", context=context)
 
 
