@@ -18,7 +18,14 @@ class UserOrderAdmin(admin.ModelAdmin):
         "amount",
         "created_at",
         "expired_at",
+        "user_date_joined",
     ]
+
+    def user_date_joined(self, obj):
+        return obj.user.date_joined
+
+    user_date_joined.short_description = "用户注册时间"
+
     search_fields = ["user__username", "user__id"]
     list_filter = ["amount", "status", "created_at"]
     ordering = ("-created_at",)
