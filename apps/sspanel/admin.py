@@ -17,7 +17,6 @@ class UserOrderAdmin(admin.ModelAdmin):
         "out_trade_no",
         "amount",
         "created_at",
-        "expired_at",
         "user_date_joined",
     ]
 

@@ -210,26 +210,6 @@
             </div>
         </div>
     </div>
-    <footer>
-        <div class="container">
-            <div class="content has-text-centered">
-                <p>
-                <p class="copyright">&copy; 2016 -
-                    <script>document.write(new Date().getFullYear());</script>
-                    <a href="https://github.com/Ehco1996">GitHub</a>
-                </p>
-                </p>
-            </div>
-        </div>
-    </footer>
 </body>
-<!--整站消息提醒功能 TODO 这里写成函数-->
-{% if messages %}
-<script>
-    {% for message in messages %}
-    swal("{{ message.extra_tags }}", '{{ message }}', '{{ message.level_tag }}');
-    {% endfor %}
-</script>
-{% endif %}
-
+{% include "footer.html" %}
 </html>
