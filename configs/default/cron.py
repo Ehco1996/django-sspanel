@@ -14,4 +14,5 @@ task_schedule = {
     "apps.sspanel.tasks.clean_traffic_log_task": Duration(minutes=1),
     "apps.sspanel.tasks.clean_online_ip_log_task": Duration(minutes=1),
     "apps.sspanel.tasks.clean_node_online_log_task": Duration(minutes=1),
+    "apps.sspanel.tasks.clean_user_sub_log_task": Duration(minutes=1),
 }

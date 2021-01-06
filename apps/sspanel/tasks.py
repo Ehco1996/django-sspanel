@@ -144,3 +144,12 @@ def clean_online_ip_log_task():
     query = UserOnLineIpLog.objects.filter(created_at__lt=dt)
     count, _ = query.delete()
     print(f"UserOnLineIpLog  removed count:{count}")
+
+
+@celery_app.task
+def clean_user_sub_log_task():
+    """清空一月前在线ip记录"""
+    dt = get_current_datetime().subtract(months=1)
+    query = m.UserSubLog.objects.filter(created_at__lt=dt)
+    count, _ = query.delete()
+    print(f"UserSubLog  removed count:{count}")
