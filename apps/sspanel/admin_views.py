@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
+from apps import utils
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
 from apps.proxy.models import NodeOnlineLog, ProxyNode, UserOnLineIpLog
@@ -107,7 +108,9 @@ class UserStatusView(StaffRequiredMixin, View):
         context = {
             "total_user_num": User.get_total_user_num(),
             "alive_user_count": NodeOnlineLog.get_all_node_online_user_count(),
-            "today_checked_user_count": UserCheckInLog.get_today_checkin_user_count(),
+            "today_checked_user_count": UserCheckInLog.get_checkin_user_count(
+                utils.get_current_datetime().date()
+            ),
             "today_register_user_count": len(today_register_user),
             "traffic_users": User.get_user_order_by_traffic(count=10),
             "rich_users_data": Donate.get_most_donated_user_by_count(10),

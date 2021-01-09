@@ -511,21 +511,21 @@ class UserTrafficLog(BaseLogModel):
         return round((ut + dt) / settings.GB, 2)
 
     @classmethod
-    def calc_traffic_by_date(cls, user_id, proxy_node, date: pendulum.DateTime):
+    def calc_traffic_by_date(
+        cls, date: pendulum.DateTime, user_id=None, proxy_node=None
+    ):
         """获取指定日期指定用户的流量,只有今天的数据会hit db"""
-        date = date.start_of("day")
-        today = utils.get_current_datetime()
-        if date.date() == today.date():
+        if date.date() == utils.get_current_datetime().date():
             return cls._calc_traffic_by_date.uncached(
                 cls,
                 date,
                 user_id,
-                proxy_node.id,
+                proxy_node.id if proxy_node else None,
             )
         return cls._calc_traffic_by_date(
             date,
             user_id,
-            proxy_node.id,
+            proxy_node.id if proxy_node else None,
         )
 
     @property

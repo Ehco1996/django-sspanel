@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "anymail",
     "apps.sspanel",
     "apps.proxy",
+    "apps.stats",
 ]
 
 MIDDLEWARE = [

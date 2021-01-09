@@ -54,7 +54,9 @@ class DashBoardManger:
             user_status = [
                 pm.NodeOnlineLog.get_all_node_online_user_count(),
                 sm.User.get_today_register_user().count(),
-                sm.UserCheckInLog.get_today_checkin_user_count(),
+                sm.UserCheckInLog.get_checkin_user_count(
+                    utils.get_current_datetime().date()
+                ),
             ]
             return {
                 "title": f"总用户数量{sm.User.objects.all().count()}人",
@@ -137,7 +139,7 @@ class DashBoardManger:
                 "title": f"所有节点当月共消耗:{node_total_traffic}",
                 "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
                 "data": [
-                    pm.UserTrafficLog._calc_traffic_by_date(date) for date in date_list
+                    pm.UserTrafficLog.calc_traffic_by_date(date) for date in date_list
                 ],
                 "data_title": "每日流量(GB)",
                 "x_label": f"最近{len(date_list)}天",
@@ -174,7 +176,7 @@ class DashBoardManger:
             "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
             "labels": ["{}-{}".format(t.month, t.day) for t in date_list],
             "data": [
-                pm.UserTrafficLog.calc_traffic_by_date(user_id, proxy_node, date)
+                pm.UserTrafficLog.calc_traffic_by_date(date, user_id, proxy_node)
                 for date in date_list
             ],
             "data_title": proxy_node.name,
