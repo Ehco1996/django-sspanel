@@ -14,3 +14,8 @@ if settings.DEBUG is True:
     import debug_toolbar
 
     urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
+
+# set admin title
+admin.site.site_title = f"{settings.TITLE}管理"
+admin.site.index_title = f"{settings.TITLE}管理"
+admin.site.site_header = f"{settings.TITLE}管理"
