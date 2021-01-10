@@ -5,7 +5,15 @@ from . import models
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ["username", "id", "level", "balance", "used_percentage", "sub_link"]
+    list_display = [
+        "username",
+        "id",
+        "level",
+        "balance",
+        "used_percentage",
+        "date_joined",
+        "sub_link",
+    ]
     search_fields = ["username", "email", "id"]
     list_filter = ["level"]
 
