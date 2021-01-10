@@ -23,8 +23,8 @@ class DashBoardManger:
 
         def gen_line_configs(dt_list):
             active_user_count = [
-                pm.UserTrafficLog.get_active_user_count_by_date(date)
-                for date in dt_list
+                pm.UserTrafficLog.get_active_user_count_by_datetime(dt)
+                for dt in dt_list
             ]
             active_user_line_config = {
                 "title": f"最近{len(dt_list)}天 总活跃人数为{sum(active_user_count)}人",
@@ -139,7 +139,7 @@ class DashBoardManger:
                 "title": f"所有节点当月共消耗:{node_total_traffic}",
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
                 "data": [
-                    pm.UserTrafficLog.calc_traffic_by_date(date) for date in dt_list
+                    pm.UserTrafficLog.calc_traffic_by_datetime(date) for date in dt_list
                 ],
                 "data_title": "每日流量(GB)",
                 "x_label": f"最近{len(dt_list)}天",
@@ -177,8 +177,8 @@ class DashBoardManger:
             "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
             "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
             "data": [
-                pm.UserTrafficLog.calc_traffic_by_date(date, user_id, proxy_node)
-                for date in dt_list
+                pm.UserTrafficLog.calc_traffic_by_datetime(dt, user_id, proxy_node)
+                for dt in dt_list
             ],
             "data_title": proxy_node.name,
             "x_label": f"最近{len(dt_list)}天",
