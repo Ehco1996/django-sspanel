@@ -16,5 +16,5 @@ task_schedule = {
     "apps.sspanel.tasks.clean_node_online_log_task": Duration(minutes=1),
     "apps.sspanel.tasks.clean_user_sub_log_task": Duration(minutes=1),
     # stats
-    "apps.stats.tasks.gen_daily_stats_task": Duration(minutes=1),
+    "apps.stats.tasks.gen_daily_stats_task": Duration(minutes=10),
 }
