@@ -15,6 +15,7 @@ class DailyStatsAdmin(admin.ModelAdmin):
         "total_used_traffic",
     ]
     list_per_page = 31
+    list_filter = ["date"]
 
 
 # Register your models here.
