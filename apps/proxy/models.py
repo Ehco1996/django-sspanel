@@ -485,13 +485,13 @@ class UserTrafficLog(BaseLogModel):
         return qs.count()
 
     @classmethod
-    def get_active_user_count_by_date(cls, date: pendulum.DateTime):
+    def get_active_user_count_by_date(cls, dt: pendulum.DateTime):
+        # TODO 改一下函数名
         """获取指定日期的活跃用户数量,只有今天的数据会hit db"""
-        date = date.start_of("day")
         today = utils.get_current_datetime()
-        if date.date() == today.date():
-            return cls._get_active_user_count_by_date.uncached(cls, date)
-        return cls._get_active_user_count_by_date(date)
+        if dt == today.date():
+            return cls._get_active_user_count_by_date.uncached(cls, dt)
+        return cls._get_active_user_count_by_date(dt.start_of("day"))
 
     @classmethod
     @cache.cached(ttl=c.CACHE_TTL_MONTH)
@@ -511,19 +511,18 @@ class UserTrafficLog(BaseLogModel):
         return round((ut + dt) / settings.GB, 2)
 
     @classmethod
-    def calc_traffic_by_date(
-        cls, date: pendulum.DateTime, user_id=None, proxy_node=None
-    ):
+    def calc_traffic_by_date(cls, dt: pendulum.DateTime, user_id=None, proxy_node=None):
         """获取指定日期指定用户的流量,只有今天的数据会hit db"""
-        if date.date() == utils.get_current_datetime().date():
+        #  TODO 改函数名
+        if dt.date() == utils.get_current_datetime().date():
             return cls._calc_traffic_by_date.uncached(
                 cls,
-                date,
+                dt,
                 user_id,
                 proxy_node.id if proxy_node else None,
             )
         return cls._calc_traffic_by_date(
-            date,
+            dt.start_of("day"),
             user_id,
             proxy_node.id if proxy_node else None,
         )

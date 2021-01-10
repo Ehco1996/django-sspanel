@@ -14,7 +14,7 @@ from apps.sub import UserSubManager
 from apps.tianyi import DashBoardManger
 from apps.utils import (
     api_authorized,
-    gen_date_list,
+    gen_datetime_list,
     get_current_datetime,
     handle_json_post,
     traffic_format,
@@ -26,7 +26,7 @@ class SystemStatusView(View):
     def get(self, request):
         data = {
             "user_status": DashBoardManger.get_user_last_week_status_data(),
-            "node_status": DashBoardManger.get_node_status(),
+            "node_status": DashBoardManger.get_node_last_week_status(),
             "order_status": DashBoardManger.get_userorder_last_week_status_data(),
         }
         return JsonResponse(data)
@@ -68,9 +68,8 @@ class UserRefChartView(View):
     def get(self, request):
         date = request.GET.get("date")
         t = pendulum.parse(date) if date else get_current_datetime()
-        date_list = gen_date_list(t)
         bar_configs = DashBoardManger.gen_ref_log_bar_chart_configs(
-            request.user.id, date_list
+            request.user.id, [dt.date() for dt in gen_datetime_list(t)]
         )
         return JsonResponse(bar_configs)
 
@@ -80,9 +79,8 @@ class UserTrafficChartView(View):
     def get(self, request):
         node_id = request.GET.get("node_id", 0)
         user_id = request.user.pk
-        last_week = gen_date_list(get_current_datetime())
         configs = DashBoardManger.gen_traffic_line_chart_configs(
-            user_id, node_id, last_week
+            user_id, node_id, gen_datetime_list(get_current_datetime())
         )
         return JsonResponse(configs)
 

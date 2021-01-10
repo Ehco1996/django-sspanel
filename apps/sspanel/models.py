@@ -19,7 +19,6 @@ from django.utils import functional, timezone
 from redis.exceptions import LockError
 
 from apps import constants as c
-from apps import utils
 from apps.ext import cache, encoder, lock, pay
 from apps.utils import (
     get_current_datetime,
@@ -192,7 +191,7 @@ class User(AbstractUser):
         return cls.objects.all().order_by("-download_traffic")[:count]
 
     @classmethod
-    def get_new_user_count_by_date(cls, date):
+    def get_new_user_count_by_datetime(cls, date: pendulum.DateTime):
         return cls.objects.filter(
             date_joined__range=[
                 date.start_of("day"),
@@ -411,25 +410,14 @@ class UserOrder(models.Model, UserMixin):
             return success
 
     @classmethod
-    @cache.cached(ttl=c.CACHE_TTL_MONTH)
-    def _get_success_order_count(cls, dt: pendulum.DateTime):
+    def get_success_order_count(cls, dt: pendulum.DateTime):
         return cls.objects.filter(
             created_at__range=[dt.start_of("day"), dt.end_of("day")],
             status=cls.STATUS_FINISHED,
         ).count()
 
     @classmethod
-    def get_success_order_count(cls, date: pendulum.DateTime):
-        """获取指定日期的订单数量,只有今天的数据会hit db"""
-        date = date.start_of("day")
-        today = utils.get_current_datetime()
-        if date.date() == today.date():
-            return cls._get_success_order_count.uncached(cls, date)
-        return cls._get_success_order_count(date)
-
-    @classmethod
     def get_success_order_amount(cls, date: pendulum.DateTime):
-        """获取指定日期的订单数量,只有今天的数据会hit db"""
         amount = (
             cls.objects.filter(
                 status=cls.STATUS_FINISHED,
@@ -524,7 +512,7 @@ class UserCheckInLog(models.Model, UserMixin):
         return cls.objects.filter(user_id=user_id, date=pendulum.today()).exists()
 
     @classmethod
-    def get_checkin_user_count(cls, date: pendulum.date):
+    def get_checkin_user_count(cls, date: pendulum.Date):
         return cls.objects.filter(date=date).count()
 
     @property
