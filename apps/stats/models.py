@@ -45,12 +45,12 @@ class DailyStats(models.Model):
             return log
 
         log.new_user_count = sm.User.get_new_user_count_by_datetime(dt)
-        log.active_user_count = pm.UserTrafficLog.get_active_user_count_by_date(dt)
+        log.active_user_count = pm.UserTrafficLog.get_active_user_count_by_datetime(dt)
         log.checkin_user_count = sm.UserCheckInLog.get_checkin_user_count(dt.date())
 
         log.order_count = sm.UserOrder.get_success_order_count(dt)
         log.order_amount = sm.UserOrder.get_success_order_amount(dt)
 
-        log.total_used_traffic = pm.UserTrafficLog.calc_traffic_by_date(dt)
+        log.total_used_traffic = pm.UserTrafficLog.calc_traffic_by_datetime(dt)
         log.save()
         return log
