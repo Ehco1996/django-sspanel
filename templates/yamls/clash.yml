@@ -207,7 +207,11 @@ proxies:
 proxy-groups:
   # select 用来允许用户手动选择 代理服务器 或 服务器组
   # 您也可以使用 RESTful API 去切换服务器，这种方式推荐在 GUI 中使用
+{% if sub_type == "clash" %}
   - name: Proxy
+{% else %}
+  - name: PROXY
+{% endif %}
     type: select
     proxies:
      - auto

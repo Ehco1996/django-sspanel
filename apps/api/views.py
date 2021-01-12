@@ -60,7 +60,7 @@ class SubscribeView(View):
 
         sub_type = request.GET.get("sub_type")
         sub_links = UserSubManager(user, sub_type, request).get_sub_links()
-        return HttpResponse(sub_links)
+        return HttpResponse(sub_links, content_type="text/plain; charset=utf-8")
 
 
 class UserRefChartView(View):
