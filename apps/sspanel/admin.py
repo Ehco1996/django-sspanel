@@ -28,6 +28,7 @@ class UserOrderAdmin(admin.ModelAdmin):
         "user_date_joined",
         "inviter",
     ]
+    list_per_page = 31
 
     def user_date_joined(self, obj):
         return obj.user.date_joined
