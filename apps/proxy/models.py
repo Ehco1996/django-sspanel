@@ -488,7 +488,7 @@ class UserTrafficLog(BaseLogModel):
     def get_active_user_count_by_datetime(cls, dt: pendulum.DateTime):
         """获取指定日期的活跃用户数量,只有今天的数据会hit db"""
         today = utils.get_current_datetime()
-        if dt == today.date():
+        if dt.date() == today.date():
             return cls._get_active_user_count_by_datetime.uncached(cls, dt)
         return cls._get_active_user_count_by_datetime(dt.start_of("day"))
 
