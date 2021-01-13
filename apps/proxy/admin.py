@@ -107,7 +107,7 @@ class RelayRuleAdmin(admin.ModelAdmin):
         "enable",
     ]
     search_fields = []
-    list_filter = []
+    list_filter = ["proxy_node", "relay_node"]
     inlines = []
 
 
@@ -165,8 +165,8 @@ class UserOnLineIpLogAdmin(admin.ModelAdmin):
         "proxy_node",
         "ip",
     ]
-    search_fields = ["user__username"]
-    list_filter = ["proxy_node"]
+    search_fields = ["ip"]
+    list_filter = ["user", "proxy_node"]
     list_per_page = 10
     show_full_result_count = False
 
