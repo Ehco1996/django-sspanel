@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>django-sspanel</title>
+    <link>https://ehco1996.github.io/django-sspanel/</link>
+    <description>Recent content on django-sspanel</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Sun, 24 Jan 2021 15:57:00 +0800</lastBuildDate><atom:link href="https://ehco1996.github.io/django-sspanel/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>前端面板部署教程</title>
+      <link>https://ehco1996.github.io/django-sspanel/docs/panel/</link>
+      <pubDate>Sun, 24 Jan 2021 15:39:50 +0800</pubDate>
+      
+      <guid>https://ehco1996.github.io/django-sspanel/docs/panel/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;本篇教程采用docker来对接, 用docker可以给你省去很多麻烦&lt;/p&gt;
+&lt;/blockquote&gt;</description>
+    </item>
+    
+    <item>
+      <title>shadowsocks/v2ray服务端部署教程</title>
+      <link>https://ehco1996.github.io/django-sspanel/docs/backend/</link>
+      <pubDate>Sun, 24 Jan 2021 15:57:00 +0800</pubDate>
+      
+      <guid>https://ehco1996.github.io/django-sspanel/docs/backend/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;目前支持 shadowsocks 和 v2ray 这两种服务端&lt;/p&gt;
+&lt;/blockquote&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

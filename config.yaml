@@ -1,0 +1,116 @@
+baseURL: "https://ehco1996.github.io/django-sspanel/"
+title: django-sspanel
+paginate: 5
+theme: PaperMod
+
+enableRobotsTXT: true
+buildDrafts: true
+buildFuture: false
+buildExpired: false
+googleAnalytics: ""
+publishDir: docs
+
+minify:
+  disableXML: true
+  minifyOutput: true
+
+params:
+  env: production # to enable google analytics, opengraph, twitter-cards and schema.
+  title: django-sspanel文档
+  description: "django-sspanel文档"
+  author: "Ehco1996"
+  # images: ["<link or path of image for opengraph, twitter-cards>"]
+
+  defaultTheme: auto # dark, light
+  disableThemeToggle: false
+
+  ShowReadingTime: true
+  showtoc: true
+  tocopen: true
+  ShowShareButtons: false
+  disableSpecial1stPost: true
+  comments: false
+  hidemeta: false
+
+  # assets:
+  # disableHLJS: true # to disable highlight.js
+  # disableFingerprinting: true
+  # favicon: "<link / abs url>"
+  # favicon16x16: "<link / abs url>"
+  # favicon32x32: "<link / abs url>"
+  # apple_touch_icon: "<link / abs url>"
+  # safari_pinned_tab: "<link / abs url>"
+
+  # label:
+  #   text: "Home"
+  #   icon: /apple-touch-icon.png
+  #   iconHeight: 35
+
+  # profile-mode
+  # profileMode:
+  #   enabled: false # needs to be explicitly set
+  #   title: django-sspanel文档
+  #   imageUrl: "<img location>"
+  #   imageWidth: 120
+  #   imageHeight: 120
+  #   imageTitle: my image
+  #   buttons:
+  #     - name: Posts
+  #       url: posts
+  #     - name: Tags
+  #       url: tags
+
+  # home-info mode
+  homeInfoParams:
+    Title: "欢迎阅读django-sspanel文档"
+    Content: >
+      [本面板](https://github.com/Ehco1996/django-sspanel)是用diango开发的Shadowsocks/v2ray多用户管理面板
+
+      - 欢迎加TG群讨论相关问题 [点击加入](https://t.me/Ehcobreakwa11)
+
+  socialIcons:
+    - name: github
+      url: "https://github.com/ehco1996"
+
+  # analytics:
+  # google:
+  # SiteVerificationTag: "XYZabc"
+
+  cover:
+    hidden: true # hide everywhere but not in structured data
+    hiddenInList: true # hide on list pages and home
+    hiddenInSingle: true # hide on single page
+
+  # for search
+  # https://fusejs.io/api/options.html
+  fuseOpts:
+    isCaseSensitive: false
+    shouldSort: true
+    location: 0
+    distance: 1000
+    threshold: 0.4
+    minMatchCharLength: 0
+    keys: ["title", "permalink", "summary", "content"]
+menu:
+  main:
+    - identifier: docs
+      name: docs
+      url: /docs/
+      weight: 10
+    - identifier: tags
+      name: tags
+      url: /tags/
+      weight: 20
+    # - identifier: example
+    #   name: example.org
+    #   url: https://example.org
+    #   weight: 30
+# Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
+# markup:
+#     highlight:
+#         # anchorLineNos: true
+#         codeFences: true
+#         guessSyntax: true
+#         lineNos: true
+#         # noClasses: false
+#         style: monokai

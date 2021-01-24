@@ -1,0 +1,14 @@
+- id: prev_page
+  translation: 'Предыдущая'
+
+- id: next_page
+  translation: 'Следующая'
+
+- id: read_time
+  translation: '{{ .Count }} мин'
+
+- id: toc
+  translation: 'Оглавление'
+
+- id: translations
+  translation: 'Переводы'

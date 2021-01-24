@@ -1,0 +1,69 @@
+{{- define "main" }}
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">
+      {{ .Title }}
+      {{- if .Draft }}<div class="entry-isdraft"><sup>&nbsp;&nbsp;[draft]</sup></div>{{- end }}
+    </h1>
+    <div class="post-description">
+      {{ .Description }}
+    </div>
+    {{- if not (.Param "hideMeta") }}
+    <div class="post-meta">
+      {{- partial "post_meta.html" . -}}
+      {{- if .IsTranslated -}}&nbsp;|&nbsp;
+      <ul class="i18n_list">
+        {{- i18n "translations" | default "Translations"}}:
+        {{- range .Translations }}
+        <li>
+          <a href="{{ .Permalink }}">
+            {{- if (and $.Site.Params.displayFullLangName (.Language.LanguageName)) }}
+            {{- .Language.LanguageName | emojify | humanize -}}
+            {{- else }}
+            {{- .Lang | humanize -}}
+            {{- end -}}
+          </a>
+        </li>
+        {{- end }}
+      </ul>
+      {{- end }}
+    </div>
+    {{- end}}
+  </header>
+  {{- $isHidden := .Params.cover.hidden | default .Site.Params.cover.hiddenInSingle | default .Site.Params.cover.hidden}}
+  {{- partial "cover.html" (dict "cxt" . "IsHome" false "isHidden" $isHidden) }}
+  {{- if (.Param "ShowToc") }}
+  <div class="toc">
+    <details {{if (.Param "TocOpen") }} open{{ end }}>
+      <summary accesskey="c" title="(Alt + C)">
+        <div class="details">{{- i18n "toc" | default "Table of Contents" }}</div>
+      </summary>
+      <blockquote>
+        {{- partial "toc.html" . }}
+      </blockquote>
+    </details>
+  </div>
+  {{- end }}
+  <div class="post-content">
+    {{- partial "anchored_headings.html" .Content -}}
+  </div>
+  <footer class="post-footer">
+    {{- if .Params.tags }}
+    <ul class="post-tags">
+      {{- range ($.GetTerms "tags") }}
+      <li><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></li>
+      {{- end }}
+    </ul>
+    {{- end }}
+    {{- if (and .Site.Params.ShowShareButtons (ne .Params.disableShare true) ) }}
+    {{- partial "share_icons.html" . }}
+    {{- end }}
+  </footer>
+
+  {{- if (.Param "comments") }}
+  {{- partial "comments.html" . }}
+  {{- end }}
+</article>
+
+{{- end  }}{{/* end main */}}

@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://ehco1996.github.io/django-sspanel/sitemap.xml
