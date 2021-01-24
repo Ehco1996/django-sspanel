@@ -1,4 +1,4 @@
-# django-sspanel （dev分支正在开发重构，不是很稳定，推荐生产环境用master分支的代码）
+# django-sspanel [安装文档](https://ehco1996.github.io/django-sspanel/)
 
 用diango开发的全新的shadowsocks网络面板
 
