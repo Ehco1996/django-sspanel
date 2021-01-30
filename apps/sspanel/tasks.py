@@ -30,7 +30,6 @@ def sync_user_traffic_task(node_id, data):
     node_total_traffic = 0
     log_time = get_current_datetime()
     tcp_connections_count = 0
-    need_clear_cache = False
     user_model_list = []
     trafficlog_model_list = []
     online_ip_log_model_list = []
@@ -45,8 +44,6 @@ def sync_user_traffic_task(node_id, data):
         user.upload_traffic += u
         user.last_use_time = log_time
         user_model_list.append(user)
-        if user.overflow or user.level < node.level:
-            need_clear_cache = True
         # 个人流量记录
         trafficlog_model_list.append(
             UserTrafficLog(
@@ -66,25 +63,22 @@ def sync_user_traffic_task(node_id, data):
                 UserOnLineIpLog(user=user, proxy_node=node, ip=ip)
             )
 
+    # 节点流量记录
+    node.used_traffic += node_total_traffic
+    if node.overflow:
+        node.enable = False
+    node.save(update_fields=["used_traffic", "enable"])
     # 用户流量
     m.User.objects.bulk_update(
         user_model_list,
         ["download_traffic", "upload_traffic", "last_use_time"],
     )
-    # 节点流量记录
-    ProxyNode.increase_used_traffic(node_id, node_total_traffic)
     # 流量记录
     UserTrafficLog.objects.bulk_create(trafficlog_model_list)
     # 在线IP
     UserOnLineIpLog.objects.bulk_create(online_ip_log_model_list)
     # 节点在线人数
     NodeOnlineLog.add_log(node, len(data), tcp_connections_count)
-    # check node && user traffic
-    if node.overflow:
-        node.enable = False
-    if need_clear_cache or node.overflow:
-        node.refresh_from_db()
-        node.save()
 
 
 @celery_app.task

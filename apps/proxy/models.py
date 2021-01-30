@@ -12,7 +12,7 @@ from django.forms.models import model_to_dict
 from apps import constants as c
 from apps import utils
 from apps.ext import cache
-from apps.mixin import BaseLogModel, BaseModel, CacheMixin, SequenceMixin
+from apps.mixin import BaseLogModel, BaseModel, SequenceMixin
 from apps.sspanel.models import User
 
 
@@ -29,7 +29,7 @@ class BaseNodeModel(BaseModel):
         return self.server.split(",")
 
 
-class ProxyNode(BaseNodeModel, SequenceMixin, CacheMixin):
+class ProxyNode(BaseNodeModel, SequenceMixin):
 
     NODE_TYPE_SS = "ss"
     NODE_TYPE_VLESS = "vless"
@@ -75,6 +75,11 @@ class ProxyNode(BaseNodeModel, SequenceMixin, CacheMixin):
         return f"{self.name}({self.node_type})"
 
     @classmethod
+    @cache.cached()
+    def get_by_id_with_cache(cls, id):
+        return cls.objects.get(id=id)
+
+    @classmethod
     def get_active_nodes(cls, level=None):
         query = cls.objects.filter(enable=True)
         if level is not None:
@@ -85,12 +90,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin, CacheMixin):
             .order_by("sequence")
         )
         return active_nodes
-
-    @classmethod
-    def increase_used_traffic(cls, id, used_traffic):
-        cls.objects.filter(id=id).update(
-            used_traffic=models.F("used_traffic") + used_traffic
-        )
 
     @classmethod
     def calc_total_traffic(cls):

@@ -141,7 +141,7 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
         "created_at",
     ]
     search_fields = ["user__username"]
-    list_filter = ["proxy_node"]
+    list_filter = ["proxy_node", "created_at"]
     list_per_page = 10
     show_full_result_count = False
 
