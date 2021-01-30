@@ -1,4 +1,5 @@
 import base64
+from collections import defaultdict
 from uuid import uuid4
 
 from django.conf import settings
@@ -64,10 +65,11 @@ class UserSubManager:
 
     def get_clash_sub_links(self):
         node_configs = []
+        relay_node_group = defaultdict(list)
         for node in self.node_list:
             if node.enable_relay:
                 for rule in node.relay_rules.filter(relay_node__enable=True):
-                    node_configs.append(
+                    relay_node_group[rule.relay_node].append(
                         {
                             "clash_config": node.get_user_clash_config(self.user, rule),
                             "name": rule.remark,
@@ -80,18 +82,26 @@ class UserSubManager:
                         "name": node.name,
                     }
                 )
+        for cfg_list in relay_node_group.values():
+            node_configs.extend(cfg_list)
         return render_to_string(
             "yamls/clash.yml", {"nodes": node_configs, "sub_type": self.sub_type}
         )
 
     def get_normal_sub_links(self):
         sub_links = ""
+        relay_node_group = defaultdict(list)
         for node in self.node_list:
             if node.enable_relay:
                 for rule in node.relay_rules.filter(relay_node__enable=True):
-                    sub_links += node.get_user_node_link(self.user, rule) + "\n"
+                    relay_node_group[rule.relay_node].append(
+                        node.get_user_node_link(self.user, rule)
+                    )
             else:
                 sub_links += node.get_user_node_link(self.user) + "\n"
+        for sub_link_list in relay_node_group.values():
+            for link in sub_link_list:
+                sub_links += link + "\n"
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 

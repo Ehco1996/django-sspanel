@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -194,14 +195,6 @@ class ClientView(LoginRequiredMixin, View):
         return render(request, "sspanel/client.html")
 
 
-class DonateView(LoginRequiredMixin, View):
-    def get(self, request):
-        """捐赠界面和支付宝当面付功能"""
-        donatelist = Donate.objects.all()[:8]
-        context = {"donatelist": donatelist}
-        return render(request, "sspanel/donate.html", context=context)
-
-
 class PurchaseLogView(LoginRequiredMixin, View):
     def get(self, request):
         """用户购买记录页面"""
@@ -216,9 +209,11 @@ class ChargeView(LoginRequiredMixin, View):
         """充值界面的跳转"""
         user = request.user
         codelist = MoneyCode.objects.filter(user=user)
-        context = {"user": user, "codelist": codelist}
+        donatelist = Donate.objects.all()[:8]
+        context = {"user": user, "codelist": codelist, "donatelist": donatelist}
         return render(request, "sspanel/chargecenter.html", context=context)
 
+    @transaction.atomic
     def post(self, request):
         user = request.user
         input_code = request.POST.get("chargecode")
@@ -241,8 +236,6 @@ class ChargeView(LoginRequiredMixin, View):
                 code.isused = True
                 user.save()
                 code.save()
-                # 将充值记录和捐赠绑定
-                Donate.objects.create(user=user, money=code.number)
                 messages.success(request, "请去商店购买商品！", extra_tags="充值成功！")
                 return HttpResponseRedirect(reverse("sspanel:chargecenter"))
 

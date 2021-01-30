@@ -20,7 +20,6 @@ urlpatterns = [
     # 用户信息
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
     # 捐赠/充值
-    path("donate/", views.DonateView.as_view(), name="donate"),
     path("shop/", views.ShopView.as_view(), name="shop"),
     path("purchaselog/", views.PurchaseLogView.as_view(), name="purchaselog"),
     path("chargecenter/", views.ChargeView.as_view(), name="chargecenter"),
