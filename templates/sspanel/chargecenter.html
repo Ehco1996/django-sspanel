@@ -1,13 +1,13 @@
-{% extends 'base.html' %} {% block main %}
+{% extends 'base.html' %} {% block main %}{% load static %} {% load ehcofilter %}
 <div class="column is-12">
     <section class="hero is-warning is-smaill">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
-                    充值中心：
+                    捐赠充值:
                 </h1>
                 <h2 class="subtitle">
-                    请在下方输方输入充值码....
+                    捐赠的钱会自动打进你的账号余额....
                 </h2>
             </div>
         </div>
@@ -24,49 +24,167 @@
         <div class="level-item has-text-centered">
             <div>
                 <p class="heading">余额：</p>
-                <p class="title">
-                    <code>{{ user.balance }}元</code>
-                </p>
+                <p class="title">{{ user.balance }}元</p>
             </div>
         </div>
     </nav>
-    <div class="box ">
-        <form class="form" method="post">
-            {% csrf_token %}
-            <input type="text" name="chargecode" class="input " required="" id="chargecode" placeholder="请输入充值码">
-            <hr/>
-            <div class="is-grouped">
-                <button type="submit" class="button is-danger is-outlined ">充值</button>
+</div>
+
+<div class="column is-12">
+    <div class="tile is-ancestor">
+        <div class="tile is-5 is-vertical is-parent">
+            {% settings_value "USE_ALIPAY" as use_alipay %}
+            {% if use_alipay %}
+            <div class="tile box is-child">
+                <p class="subtitle">请在下方输入
+                    <strong>捐赠金额</strong>
+                </p>
+                <p>点击捐赠会弹出
+                    <strong>支付宝二维码</strong>
+                    <br>支付完成后你的账户里会增加<strong>对应的金额</strong>
+                </p>
+                <strong>付完款之后要按红色的确认按钮哦</strong>
+                <hr>
+                <div class="content">
+                    <div class="field is-grouped is-grouped-multiline">
+                        <div class="control has-icons-left">
+                            <div class="control">
+                                <input id="id-input-payinput" class="input" type="number" step="1"
+                                    placeholder="最低不得小于1元: " required>
+                            </div>
+                            <div class="icon  is-left">
+                                <i class="fab fa-alipay"></i>
+                            </div>
+                        </div>
+                        <p class="control">
+                            <button class="button is-outlined is-info is-rounded" id="id-button-payrequest">捐赠</button>
+                        </p>
+                    </div>
+                    <div id="id-qrcode-box" class="is-hidden">
+                        <div id="id-qrcode-canvas"></div>
+                        <hr>
+                        <p>
+                            <strong>付费完成之后请点击确认！</strong>
+                        </p>
+                        <p id="id-msg-line"></p>
+                        <div class="control">
+                            <button id="id-button-query" class="button is-outlined is-danger is-rounded"
+                                href="#">确认</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </form>
-    </div>
-    <div class="box">
-        <div class="content">
-            <p class="subtitle">充值记录：</p>
-            <table class="table is-striped">
-                <thead>
-                    <tr>
-                        <th>时间:</th>
-                        <th>代码:</th>
-                        <th>金额:</th>
-                        <th>使用:</th>
-                    </tr>
-                </thead>
-                {% for code in codelist %}
-                <tr>
-                    <td>{{ code.time|date:"m月d日" }}</td>
-                    <td>{{ code.code }}</td>
-                    <td>{{ code.number }}</td>
-                    <td>{{ code.isused }}</td>
-                </tr>
-                {% empty %}
-                <h2 class="subtitle">
-                    还没有氪金过，大佬快来吧
-                </h2>
-                {% endfor %}
-            </table>
+            {% else %}
+            <div class="tile box is-child">
+                <p class="subtitle">本站通过充值码进行充值:</p>
+                <hr>
+                <p class="subtitle">扫描站长支付宝PY获得充值码：</p>
+                <figure class="image">
+                    <img src="{% static '/img/alipay.png'%}">
+                </figure>
+            </div>
+            {% endif %}
+        </div>
+        <div class="tile is-7 is-vertical is-parent">
+            <div class="tile box is-child">
+                <div class="content">
+                    <table class="table is-striped">
+                        <thead>
+                            <tr>
+                                <th>捐赠人:</th>
+                                <th>捐赠金额:</th>
+                            </tr>
+                        </thead>
+                        {% for donate in donatelist %}
+                        <tr>
+                            <td>{{ donate.user|mix_name:donate.user }}</td>
+                            <td>{{ donate.money }} 元</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+
+<div class="column is-12 box">
+    <form class="form field is-grouped" method="post">
+        <p class="control is-expanded">
+            {% csrf_token %}
+            <input type="text" name="chargecode" class="input " required="" id="chargecode" placeholder="请输入充值码">
+        </p>
+        <p class="control">
+            <button type="submit" class="button is-info is-outlined ">充值</button>
+        </p>
+    </form>
+
+    <div class="content">
+        <p class="subtitle">用过的充值码：</p>
+        <table class="table is-striped">
+            <thead>
+                <tr>
+                    <th>时间:</th>
+                    <th>代码:</th>
+                    <th>金额:</th>
+                </tr>
+            </thead>
+            {% for code in codelist %}
+            <tr>
+                <td>{{ code.time|date:"m月d日" }}</td>
+                <td>{{ code.code }}</td>
+                <td>{{ code.number }}</td>
+            </tr>
+            {% empty %}
+            <h2 class="subtitle">
+                还没有氪金过，大佬快来吧
+            </h2>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+
+<script>
+    // 支付请求 部分
+    var requestButton = $("#id-button-payrequest")
+    var payinput = $("#id-input-payinput")
+    var codeBox = $("#id-qrcode-box")
+    var msgline = $("#id-msg-line")
+    var url = "{% url 'api:order' %}"
+    var payrequest = function () {
+        paynum = payinput.val()
+        if (paynum >= 1 && paynum % 1 == 0) {
+            data = {
+                num: paynum,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
+            requestButton.attr("disabled", "disabled")
+            $.post(url, data, function (results) {
+                codeBox.attr('class', '')
+                // 追加二维码图片
+                info = results.info
+                qrcode_url = results.qrcode_url
+                $("#id-qrcode-canvas").qrcode(qrcode_url)
+                swal(info.title, info.subtitle, info.status)
+            })
+        } else {
+            swal('抱歉~', '最少捐赠一元哦', 'error')
+        }
+    }
+    requestButton.click(payrequest)
+
+    // 支付查询部分
+    queryButton = $("#id-button-query")
+    var payquery = function () {
+        msgline.html('后台飞速查询结果中 请稍候....')
+        $.getJSON(url, function (results) {
+            info = results.info
+            swal(info.title, info.subtitle, info.status)
+        })
+    }
+    queryButton.click(payquery)
+</script>
 
 {% endblock main %}

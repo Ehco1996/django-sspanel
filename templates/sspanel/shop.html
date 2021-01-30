@@ -8,10 +8,7 @@
                     商品列表：
                 </h1>
                 <h2 class="subtitle">
-                    PY站长获得充值码 或者
-                    <a href="{% url 'sspanel:donate' %}">
-                        <strong>捐赠</strong>
-                    </a>那支持支付宝!
+                    没有余额的话,点击<a href="{% url 'sspanel:chargecenter' %}"><strong>这里</strong></a>可以去充值哦
                 </h2>
             </div>
         </div>
@@ -71,12 +68,14 @@
                     <button class="delete"></button>
                 </header>
                 <section class="modal-card-body" data-id="{{ good.pk }}">
-                    <p class="subtitle"> {{ good.name }} </p>
+                    <p class="subtitle">
+                        <strong>商品名：</strong>{{ good.name }}
+                    </p>
                     <strong>价格：</strong>
                     <code>{{ good.money }}元</code>
                     <br>
                     <strong>流量：</strong>
-                    <code>{{ good.total_transfer }} GB</code>
+                    <code>{{ good.total_transfer }}</code>
                     <br>
                     <strong>提升等级至：</strong>
                     <code>{{ good.level }} 级</code>
