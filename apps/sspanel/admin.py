@@ -16,6 +16,7 @@ class UserAdmin(admin.ModelAdmin):
     ]
     search_fields = ["username", "email", "id"]
     list_filter = ["level"]
+    list_per_page = 31
 
 
 class UserOrderAdmin(admin.ModelAdmin):
