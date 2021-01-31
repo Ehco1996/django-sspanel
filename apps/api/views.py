@@ -6,6 +6,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from apps import utils
 from apps.ext import encoder, lock
 from apps.proxy import models as m
 from apps.sspanel import tasks
@@ -24,10 +25,16 @@ from apps.utils import (
 class SystemStatusView(View):
     @method_decorator(permission_required("sspanel"))
     def get(self, request):
+        start = pendulum.parse(request.GET["start"])
+        end = pendulum.parse(request.GET["end"])
+        dt_list = [start.add(days=i) for i in range((end - start).days)]
+        if not dt_list:
+            dt_list = utils.gen_datetime_list(utils.get_current_datetime())
+        dm = DashBoardManger(dt_list)
         data = {
-            "user_status": DashBoardManger.get_user_last_week_status_data(),
-            "node_status": DashBoardManger.get_node_last_week_status(),
-            "order_status": DashBoardManger.get_userorder_last_week_status_data(),
+            "node_status": dm.get_node_status(),
+            "user_status": dm.get_user_status_data(),
+            "order_status": dm.get_userorder_status_data(),
         }
         return JsonResponse(data)
 
