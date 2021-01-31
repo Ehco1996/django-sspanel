@@ -165,7 +165,6 @@ var genChart = function (chartId, chartType, config) {
               y_label : y轴的lable
           }
   **/
-  var ctx = $('#' + chartId)
   data = {
     labels: config.labels,
     datasets: [{
@@ -223,6 +222,7 @@ var genChart = function (chartId, chartType, config) {
         }],
         yAxes: [{
           display: true,
+          ticks: { beginAtZero: true },
           scaleLabel: {
             display: true,
             labelString: config.y_label,
@@ -262,5 +262,7 @@ var genChart = function (chartId, chartType, config) {
       }
     }
   }
-  new Chart(ctx, { type: chartType, data: data, options: options })
+  var ctx = $('#' + chartId)
+  chart = new Chart(ctx, { type: chartType, data: data, options: options })
+  chart.update();
 }

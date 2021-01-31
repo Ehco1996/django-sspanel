@@ -3,13 +3,16 @@ tianyi: 天一是三渣的早期作品:<贩罪>的主角，是像猫一样生活
 这里存一些数据分析相关的东西
 """
 import decimal
+from typing import List
 
+import pendulum
 from django.conf import settings
 from django.db import models
 
 from apps import utils
 from apps.proxy import models as pm
 from apps.sspanel import models as sm
+from apps.stats.models import DailyStats
 
 
 class DashBoardManger:
@@ -17,14 +20,49 @@ class DashBoardManger:
     无情的dashboard生成器
     """
 
-    @classmethod
-    def get_user_last_week_status_data(cls):
+    def __init__(self, dt_list: List[pendulum.DateTime]):
+        self.dt_list = dt_list
+        self.log_dict = DailyStats.get_date_str_dict(dt_list)
+
+    def _get_by_dt(self, dt: pendulum.DateTime):
+        return self.log_dict[str(dt.date())]
+
+    def get_node_status(self):
+        def gen_bar_config(dt_list):
+            node_total_traffic = pm.ProxyNode.calc_total_traffic()
+            bar_config = {
+                "title": f"所有节点当月共消耗:{node_total_traffic}",
+                "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
+                "data": [self._get_by_dt(dt).total_used_traffic for dt in dt_list],
+                "data_title": "每日流量(GB)",
+                "x_label": f"最近{len(dt_list)}天",
+                "y_label": "单位:GB",
+            }
+            return bar_config
+
+        def gen_doughnut_config():
+            active_nodes = pm.ProxyNode.get_active_nodes()
+            labels = [node.name for node in active_nodes]
+            return {
+                "title": f"总共{len(labels)}条节点",
+                "labels": labels,
+                "data": [
+                    round(node.used_traffic / settings.GB, 2) for node in active_nodes
+                ],
+                "data_title": "节点流量",
+            }
+
+        return {
+            "doughnut_config": gen_doughnut_config(),
+            "bar_config": gen_bar_config(self.dt_list),
+        }
+
+    def get_user_status_data(self):
         """统计用户信息"""
 
         def gen_line_configs(dt_list):
             active_user_count = [
-                pm.UserTrafficLog.get_active_user_count_by_datetime(dt)
-                for dt in dt_list
+                self._get_by_dt(dt).active_user_count for dt in dt_list
             ]
             active_user_line_config = {
                 "title": f"最近{len(dt_list)}天 总活跃人数为{sum(active_user_count)}人",
@@ -34,9 +72,7 @@ class DashBoardManger:
                 "x_label": f"最近{len(dt_list)}天",
                 "y_label": "活跃用户数",
             }
-            new_user_count = [
-                sm.User.get_new_user_count_by_datetime(dt) for dt in dt_list
-            ]
+            new_user_count = [self._get_by_dt(dt).new_user_count for dt in dt_list]
             new_user_line_config = {
                 "title": f"最近{len(dt_list)}天 新增人数为{sum(new_user_count)}人",
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
@@ -66,25 +102,16 @@ class DashBoardManger:
             }
 
         data = {"doughnut_config": gen_doughnut_config()}
-        data.update(
-            gen_line_configs(utils.gen_datetime_list(utils.get_current_datetime()))
-        )
+        data.update(gen_line_configs(self.dt_list))
         return data
 
-    @classmethod
-    def get_userorder_last_week_status_data(cls):
-        """获取最近一周的订单统计数据
-        1. 一周的订单趋势
-        2. 一周的收入统计
-        3. 今日的收入统计
-        """
+    def get_userorder_status_data(self):
+        """获取的订单统计数据"""
 
         def gen_bar_config(dt_list):
-            success_order_count = [
-                sm.UserOrder.get_success_order_count(t) for t in dt_list
-            ]
+            success_order_count = [self._get_by_dt(dt).order_count for dt in dt_list]
             bar_config = {
-                "title": f"一周总订单数量:{sum(success_order_count)}",
+                "title": f"总订单数量:{sum(success_order_count)}",
                 "labels": [f"{date.month}-{date.day}" for date in dt_list],
                 "data": success_order_count,
                 "data_title": "每日订单数量",
@@ -105,7 +132,7 @@ class DashBoardManger:
                 ).aggregate(amount=models.Sum("amount"))["amount"]
                 or "0"
             )
-            week_amount = (
+            total_amount = (
                 sm.UserOrder.objects.filter(
                     status=sm.UserOrder.STATUS_FINISHED,
                     created_at__range=[
@@ -116,54 +143,31 @@ class DashBoardManger:
                 or "0"
             )
             return {
-                "title": f"一周收入{week_amount}元",
-                "labels": ["一周收入", "今日收入"],
+                "title": f"总收入{total_amount}元",
+                "labels": ["总收入", "今日收入"],
                 "data": [
-                    int(decimal.Decimal(week_amount)),
+                    int(decimal.Decimal(total_amount)),
                     int(decimal.Decimal(today_amount)),
                 ],
                 "data_title": "收入分析",
             }
 
-        dt_list = utils.gen_datetime_list(utils.get_current_datetime())
-        return {
-            "bar_config": gen_bar_config(dt_list),
-            "doughnut_config": gen_doughnut_config(dt_list),
-        }
-
-    @classmethod
-    def get_node_last_week_status(cls):
-        def gen_bar_config(dt_list):
-            node_total_traffic = pm.ProxyNode.calc_total_traffic()
-            bar_config = {
-                "title": f"所有节点当月共消耗:{node_total_traffic}",
+        def gen_line_config(dt_list):
+            amount_data = [self._get_by_dt(dt).order_amount for dt in dt_list]
+            order_amount_line_config = {
+                "title": f"最近{len(dt_list)}天 总收益为{sum(amount_data)}元",
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
-                "data": [
-                    pm.UserTrafficLog.calc_traffic_by_datetime(date) for date in dt_list
-                ],
-                "data_title": "每日流量(GB)",
+                "data": amount_data,
+                "data_title": "收益",
                 "x_label": f"最近{len(dt_list)}天",
-                "y_label": "单位:GB",
+                "y_label": "金额/元",
             }
-            return bar_config
-
-        def gen_doughnut_config():
-            active_nodes = pm.ProxyNode.get_active_nodes()
-            labels = [node.name for node in active_nodes]
-            return {
-                "title": f"总共{len(labels)}条节点",
-                "labels": labels,
-                "data": [
-                    round(node.used_traffic / settings.GB, 2) for node in active_nodes
-                ],
-                "data_title": "节点流量",
-            }
+            return order_amount_line_config
 
         return {
-            "doughnut_config": gen_doughnut_config(),
-            "bar_config": gen_bar_config(
-                utils.gen_datetime_list(utils.get_current_datetime())
-            ),
+            "bar_config": gen_bar_config(self.dt_list),
+            "doughnut_config": gen_doughnut_config(self.dt_list),
+            "line_config": gen_line_config(self.dt_list),
         }
 
     @classmethod

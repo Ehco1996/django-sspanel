@@ -1,4 +1,8 @@
 {% extends 'adminbase.html' %} {% block main %}
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
@@ -13,6 +17,26 @@
         </div>
     </section>
 </div>
+
+<div class="columns">
+    <div class="column is-6"> </div>
+    <div class="column is-6">
+        <div class="field is-grouped">
+            <div class="field-label is-normal">
+                <label class="label">日期范围:</label>
+            </div>
+            <p class="control is-expanded">
+                <input class="input" type="text" name="daterange" />
+            </p>
+            <p class="control">
+                <a class="button is-info" id="id-button-query">
+                    查询
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+<hr>
 <div class="columns">
     <div class="column">
         <canvas id="id-user-status"></canvas>
@@ -41,18 +65,60 @@
     </div>
 </div>
 
+<div class="columns">
+    <div class="column">
+        <canvas id="id-order-amount-status"></canvas>
+    </div>
+</div>
+
 <script>
+    var startStr = moment().format('YYYY-MM-DD')
+    var endStr = moment().format('YYYY-MM-DD')
+    $(function () {
+        $(function () {
+            $('input[name="daterange"]').daterangepicker({
+                opens: 'left',
+                endDate: moment(),
+                startDate: moment().subtract(7, 'days'),
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '最近七天': [moment().subtract(1, 'week'), moment()],
+                    '最近一月': [moment().startOf('month'), moment()],
+                    '最近三月': [moment().startOf('month').subtract(2, 'month'), moment()],
+                    '最近一年': [moment().subtract(1, 'year'), moment()],
+                },
+                "autoApply": true,
+                "locale": {
+                    "format": "YYYY-MM-DD",
+                    "customRangeLabel": "自定义",
+                }
+            }, function (start, end, label) {
+                startStr = start.format('YYYY-MM-DD')
+                endStr = end.format('YYYY-MM-DD')
+                console.log(label + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+            });
+        });
+    });
+
+
     // 获取后台首页状态
     var getSystemStatus = function () {
-        $.getJSON("{% url 'api:system_status' %}", function (res) {
-            genChart('id-user-status', 'doughnut', res.user_status.doughnut_config)
-            genChart('id-node-status', 'doughnut', res.node_status.doughnut_config)
-            genChart('id-amount-status', 'doughnut', res.order_status.doughnut_config)
-            genChart('id-active-user-status', 'line', res.user_status.active_user_line_config)
-            genChart('id-new-user-status', 'line', res.user_status.new_user_line_config)
+        url = "{% url 'api:system_status' %}" + "?start=" + startStr + "&end=" + endStr
+        console.log("now:", startStr + "~" + endStr, url);
+        $.getJSON(url, function (res) {
             genChart('id-node-traffic-status', 'bar', res.node_status.bar_config)
+            genChart('id-node-status', 'doughnut', res.node_status.doughnut_config)
+
+            genChart('id-user-status', 'doughnut', res.user_status.doughnut_config)
+            genChart('id-new-user-status', 'line', res.user_status.new_user_line_config)
+            genChart('id-active-user-status', 'line', res.user_status.active_user_line_config)
+
             genChart('id-order-status', 'bar', res.order_status.bar_config)
+            genChart('id-order-amount-status', 'line', res.order_status.line_config)
+            genChart('id-amount-status', 'doughnut', res.order_status.doughnut_config)
         })
     }
     getSystemStatus()
+
+    $("#id-button-query").on("click", getSystemStatus)
 </script> {% endblock main %}

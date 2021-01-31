@@ -1,4 +1,5 @@
 import decimal
+from typing import List
 
 import pendulum
 from django.db import models
@@ -54,3 +55,14 @@ class DailyStats(models.Model):
         log.total_used_traffic = pm.UserTrafficLog.calc_traffic_by_datetime(dt)
         log.save()
         return log
+
+    @classmethod
+    def get_date_str_dict(cls, dt_list: List[pendulum.DateTime]):
+        """NOTE key: date_str  value: log"""
+        log_dict = {}
+        for log in cls.objects.filter(date__in=[dt.date() for dt in dt_list]):
+            log_dict[str(log.date)] = log
+        for dt in dt_list:
+            if not log_dict.get(str(dt.date())):
+                log_dict[str(dt.date())] = cls.create_or_update_stats(dt)
+        return log_dict
