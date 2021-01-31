@@ -29,37 +29,9 @@
             </div>
         </div>
     </nav>
-    <div class="box" id="id-goodlist">
+
+    <div class="pricing-table box" id="id-goodlist">
         {% for good in goods %}
-        <div class="card">
-            <header class="card-header">
-                <p class="card-header-title">
-                    商品名:{{ good.name }}
-                </p>
-                <a class="modal-button card-header-icon" data-target="modal-{{ good.pk }}">
-                    <span class="icon">
-                        <i class="fa fa-shopping-bag" aria-hidden="true"></i>
-                    </span>
-                    <span>购买</span>
-                </a>
-            </header>
-            <div class="card-content">
-                <div class="content">
-                    <p class="subtitle"> {{ good.content }} </p>
-                    <strong>价格：</strong>
-                    <code>{{ good.money }}元</code>
-                    <br>
-                    <strong>流量：</strong>
-                    <code>{{ good.total_transfer }}</code>
-                    <br>
-                    <strong>提升等级至：</strong>
-                    <code>{{ good.level }} 级</code>
-                    <br>
-                    <strong>等级有效期：</strong>
-                    <code>{{ good.days }} 天</code>
-                </div>
-            </div>
-        </div>
         <div class="modal" id="modal-{{ good.pk }}">
             <div class="modal-background"></div>
             <div class="modal-card">
@@ -68,9 +40,10 @@
                     <button class="delete"></button>
                 </header>
                 <section class="modal-card-body" data-id="{{ good.pk }}">
-                    <p class="subtitle">
-                        <strong>商品名：</strong>{{ good.name }}
-                    </p>
+                    <strong>商品名：</strong>{{ good.name }}
+                    <br>
+                    <strong>描述：</strong>{{good.content}}
+                    <hr>
                     <strong>价格：</strong>
                     <code>{{ good.money }}元</code>
                     <br>
@@ -82,17 +55,35 @@
                     <br>
                     <strong>等级有效期：</strong>
                     <code>{{ good.days }} 天</code>
-                    <br>
-                    <br>
+                    <hr>
                     <a class="button is-danger is-outlined" id="id-button-pruchase">确认购买</a>
                 </section>
             </div>
         </div>
-        <br> {% empty %}
+
+        <div class="pricing-plan {{good.bulma_color}}">
+            <div class="plan-header">{{ good.name }}</div>
+            <div class="plan-price"><span class="plan-price-amount">
+                    <span class="plan-price-currency">￥</span>{{good.money}}</span>/{{ good.days }}天
+            </div>
+            <div class="plan-items">
+                <div class="plan-item">流量：{{ good.total_transfer }}</div>
+                <div class="plan-item">提升等级至：{{ good.level }}级</div>
+                <div class="plan-item">等级有效期：{{ good.days }}天</div>
+            </div>
+            <div class="plan-footer">
+                <a class="modal-button  is-fullwidth" data-target="modal-{{ good.pk }}">
+                    <span class="button is-fullwidth">购买</span>
+                </a>
+            </div>
+        </div>
+        {% empty %}
         <p class="subtitle">暂时没有商品上架哦</p>
         {% endfor %}
     </div>
+
 </div>
+
 <script>
     var goodList = $("#id-goodlist")
     // 事件委托绑定按钮

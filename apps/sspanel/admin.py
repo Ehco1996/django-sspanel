@@ -80,7 +80,7 @@ class DonateAdmin(admin.ModelAdmin):
 
 
 class GoodsAdmin(admin.ModelAdmin):
-    list_display = ["name", "transfer", "money", "level"]
+    list_display = ["name", "transfer", "money", "status_cn", "level"]
 
 
 class EmailSendLogAdmin(admin.ModelAdmin):

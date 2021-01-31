@@ -10,19 +10,21 @@
 <link rel="stylesheet" href="https://cdn.staticfile.org/bulma/0.9.1/css/bulma.min.css" rel="stylesheet">
 {% endif %}
 <link rel="stylesheet" href="{% static 'sspanel/css/sspanel.css'%}">
-{% if not simple_extra_static %}
+{% if not simple_extra_static or user.is_authenticated %}
 <link rel="stylesheet" href="https://cdn.staticfile.org/flag-icon-css/3.5.0/css/flag-icon.min.css">
 <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/5.14.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/simplemde/1.9.0/simplemde.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css">
 {% endif %}
 
 <!-- js -->
 <script src="https://cdn.staticfile.org/sweetalert/2.1.2/sweetalert.min.js"></script>
-{% if not simple_extra_static %}
+{% if not simple_extra_static or user.is_authenticated %}
 <script src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js"></script>
 <script src="{% static 'sspanel/js/sspanel.js' %}"></script>
 <script src="https://cdn.staticfile.org/Chart.js/2.9.3/Chart.min.js"></script>
 <script src="https://cdn.staticfile.org/clipboard.js/1.7.1/clipboard.min.js"></script>
 <script src="https://cdn.staticfile.org/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/simplemde/1.9.0/simplemde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/js/bulma-extensions.min.js"></script>
 {% endif %}

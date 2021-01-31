@@ -753,6 +753,24 @@ class Goods(models.Model):
         """增加的流量"""
         return traffic_format(self.transfer)
 
+    @property
+    def status_cn(self):
+        if self.status == self.STATUS_ON:
+            return "上架"
+        else:
+            return "下架"
+
+    @property
+    def bulma_color(self):
+        """bulma的颜色 虽然不该写在这里,但是前端太苦手了算啦"""
+        if self.days <= 10:
+            return "is-info"
+        elif 10 < self.days <= 30:
+            return "is-success"
+        elif 30 < self.days <= 100:
+            return "is-warning"
+        return "is-danger is-active"
+
     def user_can_buy(self, user: User):
         return not (
             self.user_purchase_count > 0
