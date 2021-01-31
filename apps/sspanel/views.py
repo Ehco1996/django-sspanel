@@ -183,9 +183,10 @@ class UserTrafficLog(LoginRequiredMixin, View):
 
 class ShopView(LoginRequiredMixin, View):
     def get(self, request):
-        user = request.user
-        goods = Goods.objects.filter(status=1)
-        context = {"user": user, "goods": goods}
+        context = {
+            "user": request.user,
+            "goods": Goods.get_user_can_buy_goods(request.user),
+        }
         return render(request, "sspanel/shop.html", context=context)
 
 

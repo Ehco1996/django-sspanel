@@ -699,7 +699,9 @@ class MoneyCode(models.Model):
 class Goods(models.Model):
     """商品"""
 
-    STATUS_TYPE = ((1, "上架"), (-1, "下架"))
+    STATUS_ON = 1
+    STATUS_OFF = -1
+    STATUS_TYPE = ((STATUS_ON, "上架"), (STATUS_OFF, "下架"))
 
     name = models.CharField(verbose_name="商品名字", max_length=128, default="待编辑")
     content = models.CharField(verbose_name="商品描述", max_length=256, default="待编辑")
@@ -724,6 +726,11 @@ class Goods(models.Model):
     )
     status = models.SmallIntegerField("商品状态", default=1, choices=STATUS_TYPE)
     order = models.PositiveSmallIntegerField("排序", default=1)
+    user_purchase_count = models.IntegerField(
+        "每名用户可购买数量",
+        default=0,
+        help_text="0表示不限制",
+    )
 
     class Meta:
         verbose_name = "商品"
@@ -733,19 +740,30 @@ class Goods(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_user_can_buy_goods(cls, user: User):
+        return [
+            good
+            for good in cls.objects.filter(status=cls.STATUS_ON)
+            if good.user_can_buy(user)
+        ]
+
     @property
     def total_transfer(self):
         """增加的流量"""
         return traffic_format(self.transfer)
 
-    def get_days(self):
-        """返回增加的天数"""
-        return "{}".format(self.days)
+    def user_can_buy(self, user: User):
+        return not (
+            self.user_purchase_count > 0
+            and PurchaseHistory.get_by_user_and_good(user, self).count()
+            >= self.user_purchase_count
+        )
 
     @transaction.atomic
     def purchase_by_user(self, user):
         """购买商品 返回是否成功"""
-        if user.balance < self.money:
+        if user.balance < self.money or not self.user_can_buy(user):
             return False
         # 验证成功进行提权操作
         user.balance -= self.money
@@ -758,11 +776,18 @@ class Goods(models.Model):
             user.level_expire_time = now + days
             user.reset_traffic(self.transfer)
         user.level = self.level
-        user.save()
-        # 增加购买记录
-        PurchaseHistory.add_log(
-            good_name=self.name, username=user.username, money=self.money
+        user.save(
+            update_fields=[
+                "level",
+                "balance",
+                "total_traffic",
+                "upload_traffic",
+                "download_traffic",
+                "level_expire_time",
+            ]
         )
+        # 增加购买记录
+        PurchaseHistory.add_log(good=self, user=user)
         inviter = User.get_or_none(user.inviter_id)
         if inviter and inviter != user:
             # 增加返利记录
@@ -772,14 +797,16 @@ class Goods(models.Model):
                 money=self.money * Decimal(settings.INVITE_PERCENT),
             )
             inviter.balance += rebaterecord.money
-            inviter.save()
+            inviter.save(update_fields=["balance"])
             rebaterecord.save()
         return True
 
 
 class PurchaseHistory(models.Model):
-    """购买记录"""
+    """用户购买记录"""
 
+    good_id = models.IntegerField("商品ID", default=12, db_index=True)
+    user_id = models.IntegerField("用户ID", default=12, db_index=True)
     good_name = models.CharField(verbose_name="商品名", max_length=128, db_index=True)
     user = models.CharField(verbose_name="购买者", max_length=128)
     money = models.DecimalField(
@@ -796,8 +823,8 @@ class PurchaseHistory(models.Model):
         return self.user
 
     class Meta:
-        verbose_name = "购买记录"
-        verbose_name_plural = "购买记录"
+        verbose_name = "用户购买记录"
+        verbose_name_plural = "用户购买记录"
         ordering = ("-created_at",)
 
     @classmethod
@@ -828,8 +855,18 @@ class PurchaseHistory(models.Model):
         return User.objects.find(username__in=username_list)
 
     @classmethod
-    def add_log(cls, good_name, username, money):
-        cls.objects.create(good_name=good_name, user=username, money=money)
+    def add_log(cls, good, user):
+        cls.objects.create(
+            good_name=good.name,
+            good_id=good.id,
+            user=user.username,
+            user_id=user.id,
+            money=good.money,
+        )
+
+    @classmethod
+    def get_by_user_and_good(cls, user, good):
+        return cls.objects.filter(user_id=user.id, good_id=good.id)
 
 
 class Announcement(models.Model):
