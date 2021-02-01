@@ -72,7 +72,7 @@
 </div>
 
 <script>
-    var startStr = moment().format('YYYY-MM-DD')
+    var startStr = moment().subtract(7, 'day').format('YYYY-MM-DD')
     var endStr = moment().format('YYYY-MM-DD')
     $(function () {
         $(function () {
@@ -82,9 +82,9 @@
                 startDate: moment().subtract(7, 'days'),
                 ranges: {
                     '今天': [moment(), moment()],
-                    '最近七天': [moment().subtract(1, 'week'), moment()],
-                    '最近一月': [moment().startOf('month'), moment()],
-                    '最近三月': [moment().startOf('month').subtract(2, 'month'), moment()],
+                    '最近七天': [moment().subtract(7, 'day'), moment()],
+                    '最近一月': [moment().subtract(1, 'month'), moment()],
+                    '最近三月': [moment().subtract(3, 'month'), moment()],
                     '最近一年': [moment().subtract(1, 'year'), moment()],
                 },
                 "autoApply": true,

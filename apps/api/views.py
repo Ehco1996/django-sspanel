@@ -27,9 +27,7 @@ class SystemStatusView(View):
     def get(self, request):
         start = pendulum.parse(request.GET["start"])
         end = pendulum.parse(request.GET["end"])
-        dt_list = [start.add(days=i) for i in range((end - start).days)]
-        if not dt_list:
-            dt_list = utils.gen_datetime_list(utils.get_current_datetime())
+        dt_list = [start.add(days=i) for i in range((end - start).days + 1)]
         dm = DashBoardManger(dt_list)
         data = {
             "node_status": dm.get_node_status(),

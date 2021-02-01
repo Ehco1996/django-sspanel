@@ -40,9 +40,9 @@ class DailyStats(models.Model):
     def create_or_update_stats(cls, dt: pendulum.DateTime):
         date = dt.date()
         today = utils.get_current_datetime().date()
-        log, created = cls.objects.get_or_create(date=date)
+        log, _ = cls.objects.get_or_create(date=date)
         # 如果是今天之前的记录就不在更新了
-        if not created and date < today:
+        if date < today:
             return log
 
         log.new_user_count = sm.User.get_new_user_count_by_datetime(dt)
@@ -50,7 +50,7 @@ class DailyStats(models.Model):
         log.checkin_user_count = sm.UserCheckInLog.get_checkin_user_count(dt.date())
 
         log.order_count = sm.UserOrder.get_success_order_count(dt)
-        log.order_amount = sm.UserOrder.get_success_order_amount(dt)
+        log.order_amount = decimal.Decimal(sm.UserOrder.get_success_order_amount(dt))
 
         log.total_used_traffic = pm.UserTrafficLog.calc_traffic_by_datetime(dt)
         log.save()
