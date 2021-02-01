@@ -119,32 +119,21 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+// FROM https://flatuicolors.com/palette/cn  and remove white
+const ColorScheme = [
+  "rgb(236, 204, 104)", "rgb(255, 127, 80)", "rgb(255, 107, 129)", "rgb(164, 176, 190)", "rgb(87, 96, 111)",
+  "rgb(255, 165, 2)", "rgb(255, 99, 72)", "rgb(255, 71, 87)", "rgb(116, 125, 140)", "rgb(47, 53, 66)",
+  "rgb(123, 237, 159)", "rgb(112, 161, 255)", "rgb(83, 82, 237)", "rgb(223, 228, 234)",
+  "rgb(46, 213, 115)", "rgb(30, 144, 255)", "rgb(55, 66, 250)", "rgb(206, 214, 224)",
+]
 
-
-function genRandomRgbaSet(num) {
-  colorData = []
-  for (var i = 0; i < num; i++) {
-    var r = Math.floor(Math.random() * 256);          // Random between 0-255
-    var g = Math.floor(Math.random() * 256);          // Random between 0-255
-    var b = Math.floor(Math.random() * 256);          // Random between 0-255
-    var rgba = 'rgba(' + r + ',' + g + ',' + b + ',' + 0.2 + ')'; // Collect all to a string
-    colorData.push(rgba)
-  }
-  return colorData
-
-}
 
 var getRandomColor = function () {
-  var letters = '0123456789ABCDEF';
-  var color = '#';
-  for (var i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+  return ColorScheme[Math.floor(Math.random() * ColorScheme.length)]
 }
 
 var getRandomColorSets = function (num) {
-  colorData = []
+  var colorData = []
   for (var i = 0; i < num; i++) {
     colorData.push(getRandomColor())
   }
@@ -200,6 +189,11 @@ var genChart = function (chartId, chartType, config) {
     data.datasets[0].backgroundColor = getRandomColor()
     data.datasets[0].borderColor = getRandomColor()
     options = {
+      elements: {
+        point: {
+          radius: 1.5
+        }
+      },
       responsive: true,
       title: {
         display: true,
@@ -210,7 +204,7 @@ var genChart = function (chartId, chartType, config) {
         intersect: true
       },
       legend: {
-        display: false,
+        display: true,
       },
       scales: {
         xAxes: [{
