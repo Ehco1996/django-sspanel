@@ -50,15 +50,15 @@
 
 * 注册界面:
 
-![用户首页](https://user-images.githubusercontent.com/24697284/53059324-5dfaf000-34f1-11e9-9454-a828237b263d.png)
+![注册界面](https://user-images.githubusercontent.com/24697284/53059324-5dfaf000-34f1-11e9-9454-a828237b263d.png)
 
 * 用户首页:
 
-![节点信息：](https://user-images.githubusercontent.com/24697284/53059228-12e0dd00-34f1-11e9-8b15-e832c182d010.png)
+![用户首页](https://user-images.githubusercontent.com/24697284/106535015-40818e00-6530-11eb-8f34-75563e14f280.png)
 
 * 节点信息：
 
-![节点信息：](https://user-images.githubusercontent.com/24697284/53059231-13797380-34f1-11e9-8702-39c9063dd049.png)
+![节点信息：](https://user-images.githubusercontent.com/24697284/106535019-424b5180-6530-11eb-90ea-46560b6d232d.png)
 
 * 流量查询:
 
@@ -66,17 +66,17 @@
 
 * 订阅提示-没流量时:
 
-![订阅提示-没流量时](https://user-images.githubusercontent.com/24697284/99466113-c7ce5500-2976-11eb-9fab-15930166d77f.png)
+![订阅提示-没流量时](https://user-images.githubusercontent.com/24697284/106535024-437c7e80-6530-11eb-87fa-7432091b8c25.png)
 
 * 订阅提示-有流量时:
 
-![订阅提示-有流量时](https://user-images.githubusercontent.com/24697284/99466125-cbfa7280-2976-11eb-9b42-d3cf539ab449.png)
+![订阅提示-有流量时](https://user-images.githubusercontent.com/24697284/106535027-45464200-6530-11eb-9024-321b1f054f5f.png)
 
 **后台界面:**
 
 * 运行状态：
 
-![运行状态：](https://user-images.githubusercontent.com/24697284/101553287-515dc980-39ef-11eb-9e96-7b05f10befc6.png)
+![运行状态：](https://user-images.githubusercontent.com/24697284/106535029-46776f00-6530-11eb-8709-f66a40ff0a89.png)
 
 * 面板管理：
 
@@ -88,14 +88,15 @@
 
 ## 部署教程
 
-部署需要vps的支持
-我推荐 Vultr 家，最便宜的机房2.5美金一个月
+部署需要 `vps` 的支持
+我推荐 `Vultr` 家，最便宜的机房2.5美金一个月
 支持支付宝支付，对于新手来说，拿来练手最合适不过了
+
 这里有一个[推广链接](https://www.vultr.com/?ref=7914717-4F)
 
 通过这个链接注册，你能得到**50美元**的回赠！而我能得到25美元的回赠
 
-Docker版: [部署教程](https://github.com/Ehco1996/django-sspanel/wiki/docker%E9%83%A8%E7%BD%B2)
+详细教程请点：[安装文档](https://ehco1996.github.io/django-sspanel/)
 
 ## Stargazers over time
 
