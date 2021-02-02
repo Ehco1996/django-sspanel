@@ -56,6 +56,10 @@
 
 ![用户首页](https://user-images.githubusercontent.com/24697284/106535015-40818e00-6530-11eb-8f34-75563e14f280.png)
 
+* 商品中心:
+
+![商品中心](https://user-images.githubusercontent.com/24697284/106536076-9d7e4380-6532-11eb-8368-eddd6f4cdad8.png)
+
 * 节点信息：
 
 ![节点信息：](https://user-images.githubusercontent.com/24697284/106535019-424b5180-6530-11eb-90ea-46560b6d232d.png)
