@@ -245,7 +245,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     @cached_property
     def enable_relay(self):
-        return bool(self.relay_rules.exists())
+        return bool(self.relay_rules.filter(relay_node__enable=True).exists())
 
     @cached_property
     def enable_ehco_tunnel(self):
