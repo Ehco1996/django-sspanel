@@ -36,40 +36,37 @@
         </div>
     </div>
 </div>
-<hr>
-<div class="columns">
-    <div class="column">
-        <canvas id="id-user-status"></canvas>
+<div class="box">
+    <div class="columns">
+        <div class="column">
+            <canvas id="id-user-status"></canvas>
+        </div>
+        <div class="column">
+            <canvas id="id-node-status"></canvas>
+        </div>
+        <div class="column">
+            <canvas id="id-amount-status"></canvas>
+        </div>
     </div>
-    <div class="column">
-        <canvas id="id-node-status"></canvas>
+    <div class="columns">
+        <div class="column">
+            <canvas id="id-active-user-status"></canvas>
+        </div>
+        <div class="column">
+            <canvas id="id-new-user-status"></canvas>
+        </div>
     </div>
-    <div class="column">
-        <canvas id="id-amount-status"></canvas>
+    <div class="columns">
+        <div class="column">
+            <canvas id="id-node-traffic-status"></canvas>
+        </div>
+        <div class="column">
+            <canvas id="id-order-status"></canvas>
+        </div>
     </div>
-</div>
-<div class="columns">
-    <div class="column">
-        <canvas id="id-active-user-status"></canvas>
-    </div>
-    <div class="column">
-        <canvas id="id-new-user-status"></canvas>
-    </div>
-</div>
-<div class="columns">
-    <div class="column">
-        <canvas id="id-node-traffic-status"></canvas>
-    </div>
-    <div class="column">
-        <canvas id="id-order-status"></canvas>
-    </div>
+    <canvas id="id-order-amount-status"></canvas>
 </div>
 
-<div class="columns">
-    <div class="column">
-        <canvas id="id-order-amount-status"></canvas>
-    </div>
-</div>
 
 <script>
     var startStr = moment().subtract(7, 'day').format('YYYY-MM-DD')

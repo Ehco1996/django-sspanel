@@ -121,8 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // FROM https://flatuicolors.com/palette/cn  and remove white
 const ColorScheme = [
-  "rgb(236, 204, 104)", "rgb(255, 127, 80)", "rgb(255, 107, 129)", "rgb(164, 176, 190)", "rgb(87, 96, 111)",
-  "rgb(255, 165, 2)", "rgb(255, 99, 72)", "rgb(255, 71, 87)", "rgb(116, 125, 140)", "rgb(47, 53, 66)",
+  "rgb(236, 204, 104)", "rgb(255, 127, 80)", "rgb(255, 107, 129)", "rgb(164, 176, 190)",
+  "rgb(255, 165, 2)", "rgb(255, 99, 72)", "rgb(255, 71, 87)", "rgb(116, 125, 140)",
   "rgb(123, 237, 159)", "rgb(112, 161, 255)", "rgb(83, 82, 237)", "rgb(223, 228, 234)",
   "rgb(46, 213, 115)", "rgb(30, 144, 255)", "rgb(55, 66, 250)", "rgb(206, 214, 224)",
 ]
@@ -160,7 +160,6 @@ var genChart = function (chartId, chartType, config) {
       label: config.data_title,
       data: config.data,
       backgroundColor: getRandomColorSets(config.data.length),
-      borderColor: getRandomColorSets(config.data.length),
       steppedLine: false,
       fill: false,
     }]
@@ -191,7 +190,7 @@ var genChart = function (chartId, chartType, config) {
     options = {
       elements: {
         point: {
-          radius: 1.5
+          radius: 2
         }
       },
       responsive: true,

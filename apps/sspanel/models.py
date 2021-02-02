@@ -254,7 +254,7 @@ class User(AbstractUser):
     def reset_random_port(self):
         cls = type(self)
         port = cls.get_not_used_port()
-        self.port = port
+        self.ss_port = port
         self.save()
         return port
 
