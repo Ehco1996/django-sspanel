@@ -5,6 +5,7 @@ import time
 from decimal import Decimal
 from urllib.parse import urlencode
 from uuid import uuid4
+from socket import timeout
 
 import markdown
 import pendulum
@@ -446,7 +447,10 @@ class UserOrder(models.Model, UserMixin):
         changed = False
         if self.status != self.STATUS_CREATED:
             return changed
-        res = pay.trade_query(out_trade_no=self.out_trade_no)
+        try:
+            res = pay.trade_query(out_trade_no=self.out_trade_no)
+        except timeout:
+            return False
         if res.get("trade_status", "") == "TRADE_SUCCESS":
             self.status = self.STATUS_PAID
             self.save()
