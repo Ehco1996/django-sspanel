@@ -1,6 +1,7 @@
 from urllib.error import URLError
 
 from django.conf import settings
+from django.core.mail import send_mail
 
 from apps import celery_app
 from apps.proxy.models import NodeOnlineLog, ProxyNode, UserOnLineIpLog, UserTrafficLog
@@ -147,3 +148,18 @@ def clean_user_sub_log_task():
     query = m.UserSubLog.objects.filter(created_at__lt=dt)
     count, _ = query.delete()
     print(f"UserSubLog  removed count:{count}")
+
+
+@celery_app.task
+def send_mail_to_users_task(user_id_list, subject, message):
+    users = m.User.objects.filter(id__in=user_id_list)
+    address = [user.email for user in users]
+    if send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, address):
+        logs = [
+            m.EmailSendLog(user=user, subject=subject, message=message)
+            for user in users
+        ]
+        m.EmailSendLog.objects.bulk_create(logs)
+        print(f"send email success user: address: {address}")
+    else:
+        raise Exception(f"Could not send mail {address} subject: {subject}")

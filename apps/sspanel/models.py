@@ -3,9 +3,9 @@ import random
 import re
 import time
 from decimal import Decimal
+from socket import timeout
 from urllib.parse import urlencode
 from uuid import uuid4
-from socket import timeout
 
 import markdown
 import pendulum
@@ -13,7 +13,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import functional, timezone
@@ -141,8 +140,11 @@ class User(AbstractUser):
             user.save()
             print(f"Time: {now} user: {user} level timeout!")
         if expired_users and settings.EXPIRE_EMAIL_NOTICE:
-            EmailSendLog.send_mail_to_users(
-                expired_users,
+            from apps.sspanel.tasks import send_mail_to_users_task
+
+            user_id_list = [user.id for user in expired_users]
+            send_mail_to_users_task.delay(
+                user_id_list,
                 f"您的{settings.TITLE}账号已到期",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
@@ -164,8 +166,11 @@ class User(AbstractUser):
             print(f"user: {user} traffic overflow!")
 
         if out_of_traffic_users and settings.EXPIRE_EMAIL_NOTICE:
-            EmailSendLog.send_mail_to_users(
-                out_of_traffic_users,
+            from apps.sspanel.tasks import send_mail_to_users_task
+
+            user_id_list = [user.id for user in out_of_traffic_users]
+            send_mail_to_users_task.delay(
+                user_id_list,
                 f"您的{settings.TITLE}账号流量已全部用完",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
@@ -962,16 +967,6 @@ class EmailSendLog(models.Model):
     class Meta:
         verbose_name = "邮件发送记录"
         verbose_name_plural = "邮件发送记录"
-
-    @classmethod
-    def send_mail_to_users(cls, users, subject, message):
-        address = [user.email for user in users]
-        if send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, address):
-            logs = [cls(user=user, subject=subject, message=message) for user in users]
-            cls.objects.bulk_create(logs)
-            print(f"send email success user: address: {address}")
-        else:
-            raise Exception(f"Could not send mail {address} subject: {subject}")
 
     @classmethod
     def get_user_dict_by_subject(cls, subject):
