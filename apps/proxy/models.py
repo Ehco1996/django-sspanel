@@ -134,13 +134,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     def get_ehco_server_config(self):
         return {
-            "configs": [
+            "relay_configs": [
                 {
                     "listen": f"{self.ehco_listen_host}:{self.ehco_listen_port}",
                     "listen_type": self.ehco_listen_type,
-                    "remote": f"127.0.0.1:{self.ehco_relay_port}",
                     "transport_type": self.ehco_transport_type,
-                    "white_ip_list": RelayNode.get_ip_list(),
+                    "tcp_remotes": [f"127.0.0.1:{self.ehco_relay_port}"],
+                    "udp_remotes": [],
                 }
             ]
         }
@@ -306,26 +306,28 @@ class RelayNode(BaseNodeModel):
         data = []
         for rule in self.relay_rules.select_related("proxy_node").all():
             node = rule.proxy_node
-            remotes = []
+            tcp_remotes = []
+            udp_remotes = []
             for server in node.multi_server_address:
                 if node.enable_ehco_tunnel:
-                    remote = f"{server}:{node.ehco_listen_port}"
+                    tcp_remote = f"{server}:{node.ehco_listen_port}"
                 else:
                     # TODO other node type
-                    remote = f"{server}:{node.ss_config.multi_user_port}"
+                    tcp_remote = f"{server}:{node.ss_config.multi_user_port}"
                 if rule.transport_type in c.WS_TRANSPORTS:
-                    remote = "wss://" + remote
-                remotes.append(remote)
+                    tcp_remote = "wss://" + tcp_remote
+                udp_remotes.append(f"{server}:{node.ss_config.multi_user_port}")
+                tcp_remotes.append(tcp_remote)
             data.append(
                 {
                     "listen": f"0.0.0.0:{rule.relay_port}",
                     "listen_type": rule.listen_type,
-                    "remote": "",
-                    "lb_remotes": remotes,
+                    "tcp_remotes": tcp_remotes,
+                    "udp_remotes": udp_remotes,
                     "transport_type": rule.transport_type,
                 }
             )
-        return {"configs": data}
+        return {"relay_configs": data}
 
     @property
     def api_endpoint(self):
