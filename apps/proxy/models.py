@@ -184,6 +184,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                 "port": port,
                 "cipher": self.ss_config.method,
                 "password": user.ss_password,
+                "udp": True,
             }
         return json.dumps(config, ensure_ascii=False)
 

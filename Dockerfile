@@ -2,6 +2,8 @@ FROM python:3.8-alpine as base
 
 LABEL Name=django-sspanel
 
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
 COPY requirements.txt /tmp/requirements.txt
 
 RUN apk add --update --no-cache mariadb-connector-c-dev tzdata \
