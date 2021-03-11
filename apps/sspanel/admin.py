@@ -100,12 +100,6 @@ class TicketAdmin(admin.ModelAdmin):
     search_fields = ["title", "user__id"]
 
 
-class UserSubLogAdmin(admin.ModelAdmin):
-    list_display = ["user", "sub_type", "ip", "created_at"]
-    list_filter = ["user", "sub_type"]
-    list_select_related = ["user"]
-
-
 # Register your models here.
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserOrder, UserOrderAdmin)
@@ -120,7 +114,6 @@ admin.site.register(models.Announcement)
 admin.site.register(models.Ticket, TicketAdmin)
 admin.site.register(models.EmailSendLog, EmailSendLogAdmin)
 admin.site.register(models.RebateRecord, RebateRecordAdmin)
-admin.site.register(models.UserSubLog, UserSubLogAdmin)
 
 
 admin.site.unregister(Group)

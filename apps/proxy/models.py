@@ -291,12 +291,15 @@ class RelayNode(BaseNodeModel):
     )
 
     isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
+    remark = models.CharField("备注", max_length=64, default="")
 
     class Meta:
         verbose_name = "中转节点"
         verbose_name_plural = "中转节点"
 
     def __str__(self) -> str:
+        if self.remark:
+            return f"{self.name}-{self.remark}"
         return self.name
 
     @classmethod

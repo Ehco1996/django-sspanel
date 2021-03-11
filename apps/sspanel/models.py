@@ -971,30 +971,3 @@ class EmailSendLog(models.Model):
     @classmethod
     def get_user_dict_by_subject(cls, subject):
         return {l.user: 1 for l in cls.objects.filter(subject=subject)}
-
-
-class UserSubLog(models.Model):
-    SUB_TYPES = (
-        ("ss", "订阅SS"),
-        ("vless", "订阅Vless"),
-        ("trojan", "订阅Trojan"),
-        ("clash", "订阅Clash"),
-        ("clash_pro", "订阅ClashPro"),
-    )
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    sub_type = models.CharField("订阅类型", choices=SUB_TYPES, max_length=20)
-    ip = models.CharField(max_length=128, verbose_name="IP地址")
-    created_at = models.DateTimeField(
-        auto_now_add=True, db_index=True, help_text="创建时间", verbose_name="创建时间"
-    )
-
-    class Meta:
-        verbose_name = "用户订阅记录"
-        verbose_name_plural = "用户订阅记录"
-        ordering = ["-created_at"]
-        index_together = ["user", "created_at"]
-
-    @classmethod
-    def add_log(cls, user, sub_type, ip):
-        return cls.objects.create(user=user, sub_type=sub_type, ip=ip)

@@ -88,6 +88,7 @@ class RelayNodeAdmin(admin.ModelAdmin):
         "server",
         "isp",
         "enable",
+        "remark",
         "api_endpoint",
     ]
 

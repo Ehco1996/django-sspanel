@@ -5,9 +5,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.template.loader import render_to_string
 
-from apps import utils
 from apps.proxy import models as pm
-from apps.sspanel import models as sm
 
 
 class UserSubManager:
@@ -33,7 +31,6 @@ class UserSubManager:
             sub_type = self.SUB_TYPE_SS
         self.sub_type = sub_type
         self.node_list = self._fill_fake_node()
-        sm.UserSubLog.add_log(user, sub_type, utils.get_client_ip(request))
 
     def _fill_fake_node(self):
         """根据用户信息拿出所有需要的node并添加一些虚拟节点

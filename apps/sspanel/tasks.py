@@ -142,15 +142,6 @@ def clean_online_ip_log_task():
 
 
 @celery_app.task
-def clean_user_sub_log_task():
-    """清空一月前在线ip记录"""
-    dt = get_current_datetime().subtract(months=1)
-    query = m.UserSubLog.objects.filter(created_at__lt=dt)
-    count, _ = query.delete()
-    print(f"UserSubLog  removed count:{count}")
-
-
-@celery_app.task
 def send_mail_to_users_task(user_id_list, subject, message):
     users = m.User.objects.filter(id__in=user_id_list)
     address = [user.email for user in users]
