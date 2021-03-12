@@ -324,7 +324,7 @@ class RelayNode(BaseNodeModel):
                 tcp_remotes.append(tcp_remote)
             data.append(
                 {
-                    "lable": node.name,
+                    "label": node.name,
                     "listen": f"0.0.0.0:{rule.relay_port}",
                     "listen_type": rule.listen_type,
                     "tcp_remotes": tcp_remotes,
