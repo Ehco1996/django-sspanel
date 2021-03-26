@@ -6,13 +6,17 @@ from functools import wraps
 
 import pendulum
 from django.conf import settings
+from django.forms import Widget
 from django.http import JsonResponse
 from django.utils import timezone
 
+from django.utils.safestring import mark_safe
+from apps import constants as c
+
 
 def get_random_string(
-    length=12,
-    allowed_chars="abcdefghijklmnopqrstuvwxyz" "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        length=12,
+        allowed_chars="abcdefghijklmnopqrstuvwxyz" "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
 ):
     """
     创建指定长度的完全不会重复字符串的
@@ -100,3 +104,40 @@ def get_client_ip(request):
     else:
         ip = request.META.get("REMOTE_ADDR")
     return ip
+
+
+class JsonEditorWidget(Widget):
+    html_template = """
+    <div id='s_editor_holder' style='padding-left:170px'></div>
+    <textarea hidden readonly class="vLargeTextField" cols="40" id="id_s" name="%(name)s" rows="20">%(value)s</textarea>
+    <script type="text/javascript">
+        var element = document.getElementById('s_editor_holder');
+        var json_value = %(value)s;
+        var jsoneditorList = document.getElementsByClassName('jsoneditor jsoneditor-mode-tree');
+        //if (jsoneditorList.length == 0) {
+            var s_editor = new JSONEditor(element, {
+                onChange: function() {
+                    var textarea = document.getElementById('id_s');
+                    var json_changed = JSON.stringify(s_editor.get()['Object']);
+                    textarea.value = json_changed;
+                }
+            });
+            s_editor.set({"Object": json_value})
+            s_editor.expandAll()
+        //}
+    </script>
+    """
+
+    def __init__(self, attrs=None):
+        super(JsonEditorWidget, self).__init__(attrs)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        if isinstance(value, str):
+            value = json.loads(value)
+
+        result = self.html_template % {'name': name, 'value': json.dumps(value), }
+        return mark_safe(result)
+
+
+def get_default_ray_config():
+    return c.DEFAULT_RAY_CONFIG

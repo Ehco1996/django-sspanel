@@ -1,19 +1,39 @@
+
 from django.conf import settings
 from django.contrib import admin
+from django.db.models import JSONField
 from django.forms import ModelForm
 
 from apps.proxy import models
 from apps.sspanel.models import User
+from apps.utils import JsonEditorWidget
 
 
 class SSConfigInline(admin.StackedInline):
     model = models.SSConfig
     verbose_name = "SS配置"
+    extra = 0
     fields = [
         "proxy_node",
         "method",
         "multi_user_port",
     ]
+
+
+class RayConfigInline(admin.StackedInline):
+    model = models.RayConfig
+    formfield_overrides = {
+        JSONField: {'widget': JsonEditorWidget}
+    }
+    fields = ["proxy_node", "ray_tool", "config"]
+    extra = 0
+    verbose_name = "Ray配置"
+
+    class Media:
+        css = {
+            'all': ('https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor.min.css',)
+        }
+        js = ('https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor-minimalist.js',)
 
 
 class RelayRuleInline(admin.TabularInline):
@@ -28,18 +48,18 @@ class ProxyNodeAdminForm(ModelForm):
         if "instance" in kwargs and kwargs["instance"]:
             # NOTE trans model traffic to GB
             kwargs["instance"].total_traffic = (
-                kwargs["instance"].total_traffic // settings.GB
+                    kwargs["instance"].total_traffic // settings.GB
             )
             kwargs["instance"].used_traffic = (
-                kwargs["instance"].used_traffic // settings.GB
+                    kwargs["instance"].used_traffic // settings.GB
             )
 
         super(ProxyNodeAdminForm, self).__init__(*args, **kwargs)
         self.fields["used_traffic"].help_text = (
-            self.fields["used_traffic"].help_text + "单位GB"
+                self.fields["used_traffic"].help_text + "单位GB"
         )
         self.fields["total_traffic"].help_text = (
-            self.fields["total_traffic"].help_text + "单位GB"
+                self.fields["total_traffic"].help_text + "单位GB"
         )
 
     def clean_used_traffic(self):
@@ -49,6 +69,12 @@ class ProxyNodeAdminForm(ModelForm):
     def clean_total_traffic(self):
         total_traffic = self.cleaned_data.get("total_traffic")
         return total_traffic * settings.GB
+
+    class Media:
+        js = (
+            'https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js',
+            'js/addProxy.js',
+        )
 
 
 class ProxyNodeAdmin(admin.ModelAdmin):
@@ -64,7 +90,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "sequence",
     ]
     inlines = [RelayRuleInline]
-    all_inlines = [SSConfigInline, RelayRuleInline]
+    all_inlines = [SSConfigInline, RelayRuleInline, RayConfigInline]
     list_editable = ["sequence"]
 
     def get_inlines(self, request, instance):
@@ -72,6 +98,8 @@ class ProxyNodeAdmin(admin.ModelAdmin):
             return self.all_inlines
         elif instance.node_type == models.ProxyNode.NODE_TYPE_SS:
             return [SSConfigInline] + self.inlines
+        elif instance.node_type == models.ProxyNode.NODE_TYPE_RAY:
+            return [RayConfigInline] + self.inlines
         return self.inlines
 
     def traffic(self, instance):
@@ -86,7 +114,6 @@ class ProxyNodeAdmin(admin.ModelAdmin):
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
-
     list_display = [
         "name",
         "isp",
@@ -117,16 +144,6 @@ class RelayRuleAdmin(admin.ModelAdmin):
     list_filter = ["proxy_node", "relay_node"]
     inlines = []
 
-
-class SSConfigAdmin(admin.ModelAdmin):
-
-    list_display = [
-        "proxy_node",
-        "method",
-        "multi_user_port",
-    ]
-    search_fields = []
-    list_filter = []
 
 
 class NodeOnlineLogAdmin(admin.ModelAdmin):
@@ -178,9 +195,9 @@ class UserOnLineIpLogAdmin(admin.ModelAdmin):
     show_full_result_count = False
 
 
+
 # Register your models here.
 admin.site.register(models.ProxyNode, ProxyNodeAdmin)
-admin.site.register(models.SSConfig, SSConfigAdmin)
 
 admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.RelayRule, RelayRuleAdmin)
@@ -188,3 +205,4 @@ admin.site.register(models.RelayRule, RelayRuleAdmin)
 admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
 admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)
+
