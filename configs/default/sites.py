@@ -39,7 +39,7 @@ INVITE_PERCENT = float(os.getenv("INVITE_PERCENT", 0.2))
 # 用户能生成的邀请码数量
 INVITE_NUM = int(os.getenv("INVITE_NUM ", 5))
 
-# 网站邀请界面提示语
+# 网站邀请页提示语
 INVITEINFO = os.getenv("INVITEINFO", "邀请码实时更新，如果用完了就没了")
 
 # 部分API接口TOKEN

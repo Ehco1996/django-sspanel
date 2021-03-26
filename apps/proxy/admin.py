@@ -55,12 +55,12 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     form = ProxyNodeAdminForm
 
     list_display = [
-        "id",
         "name",
         "node_type",
         "country",
         "enable",
         "traffic",
+        "relay_count",
         "sequence",
     ]
     inlines = [RelayRuleInline]
@@ -79,18 +79,24 @@ class ProxyNodeAdmin(admin.ModelAdmin):
 
     traffic.short_description = "流量"
 
+    def relay_count(self, instance):
+        return instance.relay_rules.all().count()
+
+    relay_count.short_description = "中转数量"
+
 
 class RelayNodeAdmin(admin.ModelAdmin):
 
     list_display = [
-        "id",
         "name",
-        "server",
         "isp",
-        "enable",
         "remark",
+        "server",
+        "enable",
         "api_endpoint",
     ]
+
+    inlines = [RelayRuleInline]
 
     def api_endpoint(self, instance):
         return instance.api_endpoint

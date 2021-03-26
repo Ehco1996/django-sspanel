@@ -51,7 +51,7 @@ class UserSubManager:
                 ]
             )
         else:
-            note_list.append("没有可以用的节点哦 请去官网购买")
+            note_list.append("没有可以用的节点 请去官网购买")
 
         for note in note_list:
             node = pm.ProxyNode(name=note, server=uuid4().hex)

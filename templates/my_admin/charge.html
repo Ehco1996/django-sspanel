@@ -6,10 +6,10 @@
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
-                    充值码列表：
+                    充值码列表
                 </h1>
                 <h2 class="subtitle">
-                    添加充值码：
+                    添加充值码
                 </h2>
             </div>
         </div>
@@ -38,7 +38,7 @@
             {% if contacts.has_previous %}
             <a class="pagination-previous" href="?page={{ contacts.previous_page_number }}">上一页</a> {% endif %} {% if contacts.has_next%}
             <a class="pagination-next" href="?page={{ contacts.next_page_number }}">下一页</a> {% endif %}
-            <p>页码：</p>
+            <p>页码</p>
             <ul class="pagination-list">
                 {% if first %}
                 <a href="?page=1" class="pagination-link">1</a> {% endif %} {% if left %} {% if left_has_more %}

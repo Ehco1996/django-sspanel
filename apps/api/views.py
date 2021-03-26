@@ -219,7 +219,7 @@ def purchase(request):
     good = Goods.objects.get(id=good_id)
     if not good.purchase_by_user(request.user):
         return JsonResponse(
-            {"title": "余额不足", "status": "error", "subtitle": "请去捐赠充值界面充值哦"}
+            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那捐赠"}
         )
     else:
         return JsonResponse(
