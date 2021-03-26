@@ -14,6 +14,7 @@ from apps import utils
 from apps.ext import cache
 from apps.mixin import BaseLogModel, BaseModel, SequenceMixin
 from apps.sspanel.models import User
+from apps.utils import get_default_ray_config
 
 
 class BaseNodeModel(BaseModel):
@@ -32,12 +33,10 @@ class BaseNodeModel(BaseModel):
 class ProxyNode(BaseNodeModel, SequenceMixin):
 
     NODE_TYPE_SS = "ss"
-    NODE_TYPE_VLESS = "vless"
-    NODE_TYPE_TROJAN = "trojan"
+    NODE_TYPE_RAY = "ray"
     NODE_CHOICES = (
         (NODE_TYPE_SS, NODE_TYPE_SS),
-        (NODE_TYPE_VLESS, NODE_TYPE_VLESS),
-        (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
+        (NODE_TYPE_RAY, NODE_TYPE_RAY),
     )
 
     node_type = models.CharField(
@@ -86,8 +85,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             query = query.filter(level__lte=level)
         return list(
             query.select_related("ss_config")
-            .prefetch_related("relay_rules")
-            .order_by("sequence")
+                .prefetch_related("relay_rules")
+                .order_by("sequence")
         )
 
     @classmethod
@@ -100,15 +99,15 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         configs = {"users": []}
         ss_config = self.ss_config
         for user in User.objects.filter(level__gte=self.level).values(
-            "id",
-            "ss_port",
-            "ss_password",
-            "total_traffic",
-            "upload_traffic",
-            "download_traffic",
+                "id",
+                "ss_port",
+                "ss_password",
+                "total_traffic",
+                "upload_traffic",
+                "download_traffic",
         ):
             enable = self.enable and user["total_traffic"] > (
-                user["download_traffic"] + user["upload_traffic"]
+                    user["download_traffic"] + user["upload_traffic"]
             )
             if ss_config.multi_user_port:
                 # NOTE 单端口多用户
@@ -126,9 +125,58 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             )
         return configs
 
+    def get_ray_node_config(self):
+        configs = {
+            "configs": [],
+            "tag": self.ray_config.config["inbounds"][0]["tag"],
+            "grpc_endpoint": self.ray_config.config["inbounds"][1]["listen"] + ":" + self.ray_config.config["inbounds"][1]["port"],
+            "protocol": self.ray_config.config["inbounds"][0]["protocol"],
+            "rtsignal": False,
+            "ray_api_endpoint": self.ray_config.config,
+            "ray_tool": self.ray_config.ray_tool
+        }
+        for user in User.objects.filter(level__gte=self.level).values(
+                "id",
+                "email",
+                "ss_password",
+                "level",
+                "vmess_uuid",
+                "total_traffic",
+                "upload_traffic",
+                "download_traffic",
+        ):
+            enable = self.enable and user["total_traffic"] > (
+                    user["download_traffic"] + user["upload_traffic"]
+            )
+            if configs["protocol"] == "vmess":
+                configs["configs"].append(
+                    {
+                        "user_id": user["id"],
+                        "email": user["email"],
+                        "uuid": user["vmess_uuid"],
+                        "level": user["level"],
+                        "alter_id": 0,
+                        "enable": enable,
+                    }
+                )
+            else:
+                configs["configs"].append(
+                    {
+                        "user_id": user["id"],
+                        "email": user["email"],
+                        "password": user["ss_password"],
+                        "level": user["level"],
+                        "enable": enable,
+                    }
+                )
+        return configs
+
+
     def get_proxy_configs(self):
         if self.node_type == self.NODE_TYPE_SS:
             return self.get_ss_node_config()
+        elif self.node_type == self.NODE_TYPE_RAY:
+            return self.get_ray_node_config()
         return {}
 
     def get_ehco_server_config(self):
@@ -223,7 +271,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         if self.node_type == self.NODE_TYPE_SS:
             params = {"token": settings.TOKEN}
             return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
-        # TODO vless/trojan
+        if self.node_type == self.NODE_TYPE_RAY:
+            return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
         return ""
 
     @property
@@ -259,6 +308,7 @@ class SSConfig(models.Model):
         primary_key=True,
         help_text="代理节点",
         verbose_name="代理节点",
+        limit_choices_to={'node_type': ProxyNode.NODE_TYPE_SS}
     )
     method = models.CharField(
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
@@ -276,7 +326,6 @@ class SSConfig(models.Model):
 
 
 class RelayNode(BaseNodeModel):
-
     CMCC = "移动"
     CUCC = "联通"
     CTCC = "电信"
@@ -339,7 +388,6 @@ class RelayNode(BaseNodeModel):
 
 
 class RelayRule(BaseModel):
-
     proxy_node = models.ForeignKey(
         ProxyNode,
         on_delete=models.CASCADE,
@@ -392,7 +440,6 @@ class RelayRule(BaseModel):
 
 
 class NodeOnlineLog(BaseLogModel):
-
     proxy_node = models.ForeignKey(
         ProxyNode,
         on_delete=models.CASCADE,
@@ -443,13 +490,12 @@ class NodeOnlineLog(BaseLogModel):
     @property
     def online(self):
         return (
-            utils.get_current_datetime().subtract(seconds=c.NODE_TIME_OUT)
-            < self.created_at
+                utils.get_current_datetime().subtract(seconds=c.NODE_TIME_OUT)
+                < self.created_at
         )
 
 
 class UserTrafficLog(BaseLogModel):
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     proxy_node = models.ForeignKey(
         ProxyNode,
@@ -483,8 +529,8 @@ class UserTrafficLog(BaseLogModel):
     def _get_active_user_count_by_datetime(cls, dt: pendulum.DateTime):
         qs = (
             cls.objects.filter(created_at__range=[dt.start_of("day"), dt.end_of("day")])
-            .values("user_id")
-            .distinct()
+                .values("user_id")
+                .distinct()
         )
         return qs.count()
 
@@ -515,7 +561,7 @@ class UserTrafficLog(BaseLogModel):
 
     @classmethod
     def calc_traffic_by_datetime(
-        cls, dt: pendulum.DateTime, user_id=None, proxy_node=None
+            cls, dt: pendulum.DateTime, user_id=None, proxy_node=None
     ):
         """获取指定日期指定用户的流量,只有今天的数据会hit db"""
         if dt.date() == utils.get_current_datetime().date():
@@ -581,3 +627,33 @@ class UserOnLineIpLog(BaseLogModel):
             ).values("ip")
         }
         return len(ips)
+
+
+class RayConfig(models.Model):
+    XRAY = "Xray"
+    V2RAY = "v2ray"
+    RAY_TOOL_CHOICES = (
+        (XRAY, XRAY),
+        (V2RAY, V2RAY),
+    )
+
+    proxy_node = models.OneToOneField(
+        to=ProxyNode,
+        related_name="ray_config",
+        on_delete=models.CASCADE,
+        primary_key=True,
+        help_text="代理节点",
+        verbose_name="代理节点",
+        limit_choices_to={'node_type': ProxyNode.NODE_TYPE_RAY}
+    )
+
+    ray_tool = models.CharField("节点类型", default=V2RAY, choices=RAY_TOOL_CHOICES, max_length=32)
+
+    config = models.JSONField('配置', default=get_default_ray_config)
+
+    class Meta:
+        verbose_name = "Ray配置"
+        verbose_name_plural = "Ray配置"
+
+    def __str__(self) -> str:
+        return self.proxy_node.__str__() + "-配置"
