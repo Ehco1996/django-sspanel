@@ -85,27 +85,19 @@ class SequenceMixin(models.Model):
         else:
             for idx, instance in enumerate(instance_list):
                 if instance.sequence >= new_sequence:
-                    if move_direction == self.MOVE_FORWARD:
-                        target_idx = idx
-                    else:
-                        target_idx = idx + 1
+                    target_idx = idx if move_direction == self.MOVE_FORWARD else idx + 1
                     instance_list.insert(target_idx, self)
                     break
-        seq = 1
-        for instance in instance_list:
+        for seq, instance in enumerate(instance_list, start=1):
             instance.sequence = seq
-            seq += 1
-
         cls = type(self)
         cls.objects.bulk_update(instance_list, ["sequence"])
 
     def update_all_sequence(self):
         cls = type(self)
         instance_list = list(cls.objects.all().order_by("sequence"))
-        seq = 1
-        for instance in instance_list:
+        for seq, instance in enumerate(instance_list, start=1):
             instance.sequence = seq
-            seq += 1
         cls = type(self)
         cls.objects.bulk_update(instance_list, ["sequence"])
 

@@ -424,7 +424,7 @@ class UserOrder(models.Model, UserMixin):
 
     @classmethod
     def get_success_order_amount(cls, date: pendulum.DateTime):
-        amount = (
+        return (
             cls.objects.filter(
                 status=cls.STATUS_FINISHED,
                 created_at__range=[
@@ -434,7 +434,6 @@ class UserOrder(models.Model, UserMixin):
             ).aggregate(amount=models.Sum("amount"))["amount"]
             or "0"
         )
-        return amount
 
     def handle_paid(self):
         # NOTE Must use in transaction
@@ -489,7 +488,7 @@ class UserRefLog(models.Model, UserMixin):
         aggs = cls.objects.filter(user_id=user_id).aggregate(
             register_count=models.Sum("register_count")
         )
-        return aggs["register_count"] if aggs["register_count"] else 0
+        return aggs["register_count"] or 0
 
 
 class UserCheckInLog(models.Model, UserMixin):

@@ -136,7 +136,7 @@ class InviteCodeView(StaffRequiredMixin, View):
 
     def post(self, request):
         num = int(request.POST.get("num", 0))
-        for i in range(num):
+        for _ in range(num):
             code = InviteCode(code_type=request.POST.get("type"))
             code.save()
         messages.success(request, "添加邀请码{}个".format(num), extra_tags="成功")
@@ -154,7 +154,7 @@ class ChargeView(StaffRequiredMixin, View):
     def post(self, request):
         num = request.POST.get("num")
         money = request.POST.get("money")
-        for i in range(int(num)):
+        for _ in range(int(num)):
             code = MoneyCode(number=money)
             code.save()
         messages.success(request, "添加{}元充值码{}个".format(money, num), extra_tags="成功")
