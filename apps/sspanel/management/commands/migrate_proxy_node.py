@@ -8,13 +8,16 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # relay node old:new
-        relay_node_map = {node.node_id: m.RelayNode.objects.create(
+        relay_node_map = {
+            node.node_id: m.RelayNode.objects.create(
                 id=node.id,
                 name=node.name,
                 server=node.server,
                 enable=node.enable,
                 isp=node.isp,
-            ) for node in RelayNode.objects.all()}
+            )
+            for node in RelayNode.objects.all()
+        }
         print("sync 中转节点", relay_node_map)
         # ss node
         ss_node_map = {}

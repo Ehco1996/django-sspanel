@@ -585,6 +585,10 @@ class InviteCode(models.Model):
         self.used = True
         self.save()
 
+    @property
+    def used_cn(self):
+        return "已使用" if self.used else "未使用"
+
 
 class RebateRecord(models.Model, UserMixin):
     """返利记录"""
@@ -702,6 +706,10 @@ class MoneyCode(models.Model):
 
     def __str__(self):
         return self.code
+
+    @property
+    def isused_cn(self):
+        return "已使用" if self.isused else "未使用"
 
 
 class Goods(models.Model):

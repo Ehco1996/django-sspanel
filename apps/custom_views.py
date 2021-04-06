@@ -50,13 +50,13 @@ class PageListView:
                     last = True
         elif page >= total:
             # 当前页为最后一页时
-            left = page_list[page - 3 if page > 3 else 0:page - 1]
+            left = page_list[page - 3 if page > 3 else 0 : page - 1]
             if len(left) > 0 and left[0] > 2:
                 left_has_more = True
             if len(left) > 0 and left[0] > 1:
                 first = True
         else:
-            left = page_list[page - 2 if page > 2 else 0:page - 1]
+            left = page_list[page - 2 if page > 2 else 0 : page - 1]
             right = page_list[page : page + 2]
             # 是否需要显示最后一页和最后一页前的省略号
             if len(right) > 0 and right[-1] < total - 1:

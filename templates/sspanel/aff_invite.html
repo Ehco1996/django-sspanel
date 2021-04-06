@@ -42,14 +42,14 @@
                     <tr>
                         <th>时间</th>
                         <th>邀请码</th>
-                        <th>是否使用</th>
+                        <th>状态</th>
                     </tr>
                 </thead>
                 {% for code in code_list %}
                 <tr>
                     <td>{{ code.created_at | date:"m月d日" }}</td>
                     <td>{{ code.code }}</td>
-                    <td>{{ code.used }}</td>
+                    <td>{{ code.used_cn }}</td>
                 </tr>
                 {% endfor %}
             </table>
