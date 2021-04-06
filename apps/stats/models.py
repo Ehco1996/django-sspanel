@@ -59,9 +59,11 @@ class DailyStats(models.Model):
     @classmethod
     def get_date_str_dict(cls, dt_list: List[pendulum.DateTime]):
         """NOTE key: date_str  value: log"""
-        log_dict = {}
-        for log in cls.objects.filter(date__in=[dt.date() for dt in dt_list]):
-            log_dict[str(log.date)] = log
+        log_dict = {
+            str(log.date): log
+            for log in cls.objects.filter(date__in=[dt.date() for dt in dt_list])
+        }
+
         for dt in dt_list:
             if not log_dict.get(str(dt.date())):
                 log_dict[str(dt.date())] = cls.create_or_update_stats(dt)

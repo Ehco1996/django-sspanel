@@ -84,17 +84,16 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         query = cls.objects.filter(enable=True)
         if level is not None:
             query = query.filter(level__lte=level)
-        active_nodes = list(
+        return list(
             query.select_related("ss_config")
             .prefetch_related("relay_rules")
             .order_by("sequence")
         )
-        return active_nodes
 
     @classmethod
     def calc_total_traffic(cls):
         aggs = cls.objects.all().aggregate(used_traffic=models.Sum("used_traffic"))
-        used_traffic = aggs["used_traffic"] if aggs["used_traffic"] else 0
+        used_traffic = aggs["used_traffic"] or 0
         return utils.traffic_format(used_traffic)
 
     def get_ss_node_config(self):
@@ -151,20 +150,19 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return self.ss_config.multi_user_port
 
     def get_user_node_link(self, user, relay_rule=None):
-        if self.node_type == self.NODE_TYPE_SS:
-            if relay_rule:
-                host = relay_rule.relay_host
-                port = relay_rule.relay_port
-                remark = relay_rule.remark
-            else:
-                host = self.multi_server_address[0]
-                port = self.get_user_ss_port(user)
-                remark = self.name
-            code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
-            b64_code = base64.urlsafe_b64encode(code.encode()).decode()
-            ss_link = "ss://{}#{}".format(b64_code, quote(remark))
-            return ss_link
-        return ""
+        if self.node_type != self.NODE_TYPE_SS:
+            return ""
+        if relay_rule:
+            host = relay_rule.relay_host
+            port = relay_rule.relay_port
+            remark = relay_rule.remark
+        else:
+            host = self.multi_server_address[0]
+            port = self.get_user_ss_port(user)
+            remark = self.name
+        code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
+        b64_code = base64.urlsafe_b64encode(code.encode()).decode()
+        return "ss://{}#{}".format(b64_code, quote(remark))
 
     def get_user_clash_config(self, user, relay_rule=None):
         config = {}
@@ -222,8 +220,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     @property
     def api_endpoint(self):
-        params = {"token": settings.TOKEN}
         if self.node_type == self.NODE_TYPE_SS:
+            params = {"token": settings.TOKEN}
             return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
         # TODO vless/trojan
         return ""
@@ -476,8 +474,8 @@ class UserTrafficLog(BaseLogModel):
         aggs = logs.aggregate(
             u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
         )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
+        ut = aggs["u"] or 0
+        dt = aggs["d"] or 0
         return utils.traffic_format(ut + dt)
 
     @classmethod
@@ -511,8 +509,8 @@ class UserTrafficLog(BaseLogModel):
         aggs = qs.aggregate(
             u=models.Sum("upload_traffic"), d=models.Sum("download_traffic")
         )
-        ut = aggs["u"] if aggs["u"] else 0
-        dt = aggs["d"] if aggs["d"] else 0
+        ut = aggs["u"] or 0
+        dt = aggs["d"] or 0
         return round((ut + dt) / settings.GB, 2)
 
     @classmethod
@@ -576,9 +574,7 @@ class UserOnLineIpLog(BaseLogModel):
     def get_user_online_device_count(cls, user, minutes=10):
         """获取最近一段时间内用户在线设备数量"""
         now = utils.get_current_datetime()
-        ips = set()
-        for data in cls.objects.filter(
+        ips = {data["ip"] for data in cls.objects.filter(
             user=user, created_at__range=[now.add(minutes=minutes * -1), now]
-        ).values("ip"):
-            ips.add(data["ip"])
+        ).values("ip")}
         return len(ips)

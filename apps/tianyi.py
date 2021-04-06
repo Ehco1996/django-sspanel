@@ -30,7 +30,7 @@ class DashBoardManger:
     def get_node_status(self):
         def gen_bar_config(dt_list):
             node_total_traffic = pm.ProxyNode.calc_total_traffic()
-            bar_config = {
+            return {
                 "title": f"所有节点当月共消耗:{node_total_traffic}",
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
                 "data": [self._get_by_dt(dt).total_used_traffic for dt in dt_list],
@@ -38,7 +38,6 @@ class DashBoardManger:
                 "x_label": f"最近{len(dt_list)}天",
                 "y_label": "单位:GB",
             }
-            return bar_config
 
         def gen_doughnut_config():
             active_nodes = pm.ProxyNode.get_active_nodes()
@@ -110,7 +109,7 @@ class DashBoardManger:
 
         def gen_bar_config(dt_list):
             success_order_count = [self._get_by_dt(dt).order_count for dt in dt_list]
-            bar_config = {
+            return {
                 "title": f"总订单数量:{sum(success_order_count)}",
                 "labels": [f"{date.month}-{date.day}" for date in dt_list],
                 "data": success_order_count,
@@ -118,7 +117,6 @@ class DashBoardManger:
                 "x_label": f"最近{len(dt_list)}天",
                 "y_label": "订单数量",
             }
-            return bar_config
 
         def gen_doughnut_config(dt_list):
             now = utils.get_current_datetime()
@@ -154,7 +152,7 @@ class DashBoardManger:
 
         def gen_line_config(dt_list):
             amount_data = [self._get_by_dt(dt).order_amount for dt in dt_list]
-            order_amount_line_config = {
+            return {
                 "title": f"最近{len(dt_list)}天 总收益为{sum(amount_data)}元",
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
                 "data": amount_data,
@@ -162,7 +160,6 @@ class DashBoardManger:
                 "x_label": f"最近{len(dt_list)}天",
                 "y_label": "金额/元",
             }
-            return order_amount_line_config
 
         return {
             "bar_config": gen_bar_config(self.dt_list),
@@ -177,7 +174,7 @@ class DashBoardManger:
             proxy_node, user_id
         )
         dt_list = sorted(dt_list)
-        line_config = {
+        return {
             "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
             "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
             "data": [
@@ -188,7 +185,6 @@ class DashBoardManger:
             "x_label": f"最近{len(dt_list)}天",
             "y_label": "单位:GB",
         }
-        return line_config
 
     @classmethod
     def gen_ref_log_bar_chart_configs(cls, user_id, dt_list):
@@ -198,7 +194,7 @@ class DashBoardManger:
             log.date: log.register_count
             for log in sm.UserRefLog.list_by_user_id_and_date_list(user_id, dt_list)
         }
-        bar_config = {
+        return {
             "title": f"总共邀请用户:{sm.UserRefLog.calc_user_total_ref_count(user_id)}人",
             "labels": [f"{date.month}-{date.day}" for date in dt_list],
             "data": [logs.get(date, 0) for date in dt_list],
@@ -206,4 +202,3 @@ class DashBoardManger:
             "x_label": f"最近{len(dt_list)}天",
             "y_label": "人",
         }
-        return bar_config
