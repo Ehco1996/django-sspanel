@@ -1,4 +1,4 @@
-Django==3.1.7
+Django==3.2
 django-anymail==8.2
 django-countries==7.1
 django-prometheus==2.1.0
