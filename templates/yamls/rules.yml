@@ -167,6 +167,7 @@ rules:
   - DOMAIN-SUFFIX,zhimg.com,DIRECT
   - DOMAIN-SUFFIX,zimuzu.tv,DIRECT
   - DOMAIN-SUFFIX,zoho.com,DIRECT
+  - DOMAIN,boss.cnwangjie.com,DIRECT
 
   # 抗 DNS 污染
   - DOMAIN-KEYWORD,amazon,Proxy

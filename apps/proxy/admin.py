@@ -118,17 +118,6 @@ class RelayRuleAdmin(admin.ModelAdmin):
     inlines = []
 
 
-class SSConfigAdmin(admin.ModelAdmin):
-
-    list_display = [
-        "proxy_node",
-        "method",
-        "multi_user_port",
-    ]
-    search_fields = []
-    list_filter = []
-
-
 class NodeOnlineLogAdmin(admin.ModelAdmin):
     list_display = [
         "proxy_node",
@@ -180,8 +169,6 @@ class UserOnLineIpLogAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(models.ProxyNode, ProxyNodeAdmin)
-admin.site.register(models.SSConfig, SSConfigAdmin)
-
 admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.RelayRule, RelayRuleAdmin)
 
