@@ -1,10 +1,10 @@
 .PHONY: setup update fmt
 
 setup:
-	pip install -r requirements.txt
+	poetry install
 
 update:
-	pip-upgrade
+	poetry update
 
 fmt:
 	autoflake --recursive --remove-all-unused-imports --in-place . && isort . && black .
