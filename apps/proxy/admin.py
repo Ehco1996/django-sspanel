@@ -114,7 +114,7 @@ class RelayRuleAdmin(admin.ModelAdmin):
         "enable",
     ]
     search_fields = []
-    list_filter = ["proxy_node", "relay_node"]
+    list_filter = ["relay_node", "proxy_node"]
     inlines = []
 
 

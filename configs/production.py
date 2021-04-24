@@ -1,3 +1,3 @@
-from configs.default import *  # noqa
+from configs.development import DEBUG
 
 DEBUG = False

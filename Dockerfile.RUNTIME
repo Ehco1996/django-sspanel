@@ -1,4 +1,6 @@
-FROM python:3.8-alpine as base
+FROM ehco1996/django-sspanel:runtime as base
+# NOTE comment the before line and  uncomment the next line only when bump python version
+# FROM python:3.8-alpine as base
 
 LABEL Name=django-sspanel
 

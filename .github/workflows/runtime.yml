@@ -15,7 +15,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "runtime"
-          dockerfile: Dockerfile
+          dockerfile: Dockerfile.RUNTIME
       - name: build nginx imgae
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
