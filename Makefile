@@ -1,4 +1,4 @@
-.PHONY: setup update fmt
+.PHONY: setup update fmt check
 
 setup:
 	poetry install
@@ -8,3 +8,7 @@ update:
 
 fmt:
 	autoflake --recursive --remove-all-unused-imports --in-place . && isort . && black .
+
+check:
+	isort --check .
+	black  --check .

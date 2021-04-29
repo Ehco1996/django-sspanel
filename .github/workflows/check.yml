@@ -1,0 +1,19 @@
+name: Check Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: run make check
+        uses: golangci/golangci-lint-action@v2
+        env:
+          DJANGO_ENV: ci
+        run: make check
