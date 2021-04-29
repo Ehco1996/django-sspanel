@@ -2,8 +2,8 @@ name: code
 on:
   push:
     branches:
-      - dev
       - master
+      - dev
 jobs:
   build-code:
     runs-on: ubuntu-latest
