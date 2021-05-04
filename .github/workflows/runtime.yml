@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+
       - name: build runtime image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -16,6 +17,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "runtime"
           dockerfile: deploy/Dockerfile.RUNTIME
+
       - name: build nginx image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -24,6 +26,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "nginx"
           dockerfile: deploy/Dockerfile.NGINX
+
       - name: build debug runtime
         uses: elgohr/Publish-Docker-Github-Action@master
         with:

@@ -1,4 +1,4 @@
-FROM ehco1996/django-sspanel:runtime as runtime
+FROM ehco1996/django-sspanel:debug-runtime
 
 WORKDIR /src/django-sspanel
 

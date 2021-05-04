@@ -11,9 +11,10 @@ COPY pyproject.toml poetry.lock /tmp/
 RUN apk add --update --no-cache mariadb-connector-c-dev tzdata \
 	&& apk add --no-cache --virtual .build-deps mariadb-dev gcc musl-dev libffi-dev make \
 	# TODO workaround start
+	&& pip install --upgrade pip \
 	&& pip install --no-cache-dir poetry \
     && poetry config virtualenvs.create false \
-    && poetry install  --no-interaction --no-ansi \
+    && poetry install \
 	# TODO workaround end
 	&& apk del .build-deps \
 	&& cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
