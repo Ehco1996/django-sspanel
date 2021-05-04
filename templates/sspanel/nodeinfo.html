@@ -1,6 +1,6 @@
 {% extends 'base.html' %} {% block main %}
 <div class="column is-12">
-    <section class="hero is-success is-smaill">
+    <section class="hero is-success is-small">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
@@ -45,94 +45,99 @@
                     <div class="card-content">
                         <div class="content">
                             <p>{{ node.info }}</p>
-                            <p>流量倍率：<code>{{ node.enlarge_scale }}</code></p>
                         </div>
                     </div>
                     <div class="card-footer">
-                        <a class="card-footer-item modal-button" id="id-button-qrcode-{{ node.id }}"
-                            data-target="modal-qrcode-{{node.id }}-{{ node.name }}">二维码</a>
                         <a class="card-footer-item modal-button" data-target="modal-config-{{ node.id }}">配置</a>
-                        <a class="card-footer-item">
-                            <span class="icon">
-                                <i class="fa fa-user">「{{ node.online_user_count }}/{{node.tcp_connections_count}}」</i>
+                        <div class="card-footer-item">
+                            <span class="icon text">
+                                <span class="icon">
+                                    <i class="fa fa-user"></i>
+                                </span>
+                                <span>「{{node.online_user_count}}/{{node.tcp_connections_count}}」</span>
                             </span>
-                        </a>
+                        </div>
                     </div>
                     <!--配置部分 -->
                     <div class="modal nodeinfo" id="modal-config-{{ node.id }}">
                         <div class="modal-background"></div>
                         <div class="modal-card">
                             <header class="modal-card-head">
-                                <p class="modal-card-title">节点配置信息:</p>
+                                <p class="modal-card-title"><code>{{ node.name }}</code>配置信息:</p>
                                 <button class="delete"></button>
                             </header>
                             <section class="modal-card-body">
-                                <table class="table is-fullwidth is-bordered is-striped ">
-                                    {% if node.enable_relay %}
-                                    {% for rule in node.relay_rules %}
-                                    <tr>
-                                        <td class="notification is-info">节点地址 - {{ rule.remark }}:</td>
-                                        <td class="notification">{{ rule.relay_host }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="notification">端口:</td>
-                                        <td class="notification">{{ rule.relay_port }}</td>
-                                    </tr>
-                                    {% endfor%}
-                                    {% else %}
-                                    <tr>
-                                        <td class="notification">节点地址:</td>
-                                        <td class="notification">{{ node.server }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="notification">端口:</td>
-                                        <td class="notification">{{ node.ss_port }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    <tr>
-                                        <td class="notification">密码:</td>
-                                        <td class="notification">{{ node.ss_password }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="notification">加密方式:</td>
-                                        <td class="notification">{{ node.method }}</td>
-                                    </tr>
-                                </table>
                                 {% if node.enable_relay %}
                                 {% for rule in node.relay_rules %}
-                                <p class="subtitle">配置链接 - {{ rule.remark }}：</p>
-                                <a href={{ rule.relay_link }}>手机上用默认浏览器打开点我就可以直接添加配置</a>
-                                <hr>
-                                {% endfor%}
-                                {% else %}
-                                <p class="subtitle">配置链接：</p>
-                                <a href={{ node.node_link }}>手机上用默认浏览器打开点我就可以直接添加配置</a>
-                                {% endif %}
-                            </section>
-                        </div>
-                    </div>
-                    <!--二维码部分 -->
-                    <div class="modal" id="modal-qrcode-{{node.id }}-{{ node.name }}">
-                        <div class="modal-background"></div>
-                        <div class="modal-card">
-                            <header class="modal-card-head">
-                                <p class="modal-card-title">节点:
-                                    <strong>{{ node.name }}</strong> 配置二维码</p>
-                                <button class="delete" aria-label="close"></button>
-                            </header>
-                            <section class="modal-card-body">
-                                <div class="box">
-                                    {% if node.enable_relay %}
-                                    {% for rule in node.relay_rules %}
-                                    <p class="subtitle">{{ rule.remark }}:</p>
-                                    <div class="qr-code-{{ node.id }}" data-node_link={{ rule.relay_link }}>
-                                    </div>
-                                    <hr>
-                                    {% endfor%}
-                                    {% else %}
-                                    <div class="qr-code-{{ node.id }}" data-node_link={{ node.node_link }}></div>
-                                    {% endif %}
+                                <div class="tags">
+                                    <span class="tag is-info is-light">{{ rule.remark }}</span>
+                                    <span class="tag is-success is-light">{{ node.enlarge_scale }}倍率</span>
+                                    <span class="tag"><i class="flag-icon flag-icon-{{ node.country }}"></i></span>
                                 </div>
+                                <div class="columns">
+                                    <div class="column is-three-quarters">
+                                        <table class="table is-fullwidth is-bordered is-striped">
+                                            <tr>
+                                                <td>连接地址:</td>
+                                                <td>{{ rule.relay_host }}:{{ rule.relay_port }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>密码:</td>
+                                                <td>{{ node.ss_password }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>加密方式:</td>
+                                                <td>{{ node.method }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>配置链接:</td>
+                                                <td><a href={{ rule.relay_link }}>点击即可直接配置客户端</a></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="column">
+                                        <span class="tag is-danger is-light">配置二维码</span>
+                                        <div class="qr-code-new-{{ node.id }}" data-node_link={{rule.relay_link}}>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+
+                                {% if node.enable_direct %}
+                                <div class="tags">
+                                    <span class="tag is-info is-light">{{ node.name }}</span>
+                                    <span class="tag is-success is-light">{{ node.enlarge_scale }}倍率</span>
+                                    <span class="tag"><i class="flag-icon flag-icon-{{ node.country }}"></i></span>
+                                </div>
+                                <div class="columns">
+                                    <div class="column is-three-quarters">
+                                        <table class="table is-fullwidth is-bordered is-striped">
+                                            <tr>
+                                                <td>连接地址:</td>
+                                                <td>{{ node.multi_server_address.0 }}:{{ node.ss_port }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>密码:</td>
+                                                <td>{{ node.ss_password }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>加密方式:</td>
+                                                <td>{{ node.method }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>配置链接:</td>
+                                                <td><a href={{ node.node_link }}>点击即可直接配置客户端</a></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="column">
+                                        <span class="tag is-danger is-light">配置二维码</span>
+                                        <div class="qr-code-new-{{ node.id }}" data-node_link={{node.node_link}}>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </section>
                         </div>
                     </div>
@@ -143,7 +148,8 @@
                         <article class="message is-danger">
                             <div class="message-body">
                                 <p>该线路为VIP线路
-                                    <strong>购买对应商品 提升至等级:「{{node.level}}」后</strong> 才能看见节点配置哟！</p>
+                                    <strong>购买对应商品 提升至等级:「{{node.level}}」后</strong> 才能看见节点配置哟！
+                                </p>
                                 <a class="is-link" href="{% url 'sspanel:shop' %}">点我购买！</a>
                             </div>
                         </article>
@@ -185,10 +191,17 @@
         var node = target.closest('.node-cell')
         // 找到节点id
         var node_id = node.data('id')
-        node.find(`.qr-code-${node_id}`).each(function (idx, instance) {
+        node.find(`.qr-code-new-${node_id}`).each(function (idx, instance) {
             instance = $(instance)
             if (instance.children().length == 0) {
-                instance.qrcode(toUtf8(instance.data("node_link")))
+                console.log(instance.data("node_link"))
+                instance.qrcode(
+                    {
+                        text: toUtf8(instance.data("node_link")),
+                        width: 128,
+                        height: 128,
+                    }
+                )
             }
         })
     })

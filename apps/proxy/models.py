@@ -26,6 +26,7 @@ class BaseNodeModel(BaseModel):
 
     @property
     def multi_server_address(self):
+        # TODO 单节点支持多入口
         return self.server.split(",")
 
 
@@ -56,6 +57,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         decimal_places=1,
         max_digits=10,
     )
+    enable_direct = models.BooleanField("允许直连", default=True)
 
     ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
     ehco_listen_port = models.CharField("隧道监听端口", max_length=64, blank=True, null=True)
@@ -65,6 +67,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     ehco_transport_type = models.CharField(
         "隧道传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
     )
+
+
 
     class Meta:
         verbose_name = "代理节点"
@@ -192,6 +196,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         data["country"] = self.country.lower()
         data["ss_password"] = user.ss_password
         data["node_link"] = self.get_user_node_link(user)
+        data["multi_server_address"] = self.multi_server_address
 
         # NOTE ss only section
         if self.node_type == self.NODE_TYPE_SS:

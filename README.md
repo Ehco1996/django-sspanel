@@ -64,7 +64,11 @@
 
 * 节点信息：
 
-![节点信息：](https://user-images.githubusercontent.com/24697284/106535019-424b5180-6530-11eb-90ea-46560b6d232d.png)
+![节点信息](https://user-images.githubusercontent.com/24697284/116970843-3e73ca80-aceb-11eb-8132-ca7b002c4b04.png)
+
+* 节点配置：
+
+![节点配置](https://user-images.githubusercontent.com/24697284/116970833-3ae04380-aceb-11eb-9e51-dff8f4b200cd.png)
 
 * 流量查询:
 
