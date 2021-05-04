@@ -4,7 +4,7 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/ehco1996/django-sspanel/badge)](https://www.codefactor.io/repository/github/ehco1996/django-sspanel)
 [![simpleui](https://img.shields.io/badge/developing%20with-Simpleui-2077ff.svg)](https://github.com/newpanjing/simpleui)
-![check](https://github.com/Ehco1996/django-sspanel/actions/workflows/check.yml/badge.svg)
+![check](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml/badge.svg)
 ![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml/badge.svg)
 
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
