@@ -68,8 +68,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         "隧道传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
     )
 
-
-
     class Meta:
         verbose_name = "代理节点"
         verbose_name_plural = "代理节点"
