@@ -1,4 +1,5 @@
 import pendulum
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.utils.decorators import method_decorator
@@ -15,6 +16,7 @@ from apps.tianyi import DashBoardManger
 from apps.utils import (
     api_authorized,
     gen_datetime_list,
+    get_client_ip,
     get_current_datetime,
     handle_json_post,
     traffic_format,
@@ -177,12 +179,27 @@ class OrderView(View):
     def post(self, request):
         try:
             amount = int(request.POST.get("num"))
-            if amount < 1 or amount > 99999:
+            if amount < 1:
                 raise ValueError
         except ValueError:
             return JsonResponse(
-                {"info": {"title": "失败", "subtitle": "请保证金额正确", "status": "error"}},
+                {"info": {"title": "校验失败", "subtitle": "请保证金额正确", "status": "error"}},
             )
+
+        if settings.CHECK_PAY_REQ_IP_FROM_CN:
+            from ipicn import is_in_china
+
+            if not is_in_china(get_client_ip(request)):
+                return JsonResponse(
+                    {
+                        "info": {
+                            "title": "校验失败",
+                            "subtitle": "支付时请不要使用代理软件",
+                            "status": "error",
+                        }
+                    }
+                )
+
         order = UserOrder.get_or_create_order(request.user, amount)
         info = {
             "title": "请求成功！",

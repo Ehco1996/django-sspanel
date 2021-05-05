@@ -162,12 +162,14 @@
             }
             requestButton.attr("disabled", "disabled")
             $.post(url, data, function (results) {
-                codeBox.attr('class', '')
-                // 追加二维码图片
                 info = results.info
-                qrcode_url = results.qrcode_url
-                $("#id-qrcode-canvas").qrcode(qrcode_url)
                 swal(info.title, info.subtitle, info.status)
+                if (info.status == "success") {
+                    // 追加二维码图片
+                    codeBox.attr('class', '')
+                    qrcode_url = results.qrcode_url
+                    $("#id-qrcode-canvas").qrcode(qrcode_url)
+                }
             })
         } else {
             swal('抱歉~', '最少捐赠一元', 'error')
