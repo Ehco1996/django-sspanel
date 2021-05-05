@@ -4,7 +4,7 @@ import os
 USE_ALIPAY = bool(os.getenv("USE_ALIPAY"))
 
 # 是否过滤非大陆的支付请求
-CHECK_PAY_REQ_IP_FROM_CN = bool(os.getenv("CHECK_PAY_REQ_IP_FROM_CN "))
+CHECK_PAY_REQ_IP_FROM_CN = bool(os.getenv("CHECK_PAY_REQ_IP_FROM_CN"))
 
 # 支付宝APP_ID
 ALIPAY_APP_ID = os.getenv("ALIPAY_APP_ID", "")

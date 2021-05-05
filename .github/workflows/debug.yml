@@ -4,9 +4,10 @@ on:
     branches:
       - debug
 jobs:
-  build-code:
+  build-debug-code:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@master
       - name: build debug code image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
