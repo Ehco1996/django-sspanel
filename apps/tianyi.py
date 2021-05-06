@@ -87,7 +87,7 @@ class DashBoardManger:
 
         def gen_doughnut_config():
             user_status = [
-                pm.NodeOnlineLog.get_all_node_online_user_count(),
+                pm.UserTrafficLog.get_all_node_online_user_count(),
                 sm.User.get_today_register_user().count(),
                 sm.UserCheckInLog.get_checkin_user_count(
                     utils.get_current_datetime().date()

@@ -44,17 +44,19 @@
         <table class="table is-fullwidth">
             <thead>
                 <tr>
-                    <th>节点ID</th>
-                    <th>用户ID</th>
-                    <th>IP地址</th>
+                    <th>节点</th>
+                    <th>用户</th>
+                    <th>IP列表</th>
+                    <th>链接数</th>
                     <th>时间</th>
                 </tr>
             </thead>
             {% for contact in contacts %}
             <tr>
-                <td>{{ contact.node_id }}</td>
-                <td>{{ contact.user_id }}</td>
-                <td>{{ contact.ip }}</td>
+                <td>{{ contact.proxy_node }}</td>
+                <td>{{ contact.user }}</td>
+                <td>{{ contact.ip_list }}</td>
+                <td>{{ contact.tcp_conn_cnt }}</td>
                 <td>{{ contact.created_at }}</td>
             </tr>
             {% empty %}

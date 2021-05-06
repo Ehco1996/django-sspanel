@@ -10,7 +10,7 @@ from django.views import View
 from apps import utils
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.proxy.models import NodeOnlineLog, ProxyNode, UserOnLineIpLog
+from apps.proxy.models import ProxyNode, UserTrafficLog
 from apps.sspanel.forms import AnnoForm, GoodsForm, UserForm
 from apps.sspanel.models import (
     Announcement,
@@ -37,15 +37,6 @@ class NodeDeleteView(StaffRequiredMixin, View):
         node and node.delete()
         messages.success(request, "成功啦", extra_tags="删除节点")
         return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
-
-
-class UserOnlineIpLogView(StaffRequiredMixin, View):
-    def get(self, request):
-        data = []
-        for node in ProxyNode.get_active_nodes():
-            data.extend(UserOnLineIpLog.get_recent_log_by_node_id(node))
-        context = PageListView(request, data).get_page_context()
-        return render(request, "my_admin/user_online_ip_log.html", context=context)
 
 
 class UserListView(StaffRequiredMixin, View):
@@ -107,7 +98,7 @@ class UserStatusView(StaffRequiredMixin, View):
 
         context = {
             "total_user_num": User.get_total_user_num(),
-            "alive_user_count": NodeOnlineLog.get_all_node_online_user_count(),
+            "alive_user_count": UserTrafficLog.get_all_node_online_user_count(),
             "today_checked_user_count": UserCheckInLog.get_checkin_user_count(
                 utils.get_current_datetime().date()
             ),
