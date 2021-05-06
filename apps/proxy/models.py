@@ -190,7 +190,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
-        data.update(NodeOnlineLog.get_latest_online_log_info(self))
+        data.update(UserTrafficLog.get_latest_online_log_info(self))
         data["country"] = self.country.lower()
         data["ss_password"] = user.ss_password
         data["node_link"] = self.get_user_node_link(user)
@@ -243,7 +243,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     @cached_property
     def online_info(self):
-        return NodeOnlineLog.get_latest_online_log_info(self.id)
+        return UserTrafficLog.get_latest_online_log_info(self)
 
     @cached_property
     def enable_relay(self):
@@ -394,73 +394,21 @@ class RelayRule(BaseModel):
         return name
 
 
-class NodeOnlineLog(BaseLogModel):
-
-    proxy_node = models.ForeignKey(
-        ProxyNode,
-        on_delete=models.CASCADE,
-        verbose_name="代理节点",
-    )
-    online_user_count = models.IntegerField(default=0, verbose_name="用户数")
-    tcp_connections_count = models.IntegerField(default=0, verbose_name="tcp链接数")
-
-    class Meta:
-        verbose_name = "节点在线记录"
-        verbose_name_plural = "节点在线记录"
-        ordering = ["-created_at"]
-        index_together = ["proxy_node", "created_at"]
-
-    def __str__(self) -> str:
-        return f"{self.proxy_node.name}节点在线记录"
-
-    @classmethod
-    def add_log(cls, proxy_node, online_user_count, tcp_connections_count=0):
-        return cls.objects.create(
-            proxy_node=proxy_node,
-            online_user_count=online_user_count,
-            tcp_connections_count=tcp_connections_count,
-        )
-
-    @classmethod
-    def get_latest_log(cls, proxy_node):
-        return cls.objects.filter(proxy_node=proxy_node).order_by("-created_at").first()
-
-    @classmethod
-    def get_latest_online_log_info(cls, proxy_node):
-        data = {"online": False, "online_user_count": 0, "tcp_connections_count": 0}
-        log = cls.get_latest_log(proxy_node)
-        if log and log.online:
-            data["online"] = log.online
-            data.update(model_to_dict(log))
-        return data
-
-    @classmethod
-    def get_all_node_online_user_count(cls):
-        count = 0
-        for node in ProxyNode.get_active_nodes():
-            log = cls.get_latest_log(node.id)
-            if log and log.online:
-                count += log.online_user_count
-        return count
-
-    @property
-    def online(self):
-        return (
-            utils.get_current_datetime().subtract(seconds=c.NODE_TIME_OUT)
-            < self.created_at
-        )
-
-
 class UserTrafficLog(BaseLogModel):
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    user = models.ForeignKey(
+        User, on_delete=models.DO_NOTHING, verbose_name="用户", null=True
+    )
     proxy_node = models.ForeignKey(
         ProxyNode,
-        on_delete=models.CASCADE,
+        on_delete=models.DO_NOTHING,
         verbose_name="代理节点",
     )
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
+
+    tcp_conn_cnt = models.IntegerField(default=0, verbose_name="tcp链接数")
+    ip_list = models.JSONField(verbose_name="IP地址列表", default=list)
 
     class Meta:
         verbose_name = "用户流量记录"
@@ -470,6 +418,46 @@ class UserTrafficLog(BaseLogModel):
 
     def __str__(self) -> str:
         return f"用户流量记录:{self.id}"
+
+    @classmethod
+    def get_user_online_device_count(cls, user, minutes=10):
+        """获取最近一段时间内用户在线设备数量"""
+        now = utils.get_current_datetime()
+        ips = set()
+        for log in cls.objects.filter(
+            user=user, created_at__range=[now.add(minutes=minutes * -1), now]
+        ).values("ip_list"):
+            ips.update(log["ip_list"])
+        return len(ips)
+
+    @classmethod
+    def get_all_node_online_user_count(cls):
+        now = utils.get_current_datetime()
+        return (
+            cls.objects.filter(
+                created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now]
+            )
+            .values("user")
+            .count()
+        )
+
+    @classmethod
+    def get_latest_online_log_info(cls, proxy_node):
+        data = {"online": False, "online_user_count": 0, "tcp_conn_cnt": 0}
+        now = utils.get_current_datetime()
+        query = cls.objects.filter(
+            proxy_node=proxy_node,
+            created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
+        )
+        data["online"] = query.exists()
+        if data["online"]:
+            data["online_user_count"] = (
+                query.filter(user__isnull=False).values("user").distinct().count()
+            )
+            data["tcp_conn_cnt"] = query.aggregate(cnt=models.Sum("tcp_conn_cnt"))[
+                "cnt"
+            ]
+        return data
 
     @classmethod
     def calc_user_total_traffic(cls, proxy_node, user_id):
@@ -537,50 +525,3 @@ class UserTrafficLog(BaseLogModel):
     @property
     def total_traffic(self):
         return utils.traffic_format(self.download_traffic + self.upload_traffic)
-
-
-class UserOnLineIpLog(BaseLogModel):
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
-    proxy_node = models.ForeignKey(
-        ProxyNode,
-        on_delete=models.CASCADE,
-        verbose_name="代理节点",
-    )
-    ip = models.CharField(max_length=128, verbose_name="IP地址")
-
-    class Meta:
-        verbose_name = "用户在线IP记录"
-        verbose_name_plural = "用户在线IP记录"
-        ordering = ["-created_at"]
-        index_together = ["user", "proxy_node", "created_at"]
-
-    def __str__(self) -> str:
-        return f"{self.proxy_node.name}用户在线IP记录"
-
-    @classmethod
-    def get_recent_log_by_node_id(cls, proxy_node):
-        # TODO 优化一下IP的存储方式
-        now = utils.get_current_datetime()
-        ip_set = set()
-        ret = []
-        for log in cls.objects.filter(
-            proxy_node=proxy_node,
-            created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
-        ):
-            if log.ip not in ip_set:
-                ret.append(log)
-            ip_set.add(log.ip)
-        return ret
-
-    @classmethod
-    def get_user_online_device_count(cls, user, minutes=10):
-        """获取最近一段时间内用户在线设备数量"""
-        now = utils.get_current_datetime()
-        ips = {
-            data["ip"]
-            for data in cls.objects.filter(
-                user=user, created_at__range=[now.add(minutes=minutes * -1), now]
-            ).values("ip")
-        }
-        return len(ips)

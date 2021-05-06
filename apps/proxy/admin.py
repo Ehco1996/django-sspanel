@@ -118,22 +118,13 @@ class RelayRuleAdmin(admin.ModelAdmin):
     inlines = []
 
 
-class NodeOnlineLogAdmin(admin.ModelAdmin):
-    list_display = [
-        "proxy_node",
-        "online_user_count",
-        "tcp_connections_count",
-        "created_at",
-    ]
-    list_filter = ["proxy_node"]
-    list_select_related = ["proxy_node"]
-
-
 class UserTrafficLogAdmin(admin.ModelAdmin):
     list_display = [
         "username",
         "nodename",
         "total_traffic",
+        "tcp_conn_cnt",
+        "ip_list",
         "created_at",
     ]
     search_fields = ["user__username"]
@@ -155,23 +146,9 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
     total_traffic.short_description = "流量"
 
 
-class UserOnLineIpLogAdmin(admin.ModelAdmin):
-    list_display = [
-        "user",
-        "proxy_node",
-        "ip",
-    ]
-    search_fields = ["ip"]
-    list_filter = ["user", "proxy_node"]
-    list_per_page = 10
-    show_full_result_count = False
-
-
 # Register your models here.
 admin.site.register(models.ProxyNode, ProxyNodeAdmin)
 admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.RelayRule, RelayRuleAdmin)
 
-admin.site.register(models.NodeOnlineLog, NodeOnlineLogAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
-admin.site.register(models.UserOnLineIpLog, UserOnLineIpLogAdmin)

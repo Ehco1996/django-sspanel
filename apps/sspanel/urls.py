@@ -16,7 +16,9 @@ urlpatterns = [
     path("logout/", views.UserLogOutView.as_view(), name="logout"),
     # 节点
     path("nodeinfo/", views.NodeInfoView.as_view(), name="nodeinfo"),
-    path("user_traffic_log/", views.UserTrafficLog.as_view(), name="user_traffic_log"),
+    path(
+        "user_traffic_log/", views.UserTrafficLogView.as_view(), name="user_traffic_log"
+    ),
     # 用户信息
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
     # 捐赠/充值
@@ -40,11 +42,6 @@ urlpatterns = [
     # ====================================================================
     # 网站后台界面
     # ====================================================================
-    path(
-        "my_admin/user_online_ip_log/",
-        admin_views.UserOnlineIpLogView.as_view(),
-        name="user_online_ip_log",
-    ),
     path("my_admin/", admin_views.SystemStatusView.as_view(), name="system_status"),
     # 邀请码相关
     path("my_admin/invite/", admin_views.InviteCodeView.as_view(), name="admin_invite"),
