@@ -32,7 +32,6 @@ def sync_user_traffic_task(node_id, data):
     log_time = get_current_datetime()
     user_model_list = []
     trafficlog_model_list = []
-
     for user_data in data:
         user_id = user_data["user_id"]
         u = int(user_data["upload_traffic"] * node.enlarge_scale)
@@ -57,6 +56,9 @@ def sync_user_traffic_task(node_id, data):
         # 节点流量增量
         node_total_traffic += u + d
 
+    if not data:
+        # NOTE add blank log to show node is online
+        trafficlog_model_list.append(UserTrafficLog(proxy_node=node))
     # 节点流量记录
     node.used_traffic += node_total_traffic
     if node.overflow:

@@ -190,7 +190,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     def to_dict_with_extra_info(self, user):
         data = model_to_dict(self)
-        data.update(NodeOnlineLog.get_latest_online_log_info(self))
+        data.update(UserTrafficLog.get_latest_online_log_info(self))
         data["country"] = self.country.lower()
         data["ss_password"] = user.ss_password
         data["node_link"] = self.get_user_node_link(user)
@@ -243,7 +243,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     @cached_property
     def online_info(self):
-        return NodeOnlineLog.get_latest_online_log_info(self.id)
+        return UserTrafficLog.get_latest_online_log_info(self)
 
     @cached_property
     def enable_relay(self):
@@ -394,57 +394,11 @@ class RelayRule(BaseModel):
         return name
 
 
-class NodeOnlineLog(BaseLogModel):
-
-    proxy_node = models.ForeignKey(
-        ProxyNode,
-        on_delete=models.CASCADE,
-        verbose_name="代理节点",
-    )
-    online_user_count = models.IntegerField(default=0, verbose_name="用户数")
-    tcp_connections_count = models.IntegerField(default=0, verbose_name="tcp链接数")
-
-    class Meta:
-        verbose_name = "节点在线记录"
-        verbose_name_plural = "节点在线记录"
-        ordering = ["-created_at"]
-        index_together = ["proxy_node", "created_at"]
-
-    def __str__(self) -> str:
-        return f"{self.proxy_node.name}节点在线记录"
-
-    @classmethod
-    def add_log(cls, proxy_node, online_user_count, tcp_connections_count=0):
-        return cls.objects.create(
-            proxy_node=proxy_node,
-            online_user_count=online_user_count,
-            tcp_connections_count=tcp_connections_count,
-        )
-
-    @classmethod
-    def get_latest_log(cls, proxy_node):
-        return cls.objects.filter(proxy_node=proxy_node).order_by("-created_at").first()
-
-    @classmethod
-    def get_latest_online_log_info(cls, proxy_node):
-        data = {"online": False, "online_user_count": 0, "tcp_connections_count": 0}
-        log = cls.get_latest_log(proxy_node)
-        if log and log.online:
-            data["online"] = log.online
-            data.update(model_to_dict(log))
-        return data
-
-    @property
-    def online(self):
-        return (
-            utils.get_current_datetime().subtract(seconds=c.NODE_TIME_OUT)
-            < self.created_at
-        )
-
-
 class UserTrafficLog(BaseLogModel):
 
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="用户")
+    user = models.ForeignKey(
+        User, on_delete=models.DO_NOTHING, verbose_name="用户", null=True
+    )
     proxy_node = models.ForeignKey(
         ProxyNode,
         on_delete=models.DO_NOTHING,
@@ -489,12 +443,20 @@ class UserTrafficLog(BaseLogModel):
 
     @classmethod
     def get_latest_online_log_info(cls, proxy_node):
-        # TODO(ehco): fix here
         data = {"online": False, "online_user_count": 0, "tcp_conn_cnt": 0}
-        log = cls.get_latest_log(proxy_node)
-        if log and log.online:
-            data["online"] = log.online
-            data.update(model_to_dict(log))
+        now = utils.get_current_datetime()
+        query = cls.objects.filter(
+            proxy_node=proxy_node,
+            created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
+        )
+        data["online"] = query.exists()
+        if data["online"]:
+            data["online_user_count"] = (
+                query.filter(user__isnull=False).values("user").distinct().count()
+            )
+            data["tcp_conn_cnt"] = query.aggregate(cnt=models.Sum("tcp_conn_cnt"))[
+                "cnt"
+            ]
         return data
 
     @classmethod
