@@ -288,7 +288,7 @@ amazon_ses = ["boto3"]
 
 [[package]]
 name = "django-countries"
-version = "7.1"
+version = "7.2"
 description = "Provides a country field for Django models."
 category = "main"
 optional = false
@@ -754,7 +754,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "9dabe45b89108ecdbcfe3f5fe591e83236d9efa7aee2f3202d8aa00f0d37004b"
+content-hash = "a42932e62f1507785e6599629174197c052133da066b0342809279519bf7260c"
 
 [metadata.files]
 aiohttp = [
@@ -915,8 +915,8 @@ django-anymail = [
     {file = "django_anymail-8.2-py3-none-any.whl", hash = "sha256:e011c582e771ce3970480c10d1e129ac036ba773e37ec56780a79776534b2ba6"},
 ]
 django-countries = [
-    {file = "django-countries-7.1.tar.gz", hash = "sha256:058e3cd82705ebf8ef680fb623b1da2d47bc03b816a71589a8279d2e5a7a5389"},
-    {file = "django_countries-7.1-py3-none-any.whl", hash = "sha256:94170e99465f7ea504da828c8e64f36d94440a86907fc8ecb56c5336aafae0cd"},
+    {file = "django-countries-7.2.tar.gz", hash = "sha256:86aad1bac149e6037772c8b1a38c1204b92ae051efee97ac604363867fbf9e34"},
+    {file = "django_countries-7.2-py3-none-any.whl", hash = "sha256:434bc31c510a27bdb7ecf9297bad8580f83fc6e14eb93b0c650c79a38f0261bf"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-3.2.1.tar.gz", hash = "sha256:a5ff2a54f24bf88286f9872836081078f4baa843dc3735ee88524e89f8821e33"},
