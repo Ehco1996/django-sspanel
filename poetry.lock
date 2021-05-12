@@ -325,7 +325,7 @@ prometheus-client = ">=0.7"
 
 [[package]]
 name = "django-simpleui"
-version = "2021.4.3"
+version = "2021.5.11"
 description = "django admin theme 后台模板"
 category = "main"
 optional = false
@@ -754,7 +754,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "9dabe45b89108ecdbcfe3f5fe591e83236d9efa7aee2f3202d8aa00f0d37004b"
+content-hash = "eacd2081564352c6d0b037d57f93bf29139375cef1094f51b8dbdc7f74660979"
 
 [metadata.files]
 aiohttp = [
@@ -927,7 +927,7 @@ django-prometheus = [
     {file = "django_prometheus-2.1.0-py2.py3-none-any.whl", hash = "sha256:c338d6efde1ca336e90c540b5e87afe9287d7bcc82d651a778f302b0be17a933"},
 ]
 django-simpleui = [
-    {file = "django-simpleui-2021.4.3.tar.gz", hash = "sha256:6ca6d45713693e22329214b00343493a06732d42592abe05e951747a4b108d4f"},
+    {file = "django-simpleui-2021.5.11.tar.gz", hash = "sha256:5297426de562ea5809abd8ca8c6bd49abbe2ce1e481ab80c11411ad4f62beacc"},
 ]
 geoip2 = [
     {file = "geoip2-4.1.0-py2.py3-none-any.whl", hash = "sha256:707025542ef076bd8fd80e97138bebdb7812527b2a007d141a27ad98b0370fff"},
