@@ -57,13 +57,15 @@ class UserSettingsView(View):
 
 class SubscribeView(View):
     def get(self, request):
-        token = request.GET.get("token")
-        if not token:
-            return HttpResponseNotFound()
-        user = User.get_or_none(encoder.string2int(token))
+        user = None
+        sub_uid = request.GET.get("sub_uid")
+        if sub_uid:
+            user = User.objects.filter(sub_uid=sub_uid).first()
+        else:
+            if request.GET.get("token"):
+                user = User.get_or_none(encoder.string2int(request.GET.get("token")))
         if not user:
             return HttpResponseNotFound()
-
         sub_type = request.GET.get("sub_type")
         sub_links = UserSubManager(user, sub_type, request).get_sub_links()
         return HttpResponse(sub_links, content_type="text/plain; charset=utf-8")
