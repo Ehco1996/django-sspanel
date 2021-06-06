@@ -58,9 +58,9 @@ class UserSettingsView(View):
 class SubscribeView(View):
     def get(self, request):
         user = None
-        sub_uid = request.GET.get("sub_uid")
-        if sub_uid:
-            user = User.objects.filter(sub_uid=sub_uid).first()
+        uid = request.GET.get("uid")
+        if uid:
+            user = User.objects.filter(uid=uid).first()
         else:
             if request.GET.get("token"):
                 user = User.get_or_none(encoder.string2int(request.GET.get("token")))

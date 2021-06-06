@@ -69,9 +69,7 @@ class User(AbstractUser):
     download_traffic = models.BigIntegerField("下载流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
     last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True, null=True)
-    sub_uid = models.CharField(
-        verbose_name="sub uuid", max_length=64, default=uuid4, unique=True
-    )
+    uid = models.UUIDField("uid", null=True, unique=True)  # NOTE 不要用用这个 uid 当主键，是有可能会变的
 
     class Meta(AbstractUser.Meta):
         verbose_name = "用户"
@@ -211,7 +209,7 @@ class User(AbstractUser):
     @property
     def sub_link(self):
         """订阅地址"""
-        params = {"sub_uid": self.sub_uid}
+        params = {"uid": self.uid}
         return settings.HOST + f"/api/subscribe/?{urlencode(params)}"
 
     @property
