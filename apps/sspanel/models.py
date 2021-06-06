@@ -115,6 +115,7 @@ class User(AbstractUser):
             user.inviter_id = inviter_id
         # 绑定uuid
         user.vmess_uuid = str(uuid4())
+        user.uid = str(uuid4())
         user.save()
         return user
 
