@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.contrib import admin
 from django.db.models import JSONField
@@ -22,18 +21,20 @@ class SSConfigInline(admin.StackedInline):
 
 class RayConfigInline(admin.StackedInline):
     model = models.RayConfig
-    formfield_overrides = {
-        JSONField: {'widget': JsonEditorWidget}
-    }
+    formfield_overrides = {JSONField: {"widget": JsonEditorWidget}}
     fields = ["proxy_node", "ray_tool", "config"]
     extra = 0
     verbose_name = "Ray配置"
 
     class Media:
         css = {
-            'all': ('https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor.min.css',)
+            "all": (
+                "https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor.min.css",
+            )
         }
-        js = ('https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor-minimalist.js',)
+        js = (
+            "https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor-minimalist.js",
+        )
 
 
 class RelayRuleInline(admin.TabularInline):
@@ -48,18 +49,18 @@ class ProxyNodeAdminForm(ModelForm):
         if "instance" in kwargs and kwargs["instance"]:
             # NOTE trans model traffic to GB
             kwargs["instance"].total_traffic = (
-                    kwargs["instance"].total_traffic // settings.GB
+                kwargs["instance"].total_traffic // settings.GB
             )
             kwargs["instance"].used_traffic = (
-                    kwargs["instance"].used_traffic // settings.GB
+                kwargs["instance"].used_traffic // settings.GB
             )
 
         super(ProxyNodeAdminForm, self).__init__(*args, **kwargs)
         self.fields["used_traffic"].help_text = (
-                self.fields["used_traffic"].help_text + "单位GB"
+            self.fields["used_traffic"].help_text + "单位GB"
         )
         self.fields["total_traffic"].help_text = (
-                self.fields["total_traffic"].help_text + "单位GB"
+            self.fields["total_traffic"].help_text + "单位GB"
         )
 
     def clean_used_traffic(self):
@@ -72,8 +73,8 @@ class ProxyNodeAdminForm(ModelForm):
 
     class Media:
         js = (
-            'https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js',
-            'js/addProxy.js',
+            "https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js",
+            "js/addProxy.js",
         )
 
 

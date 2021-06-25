@@ -9,7 +9,6 @@ from django.conf import settings
 from django.forms import Widget
 from django.http import JsonResponse
 from django.utils import timezone
-
 from django.utils.safestring import mark_safe
 from apps import constants as c
 
@@ -105,7 +104,6 @@ def get_client_ip(request):
         return request.META.get("REMOTE_ADDR")
 
 
-
 class JsonEditorWidget(Widget):
     html_template = """
     <div id='s_editor_holder' style='padding-left:170px'></div>
@@ -135,7 +133,10 @@ class JsonEditorWidget(Widget):
         if isinstance(value, str):
             value = json.loads(value)
 
-        result = self.html_template % {'name': name, 'value': json.dumps(value), }
+        result = self.html_template % {
+            "name": name,
+            "value": json.dumps(value),
+        }
         return mark_safe(result)
 
 

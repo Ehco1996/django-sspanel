@@ -87,8 +87,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             query = query.filter(level__lte=level)
         return list(
             query.select_related("ss_config")
-                .prefetch_related("relay_rules")
-                .order_by("sequence")
+            .prefetch_related("relay_rules")
+            .order_by("sequence")
         )
 
     @classmethod
@@ -101,15 +101,15 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         configs = {"users": []}
         ss_config = self.ss_config
         for user in User.objects.filter(level__gte=self.level).values(
-                "id",
-                "ss_port",
-                "ss_password",
-                "total_traffic",
-                "upload_traffic",
-                "download_traffic",
+            "id",
+            "ss_port",
+            "ss_password",
+            "total_traffic",
+            "upload_traffic",
+            "download_traffic",
         ):
             enable = self.enable and user["total_traffic"] > (
-                    user["download_traffic"] + user["upload_traffic"]
+                user["download_traffic"] + user["upload_traffic"]
             )
             if ss_config.multi_user_port:
                 # NOTE 单端口多用户
@@ -131,24 +131,26 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         configs = {
             "configs": [],
             "tag": self.ray_config.config["inbounds"][0]["tag"],
-            "grpc_endpoint": self.ray_config.config["inbounds"][1]["listen"] + ":" + self.ray_config.config["inbounds"][1]["port"],
+            "grpc_endpoint": self.ray_config.config["inbounds"][1]["listen"]
+            + ":"
+            + self.ray_config.config["inbounds"][1]["port"],
             "protocol": self.ray_config.config["inbounds"][0]["protocol"],
             "rtsignal": False,
             "ray_api_endpoint": self.ray_config.config,
-            "ray_tool": self.ray_config.ray_tool
+            "ray_tool": self.ray_config.ray_tool,
         }
         for user in User.objects.filter(level__gte=self.level).values(
-                "id",
-                "email",
-                "ss_password",
-                "level",
-                "vmess_uuid",
-                "total_traffic",
-                "upload_traffic",
-                "download_traffic",
+            "id",
+            "email",
+            "ss_password",
+            "level",
+            "vmess_uuid",
+            "total_traffic",
+            "upload_traffic",
+            "download_traffic",
         ):
             enable = self.enable and user["total_traffic"] > (
-                    user["download_traffic"] + user["upload_traffic"]
+                user["download_traffic"] + user["upload_traffic"]
             )
             if configs["protocol"] == "vmess":
                 configs["configs"].append(
@@ -172,7 +174,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                     }
                 )
         return configs
-
 
     def get_proxy_configs(self):
         if self.node_type == self.NODE_TYPE_SS:
@@ -311,7 +312,7 @@ class SSConfig(models.Model):
         primary_key=True,
         help_text="代理节点",
         verbose_name="代理节点",
-        limit_choices_to={'node_type': ProxyNode.NODE_TYPE_SS}
+        limit_choices_to={"node_type": ProxyNode.NODE_TYPE_SS},
     )
     method = models.CharField(
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
@@ -523,8 +524,8 @@ class UserTrafficLog(BaseLogModel):
     def _get_active_user_count_by_datetime(cls, dt: pendulum.DateTime):
         qs = (
             cls.objects.filter(created_at__range=[dt.start_of("day"), dt.end_of("day")])
-                .values("user_id")
-                .distinct()
+            .values("user_id")
+            .distinct()
         )
         return qs.count()
 
@@ -555,7 +556,7 @@ class UserTrafficLog(BaseLogModel):
 
     @classmethod
     def calc_traffic_by_datetime(
-            cls, dt: pendulum.DateTime, user_id=None, proxy_node=None
+        cls, dt: pendulum.DateTime, user_id=None, proxy_node=None
     ):
         """获取指定日期指定用户的流量,只有今天的数据会hit db"""
         if dt.date() == utils.get_current_datetime().date():

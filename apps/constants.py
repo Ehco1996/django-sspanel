@@ -88,27 +88,11 @@ CACHE_TTL_MONTH = CACHE_TTL_DAY * 31
 
 DEFAULT_RAY_CONFIG = {
     "stats": {},
-    "api": {
-        "tag": "api",
-        "services": [
-            "HandlerService",
-            "StatsService"
-        ]
-    },
-    "log": {
-        "loglevel": "info"
-    },
+    "api": {"tag": "api", "services": ["HandlerService", "StatsService"]},
+    "log": {"loglevel": "info"},
     "policy": {
-        "system": {
-            "statsInboundUplink": True,
-            "statsInboundDownlink": True
-        },
-        "levels": {
-            "1": {
-                "statsUserUplink": True,
-                "statsUserDownlink": True
-            }
-        }
+        "system": {"statsInboundUplink": True, "statsInboundDownlink": True},
+        "levels": {"1": {"statsUserUplink": True, "statsUserDownlink": True}},
     },
     "inbounds": [
         {
@@ -119,64 +103,42 @@ DEFAULT_RAY_CONFIG = {
             "settings": {
                 "clients": [],
                 "fallbacks": [
-                    {
-                        "alpn": "",
-                        "dest": "XXX.XXX.XXX.XXX:XXX",
-                        "path": "",
-                        "xver": 1
-                    },
+                    {"alpn": "", "dest": "XXX.XXX.XXX.XXX:XXX", "path": "", "xver": 1},
                     {
                         "alpn": "h2",
                         "dest": "XXX.XXX.XXX.XXX:XXX",
                         "path": "",
-                        "xver": 1
-                    }
-                ]
+                        "xver": 1,
+                    },
+                ],
             },
             "streamSettings": {
                 "network": "tcp",
                 "security": "tls",
                 "tlsSettings": {
-                    "alpn": [
-                        "http/1.1"
-                    ],
+                    "alpn": ["http/1.1"],
                     "certificates": [
                         {
                             "certificateFile": "/XXX/XXXXX/fullchain.pem",
-                            "keyFile": "/XXXX/XXXX/XXX/privkey.pem"
+                            "keyFile": "/XXXX/XXXX/XXX/privkey.pem",
                         }
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         },
         {
             "listen": "0.0.0.0",
             "port": "8080",
             "protocol": "dokodemo-door",
-            "settings": {
-                "address": "0.0.0.0"
-            },
-            "tag": "api"
-        }
+            "settings": {"address": "0.0.0.0"},
+            "tag": "api",
+        },
     ],
-    "outbounds": [
-        {
-            "protocol": "freedom",
-            "settings": {}
-        }
-    ],
+    "outbounds": [{"protocol": "freedom", "settings": {}}],
     "routing": {
         "settings": {
-            "rules": [
-                {
-                    "inboundTag": [
-                        "api"
-                    ],
-                    "outboundTag": "api",
-                    "type": "field"
-                }
-            ]
+            "rules": [{"inboundTag": ["api"], "outboundTag": "api", "type": "field"}]
         },
-        "strategy": "rules"
-    }
+        "strategy": "rules",
+    },
 }
