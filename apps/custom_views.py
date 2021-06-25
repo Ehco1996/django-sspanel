@@ -1,4 +1,34 @@
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.views import PasswordResetView
 from django.core.paginator import EmptyPage, Paginator
+from django.template import loader
+
+from apps.sspanel.models import User
+from apps.sspanel.tasks import send_mail_to_users_task
+
+
+class AsyncPasswordResetForm(PasswordResetForm):
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        """
+        Copy and adapted from django.contrib.auth.forms.PasswordResetForm
+        """
+        subject = loader.render_to_string(subject_template_name, context)
+        subject = "".join(subject.splitlines())
+        body = loader.render_to_string(email_template_name, context)
+        user = User.objects.get(email=to_email)
+        send_mail_to_users_task.delay([user.id], subject, body)
+
+
+class AsyncPasswordResetView(PasswordResetView):
+    form_class = AsyncPasswordResetForm
 
 
 class PageListView:

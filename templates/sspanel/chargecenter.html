@@ -91,8 +91,8 @@
                     <table class="table is-striped">
                         <thead>
                             <tr>
-                                <th>捐赠人:</th>
-                                <th>捐赠金额:</th>
+                                <th>捐赠人</th>
+                                <th>捐赠金额</th>
                             </tr>
                         </thead>
                         {% for donate in donatelist %}
@@ -125,9 +125,9 @@
         <table class="table is-striped">
             <thead>
                 <tr>
-                    <th>时间:</th>
-                    <th>代码:</th>
-                    <th>金额:</th>
+                    <th>时间</th>
+                    <th>代码</th>
+                    <th>金额</th>
                 </tr>
             </thead>
             {% for code in codelist %}
@@ -162,12 +162,14 @@
             }
             requestButton.attr("disabled", "disabled")
             $.post(url, data, function (results) {
-                codeBox.attr('class', '')
-                // 追加二维码图片
                 info = results.info
-                qrcode_url = results.qrcode_url
-                $("#id-qrcode-canvas").qrcode(qrcode_url)
                 swal(info.title, info.subtitle, info.status)
+                if (info.status == "success") {
+                    // 追加二维码图片
+                    codeBox.attr('class', '')
+                    qrcode_url = results.qrcode_url
+                    $("#id-qrcode-canvas").qrcode(qrcode_url)
+                }
             })
         } else {
             swal('抱歉~', '最少捐赠一元', 'error')

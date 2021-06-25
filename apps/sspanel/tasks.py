@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 
 from apps import celery_app
-from apps.proxy.models import NodeOnlineLog, ProxyNode, UserOnLineIpLog, UserTrafficLog
+from apps.proxy.models import ProxyNode, UserTrafficLog
 from apps.sspanel import models as m
 from apps.utils import get_current_datetime
 
@@ -30,11 +30,8 @@ def sync_user_traffic_task(node_id, data):
         return
     node_total_traffic = 0
     log_time = get_current_datetime()
-    tcp_connections_count = 0
     user_model_list = []
     trafficlog_model_list = []
-    online_ip_log_model_list = []
-
     for user_data in data:
         user_id = user_data["user_id"]
         u = int(user_data["upload_traffic"] * node.enlarge_scale)
@@ -52,18 +49,16 @@ def sync_user_traffic_task(node_id, data):
                 user=user,
                 download_traffic=u,
                 upload_traffic=d,
+                tcp_conn_cnt=user_data["tcp_conn_num"],
+                ip_list=user_data.get("ip_list", []),
             )
         )
         # 节点流量增量
         node_total_traffic += u + d
-        # active_tcp_connections
-        tcp_connections_count += user_data["tcp_conn_num"]
-        # online ip log
-        for ip in user_data.get("ip_list", []):
-            online_ip_log_model_list.append(
-                UserOnLineIpLog(user=user, proxy_node=node, ip=ip)
-            )
 
+    if not data:
+        # NOTE add blank log to show node is online
+        trafficlog_model_list.append(UserTrafficLog(proxy_node=node))
     # 节点流量记录
     node.used_traffic += node_total_traffic
     if node.overflow:
@@ -76,10 +71,6 @@ def sync_user_traffic_task(node_id, data):
     )
     # 流量记录
     UserTrafficLog.objects.bulk_create(trafficlog_model_list)
-    # 在线IP
-    UserOnLineIpLog.objects.bulk_create(online_ip_log_model_list)
-    # 节点在线人数
-    NodeOnlineLog.add_log(node, len(data), tcp_connections_count)
 
 
 @celery_app.task
@@ -121,24 +112,6 @@ def clean_traffic_log_task():
     query = UserTrafficLog.objects.filter(created_at__lt=dt)
     count, _ = query.delete()
     print(f"UserTrafficLog  removed count:{count}")
-
-
-@celery_app.task
-def clean_node_online_log_task():
-    """清空一天前在线记录"""
-    dt = get_current_datetime().subtract(days=1)
-    query = NodeOnlineLog.objects.filter(created_at__lt=dt)
-    count, _ = query.delete()
-    print(f"NodeOnlineLog  removed count:{count}")
-
-
-@celery_app.task
-def clean_online_ip_log_task():
-    """清空一天前在线ip记录"""
-    dt = get_current_datetime().subtract(days=1)
-    query = UserOnLineIpLog.objects.filter(created_at__lt=dt)
-    count, _ = query.delete()
-    print(f"UserOnLineIpLog  removed count:{count}")
 
 
 @celery_app.task

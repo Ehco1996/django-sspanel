@@ -86,3 +86,4 @@ AUTHENTICATION_BACKENDS = (
 
 # 用户模型设置：
 AUTH_USER_MODEL = "sspanel.User"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -1,0 +1,19 @@
+name: ssr
+on:
+  push:
+    branches:
+      - ssr
+jobs:
+  build-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: build ssr image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: ehco1996/django-sspanel
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: "ssr"
+          dockerfile: Dockerfile

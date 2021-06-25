@@ -35,12 +35,18 @@
             <hr>
             <div class="field is-grouped is-grouped-multiline">
                 <p class="control">
-                    <button type="submit" class="button is-primary is-outlined">登录！</button>
+                    <button type="submit" class="button is-danger is-outlined">登录</button>
                 </p>
                 {% settings_value "USE_SMTP" as use_smtp %}
                 {% if use_smtp %}
                 <p class="control">
-                    <a class="button is-info is-outlined " href="{% url 'password_reset' %}">忘记密码？</a>
+                    <a class="button is-info is-outlined" href="{% url 'password_reset' %}">忘记密码</a>
+                </p>
+                {% endif %}
+                {% settings_value "ALLOW_REGISTER" as allow_register %}
+                {% if allow_register is True %}
+                <p class="control">
+                    <a class="button is-primary is-outlined" href="{% url 'sspanel:register' %}">注册一个</a>
                 </p>
                 {% endif %}
             </div>

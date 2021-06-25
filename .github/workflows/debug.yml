@@ -1,22 +1,13 @@
-name: code
+name: debug
 on:
   push:
     branches:
-      - master
-      - dev
+      - debug
 jobs:
-  build-code:
+  build-debug-code:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - name: build code image
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: ehco1996/django-sspanel
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "latest,code"
-          dockerfile: deploy/Dockerfile.CODE
       - name: build debug code image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:

@@ -4,6 +4,8 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/ehco1996/django-sspanel/badge)](https://www.codefactor.io/repository/github/ehco1996/django-sspanel)
 [![simpleui](https://img.shields.io/badge/developing%20with-Simpleui-2077ff.svg)](https://github.com/newpanjing/simpleui)
+![check](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml/badge.svg)
+![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml/badge.svg)
 
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
@@ -62,7 +64,11 @@
 
 * 节点信息：
 
-![节点信息：](https://user-images.githubusercontent.com/24697284/106535019-424b5180-6530-11eb-90ea-46560b6d232d.png)
+![节点信息](https://user-images.githubusercontent.com/24697284/116970843-3e73ca80-aceb-11eb-8132-ca7b002c4b04.png)
+
+* 节点配置：
+
+![节点配置](https://user-images.githubusercontent.com/24697284/116970833-3ae04380-aceb-11eb-9e51-dff8f4b200cd.png)
 
 * 流量查询:
 

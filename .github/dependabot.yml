@@ -1,0 +1,55 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: black
+    versions:
+    - 21.4b0
+    - 21.4b1
+  - dependency-name: django-simpleui
+    versions:
+    - "2021.2"
+    - "2021.4"
+    - 2021.4.1
+    - 2021.4.3
+  - dependency-name: isort
+    versions:
+    - 5.7.0
+    - 5.8.0
+  - dependency-name: django-countries
+    versions:
+    - "7.0"
+    - "7.1"
+  - dependency-name: sentry-sdk
+    versions:
+    - 0.19.5
+    - 0.20.0
+    - 0.20.1
+    - 0.20.2
+    - 0.20.3
+    - 1.0.0
+  - dependency-name: markdown
+    versions:
+    - 3.3.4
+  - dependency-name: django-anymail
+    versions:
+    - "8.2"
+  - dependency-name: django
+    versions:
+    - 3.1.6
+    - 3.1.7
+  - dependency-name: python-alipay-sdk
+    versions:
+    - 2.3.0
+    - 3.0.0
+    - 3.0.1
+  - dependency-name: mysqlclient
+    versions:
+    - 2.0.3
+  - dependency-name: celery
+    versions:
+    - 5.0.5
