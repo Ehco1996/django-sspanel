@@ -32,7 +32,6 @@ class BaseNodeModel(BaseModel):
 
 
 class ProxyNode(BaseNodeModel, SequenceMixin):
-
     NODE_TYPE_SS = "ss"
     NODE_TYPE_RAY = "ray"
     NODE_CHOICES = (
@@ -443,9 +442,7 @@ class RelayRule(BaseModel):
         return name
 
 
-
 class UserTrafficLog(BaseLogModel):
-
     user = models.ForeignKey(
         User, on_delete=models.DO_NOTHING, verbose_name="用户", null=True
     )
@@ -575,3 +572,35 @@ class UserTrafficLog(BaseLogModel):
     @property
     def total_traffic(self):
         return utils.traffic_format(self.download_traffic + self.upload_traffic)
+
+
+class RayConfig(models.Model):
+    XRAY = "Xray"
+    V2RAY = "v2ray"
+    RAY_TOOL_CHOICES = (
+        (XRAY, XRAY),
+        (V2RAY, V2RAY),
+    )
+
+    proxy_node = models.OneToOneField(
+        to=ProxyNode,
+        related_name="ray_config",
+        on_delete=models.CASCADE,
+        primary_key=True,
+        help_text="代理节点",
+        verbose_name="代理节点",
+        limit_choices_to={"node_type": ProxyNode.NODE_TYPE_RAY},
+    )
+
+    ray_tool = models.CharField(
+        "节点类型", default=V2RAY, choices=RAY_TOOL_CHOICES, max_length=32
+    )
+
+    config = models.JSONField("配置", default=get_default_ray_config)
+
+    class Meta:
+        verbose_name = "Ray配置"
+        verbose_name_plural = "Ray配置"
+
+    def __str__(self) -> str:
+        return self.proxy_node.__str__() + "-配置"

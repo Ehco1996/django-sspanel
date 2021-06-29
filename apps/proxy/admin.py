@@ -1,11 +1,9 @@
 from django.conf import settings
 from django.contrib import admin
-from django.db.models import JSONField
 from django.forms import ModelForm
 
 from apps.proxy import models
 from apps.sspanel.models import User
-from apps.utils import JsonEditorWidget
 
 
 class SSConfigInline(admin.StackedInline):
@@ -21,20 +19,9 @@ class SSConfigInline(admin.StackedInline):
 
 class RayConfigInline(admin.StackedInline):
     model = models.RayConfig
-    formfield_overrides = {JSONField: {"widget": JsonEditorWidget}}
     fields = ["proxy_node", "ray_tool", "config"]
     extra = 0
     verbose_name = "Ray配置"
-
-    class Media:
-        css = {
-            "all": (
-                "https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor.min.css",
-            )
-        }
-        js = (
-            "https://cdn.bootcdn.net/ajax/libs/jsoneditor/9.1.5/jsoneditor-minimalist.js",
-        )
 
 
 class RelayRuleInline(admin.TabularInline):
@@ -91,7 +78,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "sequence",
     ]
     inlines = [RelayRuleInline]
-    all_inlines = [SSConfigInline, RelayRuleInline, RayConfigInline]
+    all_inlines = [SSConfigInline, RayConfigInline, RelayRuleInline]
     list_editable = ["sequence"]
 
     def get_inlines(self, request, instance):
