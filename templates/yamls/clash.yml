@@ -197,6 +197,10 @@ dns:
     #   - '+.facebook.com'
     #   - '+.youtube.com'
 
+{% if sub_type == "clash_pro" %}
+{% include "yamls/tun.yml" %}
+{% endif %}
+
 proxies:
 {% autoescape off %}
 {% for node in nodes %} - {{ node.clash_config }}
