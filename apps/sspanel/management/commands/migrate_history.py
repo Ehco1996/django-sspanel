@@ -15,3 +15,21 @@ class Command(BaseCommand):
                 h.user_id = user.id
             h.save()
             print(f"updated: {h}")
+
+
+def create_random_order(n=100):
+
+    from apps.sspanel.models import User, UserOrder
+    from apps.utils import get_current_datetime
+
+    user = User.objects.first()
+    for i in range(n):
+        order = UserOrder.objects.create(
+            user=user,
+            status=UserOrder.STATUS_CREATED,
+            out_trade_no=UserOrder.gen_out_trade_no(),
+            amount="100",
+            qrcode_url="qrcode_url",
+            expired_at=get_current_datetime().add(minutes=10),
+        )
+        print(order)
