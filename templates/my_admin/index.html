@@ -92,7 +92,6 @@
             }, function (start, end, label) {
                 startStr = start.format('YYYY-MM-DD')
                 endStr = end.format('YYYY-MM-DD')
-                console.log(label + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
             });
         });
     });
@@ -101,7 +100,6 @@
     // 获取后台首页状态
     var getSystemStatus = function () {
         url = "{% url 'api:system_status' %}" + "?start=" + startStr + "&end=" + endStr
-        console.log("now:", startStr + "~" + endStr, url);
         $.getJSON(url, function (res) {
             genChart('id-node-traffic-status', 'bar', res.node_status.bar_config)
             genChart('id-node-status', 'doughnut', res.node_status.doughnut_config)

@@ -54,7 +54,7 @@
                                 <span class="icon">
                                     <i class="fa fa-user"></i>
                                 </span>
-                                <span>「{{node.online_user_count}}/{{node.tcp_conn_cnt}}」</span>
+                                <span>「{{node.online_user_count}}」</span>
                             </span>
                         </div>
                     </div>
@@ -194,7 +194,6 @@
         node.find(`.qr-code-new-${node_id}`).each(function (idx, instance) {
             instance = $(instance)
             if (instance.children().length == 0) {
-                console.log(instance.data("node_link"))
                 instance.qrcode(
                     {
                         text: toUtf8(instance.data("node_link")),
