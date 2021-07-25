@@ -16,4 +16,4 @@ ALIPAY_APP_PRIVATE_KEY_STRING = os.getenv("ALIPAY_APP_PRIVATE_KEY_STRING")
 ALIPAY_PUBLIC_KEY_STRING = os.getenv("ALIPAY_PUBLIC_KEY_STRING")
 
 # 支付订单提示信息 修改请保留 {} 用于动态生成金额
-ALIPAY_TRADE_INFO = "谜之屋的{}元充值码"
+ALIPAY_TRADE_INFO = os.getenv("ALIPAY_TRADE_INFO", "{}元充值码")
