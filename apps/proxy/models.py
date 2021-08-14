@@ -293,6 +293,10 @@ class RelayNode(BaseNodeModel):
 
     isp = models.CharField("ISP线路", max_length=64, choices=ISP_TYPES, default=BGP)
     remark = models.CharField("备注", max_length=64, default="")
+    enable_ping = models.BooleanField("是否开启PING", default=True)
+    enable_udp = models.BooleanField("是否开启UDP 转发", default=True)
+    web_port = models.IntegerField("Web端口", default=0)
+    web_token = models.CharField("Web验证Token", max_length=64, default="")
 
     class Meta:
         verbose_name = "中转节点"
@@ -321,7 +325,8 @@ class RelayNode(BaseNodeModel):
                     tcp_remote = f"{server}:{node.ss_config.multi_user_port}"
                 if rule.transport_type in c.WS_TRANSPORTS:
                     tcp_remote = "wss://" + tcp_remote
-                udp_remotes.append(f"{server}:{node.ss_config.multi_user_port}")
+                if self.enable_udp:
+                    udp_remotes.append(f"{server}:{node.ss_config.multi_user_port}")
                 tcp_remotes.append(tcp_remote)
             data.append(
                 {
@@ -333,7 +338,12 @@ class RelayNode(BaseNodeModel):
                     "transport_type": rule.transport_type,
                 }
             )
-        return {"relay_configs": data}
+        return {
+            "relay_configs": data,
+            "web_port": self.web_port,
+            "web_token": self.web_token,
+            "enable_ping": self.enable_ping,
+        }
 
     @property
     def api_endpoint(self):

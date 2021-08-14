@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.forms import ModelForm
+from django.utils.html import format_html
 
 from apps.proxy import models
 from apps.sspanel.models import User
@@ -99,9 +100,12 @@ class RelayNodeAdmin(admin.ModelAdmin):
     inlines = [RelayRuleInline]
 
     def api_endpoint(self, instance):
-        return instance.api_endpoint
+        link = instance.api_endpoint
+        return format_html(f"<a href={link}>配置地址</a>")
 
     api_endpoint.short_description = "中转节点配置地址"
+    api_endpoint.allow_tags = True
+    api_endpoint.action_type = 2
 
 
 class RelayRuleAdmin(admin.ModelAdmin):
