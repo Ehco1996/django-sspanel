@@ -324,7 +324,7 @@ prometheus-client = ">=0.7"
 
 [[package]]
 name = "django-simpleui"
-version = "2021.8.1"
+version = "2021.8.17"
 description = "django admin theme 后台模板"
 category = "main"
 optional = false
@@ -746,7 +746,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "cf5d6b0a44796cd0a192c367fcbf0a19d5b4edfecfb354554c68ef7ed0f19086"
+content-hash = "8a51b192a01355a035e79a2fc137e710efea0ebaa3d1875e84b9fc11927dd54e"
 
 [metadata.files]
 aiohttp = [
@@ -907,8 +907,10 @@ cryptography = [
     {file = "cryptography-3.4.7-cp36-abi3-win_amd64.whl", hash = "sha256:de4e5f7f68220d92b7637fc99847475b59154b7a1b3868fb7385337af54ac9ca"},
     {file = "cryptography-3.4.7-pp36-pypy36_pp73-manylinux2010_x86_64.whl", hash = "sha256:26965837447f9c82f1855e0bc8bc4fb910240b6e0d16a664bb722df3b5b06873"},
     {file = "cryptography-3.4.7-pp36-pypy36_pp73-manylinux2014_x86_64.whl", hash = "sha256:eb8cc2afe8b05acbd84a43905832ec78e7b3873fb124ca190f574dca7389a87d"},
+    {file = "cryptography-3.4.7-pp37-pypy37_pp73-macosx_10_10_x86_64.whl", hash = "sha256:b01fd6f2737816cb1e08ed4807ae194404790eac7ad030b34f2ce72b332f5586"},
     {file = "cryptography-3.4.7-pp37-pypy37_pp73-manylinux2010_x86_64.whl", hash = "sha256:7ec5d3b029f5fa2b179325908b9cd93db28ab7b85bb6c1db56b10e0b54235177"},
     {file = "cryptography-3.4.7-pp37-pypy37_pp73-manylinux2014_x86_64.whl", hash = "sha256:ee77aa129f481be46f8d92a1a7db57269a2f23052d5f2433b4621bb457081cc9"},
+    {file = "cryptography-3.4.7-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:bf40af59ca2465b24e54f671b2de2c59257ddc4f7e5706dbd6930e26823668d3"},
     {file = "cryptography-3.4.7.tar.gz", hash = "sha256:3d10de8116d25649631977cb37da6cbdd2d6fa0e0281d014a5b7d337255ca713"},
 ]
 django = [
@@ -932,7 +934,7 @@ django-prometheus = [
     {file = "django_prometheus-2.1.0-py2.py3-none-any.whl", hash = "sha256:c338d6efde1ca336e90c540b5e87afe9287d7bcc82d651a778f302b0be17a933"},
 ]
 django-simpleui = [
-    {file = "django-simpleui-2021.8.1.tar.gz", hash = "sha256:f91103806927799c04f9ea317d3a6c600625216c09e8ec5e85916b147b146ee3"},
+    {file = "django-simpleui-2021.8.17.tar.gz", hash = "sha256:4ab6850d44aba9d1ce37a8d4e4d3ac1a8dd118d541d471b685b8f41340cea87b"},
 ]
 geoip2 = [
     {file = "geoip2-4.1.0-py2.py3-none-any.whl", hash = "sha256:707025542ef076bd8fd80e97138bebdb7812527b2a007d141a27ad98b0370fff"},
