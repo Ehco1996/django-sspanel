@@ -21,7 +21,14 @@ class RelayRuleInline(admin.TabularInline):
     model = models.RelayRule
     verbose_name = "中转规则配置"
     extra = 0
-    fields = ["proxy_node", "relay_node", "relay_port", "listen_type", "transport_type"]
+    fields = [
+        "rule_name",
+        "proxy_node",
+        "relay_node",
+        "relay_port",
+        "listen_type",
+        "transport_type",
+    ]
 
 
 class ProxyNodeAdminForm(ModelForm):
@@ -110,6 +117,7 @@ class RelayNodeAdmin(admin.ModelAdmin):
 
 class RelayRuleAdmin(admin.ModelAdmin):
     list_display = [
+        "rule_name",
         "proxy_node",
         "relay_node",
         "relay_host",

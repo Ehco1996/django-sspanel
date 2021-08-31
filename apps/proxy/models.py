@@ -184,7 +184,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                 "port": port,
                 "cipher": self.ss_config.method,
                 "password": user.ss_password,
-                "udp": True,
+                "udp": relay_rule.enable_udp,
             }
         return json.dumps(config, ensure_ascii=False)
 
@@ -353,6 +353,9 @@ class RelayNode(BaseNodeModel):
 
 class RelayRule(BaseModel):
 
+    rule_name = models.CharField(
+        "规则名", max_length=64, blank=True, null=False, default=""
+    )
     proxy_node = models.ForeignKey(
         ProxyNode,
         on_delete=models.CASCADE,
@@ -397,7 +400,14 @@ class RelayRule(BaseModel):
         return self.relay_node.enable and self.proxy_node.enable
 
     @property
+    def enable_udp(self):
+        return self.relay_node.enable_udp
+
+    @property
     def remark(self):
+        # 这个字段才是用户真正看到的字段,如果不存在就动态生成一个
+        if self.rule_name != "":
+            return self.rule_name
         name = f"{self.relay_node.name}{self.relay_node.isp}-{self.proxy_node.name}"
         if self.proxy_node.enlarge_scale != Decimal(1.0):
             name += f"-{self.proxy_node.enlarge_scale}倍"
