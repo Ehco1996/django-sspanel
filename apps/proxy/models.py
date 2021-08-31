@@ -184,8 +184,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                 "port": port,
                 "cipher": self.ss_config.method,
                 "password": user.ss_password,
-                "udp": relay_rule.enable_udp,
+                "udp": True,
             }
+            if relay_rule:
+                config["udp"] = relay_rule.enable_udp
         return json.dumps(config, ensure_ascii=False)
 
     def to_dict_with_extra_info(self, user):
