@@ -620,7 +620,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 
 [[package]]
 name = "sentry-sdk"
-version = "1.1.0"
+version = "1.4.2"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
@@ -639,6 +639,7 @@ chalice = ["chalice (>=1.16.0)"]
 django = ["django (>=1.8)"]
 falcon = ["falcon (>=1.4)"]
 flask = ["flask (>=0.11)", "blinker (>=1.1)"]
+httpx = ["httpx (>=0.16.0)"]
 pure_eval = ["pure-eval", "executing", "asttokens"]
 pyspark = ["pyspark (>=2.4.4)"]
 rq = ["rq (>=0.6)"]
@@ -746,7 +747,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "8a51b192a01355a035e79a2fc137e710efea0ebaa3d1875e84b9fc11927dd54e"
+content-hash = "f5be527251a6b57f9f77cd4a74dff91d4cdff0f5db28924ff0bb73c6fcaa052c"
 
 [metadata.files]
 aiohttp = [
@@ -1165,8 +1166,8 @@ requests = [
     {file = "requests-2.25.1.tar.gz", hash = "sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-1.1.0.tar.gz", hash = "sha256:c1227d38dca315ba35182373f129c3e2722e8ed999e52584e6aca7d287870739"},
-    {file = "sentry_sdk-1.1.0-py2.py3-none-any.whl", hash = "sha256:c7d380a21281e15be3d9f67a3c4fbb4f800c481d88ff8d8931f39486dd7b4ada"},
+    {file = "sentry-sdk-1.4.2.tar.gz", hash = "sha256:683e2f677d518b6a203785f5a6c27d3a6b48cca8293d43cc7efc7815ea4dada5"},
+    {file = "sentry_sdk-1.4.2-py2.py3-none-any.whl", hash = "sha256:ffb7b1f7c9a2ca771066aa4b502756e1ef08aff246de23ffecaa5d2af1533a62"},
 ]
 short-url = [
     {file = "short_url-1.2.2.tar.gz", hash = "sha256:ef56fa8b21a946efd1ee518647c40154dbb7c43aaff6851405e9e3d5befcd04f"},
