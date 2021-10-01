@@ -4,20 +4,16 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/ehco1996/django-sspanel/badge)](https://www.codefactor.io/repository/github/ehco1996/django-sspanel)
 [![simpleui](https://img.shields.io/badge/developing%20with-Simpleui-2077ff.svg)](https://github.com/newpanjing/simpleui)
-![check](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml/badge.svg)
-![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml/badge.svg)
+[![check](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml)
+[![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml)
 
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
-* Wiki: [Wiki](https://github.com/Ehco1996/django-sspanel/wiki)
-
 ## 捐赠支持
 
-欢迎大家给我捐赠, 我的比特币钱包地址: `1Nb98htAPPGE8ihBa5hu5jXs4vXLfsC7Bo`
+<a href="https://dun.mianbaoduo.com/@ehco" target="_blank"><img src="https://img.niucodata.com/dundunfan-bt.png"></a>
 
-> 捐赠不会为你带来什么，不捐也不会让你失去什么，但是如果你心情好，完全可以请我喝杯咖啡不是~
-
-[![Donate with Bitcoin](https://en.cryptobadges.io/badge/big/1Nb98htAPPGE8ihBa5hu5jXs4vXLfsC7Bo?showBalance=true)](https://en.cryptobadges.io/donate/1Nb98htAPPGE8ihBa5hu5jXs4vXLfsC7Bo)
+> 如果你心情好，完全可以请我喝杯咖啡/吃顿饭不是~
 
 ## 视频安装教程
 
