@@ -255,7 +255,7 @@ test = ["pytest (>=6.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pret
 
 [[package]]
 name = "django"
-version = "3.2.1"
+version = "3.2.8"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
 category = "main"
 optional = false
@@ -914,8 +914,8 @@ cryptography = [
     {file = "cryptography-3.4.7.tar.gz", hash = "sha256:3d10de8116d25649631977cb37da6cbdd2d6fa0e0281d014a5b7d337255ca713"},
 ]
 django = [
-    {file = "Django-3.2.1-py3-none-any.whl", hash = "sha256:e2f73790c60188d3f94f08f644de249d956b3789161e7604509d128a13fb2fcc"},
-    {file = "Django-3.2.1.tar.gz", hash = "sha256:95c13c750f1f214abadec92b82c2768a5e795e6c2ebd0b4126f895ce9efffcdd"},
+    {file = "Django-3.2.8-py3-none-any.whl", hash = "sha256:42573831292029639b798fe4d3812996bfe4ff3275f04566da90764daec011a5"},
+    {file = "Django-3.2.8.tar.gz", hash = "sha256:f6d2c4069c9b9bfac03bedff927ea1f9e0d29e34525cec8a68fd28eb2a8df7af"},
 ]
 django-anymail = [
     {file = "django-anymail-8.2.tar.gz", hash = "sha256:6381e04c41b2644e2d3ba2f95ee61ee3ee40cb6184506c52a363b9ddef0b098e"},
