@@ -709,7 +709,7 @@ brotli = ["brotlipy (>=0.6.0)"]
 
 [[package]]
 name = "uwsgi"
-version = "2.0.19.1"
+version = "2.0.20"
 description = "The uWSGI server"
 category = "main"
 optional = false
@@ -746,7 +746,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "8a51b192a01355a035e79a2fc137e710efea0ebaa3d1875e84b9fc11927dd54e"
+content-hash = "a487d8620662cd236cbbcb18932c6e01b44131fdceb88a9d82f1c313abb7072e"
 
 [metadata.files]
 aiohttp = [
@@ -1196,7 +1196,7 @@ urllib3 = [
     {file = "urllib3-1.26.4.tar.gz", hash = "sha256:e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937"},
 ]
 uwsgi = [
-    {file = "uWSGI-2.0.19.1.tar.gz", hash = "sha256:faa85e053c0b1be4d5585b0858d3a511d2cd10201802e8676060fd0a109e5869"},
+    {file = "uwsgi-2.0.20.tar.gz", hash = "sha256:88ab9867d8973d8ae84719cf233b7dafc54326fcaec89683c3f9f77c002cdff9"},
 ]
 vine = [
     {file = "vine-5.0.0-py2.py3-none-any.whl", hash = "sha256:4c9dceab6f76ed92105027c49c823800dd33cacce13bdedc5b914e3514b7fb30"},
