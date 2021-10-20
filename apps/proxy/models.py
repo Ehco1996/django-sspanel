@@ -67,6 +67,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     ehco_transport_type = models.CharField(
         "隧道传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
     )
+    ehco_web_port = models.IntegerField("隧道web端口", default=0)
+    ehco_web_token = models.CharField(
+        "隧道web token", max_length=64, blank=True, null=True
+    )
 
     class Meta:
         verbose_name = "代理节点"
@@ -135,6 +139,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     def get_ehco_server_config(self):
         return {
+            "web_port": self.ehco_web_port,
+            "web_token": self.ehco_web_token,
             "relay_configs": [
                 {
                     "listen": f"{self.ehco_listen_host}:{self.ehco_listen_port}",
@@ -143,7 +149,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                     "tcp_remotes": [f"127.0.0.1:{self.ehco_relay_port}"],
                     "udp_remotes": [],
                 }
-            ]
+            ],
         }
 
     def get_user_ss_port(self, user):
