@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - build
+      - master
+      - dev
+    paths:
+      - "pyproject.toml"
 jobs:
   build-runtime:
     runs-on: ubuntu-latest
