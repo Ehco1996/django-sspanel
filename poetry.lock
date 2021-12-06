@@ -272,7 +272,7 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-anymail"
-version = "8.2"
+version = "8.4"
 description = "Django email integration for Amazon SES, Mailgun, Mailjet, Postmark, SendGrid, SendinBlue, SparkPost and other transactional ESPs"
 category = "main"
 optional = false
@@ -284,6 +284,8 @@ requests = ">=2.4.3"
 
 [package.extras]
 amazon_ses = ["boto3"]
+dev = ["flake8", "sphinx", "sphinx-rtd-theme", "tox", "twine", "wheel"]
+postal = ["cryptography"]
 
 [[package]]
 name = "django-countries"
@@ -746,7 +748,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "db38fc46764ac13a957bc94142a2d627d178274b60de58d7cfb20ac2e03d60a0"
+content-hash = "bc5d044afd81516797c6fc626cf5ae4f9c75f5ee7f8ef8e90a846f526bac6d58"
 
 [metadata.files]
 aiohttp = [
@@ -918,8 +920,8 @@ django = [
     {file = "Django-3.2.9.tar.gz", hash = "sha256:51284300f1522ffcdb07ccbdf676a307c6678659e1284f0618e5a774127a6a08"},
 ]
 django-anymail = [
-    {file = "django-anymail-8.2.tar.gz", hash = "sha256:6381e04c41b2644e2d3ba2f95ee61ee3ee40cb6184506c52a363b9ddef0b098e"},
-    {file = "django_anymail-8.2-py3-none-any.whl", hash = "sha256:e011c582e771ce3970480c10d1e129ac036ba773e37ec56780a79776534b2ba6"},
+    {file = "django-anymail-8.4.tar.gz", hash = "sha256:671a338de43b8e414d48c6d16aac1df54d2f24f916e1073f9f60aef5acffaf89"},
+    {file = "django_anymail-8.4-py3-none-any.whl", hash = "sha256:2e8307e84f0a12f9283469017094a8246db9a0fc608ac17dd1027ee011ece986"},
 ]
 django-countries = [
     {file = "django-countries-7.1.tar.gz", hash = "sha256:058e3cd82705ebf8ef680fb623b1da2d47bc03b816a71589a8279d2e5a7a5389"},
