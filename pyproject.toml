@@ -38,7 +38,7 @@ ipicn = "^2021.5.5"
 
 [tool.poetry.dev-dependencies]
 black = "^21.6b0"
-django-debug-toolbar = "^3.2.1"
+django-debug-toolbar = "^3.2.3"
 isort = "^5.8.0"
 autoflake = "^1.4"
 
