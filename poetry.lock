@@ -351,7 +351,7 @@ prometheus-client = ">=0.7"
 
 [[package]]
 name = "django-simpleui"
-version = "2021.12.7"
+version = "2022.1"
 description = "django admin theme 后台模板"
 category = "main"
 optional = false
@@ -818,7 +818,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f205d22e1e08cfc7abe16e281fcdd248ff94874bd029c91d0707ccd8bbbf3913"
+content-hash = "411859e721b658a3d909c665b37d2bf914a889139651a551bc71f99c1c5c510d"
 
 [metadata.files]
 aiohttp = [
@@ -1054,7 +1054,7 @@ django-prometheus = [
     {file = "django_prometheus-2.1.0-py2.py3-none-any.whl", hash = "sha256:c338d6efde1ca336e90c540b5e87afe9287d7bcc82d651a778f302b0be17a933"},
 ]
 django-simpleui = [
-    {file = "django-simpleui-2021.12.7.tar.gz", hash = "sha256:7e6e7a99bd256d5aa952fa7261cc44e75913d9992c35b8c4264bb40464116482"},
+    {file = "django-simpleui-2022.1.tar.gz", hash = "sha256:13eb7ee196e8858133f551acd100b00fa1e1e7b5697ea5768b65f1d764c375af"},
 ]
 frozenlist = [
     {file = "frozenlist-1.2.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:977a1438d0e0d96573fd679d291a1542097ea9f4918a8b6494b06610dfeefbf9"},
