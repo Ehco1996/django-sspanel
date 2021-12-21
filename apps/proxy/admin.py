@@ -115,6 +115,21 @@ class RelayNodeAdmin(admin.ModelAdmin):
     api_endpoint.action_type = 2
 
 
+class RelayRuleAdmin(admin.ModelAdmin):
+    list_display = [
+        "rule_name",
+        "proxy_node",
+        "relay_node",
+        "relay_host",
+        "relay_port",
+        "remark",
+        "enable",
+    ]
+    search_fields = []
+    list_filter = ["relay_node", "proxy_node"]
+    inlines = []
+
+
 class UserTrafficLogAdmin(admin.ModelAdmin):
     list_display = [
         "username",
@@ -146,5 +161,6 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(models.ProxyNode, ProxyNodeAdmin)
 admin.site.register(models.RelayNode, RelayNodeAdmin)
+admin.site.register(models.RelayRule, RelayRuleAdmin)
 
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
