@@ -25,7 +25,7 @@ class UserSubManager:
         SUB_TYPE_CLASH_PRO,
     }
 
-    def __init__(self, user, sub_type, request):
+    def __init__(self, user, sub_type):
         self.user = user
         if sub_type not in self.SUB_TYPES_SET:
             sub_type = self.SUB_TYPE_SS
