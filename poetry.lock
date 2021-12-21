@@ -340,7 +340,7 @@ sqlparse = ">=0.2.0"
 
 [[package]]
 name = "django-prometheus"
-version = "2.1.0"
+version = "2.2.0"
 description = "Django middlewares to monitor your application with Prometheus.io."
 category = "main"
 optional = false
@@ -818,7 +818,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "411859e721b658a3d909c665b37d2bf914a889139651a551bc71f99c1c5c510d"
+content-hash = "f7ac735c34063b69b3753a8db099d3a0d40ce01922aeeb8d91ca922f69f8de61"
 
 [metadata.files]
 aiohttp = [
@@ -1050,8 +1050,8 @@ django-debug-toolbar = [
     {file = "django_debug_toolbar-3.2.2-py3-none-any.whl", hash = "sha256:d7bab7573fab35b0fd029163371b7182f5826c13da69734beb675c761d06a4d3"},
 ]
 django-prometheus = [
-    {file = "django-prometheus-2.1.0.tar.gz", hash = "sha256:dd3f8da1399140fbef5c00d1526a23d1ade286b144281c325f8e409a781643f2"},
-    {file = "django_prometheus-2.1.0-py2.py3-none-any.whl", hash = "sha256:c338d6efde1ca336e90c540b5e87afe9287d7bcc82d651a778f302b0be17a933"},
+    {file = "django-prometheus-2.2.0.tar.gz", hash = "sha256:240378a1307c408bd5fc85614a3a57f1ce633d4a222c9e291e2bbf325173b801"},
+    {file = "django_prometheus-2.2.0-py2.py3-none-any.whl", hash = "sha256:e6616770d8820b8834762764bf1b76ec08e1b98e72a6f359d488a2e15fe3537c"},
 ]
 django-simpleui = [
     {file = "django-simpleui-2022.1.tar.gz", hash = "sha256:13eb7ee196e8858133f551acd100b00fa1e1e7b5697ea5768b65f1d764c375af"},
