@@ -9,7 +9,7 @@ volumes:
 
 services:
   nginx:
-    image: nginx:1.7.9
+    image: nginx:1.20.1
     environment:
       TZ: ${TZ:-Asia/Shanghai}
     restart: always
