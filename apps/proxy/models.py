@@ -148,10 +148,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         ss_config = self.ss_config
         xray_config = deepcopy(self.XRAY_CONFIGS_TEMPLATE)
         ss_inbound = deepcopy(self.XRAY_SS_INBOUND_TEMPLATE)
-        if self.enable_direct:
-            ss_inbound["listen"] = "0.0.0.0"
-        else:
-            ss_inbound["listen"] = "127.0.0.1"
+        # if self.enable_direct:
+        # ss_inbound["listen"] = "0.0.0.0"
+        # else:
+        # ss_inbound["listen"] = "127.0.0.1"
+
+        # TODO fix direct link
+        ss_inbound["listen"] = "0.0.0.0"
         ss_inbound["port"] = ss_config.multi_user_port
         xray_config["inbounds"].append(ss_inbound)
 
