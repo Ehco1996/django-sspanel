@@ -1,5 +1,6 @@
 import base64
 import json
+from copy import deepcopy
 from decimal import Decimal
 from functools import cached_property
 from urllib.parse import quote, urlencode
@@ -40,6 +41,46 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         (NODE_TYPE_VLESS, NODE_TYPE_VLESS),
         (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
     )
+
+    XRAY_CONFIGS_TEMPLATE = {
+        "stats": {},
+        "api": {"tag": "api", "services": ["StatsService", "HandlerService"]},
+        "log": {"loglevel": "error"},
+        "policy": {
+            "levels": {"0": {"statsUserUplink": True, "statsUserDownlink": True}},
+            "system": {
+                "statsInboundUplink": True,
+                "statsInboundDownlink": True,
+                "statsOutboundUplink": True,
+                "statsOutboundDownlink": True,
+            },
+        },
+        "inbounds": [
+            {
+                "listen": "127.0.0.1",
+                "port": 23456,  # TODO fix the hardcode
+                "protocol": "dokodemo-door",
+                "settings": {"address": "127.0.0.1"},
+                "tag": "api",
+            },
+        ],
+        "outbounds": [{"protocol": "freedom", "settings": {}}],
+        "routing": {
+            "settings": {
+                "rules": [
+                    {"type": "field", "inboundTag": ["api"], "outboundTag": "api"}
+                ]
+            }
+        },
+    }
+
+    XRAY_SS_INBOUND_TEMPLATE = {
+        "listen": "127.0.0.1",
+        "port": 0,
+        "protocol": "shadowsocks",
+        "tag": "ss_proxy",  # TODO fix the hardcode
+        "settings": {"clients": [], "network": "tcp,udp"},
+    }
 
     node_type = models.CharField(
         "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
@@ -103,8 +144,24 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return utils.traffic_format(used_traffic)
 
     def get_ss_node_config(self):
-        configs = {"users": []}
+        # TODO: only support multi user one port
         ss_config = self.ss_config
+        xray_config = deepcopy(self.XRAY_CONFIGS_TEMPLATE)
+        ss_inbound = deepcopy(self.XRAY_SS_INBOUND_TEMPLATE)
+        if self.enable_direct:
+            ss_inbound["listen"] = "0.0.0.0"
+        else:
+            ss_inbound["listen"] = "127.0.0.1"
+        ss_inbound["port"] = ss_config.multi_user_port
+        xray_config["inbounds"].append(ss_inbound)
+
+        configs = {
+            "users": [],
+            "xray_config": xray_config,
+            "sync_traffic_endpoint": self.api_endpoint,
+        }
+        configs.update(self.get_ehco_server_config())
+
         for user in User.objects.filter(level__gte=self.level).values(
             "id",
             "ss_port",

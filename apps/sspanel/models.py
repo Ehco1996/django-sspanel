@@ -272,10 +272,9 @@ class User(AbstractUser):
             if k in clean_fields:
                 setattr(self, k, v)
         try:
-            self.full_clean()
             self.save()
             return True
-        except ValidationError:
+        except ValidationError as e:
             return False
 
     def reset_traffic(self, new_traffic):
