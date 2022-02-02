@@ -35,7 +35,7 @@ class XRayTemplates:
         "inbounds": [
             {
                 "listen": "127.0.0.1",
-                "port": None,
+                "port": 23456,  # TODO fix the hardcode grpc port
                 "protocol": "dokodemo-door",
                 "settings": {"address": "127.0.0.1"},
                 "tag": "api",
