@@ -10,7 +10,7 @@ from django.views import View
 from apps import utils
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.proxy.models import ProxyNode, UserTrafficLog
+from apps.proxy.models import ProxyNode, RelayNode, UserTrafficLog
 from apps.sspanel.forms import AnnoForm, GoodsForm, UserForm
 from apps.sspanel.models import (
     Announcement,
@@ -27,7 +27,10 @@ from apps.sspanel.models import (
 
 class NodeListView(StaffRequiredMixin, View):
     def get(self, request):
-        context = {"node_list": list(ProxyNode.objects.all())}
+        context = {
+            "proxy_node_list": ProxyNode.objects.all(),
+            "relay_node_list": RelayNode.objects.all(),
+        }
         return render(request, "my_admin/node_list.html", context=context)
 
 

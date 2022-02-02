@@ -23,11 +23,6 @@ urlpatterns = [
         views.EhcoRelayConfigView.as_view(),
         name="ehco_relay_config",
     ),
-    path(
-        "ehco_server_config/<int:node_id>/",
-        views.EhcoServerConfigView.as_view(),
-        name="ehco_server_config",
-    ),
     # 支付
     path("orders", views.OrderView.as_view(), name="order"),
     path("callback/alipay", views.ailpay_callback, name="alipay_callback"),

@@ -62,8 +62,6 @@ class User(AbstractUser):
     ss_password = models.CharField(
         "密码", max_length=32, default=get_short_random_string, unique=True
     )
-    # v2ray相关
-    vmess_uuid = models.CharField(verbose_name="Vmess uuid", max_length=64, default="")
     # 流量相关
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
@@ -114,7 +112,6 @@ class User(AbstractUser):
             UserRefLog.log_ref(inviter_id, pendulum.today())
             user.inviter_id = inviter_id
         # 绑定uuid
-        user.vmess_uuid = str(uuid4())
         user.uid = str(uuid4())
         user.save()
         return user

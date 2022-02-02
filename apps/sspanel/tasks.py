@@ -49,7 +49,6 @@ def sync_user_traffic_task(node_id, data):
                 user=user,
                 download_traffic=u,
                 upload_traffic=d,
-                tcp_conn_cnt=user_data["tcp_conn_num"],
                 ip_list=user_data.get("ip_list", []),
             )
         )

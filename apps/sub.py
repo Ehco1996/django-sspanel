@@ -72,13 +72,6 @@ class UserSubManager:
                             "name": rule.remark,
                         }
                     )
-            if node.enable_direct:
-                node_configs.append(
-                    {
-                        "clash_config": node.get_user_clash_config(self.user),
-                        "name": node.name,
-                    }
-                )
         for cfg_list in relay_node_group.values():
             node_configs.extend(cfg_list)
         return render_to_string(
@@ -94,8 +87,6 @@ class UserSubManager:
                     relay_node_group[rule.relay_node].append(
                         node.get_user_node_link(self.user, rule)
                     )
-            if node.enable_direct:
-                sub_links += node.get_user_node_link(self.user) + "\n"
         for sub_link_list in relay_node_group.values():
             for link in sub_link_list:
                 sub_links += link + "\n"

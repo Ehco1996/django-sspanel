@@ -126,17 +126,6 @@ class EhcoRelayConfigView(View):
         return JsonResponse(node.get_relay_rules_configs())
 
 
-class EhcoServerConfigView(View):
-    """落地机器"""
-
-    @method_decorator(api_authorized)
-    def get(self, request, node_id):
-        node: m.ProxyNode = m.ProxyNode.get_or_none(node_id)
-        if not node:
-            return HttpResponseNotFound()
-        return JsonResponse(node.get_ehco_server_config())
-
-
 class UserCheckInView(View):
     @method_decorator(login_required)
     def post(self, request):

@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 from django.contrib.auth.management.commands import createsuperuser
 from django.core.management import CommandError
 from django.db import transaction
@@ -40,7 +38,6 @@ class Command(createsuperuser.Command):
             "username": username,
             "password": password,
             "email": email,
-            "vmess_uuid": str(uuid4()),
             "ss_port": User.get_not_used_port(),
         }
 

@@ -20,7 +20,8 @@
                 <p class="title">
                     <span class="icon is-large">
                         <i class="fa fa-home"></i>
-                    </span> 欢迎小主: {{ user.username }}</p>
+                    </span> 欢迎小主: {{ user.username }}
+                </p>
                 <button class="button is-rounded">
                     <a href="{% url 'sspanel:logout' %}">注销登录</a>
                 </button>
@@ -39,7 +40,7 @@
                             <select name="selects">
                                 <option value="" disabled="" selected="">更换页面主题</option>
                                 <option disabled="">───</option>
-                                {% for theme in  themes %}
+                                {% for theme in themes %}
                                 <option value="{{ theme.0 }}">{{ theme.1 }}</option>
                                 {% endfor %}
                             </select>
@@ -105,11 +106,8 @@
                         <li> 密码：
                             <code>{{ user.ss_password }}</code>
                         </li>
-                        <li> 在线设备：
-                            <code>{{ online_device_count }}</code>
-                        </li>
                         <li> UUID：
-                            <code>{{ user.vmess_uuid }}</code>
+                            <code>{{ user.uid }}</code>
                         </li>
                         <br>
                         <div class="buttons">
@@ -200,7 +198,8 @@
                         <div class="columns">
                             <div class="column">
                                 <li>使用:
-                                    <code>{{ user.human_used_traffic }}</code> </li>
+                                    <code>{{ user.human_used_traffic }}</code>
+                                </li>
                             </div>
                             <div class="column">
                                 <progress class="progress is-danger" value="{{ user.used_percentage }}"

@@ -17,32 +17,9 @@ from apps.mixin import BaseLogModel, BaseModel, SequenceMixin
 from apps.sspanel.models import User
 
 
-class BaseNodeModel(BaseModel):
-    name = models.CharField("名字", max_length=32)
-    server = models.CharField("服务器地址", help_text="支持逗号分隔传多个地址", max_length=256)
-    enable = models.BooleanField("是否开启", default=True, db_index=True)
+class XRayTemplates:
 
-    class Meta:
-        abstract = True
-
-    @property
-    def multi_server_address(self):
-        # TODO 单节点支持多入口
-        return self.server.split(",")
-
-
-class ProxyNode(BaseNodeModel, SequenceMixin):
-
-    NODE_TYPE_SS = "ss"
-    NODE_TYPE_VLESS = "vless"
-    NODE_TYPE_TROJAN = "trojan"
-    NODE_CHOICES = (
-        (NODE_TYPE_SS, NODE_TYPE_SS),
-        (NODE_TYPE_VLESS, NODE_TYPE_VLESS),
-        (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
-    )
-
-    XRAY_CONFIGS_TEMPLATE = {
+    DEFAULT_CONFIG = {
         "stats": {},
         "api": {"tag": "api", "services": ["StatsService", "HandlerService"]},
         "log": {"loglevel": "error"},
@@ -58,7 +35,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         "inbounds": [
             {
                 "listen": "127.0.0.1",
-                "port": 23456,  # TODO fix the hardcode
+                "port": None,
                 "protocol": "dokodemo-door",
                 "settings": {"address": "127.0.0.1"},
                 "tag": "api",
@@ -74,13 +51,36 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         },
     }
 
-    XRAY_SS_INBOUND_TEMPLATE = {
+    SS_INBOUND = {
         "listen": "127.0.0.1",
         "port": 0,
         "protocol": "shadowsocks",
-        "tag": "ss_proxy",  # TODO fix the hardcode
+        "tag": "ss_proxy",
         "settings": {"clients": [], "network": "tcp,udp"},
     }
+
+
+class BaseNodeModel(BaseModel):
+    name = models.CharField("名字", max_length=32)
+    server = models.CharField("服务器地址", help_text="支持逗号分隔传多个地址", max_length=256)
+    enable = models.BooleanField("是否开启", default=True, db_index=True)
+
+    class Meta:
+        abstract = True
+
+    @property
+    def multi_server_address(self):
+        return self.server.split(",")
+
+
+class ProxyNode(BaseNodeModel, SequenceMixin):
+
+    NODE_TYPE_SS = "ss"
+    NODE_TYPE_VLESS = "vless"
+    NODE_CHOICES = (
+        (NODE_TYPE_SS, NODE_TYPE_SS),
+        (NODE_TYPE_VLESS, NODE_TYPE_VLESS),
+    )
 
     node_type = models.CharField(
         "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
@@ -144,17 +144,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return utils.traffic_format(used_traffic)
 
     def get_ss_node_config(self):
-        # TODO: only support multi user one port
         ss_config = self.ss_config
-        xray_config = deepcopy(self.XRAY_CONFIGS_TEMPLATE)
-        ss_inbound = deepcopy(self.XRAY_SS_INBOUND_TEMPLATE)
-        # if self.enable_direct:
-        # ss_inbound["listen"] = "0.0.0.0"
-        # else:
-        # ss_inbound["listen"] = "127.0.0.1"
-
-        # TODO fix direct link
-        ss_inbound["listen"] = "0.0.0.0"
+        xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
+        ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
+        if self.enable_direct:
+            ss_inbound["listen"] = "0.0.0.0"
+        else:
+            ss_inbound["listen"] = "127.0.0.1"
         ss_inbound["port"] = ss_config.multi_user_port
         xray_config["inbounds"].append(ss_inbound)
 
@@ -294,13 +290,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         if self.node_type == self.NODE_TYPE_SS:
             params = {"token": settings.TOKEN}
             return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
-        # TODO vless/trojan
         return ""
-
-    @property
-    def ehco_api_endpoint(self):
-        params = {"token": settings.TOKEN}
-        return settings.HOST + f"/api/ehco_server_config/{self.id}/?{urlencode(params)}"
 
     @property
     def ehco_relay_port(self):
@@ -375,10 +365,6 @@ class RelayNode(BaseNodeModel):
             return f"{self.name}-{self.remark}"
         return self.name
 
-    @classmethod
-    def get_ip_list(cls):
-        return [node.server for node in cls.objects.filter(enable=True)]
-
     def get_relay_rules_configs(self):
         data = []
         for rule in self.relay_rules.select_related("proxy_node").all():
@@ -389,7 +375,6 @@ class RelayNode(BaseNodeModel):
                 if node.enable_ehco_tunnel:
                     tcp_remote = f"{server}:{node.ehco_listen_port}"
                 else:
-                    # TODO other node type
                     tcp_remote = f"{server}:{node.ss_config.multi_user_port}"
                 if rule.transport_type in c.WS_TRANSPORTS:
                     tcp_remote = "wss://" + tcp_remote
@@ -494,8 +479,6 @@ class UserTrafficLog(BaseLogModel):
     )
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
-
-    tcp_conn_cnt = models.IntegerField(default=0, verbose_name="tcp链接数")
     ip_list = models.JSONField(verbose_name="IP地址列表", default=list)
 
     class Meta:
@@ -506,17 +489,6 @@ class UserTrafficLog(BaseLogModel):
 
     def __str__(self) -> str:
         return f"用户流量记录:{self.id}"
-
-    @classmethod
-    def get_user_online_device_count(cls, user, minutes=10):
-        """获取最近一段时间内用户在线设备数量"""
-        now = utils.get_current_datetime()
-        ips = set()
-        for log in cls.objects.filter(
-            user=user, created_at__range=[now.add(minutes=minutes * -1), now]
-        ).values("ip_list"):
-            ips.update(log["ip_list"])
-        return len(ips)
 
     @classmethod
     def get_all_node_online_user_count(cls):
@@ -531,7 +503,7 @@ class UserTrafficLog(BaseLogModel):
 
     @classmethod
     def get_latest_online_log_info(cls, proxy_node):
-        data = {"online": False, "online_user_count": 0, "tcp_conn_cnt": 0}
+        data = {"online": False, "online_user_count": 0}
         now = utils.get_current_datetime()
         query = cls.objects.filter(
             proxy_node=proxy_node,
@@ -542,9 +514,6 @@ class UserTrafficLog(BaseLogModel):
             data["online_user_count"] = (
                 query.filter(user__isnull=False).values("user").distinct().count()
             )
-            data["tcp_conn_cnt"] = query.aggregate(cnt=models.Sum("tcp_conn_cnt"))[
-                "cnt"
-            ]
         return data
 
     @classmethod

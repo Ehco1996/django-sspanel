@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
 from django.forms import ModelForm
-from django.utils.html import format_html
 
 from apps.proxy import models
 from apps.sspanel.models import User
@@ -101,18 +100,9 @@ class RelayNodeAdmin(admin.ModelAdmin):
         "remark",
         "server",
         "enable",
-        "api_endpoint",
     ]
 
     inlines = [RelayRuleInline]
-
-    def api_endpoint(self, instance):
-        link = instance.api_endpoint
-        return format_html(f"<a href={link}>配置地址</a>")
-
-    api_endpoint.short_description = "中转节点配置地址"
-    api_endpoint.allow_tags = True
-    api_endpoint.action_type = 2
 
 
 class RelayRuleAdmin(admin.ModelAdmin):
@@ -135,7 +125,6 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
         "username",
         "nodename",
         "total_traffic",
-        "tcp_conn_cnt",
         "ip_list",
         "created_at",
     ]
