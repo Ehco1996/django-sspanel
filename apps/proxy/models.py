@@ -52,7 +52,7 @@ class XRayTemplates:
     }
 
     SS_INBOUND = {
-        "listen": "127.0.0.1",
+        "listen": "0.0.0.0",
         "port": 0,
         "protocol": "shadowsocks",
         "tag": "ss_proxy",
@@ -147,10 +147,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         ss_config = self.ss_config
         xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
         ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
-        if self.enable_direct:
-            ss_inbound["listen"] = "0.0.0.0"
-        else:
-            ss_inbound["listen"] = "127.0.0.1"
         ss_inbound["port"] = ss_config.multi_user_port
         xray_config["inbounds"].append(ss_inbound)
 
@@ -305,7 +301,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     @cached_property
     def enable_relay(self):
-        return bool(self.relay_rules.filter(relay_node__enable=True).exists())
+        return self.relay_rules.filter(relay_node__enable=True).exists()
 
     @cached_property
     def enable_ehco_tunnel(self):
