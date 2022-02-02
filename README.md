@@ -29,9 +29,9 @@
 
 ## 项目说明
 
-* 智能**订阅系统**, 支持 ss/v2 ray/clash/clash 高级版
+* 智能**订阅系统**, 支持 ss/clash/clash 高级版
 * 和[中转隧道](https://github.com/Ehco1996/ehco)深度集成，方便快速的搭建中转隧道
-* 后端支援（shadowsocks/v2 ray/trojan）
+d7e4380-6532-* 后端支援常用协议
 * 注册采用邀请系统，告别不良用户
 * 统一完善的后台管理界面
 * 完善的商品购买逻辑
@@ -52,7 +52,7 @@
 
 * 商品中心：
 
-![商品中心](https://user-images.githubusercontent.com/24697284/106536076-9 d7e4380-6532-11eb-8368-eddd6f4cdad8.png)
+![商品中心](https://user-images.githubusercontent.com/24697284/106536076-9d7e4380-6532-11eb-8368-eddd6f4cdad8.png)
 
 * 节点信息：
 
@@ -78,7 +78,7 @@
 
 * 运行状态：
 
-![运行状态：](https://user-images.githubusercontent.com/24697284/106535029-46776f00-6530-11eb-8709-f66a40 ff0a89.png)
+![运行状态：](https://user-images.githubusercontent.com/24697284/106535029-46776f00-6530-11eb-8709-f66a40ff0a89.png)
 
 * 面板管理：
 
