@@ -228,7 +228,7 @@ proxy-groups:
     {% for node in nodes %} - {{ node.name }}
     {% endfor %}
     url: "http://www.gstatic.com/generate_204"
-    interval: 300
+    interval: 600
 
   # fallback 可以尽量按照用户书写的服务器顺序，在确保服务器可用的情况下，自动选择服务器
   - name: fallback-auto
@@ -237,7 +237,7 @@ proxy-groups:
     {% for node in nodes %} - {{ node.name }}
     {% endfor %}
     url: "http://www.gstatic.com/generate_204"
-    interval: 300
+    interval: 600
 
   # load-balance 可以使相同 eTLD 请求在同一条代理线路上
   - name: load-balance
@@ -246,7 +246,7 @@ proxy-groups:
     {% for node in nodes %} - {{ node.name }}
     {% endfor %}
     url: "http://www.gstatic.com/generate_204"
-    interval: 300
+    interval: 600
 
 {% if sub_type == "clash" %}
 {% include "yamls/rules.yml" %}

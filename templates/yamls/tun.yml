@@ -1,10 +1,3 @@
-# 此tun配置为Windows生效，不对macOS的ClashX Pro产生影响
-# Windows还需要根据文档配置才能真正开启tun
 tun:
   enable: true
   stack: system
-  dns-hijack:
-    - tcp://8.8.8.8:53
-    - 8.8.8.8:1053
-  auto-route: true
-  auto-detect-interface: true
