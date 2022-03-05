@@ -399,6 +399,14 @@ class RelayNode(BaseNodeModel):
         params = {"token": settings.TOKEN}
         return settings.HOST + f"/api/ehco_relay_config/{self.id}/?{urlencode(params)}"
 
+    @classmethod
+    def get_active_relay_nodes_host_list(cls):
+        hosts = []
+        for node in cls.objects.filter(enable=True):
+            for host in node.multi_server_address:
+                hosts.append(host)
+        return hosts
+
 
 class RelayRule(BaseModel):
 

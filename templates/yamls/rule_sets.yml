@@ -47,19 +47,22 @@ rules:
   - PROCESS-NAME,WebTorrent.exe,DIRECT
   - DOMAIN,clash.razord.top,DIRECT
   - DOMAIN,yacd.haishan.me,DIRECT
-  - DOMAIN,boss.cnwangjie.com,DIRECT
+  - DOMAIN,boss.cnwangjie.com,REJECT
+{% for host in relay_nodes_host %}
+  - DOMAIN,{{ host }},DIRECT
+{% endfor %}
   - RULE-SET,private,DIRECT
   - RULE-SET,reject,REJECT
   - RULE-SET,icloud,DIRECT
   - RULE-SET,apple,DIRECT
   - RULE-SET,google,DIRECT
-  - RULE-SET,proxy,PROXY
   - RULE-SET,direct,DIRECT
   - RULE-SET,lancidr,DIRECT
   - RULE-SET,cncidr,DIRECT
-  - RULE-SET,telegramcidr,PROXY
-  - GEOIP,,DIRECT
   - GEOIP,CN,DIRECT
+  - GEOIP,LAN,DIRECT
+  - RULE-SET,proxy,PROXY
+  - RULE-SET,telegramcidr,PROXY
   - MATCH,PROXY
 
 rule-providers:

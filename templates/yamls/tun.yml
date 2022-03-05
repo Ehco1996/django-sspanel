@@ -2,12 +2,9 @@
 # Windows还需要根据文档配置才能真正开启tun
 tun:
   enable: true
-  stack: gvisor # 使用 system 需要 Clash Premium 2021.05.08 及更高版本
+  stack: system
   dns-hijack:
     - tcp://8.8.8.8:53
     - 8.8.8.8:1053
-  macOS-auto-route: true
-  macOS-auto-detect-interface: true # 自动检测出口网卡
-  # Clash Premium 2021.05.08 及更高版本后可将以上macOS-字段删除
-  # auto-route: true
-  # auto-detect-interface: true
+  auto-route: true
+  auto-detect-interface: true
