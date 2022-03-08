@@ -6,6 +6,7 @@
 [![simpleui](https://img.shields.io/badge/developing%20with-Simpleui-2077ff.svg)](https://github.com/newpanjing/simpleui)
 [![check](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml)
 [![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/ehco1996/django-sspanel)](https://hub.docker.com/r/ehco1996/django-sspanel)
 
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
