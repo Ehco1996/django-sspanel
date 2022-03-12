@@ -1,8 +1,6 @@
 import base64
 from collections import defaultdict
-from uuid import uuid4
 
-from django.conf import settings
 from django.template.loader import render_to_string
 
 from apps.proxy import models as pm
@@ -25,42 +23,44 @@ class UserSubManager:
         SUB_TYPE_CLASH_PRO,
     }
 
-    def __init__(self, user, sub_type):
+    def __init__(self, user, sub_type, node_list):
         self.user = user
         if sub_type not in self.SUB_TYPES_SET:
             sub_type = self.SUB_TYPE_SS
         self.sub_type = sub_type
-        self.node_list = self._fill_fake_node()
+        self.node_list = node_list
 
-    def _fill_fake_node(self):
-        """根据用户信息拿出所有需要的node并添加一些虚拟节点
-        - 官网地址
-        - 增加用户 等级，
-        - 流量使用情况
-        """
-        node_list = pm.ProxyNode.get_active_nodes(level=self.user.level)
-        fake_node = []
-        note_list = [
-            f"{settings.TITLE}官网：{settings.HOST}",
-        ]
-        if len(node_list) > 0:
-            note_list.extend(
-                [
-                    f"等级：{self.user.level} 到期时间：{self.user.level_expire_time.date()}",
-                    f"剩余流量：{self.user.human_remain_traffic},总流量：{self.user.human_total_traffic}",
-                ]
-            )
-        else:
-            note_list.append("没有可以用的节点 请去官网购买")
+    def get_sub_links(self):
+        if self.sub_type in [self.SUB_TYPE_CLASH, self.SUB_TYPE_CLASH_PRO]:
+            return self.get_clash_sub_links()
+        return self.get_normal_sub_links()
 
-        for note in note_list:
-            node = pm.ProxyNode(name=note, server=uuid4().hex)
-            pm.SSConfig(proxy_node=node)
-            fake_node.append(node)
-
-        return fake_node + node_list
+    def get_normal_sub_links(self):
+        sub_links = ""
+        relay_node_group = defaultdict(list)
+        for node in self.node_list:
+            if node.enable_relay:
+                for rule in node.relay_rules.filter(relay_node__enable=True):
+                    relay_node_group[rule.relay_node].append(
+                        node.get_user_node_link(self.user, rule)
+                    )
+            if node.enable_direct:
+                sub_links += node.get_user_node_link(self.user) + "\n"
+        for sub_link_list in relay_node_group.values():
+            for link in sub_link_list:
+                sub_links += link + "\n"
+        sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
+        return sub_links
 
     def get_clash_sub_links(self):
+        return render_to_string(
+            "yamls/clash.yml",
+            {
+                "sub_type": self.sub_type,
+            },
+        )
+
+    def get_clash_proxy(self):
         node_configs = []
         relay_node_group = defaultdict(list)
         for node in self.node_list:
@@ -81,35 +81,11 @@ class UserSubManager:
                 )
         for cfg_list in relay_node_group.values():
             node_configs.extend(cfg_list)
-        print(pm.RelayNode.get_active_relay_nodes_host_list())
         # 将中转节点的 host 设置成直连
         return render_to_string(
-            "yamls/clash.yml",
+            "yamls/clash_proxy.yaml",
             {
                 "nodes": node_configs,
-                "sub_type": self.sub_type,
                 "relay_nodes_host": pm.RelayNode.get_active_relay_nodes_host_list(),
             },
         )
-
-    def get_normal_sub_links(self):
-        sub_links = ""
-        relay_node_group = defaultdict(list)
-        for node in self.node_list:
-            if node.enable_relay:
-                for rule in node.relay_rules.filter(relay_node__enable=True):
-                    relay_node_group[rule.relay_node].append(
-                        node.get_user_node_link(self.user, rule)
-                    )
-            if node.enable_direct:
-                sub_links += node.get_user_node_link(self.user) + "\n"
-        for sub_link_list in relay_node_group.values():
-            for link in sub_link_list:
-                sub_links += link + "\n"
-        sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
-        return sub_links
-
-    def get_sub_links(self):
-        if self.sub_type in [self.SUB_TYPE_CLASH, self.SUB_TYPE_CLASH_PRO]:
-            return self.get_clash_sub_links()
-        return self.get_normal_sub_links()

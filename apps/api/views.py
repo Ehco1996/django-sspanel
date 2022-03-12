@@ -1,7 +1,7 @@
 import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -65,9 +65,31 @@ class SubscribeView(View):
             if request.GET.get("token"):
                 user = User.get_or_none(encoder.string2int(request.GET.get("token")))
         if not user:
-            return HttpResponseNotFound()
+            return HttpResponseBadRequest("user not found")
         sub_type = request.GET.get("sub_type")
-        sub_links = UserSubManager(user, sub_type).get_sub_links()
+        node_list = m.ProxyNode.get_active_nodes(level=user.level)
+        if len(node_list) == 0:
+            return HttpResponseBadRequest("no active nodes for you")
+        sub_links = UserSubManager(user, sub_type, node_list).get_sub_links()
+        return HttpResponse(sub_links, content_type="text/plain; charset=utf-8")
+
+
+class ClashProxyView(View):
+    def get(self, request):
+        user = None
+        uid = request.GET.get("uid")
+        if uid:
+            user = User.objects.filter(uid=uid).first()
+        else:
+            if request.GET.get("token"):
+                user = User.get_or_none(encoder.string2int(request.GET.get("token")))
+        if not user:
+            return HttpResponseBadRequest("user not found")
+        sub_type = request.GET.get("sub_type")
+        node_list = m.ProxyNode.get_active_nodes(level=user.level)
+        if len(node_list) == 0:
+            return HttpResponseBadRequest("no active nodes for you")
+        sub_links = UserSubManager(user, sub_type, node_list).get_clash_proxy()
         return HttpResponse(sub_links, content_type="text/plain; charset=utf-8")
 
 
@@ -102,7 +124,7 @@ class ProxyConfigsView(View):
     def get(self, request, node_id):
         node = m.ProxyNode.get_or_none(node_id)
         if not node:
-            return HttpResponseNotFound()
+            return HttpResponseBadRequest()
         return JsonResponse(node.get_proxy_configs())
 
     @method_decorator(handle_json_post)
@@ -110,7 +132,7 @@ class ProxyConfigsView(View):
     def post(self, request, node_id):
         node = m.ProxyNode.get_or_none(node_id)
         if not node:
-            return HttpResponseNotFound()
+            return HttpResponseBadRequest()
         tasks.sync_user_traffic_task.delay(node_id, request.json["data"])
         return JsonResponse(data={})
 
@@ -122,7 +144,7 @@ class EhcoRelayConfigView(View):
     def get(self, request, node_id):
         node: m.RelayNode = m.RelayNode.get_or_none(node_id)
         if not node:
-            return HttpResponseNotFound()
+            return HttpResponseBadRequest()
         return JsonResponse(node.get_relay_rules_configs())
 
 

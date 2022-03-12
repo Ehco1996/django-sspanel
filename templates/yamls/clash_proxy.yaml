@@ -1,0 +1,6 @@
+proxies:
+{% autoescape off %}
+{% for node in nodes %} - {{ node.clash_config }}
+{% endfor %}
+{% endautoescape%}
+
