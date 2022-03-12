@@ -1,3 +1,0 @@
-tun:
-  enable: true
-  stack: system

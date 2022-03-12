@@ -509,4 +509,4 @@ rules:
 
   # 最终规则
   - GEOIP,CN,DIRECT
-  - MATCH,Proxy
+  - MATCH,Final
