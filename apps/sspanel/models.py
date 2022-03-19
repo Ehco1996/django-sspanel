@@ -284,6 +284,15 @@ class User(AbstractUser):
         self.reset_traffic(settings.DEFAULT_TRAFFIC)
         self.save()
 
+    def get_subinfo_header(self):
+        """
+        https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
+        """
+        expire = int(datetime.datetime.timestamp(self.level_expire_time))
+        info = f"upload={self.upload_traffic}; download={self.download_traffic}; total={self.total_traffic}; expire={expire}"
+
+        return {"Subscription-Userinfo:": info}
+
 
 class UserMixin:
     @functional.cached_property

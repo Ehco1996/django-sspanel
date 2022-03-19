@@ -71,7 +71,11 @@ class SubscribeView(View):
         if len(node_list) == 0:
             return HttpResponseBadRequest("no active nodes for you")
         sub_links = UserSubManager(user, sub_type, node_list).get_sub_links()
-        return HttpResponse(sub_links, content_type="text/plain; charset=utf-8")
+        return HttpResponse(
+            sub_links,
+            content_type="text/plain; charset=utf-8",
+            headers=user.get_subinfo_header(),
+        )
 
 
 class ClashProxyView(View):
