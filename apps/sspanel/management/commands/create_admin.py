@@ -32,8 +32,7 @@ class Command(createsuperuser.Command):
         if not password or not username or not email:
             raise CommandError("--email --username and --password are required options")
 
-        error_msg = self._validate_username(username, "username", database)
-        if error_msg:
+        if error_msg := self._validate_username(username, "username", database):
             raise CommandError(error_msg)
 
         user_data = {
