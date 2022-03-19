@@ -7,7 +7,11 @@ urlpatterns = [
     path("system_status/", views.SystemStatusView.as_view(), name="system_status"),
     path("user/settings/", views.UserSettingsView.as_view(), name="user_settings"),
     path("subscribe/", views.SubscribeView.as_view(), name="subscribe"),
-    path("clash/proxy/", views.ClashProxyView.as_view(), name="clash_proxy"),
+    path(
+        "subscribe/clash/proxy_providers/",
+        views.ClashProxyProciderView.as_view(),
+        name="proxy_providers",
+    ),
     path("reset_ss_port/", views.ReSetSSPortView.as_view(), name="reset_ss_port"),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),

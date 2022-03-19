@@ -1,6 +1,7 @@
 import base64
 from collections import defaultdict
 
+from django.conf import settings
 from django.template.loader import render_to_string
 
 from apps.proxy import models as pm
@@ -30,12 +31,12 @@ class UserSubManager:
         self.sub_type = sub_type
         self.node_list = node_list
 
-    def get_sub_links(self):
+    def get_sub_info(self):
         if self.sub_type in [self.SUB_TYPE_CLASH, self.SUB_TYPE_CLASH_PRO]:
-            return self.get_clash_sub_links()
-        return self.get_normal_sub_links()
+            return self.get_clash_sub_yaml()
+        return self.get_ss_sub_links()
 
-    def get_normal_sub_links(self):
+    def get_ss_sub_links(self):
         sub_links = ""
         relay_node_group = defaultdict(list)
         for node in self.node_list:
@@ -52,15 +53,18 @@ class UserSubManager:
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 
-    def get_clash_sub_links(self):
+    def get_clash_sub_yaml(self):
         return render_to_string(
-            "yamls/clash.yaml",
+            "clash/main.yaml",
             {
                 "sub_type": self.sub_type,
+                "provider_name": settings.TITLE,
+                "proxy_provider_url": self.user.clash_proxy_provider_endpoint,
             },
         )
 
-    def get_clash_proxy(self):
+    def get_clash_proxy_providers(self):
+        """todo support multi provider group"""
         node_configs = []
         relay_node_group = defaultdict(list)
         for node in self.node_list:
@@ -83,7 +87,7 @@ class UserSubManager:
             node_configs.extend(cfg_list)
         # 添加将中转节点的 host 设置成直连规则
         return render_to_string(
-            "yamls/clash_proxy.yaml",
+            "clash/providers.yaml",
             {
                 "nodes": node_configs,
                 "relay_nodes_host": pm.RelayNode.get_active_relay_nodes_host_list(),
