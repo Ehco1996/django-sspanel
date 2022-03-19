@@ -54,7 +54,7 @@ class UserSubManager:
 
     def get_clash_sub_links(self):
         return render_to_string(
-            "yamls/clash.yml",
+            "yamls/clash.yaml",
             {
                 "sub_type": self.sub_type,
             },
