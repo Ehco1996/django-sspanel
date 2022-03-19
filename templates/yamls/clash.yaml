@@ -33,7 +33,7 @@ proxy-providers:
     type: http
     url: "http://127.0.0.1:8000/api/clash/proxy/?uid=27212dc4-a61e-4e30-b7c6-0ab48c3b9802&sub_type=clash_pro"
     interval: 86400
-    path: ./providers/mizhiwu.yaml  
+    path: ./providers/mizhiwu.yaml
     health-check:
       enable: true
       interval: 600
