@@ -46,8 +46,9 @@ class UserSettingsView(View):
     @method_decorator(login_required)
     def post(self, request):
         success = request.user.update_ss_config_from_dict(
-            data={k: v for k, v in request.POST.items()}
+            data=dict(request.POST.items())
         )
+
         if success:
             data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}
         else:
@@ -58,12 +59,10 @@ class UserSettingsView(View):
 class SubscribeView(View):
     def get(self, request):
         user = None
-        uid = request.GET.get("uid")
-        if uid:
+        if uid := request.GET.get("uid"):
             user = User.objects.filter(uid=uid).first()
-        else:
-            if request.GET.get("token"):
-                user = User.get_or_none(encoder.string2int(request.GET.get("token")))
+        elif request.GET.get("token"):
+            user = User.get_or_none(encoder.string2int(request.GET.get("token")))
         if not user:
             return HttpResponseBadRequest("user not found")
         sub_type = request.GET.get("sub_type")
@@ -81,12 +80,10 @@ class SubscribeView(View):
 class ClashProxyView(View):
     def get(self, request):
         user = None
-        uid = request.GET.get("uid")
-        if uid:
+        if uid := request.GET.get("uid"):
             user = User.objects.filter(uid=uid).first()
-        else:
-            if request.GET.get("token"):
-                user = User.get_or_none(encoder.string2int(request.GET.get("token")))
+        elif request.GET.get("token"):
+            user = User.get_or_none(encoder.string2int(request.GET.get("token")))
         if not user:
             return HttpResponseBadRequest("user not found")
         sub_type = request.GET.get("sub_type")
@@ -173,11 +170,7 @@ class ReSetSSPortView(View):
     @method_decorator(login_required)
     def post(self, request):
         port = request.user.reset_random_port()
-        data = {
-            "title": "修改成功！",
-            "subtitle": "端口修改为：{}！".format(port),
-            "status": "success",
-        }
+        data = {"title": "修改成功！", "subtitle": f"端口修改为：{port}！", "status": "success"}
         return JsonResponse(data)
 
 
@@ -238,9 +231,10 @@ def gen_invite_code(request):
     if num > 0:
         registerinfo = {
             "title": "成功",
-            "subtitle": "添加邀请码{}个,请刷新页面".format(num),
+            "subtitle": f"添加邀请码{num}个,请刷新页面",
             "status": "success",
         }
+
     else:
         registerinfo = {"title": "失败", "subtitle": "已经不能生成更多的邀请码了", "status": "error"}
     return JsonResponse(registerinfo)
@@ -251,13 +245,10 @@ def gen_invite_code(request):
 def purchase(request):
     good_id = request.POST.get("goodId")
     good = Goods.objects.get(id=good_id)
-    if not good.purchase_by_user(request.user):
-        return JsonResponse(
-            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那捐赠"}
-        )
-    else:
-        return JsonResponse(
+    return JsonResponse(
             {"title": "购买成功", "status": "success", "subtitle": "请在用户中心检查最新信息"}
+        ) if good.purchase_by_user(request.user) else JsonResponse(
+            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那捐赠"}
         )
 
 
@@ -279,7 +270,4 @@ def change_theme(request):
 def ailpay_callback(request):
     data = request.POST.dict()
     success = UserOrder.handle_callback_by_alipay(data)
-    if success:
-        return HttpResponse("success")
-    else:
-        return HttpResponse("failure")
+    return HttpResponse("success") if success else HttpResponse("failure")
