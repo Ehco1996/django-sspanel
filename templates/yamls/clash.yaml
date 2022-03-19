@@ -10,29 +10,37 @@ external-controller: 0.0.0.0:9090
 proxy-groups:
   - name: Proxy
     type: select
+    proxies:
+      - auto
     use:
       - mizhiwu
 
-  - name: "Final"
+  - name: Final
     type: select
     proxies:
-      - "Proxy"
-      - "DIRECT"
+      - Proxy
+      - DIRECT
 
+  - name: auto
+    type: url-test
+    use:
+      - mizhiwu
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
 
 proxy-providers:
   mizhiwu:
     type: http
     url: "http://127.0.0.1:8000/api/clash/proxy/?uid=27212dc4-a61e-4e30-b7c6-0ab48c3b9802&sub_type=clash_pro"
     interval: 86400
-    path: ./providers/mizhiwu.yaml
+    path: ./providers/mizhiwu.yaml  
     health-check:
       enable: true
       interval: 600
       url: http://www.gstatic.com/generate_204
 
 {% if sub_type == "clash" %}
-{% include "yamls/rules.yml" %}
+{% include "yamls/rules.yaml" %}
 {% else %}
-{% include "yamls/rule_sets.yml" %}
+{% include "yamls/rule_sets.yaml" %}
 {% endif %}
