@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.management.commands import createsuperuser
 from django.core.management import CommandError
 from django.db import transaction
@@ -39,6 +41,7 @@ class Command(createsuperuser.Command):
             "password": password,
             "email": email,
             "ss_port": User.get_not_used_port(),
+            "uid": uuid.uuid4(),
         }
 
         with transaction.atomic():
