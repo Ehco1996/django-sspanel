@@ -85,11 +85,7 @@ class UserSubManager:
                 )
         for cfg_list in relay_node_group.values():
             node_configs.extend(cfg_list)
-        # 添加将中转节点的 host 设置成直连规则
         return render_to_string(
             "clash/providers.yaml",
-            {
-                "nodes": node_configs,
-                "relay_nodes_host": pm.RelayNode.get_active_relay_nodes_host_list(),
-            },
+            {"nodes": node_configs},
         )
