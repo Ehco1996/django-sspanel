@@ -7,7 +7,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from apps.ext import encoder, lock
+from apps.ext import lock
 from apps.proxy import models as m
 from apps.sspanel import tasks
 from apps.sspanel.models import Goods, InviteCode, User, UserCheckInLog, UserOrder
@@ -61,40 +61,42 @@ class SubscribeView(View):
         uid = request.GET.get("uid")
         if uid:
             user = User.objects.filter(uid=uid).first()
-        else:
-            if request.GET.get("token"):
-                user = User.get_or_none(encoder.string2int(request.GET.get("token")))
         if not user:
             return HttpResponseBadRequest("user not found")
-        sub_type = request.GET.get("sub_type")
         node_list = m.ProxyNode.get_active_nodes(level=user.level)
         if len(node_list) == 0:
             return HttpResponseBadRequest("no active nodes for you")
-        sub_links = UserSubManager(user, sub_type, node_list).get_sub_links()
+
+        sub_info = UserSubManager(
+            user, request.GET.get("sub_type"), node_list
+        ).get_sub_info()
         return HttpResponse(
-            sub_links,
+            sub_info,
             content_type="text/plain; charset=utf-8",
             headers=user.get_subinfo_header(),
         )
 
 
-class ClashProxyView(View):
+class ClashProxyProciderView(View):
     def get(self, request):
         user = None
         uid = request.GET.get("uid")
         if uid:
             user = User.objects.filter(uid=uid).first()
-        else:
-            if request.GET.get("token"):
-                user = User.get_or_none(encoder.string2int(request.GET.get("token")))
         if not user:
             return HttpResponseBadRequest("user not found")
-        sub_type = request.GET.get("sub_type")
         node_list = m.ProxyNode.get_active_nodes(level=user.level)
         if len(node_list) == 0:
             return HttpResponseBadRequest("no active nodes for you")
-        sub_links = UserSubManager(user, sub_type, node_list).get_clash_proxy()
-        return HttpResponse(sub_links, content_type="text/plain; charset=utf-8")
+
+        providers = UserSubManager(
+            user, request.GET.get("sub_type"), node_list
+        ).get_clash_proxy_providers()
+
+        return HttpResponse(
+            providers,
+            content_type="text/plain; charset=utf-8",
+        )
 
 
 class UserRefChartView(View):

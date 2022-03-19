@@ -13,7 +13,7 @@ proxy-groups:
     proxies:
       - auto
     use:
-      - mizhiwu
+      - {{ provider_name }}
 
   - name: Final
     type: select
@@ -24,23 +24,23 @@ proxy-groups:
   - name: auto
     type: url-test
     use:
-      - mizhiwu
+      - {{ provider_name }}
     url: 'http://www.gstatic.com/generate_204'
     interval: 300
 
 proxy-providers:
-  mizhiwu:
+  {{ provider_name }}:
     type: http
-    url: "http://127.0.0.1:8000/api/clash/proxy/?uid=27212dc4-a61e-4e30-b7c6-0ab48c3b9802&sub_type=clash_pro"
+    url: {{ proxy_provider_url }}
     interval: 86400
-    path: ./providers/mizhiwu.yaml
+    path: ./providers/{{ provider_name }}.yaml
     health-check:
       enable: true
       interval: 600
       url: http://www.gstatic.com/generate_204
 
 {% if sub_type == "clash" %}
-{% include "yamls/rules.yaml" %}
+{% include "clash/rules.yaml" %}
 {% else %}
-{% include "yamls/rule_sets.yaml" %}
+{% include "clash/rule_sets.yaml" %}
 {% endif %}

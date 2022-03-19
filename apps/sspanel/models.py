@@ -255,6 +255,13 @@ class User(AbstractUser):
     def remain_percentage(self):
         return 100.00 - self.used_percentage
 
+    @property
+    def clash_proxy_provider_endpoint(self):
+        params = {"uid": self.uid}
+        return (
+            settings.HOST + f"/api/subscribe/clash/proxy_providers/?{urlencode(params)}"
+        )
+
     @transaction.atomic
     def reset_random_port(self):
         cls = type(self)
