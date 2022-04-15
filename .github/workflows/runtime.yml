@@ -7,6 +7,7 @@ on:
       - dev
     paths:
       - "pyproject.toml"
+      - "deploy/Dockerfile.RUNTIME"
 jobs:
   build-runtime:
     runs-on: ubuntu-latest
@@ -30,12 +31,3 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "nginx"
           dockerfile: deploy/Dockerfile.NGINX
-
-      - name: build debug runtime
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: ehco1996/django-sspanel
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "debug-runtime"
-          dockerfile: deploy/Dockerfile.DEBUG-RUNTIME

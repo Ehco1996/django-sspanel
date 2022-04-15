@@ -4,14 +4,11 @@ FROM ehco1996/django-sspanel:runtime as base
 
 LABEL Name=django-sspanel
 
-ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
-
 WORKDIR /tmp
 COPY pyproject.toml poetry.lock /tmp/
 
-
 RUN apk add --update --no-cache mariadb-connector-c-dev tzdata \
-	&& apk add --no-cache --virtual .build-deps mariadb-dev gcc musl-dev libffi-dev make \
+	&& apk add --no-cache --virtual .build-deps mariadb-dev gcc musl-dev libffi-dev make cargo \
 	# TODO workaround start
 	&& pip install --no-cache-dir poetry \
     && poetry config virtualenvs.create false \
