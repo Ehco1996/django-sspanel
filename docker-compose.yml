@@ -28,7 +28,7 @@ services:
     container_name: mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-yourpass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-yourpass}
       MYSQL_DATABASE: sspanel
     volumes:
       - ./configs/mysqld/mysqld_charset.cnf:/etc/mysql/conf.d/mysqld_charset.cnf
