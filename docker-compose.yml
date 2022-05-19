@@ -27,6 +27,8 @@ services:
     image: mysql:5.7
     container_name: mysql
     restart: always
+    env_file:
+      - .env_mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-yourpass}
       MYSQL_DATABASE: sspanel
