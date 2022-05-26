@@ -69,7 +69,7 @@
                     {% if user.today_is_checkin %}
                     <p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>
                     {% else %}
-                    <p class="subtitle is-5 is-spaced"> 今天还没有签到，点一下可以获得{{ min_traffic }}~{{ max_traffic }}流量</p>
+                    <p class="subtitle is-5 is-spaced">今天还没有签到，点一下可以获得{{ min_traffic }}~{{ max_traffic }}流量</p>
                     <br>
                     <button class="button">
                         <a>
@@ -281,9 +281,7 @@
         }
         $.post(url, data, function (results) {
             info = results
-            swal(info.title, info.subtitle, info.status)
-            var box = $("#id-checkin-box")
-            box.html('<p class="subtitle is-5 is-spaced">今天已经签到过了ಠ౪ಠ</p>')
+            swal(info.title, info.subtitle, info.status).then(function(){location.reload();})
         })
     }
     CheckButton.click(Checkin)
@@ -300,7 +298,7 @@
             url = "{% url 'api:change_theme' %}"
             $.post(url, data, function (results) {
                 info = results
-                swal(info.title, info.subtitle, info.status)
+                swal(info.title, info.subtitle, info.status).then(function(){location.reload();})
             })
         } else {
             swal('错误！', '请选择你要更换的主题', 'error')
