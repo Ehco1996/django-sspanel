@@ -5,6 +5,8 @@
 <head>
     {% load static %}
     <title>{% settings_value "TITLE" %}</title>
+    <meta name="keywords" content="{% settings_value "KEYWORDS" %}" />
+    <meta name="description" content="{% settings_value "DESCRIPTION" %}" />
     {% include "basehead.html" %}
 </head>
 
