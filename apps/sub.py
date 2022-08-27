@@ -4,8 +4,6 @@ from collections import defaultdict
 from django.conf import settings
 from django.template.loader import render_to_string
 
-from apps.proxy import models as pm
-
 
 class UserSubManager:
     """统一管理用户的订阅"""
