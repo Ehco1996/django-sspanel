@@ -478,7 +478,7 @@ class UserTrafficLog(BaseLogModel):
     )
     proxy_node = models.ForeignKey(
         ProxyNode,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         verbose_name="代理节点",
     )
     upload_traffic = models.BigIntegerField("上传流量", default=0)
