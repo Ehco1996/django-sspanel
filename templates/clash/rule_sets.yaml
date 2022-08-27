@@ -50,9 +50,6 @@ rule-providers:
 
 rules:
   - RULE-SET,ad-keyword,REJECT
-{% for host in relay_nodes_host %}
-  - DOMAIN,{{ host }},DIRECT
-{% endfor %}
   - DOMAIN,yacd.haishan.me,DIRECT
   - DOMAIN,clash.razord.top,DIRECT
   - DOMAIN,boss.cnwangjie.com,REJECT
