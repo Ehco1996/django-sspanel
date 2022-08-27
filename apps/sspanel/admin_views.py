@@ -11,7 +11,7 @@ from apps import utils
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
 from apps.proxy.models import ProxyNode, RelayNode, UserTrafficLog
-from apps.sspanel.forms import AnnoForm, GoodsForm, UserForm
+from apps.sspanel.forms import AnnoForm, GoodsForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -40,53 +40,6 @@ class NodeDeleteView(StaffRequiredMixin, View):
         node and node.delete()
         messages.success(request, "成功啦", extra_tags="删除节点")
         return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
-
-
-class UserListView(StaffRequiredMixin, View):
-    def get(self, request):
-        context = PageListView(
-            request, User.objects.all().order_by("-date_joined")
-        ).get_page_context()
-        return render(request, "my_admin/user_list.html", context)
-
-
-class UserDeleteView(StaffRequiredMixin, View):
-    def get(self, request, pk):
-        user = User.get_by_pk(pk)
-        user.delete()
-        messages.success(request, "成功啦", extra_tags="删除用户")
-        return HttpResponseRedirect(reverse("sspanel:admin_user_list"))
-
-
-class UserSearchView(StaffRequiredMixin, View):
-    def get(self, request):
-        q = request.GET.get("q")
-        contacts = User.objects.filter(
-            Q(username__icontains=q) | Q(email__icontains=q) | Q(pk__icontains=q)
-        )
-        context = {"contacts": contacts}
-        return render(request, "my_admin/user_list.html", context=context)
-
-
-class UserDetailView(StaffRequiredMixin, View):
-    def get(self, request, pk):
-        user = User.get_by_pk(pk)
-        form = UserForm(instance=user)
-        return render(
-            request, "my_admin/user_detail.html", context={"form": form, "user": user}
-        )
-
-    def post(self, request, pk):
-        user = User.get_by_pk(pk)
-        form = UserForm(request.POST, instance=user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "数据更新成功", extra_tags="修改成功")
-            return HttpResponseRedirect(reverse("sspanel:admin_user_list"))
-        else:
-            messages.error(request, "数据填写错误", extra_tags="错误")
-            context = {"form": form, "user": user}
-            return render(request, "my_admin/user_detail.html", context=context)
 
 
 class UserStatusView(StaffRequiredMixin, View):

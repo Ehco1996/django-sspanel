@@ -58,26 +58,6 @@ urlpatterns = [
     ),
     # 用户相关
     path(
-        "my_admin/user_list/",
-        admin_views.UserListView.as_view(),
-        name="admin_user_list",
-    ),
-    path(
-        "my_admin/user/delete/<int:pk>/",
-        admin_views.UserDeleteView.as_view(),
-        name="admin_user_delete",
-    ),
-    path(
-        "my_admin/user/search/",
-        admin_views.UserSearchView.as_view(),
-        name="admin_user_search",
-    ),
-    path(
-        "my_admin/user/<int:pk>/",
-        admin_views.UserDetailView.as_view(),
-        name="admin_user_detail",
-    ),
-    path(
         "my_admin/user_status/",
         admin_views.UserStatusView.as_view(),
         name="admin_user_status",

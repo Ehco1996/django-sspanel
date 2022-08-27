@@ -474,7 +474,7 @@ class RelayRule(BaseModel):
 class UserTrafficLog(BaseLogModel):
 
     user = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, verbose_name="用户", null=True
+        User, on_delete=models.CASCADE, verbose_name="用户", null=True
     )
     proxy_node = models.ForeignKey(
         ProxyNode,

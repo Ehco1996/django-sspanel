@@ -129,22 +129,3 @@ class AnnoForm(ModelForm):
     class Meta:
         model = Announcement
         fields = "__all__"
-
-
-class UserForm(ModelForm):
-    class Meta:
-        model = User
-        fields = [
-            "balance",
-            "level",
-            "level_expire_time",
-            "ss_port",
-            "ss_password",
-        ]
-        widgets = {
-            "balance": forms.NumberInput(attrs={"class": "input"}),
-            "level": forms.NumberInput(attrs={"class": "input"}),
-            "level_expire_time": forms.DateTimeInput(attrs={"class": "input"}),
-            "ss_port": forms.NumberInput(attrs={"class": "input"}),
-            "ss_password": forms.TextInput(attrs={"class": "input"}),
-        }

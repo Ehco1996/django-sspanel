@@ -4,9 +4,7 @@ on:
     - cron: "30 1 * * *"
   push:
     branch:
-      - master
-      - dev
-
+      - debug-ci
 jobs:
   stale:
     runs-on: ubuntu-latest

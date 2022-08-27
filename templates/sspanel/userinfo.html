@@ -28,11 +28,6 @@
                 <button class="button is-rounded">
                     <a href="{% url 'password_change' %}">修改密码</a>
                 </button>
-                <button class="button is-rounded">
-                    <a>
-                        <span id="id-change-port">重置端口</span>
-                    </a>
-                </button>
                 <hr>
                 <div class="field is-grouped is-grouped-multiline">
                     <div class="control has-icons-left">
@@ -55,7 +50,7 @@
                 </div>
                 <div class="field is-grouped is-grouped-multiline">
                     <div class="control has-icons-left">
-                        <input name="num" class="input is-rounded" placeholder="更换SS密码" id="id-password">
+                        <input name="num" class="input is-rounded" placeholder="更换连接密码" id="id-password">
                         <div class="icon is-small is-left">
                             <i class="fa fa-key"></i>
                         </div>
@@ -100,9 +95,6 @@
                         <p>连接信息</p>
                     </div>
                     <div class="message-body">
-                        <li> 端口：
-                            <code><span id="port">{{ user.ss_port }}</span></code>
-                        </li>
                         <li> 密码：
                             <code>{{ user.ss_password }}</code>
                         </li>
@@ -258,20 +250,6 @@
         $('.copied').fadeOut(1000);
     });
 
-    // 端口重置
-    var ProtButton = $("#id-change-port")
-    var changeport = function () {
-        url = "{% url 'api:reset_ss_port' %}"
-        data = {
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-        }
-        $.post(url, data, function (results) {
-            swal(results.title, results.subtitle, results.status)
-            port.textContent = results.subtitle.slice(6, -1)
-        })
-    }
-    ProtButton.click(changeport)
-
     // 签到
     var CheckButton = $("#id-checkin")
     var Checkin = function () {
@@ -281,7 +259,7 @@
         }
         $.post(url, data, function (results) {
             info = results
-            swal(info.title, info.subtitle, info.status).then(function(){location.reload();})
+            swal(info.title, info.subtitle, info.status).then(function () { location.reload(); })
         })
     }
     CheckButton.click(Checkin)
@@ -298,7 +276,7 @@
             url = "{% url 'api:change_theme' %}"
             $.post(url, data, function (results) {
                 info = results
-                swal(info.title, info.subtitle, info.status).then(function(){location.reload();})
+                swal(info.title, info.subtitle, info.status).then(function () { location.reload(); })
             })
         } else {
             swal('错误！', '请选择你要更换的主题', 'error')

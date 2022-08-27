@@ -12,7 +12,6 @@ urlpatterns = [
         views.ClashProxyProciderView.as_view(),
         name="proxy_providers",
     ),
-    path("reset_ss_port/", views.ReSetSSPortView.as_view(), name="reset_ss_port"),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),
     path("change/theme/", views.change_theme, name="change_theme"),

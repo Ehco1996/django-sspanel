@@ -171,18 +171,6 @@ class UserCheckInView(View):
         return JsonResponse(data)
 
 
-class ReSetSSPortView(View):
-    @method_decorator(login_required)
-    def post(self, request):
-        port = request.user.reset_random_port()
-        data = {
-            "title": "修改成功！",
-            "subtitle": "端口修改为：{}！".format(port),
-            "status": "success",
-        }
-        return JsonResponse(data)
-
-
 class OrderView(View):
     @method_decorator(login_required)
     def get(self, request):
