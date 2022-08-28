@@ -9,14 +9,12 @@ class UserSubManager:
     """统一管理用户的订阅"""
 
     SUB_TYPE_SS = "ss"
-    SUB_TYPE_VLESS = "vless"
     SUB_TYPE_TROJAN = "trojan"
     SUB_TYPE_CLASH = "clash"
     SUB_TYPE_CLASH_PRO = "clash_pro"
 
     SUB_TYPES_SET = {
         SUB_TYPE_SS,
-        SUB_TYPE_VLESS,
         SUB_TYPE_TROJAN,
         SUB_TYPE_CLASH,
         SUB_TYPE_CLASH_PRO,

@@ -17,11 +17,21 @@ from apps.mixin import BaseLogModel, BaseModel, SequenceMixin
 from apps.sspanel.models import User
 
 
+class XRayTags:
+
+    APITag = "api"
+    SSProxyTag = "ss_proxy"
+    TrojanProxyTag = "trojan_proxy"
+
+
 class XRayTemplates:
 
     DEFAULT_CONFIG = {
         "stats": {},
-        "api": {"tag": "api", "services": ["StatsService", "HandlerService"]},
+        "api": {
+            "tag": XRayTags.APITag,
+            "services": ["StatsService", "HandlerService"],
+        },
         "log": {"loglevel": "error"},
         "policy": {
             "levels": {"0": {"statsUserUplink": True, "statsUserDownlink": True}},
@@ -41,11 +51,15 @@ class XRayTemplates:
                 "tag": "api",
             },
         ],
-        "outbounds": [{"protocol": "freedom", "settings": {}}],
+        "outbounds": [{"protocol": "freedom"}],
         "routing": {
             "settings": {
                 "rules": [
-                    {"type": "field", "inboundTag": ["api"], "outboundTag": "api"}
+                    {
+                        "type": "field",
+                        "inboundTag": [XRayTags.APITag],
+                        "outboundTag": XRayTags.APITag,
+                    }
                 ]
             }
         },
@@ -55,8 +69,25 @@ class XRayTemplates:
         "listen": "0.0.0.0",
         "port": 0,
         "protocol": "shadowsocks",
-        "tag": "ss_proxy",
+        "tag": XRayTags.SSProxyTag,
         "settings": {"clients": [], "network": "tcp,udp"},
+    }
+
+    TROJAN_INBOUND = {
+        "listen": "0.0.0.0",
+        "port": 0,
+        "protocol": "trojan",
+        "tag": XRayTags.TrojanProxyTag,
+        "settings": {
+            "clients": [],
+            "network": "tcp,udp",
+            "fallbacks": [{"dest": ""}],
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {"alpn": ["h2", "http/1.1"]},
+        },
     }
 
 
@@ -76,10 +107,10 @@ class BaseNodeModel(BaseModel):
 class ProxyNode(BaseNodeModel, SequenceMixin):
 
     NODE_TYPE_SS = "ss"
-    NODE_TYPE_VLESS = "vless"
+    NODE_TYPE_TROJAN = "trojan"
     NODE_CHOICES = (
         (NODE_TYPE_SS, NODE_TYPE_SS),
-        (NODE_TYPE_VLESS, NODE_TYPE_VLESS),
+        (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
     )
 
     node_type = models.CharField(
@@ -143,6 +174,46 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         used_traffic = aggs["used_traffic"] or 0
         return utils.traffic_format(used_traffic)
 
+    def get_trojan_node_config(self):
+        config = self.trojan_config
+        xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
+        inbound = deepcopy(XRayTemplates.TROJAN_INBOUND)
+        inbound["port"] = config.multi_user_port
+        inbound["settings"]["fallbacks"][0]["dest"] = config.fallback_addr
+
+        xray_config["inbounds"].append(inbound)
+
+        configs = {
+            "users": [],
+            "xray_config": xray_config,
+            "sync_traffic_endpoint": self.api_endpoint,
+        }
+        configs.update(self.get_ehco_server_config())
+
+        for user in User.objects.filter(level__gte=self.level).values(
+            "id",
+            "ss_port",
+            "ss_password",
+            "total_traffic",
+            "upload_traffic",
+            "download_traffic",
+        ):
+            enable = self.enable and user["total_traffic"] > (
+                user["download_traffic"] + user["upload_traffic"]
+            )
+
+            port = port = user["ss_port"]
+            configs["users"].append(
+                {
+                    "user_id": user["id"],
+                    "port": port,
+                    "password": user["ss_password"],
+                    "enable": enable,
+                    "protocol": self.NODE_TYPE_TROJAN,
+                }
+            )
+        return configs
+
     def get_ss_node_config(self):
         ss_config = self.ss_config
         xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
@@ -168,18 +239,14 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             enable = self.enable and user["total_traffic"] > (
                 user["download_traffic"] + user["upload_traffic"]
             )
-            if ss_config.multi_user_port:
-                # NOTE 单端口多用户
-                port = ss_config.multi_user_port
-            else:
-                port = port = user["ss_port"]
             configs["users"].append(
                 {
                     "user_id": user["id"],
-                    "port": port,
+                    "port": ss_config.multi_user_port,
                     "password": user["ss_password"],
                     "enable": enable,
                     "method": ss_config.method,
+                    "protocol": self.NODE_TYPE_SS,
                 }
             )
         return configs
@@ -187,27 +254,32 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def get_proxy_configs(self):
         if self.node_type == self.NODE_TYPE_SS:
             return self.get_ss_node_config()
+        elif self.node_type == self.NODE_TYPE_TROJAN:
+            return self.get_trojan_node_config()
         return {}
 
     def get_ehco_server_config(self):
-        return {
-            "web_port": self.ehco_web_port,
-            "web_token": self.ehco_web_token,
-            "relay_configs": [
-                {
-                    "listen": f"{self.ehco_listen_host}:{self.ehco_listen_port}",
-                    "listen_type": self.ehco_listen_type,
-                    "transport_type": self.ehco_transport_type,
-                    "tcp_remotes": [f"127.0.0.1:{self.ehco_relay_port}"],
-                    "udp_remotes": [],
-                }
-            ],
-        }
+        if self.relay_count > 0:
+            return {
+                "web_port": self.ehco_web_port,
+                "web_token": self.ehco_web_token,
+                "relay_configs": [
+                    {
+                        "listen": f"{self.ehco_listen_host}:{self.ehco_listen_port}",
+                        "listen_type": self.ehco_listen_type,
+                        "transport_type": self.ehco_transport_type,
+                        "tcp_remotes": [f"127.0.0.1:{self.ehco_relay_port}"],
+                        "udp_remotes": [],
+                    }
+                ],
+            }
+        return {}
 
-    def get_user_ss_port(self, user):
-        if not self.ss_config.multi_user_port:
-            return user.ss_port
-        return self.ss_config.multi_user_port
+    def get_user_port(self, user):
+        if self.node_type == self.NODE_TYPE_SS:
+            return self.ss_config.multi_user_port
+        elif self.node_type == self.NODE_TYPE_TROJAN:
+            return self.trojan_config.multi_user_port
 
     def get_user_node_link(self, user, relay_rule=None):
         if self.node_type != self.NODE_TYPE_SS:
@@ -218,34 +290,37 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             remark = relay_rule.remark
         else:
             host = self.multi_server_address[0]
-            port = self.get_user_ss_port(user)
+            port = self.get_user_port(user)
             remark = self.name
         code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         return "ss://{}#{}".format(b64_code, quote(remark))
 
     def get_user_clash_config(self, user, relay_rule=None):
-        config = {}
+        if relay_rule:
+            host = relay_rule.relay_host
+            port = relay_rule.relay_port
+            remark = relay_rule.remark
+            udp = relay_rule.enable_udp
+        else:
+            host = self.multi_server_address[0]
+            remark = self.name
+            udp = True
+            port = self.get_user_port(user)
+
+        config = {
+            "name": remark,
+            "type": self.node_type,
+            "server": host,
+            "password": user.ss_password,
+            "udp": udp,
+            "port": port,
+        }
         if self.node_type == self.NODE_TYPE_SS:
-            if relay_rule:
-                host = relay_rule.relay_host
-                port = relay_rule.relay_port
-                remark = relay_rule.remark
-            else:
-                host = self.multi_server_address[0]
-                port = self.get_user_ss_port(user)
-                remark = self.name
-            config = {
-                "name": remark,
-                "type": self.NODE_TYPE_SS,
-                "server": host,
-                "port": port,
-                "cipher": self.ss_config.method,
-                "password": user.ss_password,
-                "udp": True,
-            }
-            if relay_rule:
-                config["udp"] = relay_rule.enable_udp
+            config["cipher"] = self.ss_config.method
+        if self.node_type == self.NODE_TYPE_TROJAN:
+            config["skip-cert-verify"] = True
+
         return json.dumps(config, ensure_ascii=False)
 
     def to_dict_with_extra_info(self, user):
@@ -255,10 +330,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         data["ss_password"] = user.ss_password
         data["node_link"] = self.get_user_node_link(user)
         data["multi_server_address"] = self.multi_server_address
+        data["ss_port"] = self.get_user_port(user)
 
         # NOTE ss only section
         if self.node_type == self.NODE_TYPE_SS:
-            data["ss_port"] = self.get_user_ss_port(user)
             data["method"] = self.ss_config.method
 
         if self.enable_relay:
@@ -283,10 +358,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     @property
     def api_endpoint(self):
-        if self.node_type == self.NODE_TYPE_SS:
-            params = {"token": settings.TOKEN}
-            return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
-        return ""
+        params = {"token": settings.TOKEN}
+        return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
 
     @property
     def ehco_relay_port(self):
@@ -294,6 +367,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             return self.ss_config.multi_user_port
         # TODO 支持其他节点类型
         return None
+
+    @property
+    def relay_count(self):
+        return self.relay_rules.all().count()
 
     @cached_property
     def online_info(self):
@@ -320,6 +397,28 @@ class SSConfig(models.Model):
     method = models.CharField(
         "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
     )
+    multi_user_port = models.IntegerField(
+        "多用户端口", help_text="单端口多用户端口", null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = "SS配置"
+        verbose_name_plural = "SS配置"
+
+    def __str__(self) -> str:
+        return self.proxy_node.__str__() + "-配置"
+
+
+class TrojanConfig(models.Model):
+    proxy_node = models.OneToOneField(
+        to=ProxyNode,
+        related_name="trojan_config",
+        on_delete=models.CASCADE,
+        primary_key=True,
+        help_text="代理节点",
+        verbose_name="代理节点",
+    )
+    fallback_addr = models.CharField("回落地址", default="", max_length=32)
     multi_user_port = models.IntegerField(
         "多用户端口", help_text="单端口多用户端口", null=True, blank=True
     )

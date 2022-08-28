@@ -77,7 +77,7 @@ class SubscribeView(View):
         )
 
 
-class ClashProxyProciderView(View):
+class ClashProxyProviderView(View):
     def get(self, request):
         user = None
         uid = request.GET.get("uid")

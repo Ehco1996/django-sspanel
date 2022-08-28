@@ -57,7 +57,7 @@ class User(AbstractUser):
     )
     inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
 
-    # ss 相关
+    # ss 相关 TODO delete ss prefix
     ss_port = models.IntegerField("端口", unique=True, default=MIN_PORT)
     ss_password = models.CharField(
         "密码", max_length=32, default=get_short_random_string, unique=True

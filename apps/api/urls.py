@@ -9,7 +9,7 @@ urlpatterns = [
     path("subscribe/", views.SubscribeView.as_view(), name="subscribe"),
     path(
         "subscribe/clash/proxy_providers/",
-        views.ClashProxyProciderView.as_view(),
+        views.ClashProxyProviderView.as_view(),
         name="proxy_providers",
     ),
     path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),

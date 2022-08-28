@@ -16,6 +16,12 @@ class SSConfigInline(admin.StackedInline):
     ]
 
 
+class TrojanConfigInline(admin.StackedInline):
+    model = models.TrojanConfig
+    verbose_name = "Trojan配置"
+    fields = ["proxy_node", "multi_user_port", "fallback_addr"]
+
+
 class RelayRuleInline(admin.TabularInline):
     model = models.RelayRule
     verbose_name = "中转规则配置"
@@ -71,7 +77,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "sequence",
     ]
     inlines = [RelayRuleInline]
-    all_inlines = [SSConfigInline, RelayRuleInline]
+    all_inlines = [SSConfigInline, TrojanConfigInline, RelayRuleInline]
     list_editable = ["sequence"]
 
     def get_inlines(self, request, instance):
@@ -79,6 +85,8 @@ class ProxyNodeAdmin(admin.ModelAdmin):
             return self.all_inlines
         elif instance.node_type == models.ProxyNode.NODE_TYPE_SS:
             return [SSConfigInline] + self.inlines
+        elif instance.node_type == models.ProxyNode.NODE_TYPE_TROJAN:
+            return [TrojanConfigInline] + self.inlines
         return self.inlines
 
     def traffic(self, instance):
@@ -87,7 +95,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     traffic.short_description = "流量"
 
     def relay_count(self, instance):
-        return instance.relay_rules.all().count()
+        return instance.relay_count
 
     relay_count.short_description = "中转数量"
 
