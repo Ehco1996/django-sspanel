@@ -15,7 +15,7 @@
 </div>
 <div class="column is-12">
     <div class="tile is-ancestor">
-        <div class="tile is-5 is-vertical is-parent">
+        <div class="tile is-vertical is-parent">
             <div class="tile box is-child">
                 <p class="title">
                     <span class="icon is-large">
@@ -74,6 +74,7 @@
                     {% endif %}
                 </div>
             </div>
+
             <div class="tile box is-child">
                 <article class="message">
                     <div class="message-header">
@@ -87,156 +88,144 @@
                 </article>
             </div>
         </div>
-        <div class="tile is-7 is-vertical is-parent">
 
-            <div class="tile box is-child">
-                <article class="message is-success">
-                    <div class="message-header">
-                        <p>连接信息</p>
-                    </div>
-                    <div class="message-body">
-                        <li> 密码：
-                            <code>{{ user.ss_password }}</code>
-                        </li>
-                        <li> UUID：
-                            <code>{{ user.uid }}</code>
-                        </li>
-                        <br>
-                        <div class="buttons">
-                            <span class="button is-link modal-button is-rounded" data-target="modal-sub">订阅地址</span>
+        <div class="tile is-7 is-vertical is-parent">
+            <div class="box card">
+                <header class="card-header">
+                    <p class="card-header-title">订阅地址：（请不要泄露给他人！）</p>
+                </header>
+                <div class="card-content">
+
+                    <div class="field">
+                        <label class="label">通用订阅</label>
+                        <div class="field is-grouped is-grouped-multiline">
+                            <p class="control is-expanded">
+                                <input class="input" id="id-sub-link-normal" value="{{ sub_link }}" readonly>
+                            </p>
+                            <p class="control">
+                                <a class="button is-rounded" id="id-button-clip"
+                                    data-clipboard-target="#id-sub-link-normal">
+                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                </a>
+                            </p>
                         </div>
                     </div>
-                </article>
-                <div class="modal nodeinfo" id="modal-sub">
-                    <div class="modal-background"></div>
-                    <div class="modal-card">
-                        <header class="modal-card-head">
-                            <p class="modal-card-title">订阅地址：（请不要泄露给他人！）</p>
-                            <button class="delete"></button>
-                        </header>
-                        <section class="modal-card-body">
-                            <p class="subtitle">客户端订阅</p>
-                            <div class="field is-grouped is-grouped-multiline">
-                                <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-normal" value="{{ sub_link }}" readonly>
-                                </p>
-                                <p class="control">
-                                    <a class="button is-rounded" id="id-button-clip"
-                                        data-clipboard-target="#id-sub-link-normal">
-                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                    </a>
-                                </p>
-                            </div>
-                            <hr>
-                            <p class="subtitle">订阅Clash</p>
-                            <div class="field is-grouped is-grouped-multiline">
-                                <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-clash" value="{{ sub_link }}&sub_type=clash"
-                                        readonly>
-                                </p>
-                                <p class="control">
-                                    <a class="button is-rounded" id="id-button-clip"
-                                        data-clipboard-target="#id-sub-link-clash">
-                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                    </a>
-                                </p>
-                            </div>
-                            <hr>
-                            <p class="subtitle">订阅ClashPro</p>
-                            <div class="field is-grouped is-grouped-multiline">
-                                <p class="control is-expanded">
-                                    <input class="input" id="id-sub-link-clash-pro"
-                                        value="{{ sub_link }}&sub_type=clash_pro" readonly>
-                                </p>
-                                <p class="control">
-                                    <a class="button is-rounded" id="id-button-clip"
-                                        data-clipboard-target="#id-sub-link-clash-pro">
-                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                    </a>
-                                </p>
-                            </div>
-                            <span class="copied" hidden="true">Copied!</span>
-                        </section>
+
+
+                    <div class="field">
+                        <label class="label">Clash 订阅</label>
+                        <div class="field is-grouped is-grouped-multiline">
+                            <p class="control is-expanded">
+                                <input class="input" id="id-sub-link-clash" value="{{ sub_link }}&sub_type=clash"
+                                    readonly>
+                            </p>
+                            <p class="control">
+                                <a class="button is-rounded" id="id-button-clip"
+                                    data-clipboard-target="#id-sub-link-clash">
+                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+
+
+                    <div class="field">
+                        <label class="label">ClashPro 订阅</label>
+                        <div class="field is-grouped is-grouped-multiline">
+                            <p class="control is-expanded">
+                                <input class="input" id="id-sub-link-clash-pro"
+                                    value="{{ sub_link }}&sub_type=clash_pro" readonly>
+                            </p>
+                            <p class="control">
+                                <a class="button is-rounded" id="id-button-clip"
+                                    data-clipboard-target="#id-sub-link-clash-pro">
+                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                </a>
+                            </p>
+                        </div>
+                        <span class="copied" hidden="true">Copied!</span>
                     </div>
                 </div>
-                <article class="message is-warning">
-                    <div class="message-header">
-                        <p>流量信息</p>
-                    </div>
 
-                    <div class="message-body">
-                        <div class="columns">
-                            <div class="column">
-                                <li>总量:
-                                    <code>{{ user.human_total_traffic }}</code>
-                                </li>
-                            </div>
-                            <div class="column">
-                                <progress class="progress is-success" value="100" max="100"></progress>
-                            </div>
-                        </div>
-                        <div class="columns">
-                            <div class="column">
-                                <li>剩余:
-                                    <code>{{ user.human_remain_traffic }} </code>
-                                </li>
-                            </div>
-                            <div class="column">
-                                <progress class="progress is-info" value="{{ user.remain_percentage }}"
-                                    max="100"></progress>
-                            </div>
-                        </div>
-                        <div class="columns">
-                            <div class="column">
-                                <li>使用:
-                                    <code>{{ user.human_used_traffic }}</code>
-                                </li>
-                            </div>
-                            <div class="column">
-                                <progress class="progress is-danger" value="{{ user.used_percentage }}"
-                                    max="100"></progress>
-                            </div>
-                        </div>
-                    </div>
-                </article>
 
+            </div>
+
+            <div class="tile box is-child">
                 <article class="message is-info">
                     <div class="message-header">
                         <p>个人信息</p>
                     </div>
                     <div class="message-body">
-                        <li> 余额：
-                            <code>{{ user.balance }} 元</code>
-                        </li>
-                        <li> 邮箱：
-                            <code>{{ user.email }} </code>
-                        </li>
-                        <li> 等级：
-                            <code>{{ user.level }} 级 </code>
-                        </li>
-                        {% if user.overflow %}
-                        <li> 状态：
-                            <code>失效</code>
-                        </li>
-                        {% else %}
-                        <li> 状态：
-                            <code>正常使用</code>
-                        </li>
-                        {% endif %}
-                        <li> 主题：
-                            <code>{{ user.theme }} </code>
-                        </li>
-                        <li> 等级到期时间：
-                            <code>{{ user.level_expire_time }} </code>
-                        </li>
-                        <li>上次使用时间:
-                            <code>{{ user.last_use_time}}</code>
-                        </li>
+                        <div class="box">
+                            <li> 连接密码：
+                                <code>{{ user.ss_password }}</code>
+                            </li>
+                            <li> 余额：
+                                <code>{{ user.balance }} 元</code>
+                            </li>
+                            <li> 邮箱：
+                                <code>{{ user.email }} </code>
+                            </li>
+                            <li> 等级：
+                                <code>{{ user.level }} 级 </code>
+                            </li>
+                            {% if user.overflow %}
+                            <li> 状态：
+                                <code>失效</code>
+                            </li>
+                            {% else %}
+                            <li> 状态：
+                                <code>正常使用</code>
+                            </li>
+                            {% endif %}
+                            <li> 主题：
+                                <code>{{ user.theme }} </code>
+                            </li>
+                            <li> 等级到期时间：
+                                <code>{{ user.level_expire_time }} </code>
+                            </li>
+                            <li>上次使用时间:
+                                <code>{{ user.last_use_time}}</code>
+                            </li>
+                        </div>
 
-                    </div>
+                        <div class="box">
+                            <div class="columns">
+                                <div class="column">
+                                    <li>总量:
+                                        <code>{{ user.human_total_traffic }}</code>
+                                    </li>
+                                </div>
+                                <div class="column">
+                                    <progress class="progress is-success" value="100" max="100"></progress>
+                                </div>
+                            </div>
+                            <div class="columns">
+                                <div class="column">
+                                    <li>剩余:
+                                        <code>{{ user.human_remain_traffic }} </code>
+                                    </li>
+                                </div>
+                                <div class="column">
+                                    <progress class="progress is-info" value="{{ user.remain_percentage }}"
+                                        max="100"></progress>
+                                </div>
+                            </div>
+                            <div class="columns">
+                                <div class="column">
+                                    <li>使用:
+                                        <code>{{ user.human_used_traffic }}</code>
+                                    </li>
+                                </div>
+                                <div class="column">
+                                    <progress class="progress is-danger" value="{{ user.used_percentage }}"
+                                        max="100"></progress>
+                                </div>
+                            </div>
                 </article>
-
             </div>
+
+
         </div>
     </div>
 </div>
