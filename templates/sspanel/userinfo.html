@@ -143,11 +143,27 @@
                                 </a>
                             </p>
                         </div>
-                        <span class="copied" hidden="true">Copied!</span>
                     </div>
+
+
+                    <div class="field">
+                        <label class="label">SS 订阅(不推荐使用 获取的节点类型不全)</label>
+                        <div class="field is-grouped is-grouped-multiline">
+                            <p class="control is-expanded">
+                                <input class="input" id="id-sub-link-ss" value="{{ sub_link }}&sub_type=ss" readonly>
+                            </p>
+                            <p class="control">
+                                <a class="button is-rounded" id="id-button-clip"
+                                    data-clipboard-target="#id-sub-link-ss">
+                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <span class="copied" hidden="true">Copied!</span>
+
                 </div>
-
-
             </div>
 
             <div class="tile box is-child">
@@ -157,31 +173,31 @@
                     </div>
                     <div class="message-body">
                         <div class="box">
-                            <li> 连接密码：
-                                <code>{{ user.ss_password }}</code>
-                            </li>
-                            <li> 余额：
+                            <li>余额:
                                 <code>{{ user.balance }} 元</code>
                             </li>
-                            <li> 邮箱：
-                                <code>{{ user.email }} </code>
-                            </li>
-                            <li> 等级：
+                            <li>等级:
                                 <code>{{ user.level }} 级 </code>
                             </li>
                             {% if user.overflow %}
-                            <li> 状态：
+                            <li>状态:
                                 <code>失效</code>
                             </li>
                             {% else %}
-                            <li> 状态：
+                            <li>状态:
                                 <code>正常使用</code>
                             </li>
                             {% endif %}
-                            <li> 主题：
+                            <li>主题:
                                 <code>{{ user.theme }} </code>
                             </li>
-                            <li> 等级到期时间：
+                            <li>邮箱:
+                                <code>{{ user.email }} </code>
+                            </li>
+                            <li>连接密码:
+                                <code>{{ user.ss_password }}</code>
+                            </li>
+                            <li>等级到期时间:
                                 <code>{{ user.level_expire_time }} </code>
                             </li>
                             <li>上次使用时间:
