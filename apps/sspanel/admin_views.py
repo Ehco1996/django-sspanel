@@ -27,7 +27,7 @@ from apps.sspanel.models import (
 class NodeListView(StaffRequiredMixin, View):
     def get(self, request):
         context = {
-            "proxy_node_list": ProxyNode.objects.all(),
+            "proxy_node_list": ProxyNode.objects.all().order_by("node_type"),
             "relay_node_list": RelayNode.objects.all(),
         }
         return render(request, "my_admin/node_list.html", context=context)

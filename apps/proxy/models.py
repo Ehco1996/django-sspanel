@@ -365,7 +365,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def ehco_relay_port(self):
         if self.node_type == self.NODE_TYPE_SS:
             return self.ss_config.multi_user_port
-        # TODO 支持其他节点类型
+        elif self.node_type == self.NODE_TYPE_TROJAN:
+            return self.trojan_config.multi_user_port
         return None
 
     @property
