@@ -259,7 +259,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return {}
 
     def get_ehco_server_config(self):
-        if self.relay_count > 0:
+        if self.enable_ehco_tunnel:
             return {
                 "web_port": self.ehco_web_port,
                 "web_token": self.ehco_web_token,
