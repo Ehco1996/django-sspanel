@@ -48,6 +48,13 @@ rule-providers:
     path: ./ruleset/LAN.yaml
     interval: 86400
 
+  streaming:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/RuleSet/StreamingMedia/Streaming.yaml"
+    path: ./ruleset/streaming.yaml
+    interval: 86400
+
 rules:
   - RULE-SET,ad-keyword,REJECT
   - DOMAIN,yacd.haishan.me,DIRECT
@@ -62,5 +69,6 @@ rules:
   - RULE-SET,foreign,Proxy
   - RULE-SET,telegram,Proxy
   - RULE-SET,apple-proxy,Proxy
+  - RULE-SET,streaming,国外流媒体
 
   - MATCH,Final

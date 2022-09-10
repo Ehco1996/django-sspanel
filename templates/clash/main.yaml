@@ -15,6 +15,11 @@ proxy-groups:
     use:
       - {{ provider_name }}
 
+  - name: 国外流媒体
+    type: select
+    use:
+      - {{ provider_name }}
+
   - name: Final
     type: select
     proxies:
