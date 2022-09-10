@@ -1,5 +1,6 @@
 import base64
 from collections import defaultdict
+from decimal import Decimal
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -75,10 +76,13 @@ class UserSubManager:
                         }
                     )
             if node.enable_direct:
+                name = node.name
+                if node.enlarge_scale != Decimal(1.0):
+                    name += f"-{node.enlarge_scale}倍"
                 node_configs.append(
                     {
                         "clash_config": node.get_user_clash_config(self.user),
-                        "name": node.name,
+                        "name": name,
                     }
                 )
         for cfg_list in relay_node_group.values():
