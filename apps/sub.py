@@ -82,7 +82,6 @@ class UserSubManager:
                 node_configs.append(
                     {
                         "clash_config": node.get_user_clash_config(self.user),
-                        "name": name,
                     }
                 )
         for cfg_list in relay_node_group.values():

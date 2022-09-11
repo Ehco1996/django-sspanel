@@ -385,6 +385,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def enable_ehco_tunnel(self):
         return self.ehco_listen_host and self.ehco_listen_port
 
+    @cached_property
+    def remark(self):
+        name = self.name
+        if self.enlarge_scale != Decimal(1.0):
+            name += f"-{self.proxy_node.enlarge_scale}倍"
+        return name
+
 
 class SSConfig(models.Model):
     proxy_node = models.OneToOneField(
