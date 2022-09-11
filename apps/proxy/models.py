@@ -291,7 +291,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         else:
             host = self.multi_server_address[0]
             port = self.get_user_port(user)
-            remark = self.name
+            remark = self.remark
         code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
         b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         return "ss://{}#{}".format(b64_code, quote(remark))
@@ -304,7 +304,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             udp = relay_rule.enable_udp
         else:
             host = self.multi_server_address[0]
-            remark = self.name
+            remark = self.remark
             udp = True
             port = self.get_user_port(user)
 
@@ -389,7 +389,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def remark(self):
         name = self.name
         if self.enlarge_scale != Decimal(1.0):
-            name += f"-{self.proxy_node.enlarge_scale}倍"
+            name += f"-{self.enlarge_scale}倍"
         return name
 
 
@@ -544,7 +544,9 @@ class RelayRule(BaseModel):
         data = model_to_dict(self)
         data["relay_link"] = self.proxy_node.get_user_node_link(user, self)
         data["relay_host"] = self.relay_host
+        data["relay_isp"] = self.relay_node.isp
         data["remark"] = self.remark
+        # print("isp",data[""])
         return data
 
     @property
