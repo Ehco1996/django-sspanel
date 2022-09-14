@@ -61,19 +61,23 @@ NODE_TIME_OUT = 75
 LISTEN_RAW = "raw"
 LISTEN_WSS = "wss"
 LISTEN_MWSS = "mwss"
+LISTEN_MTCP = "mtcp"
 LISTEN_TYPES = (
     (LISTEN_RAW, "raw"),
     (LISTEN_WSS, "wss"),
     (LISTEN_MWSS, "mwss"),
+    (LISTEN_MTCP, "mtcp"),
 )
 
 TRANSPORT_RAW = "raw"
 TRANSPORT_WSS = "wss"
 TRANSPORT_MWSS = "mwss"
+TRANSPORT_MTCP = "mtcp"
 TRANSPORT_TYPES = (
     (TRANSPORT_RAW, "raw"),
     (TRANSPORT_WSS, "wss"),
     (TRANSPORT_MWSS, "mwss"),
+    (TRANSPORT_MTCP, "mtcp"),
 )
 
 WS_LISTENERS = {LISTEN_WSS, LISTEN_MWSS}
