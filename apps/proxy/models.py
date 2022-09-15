@@ -45,7 +45,7 @@ class XRayTemplates:
         "inbounds": [
             {
                 "listen": "127.0.0.1",
-                "port": 23456,  # TODO fix the hardcode grpc port
+                "port": 23456,
                 "protocol": "dokodemo-door",
                 "settings": {"address": "127.0.0.1"},
                 "tag": "api",
@@ -90,6 +90,12 @@ class XRayTemplates:
         },
     }
 
+    @classmethod
+    def gen_base_config(cls, xray_grpc_port):
+        xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
+        xray_config["inbounds"][0]["port"] = xray_grpc_port
+        return xray_config
+
 
 class BaseNodeModel(BaseModel):
     name = models.CharField("名字", max_length=32)
@@ -113,6 +119,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
     )
 
+    EHCO_LOG_LEVELS = (
+        ("debug", "debug"),
+        ("info", "info"),
+        ("warn", "warn"),
+        ("error", "error"),
+    )
+
     node_type = models.CharField(
         "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
     )
@@ -130,6 +143,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         max_digits=10,
     )
     enable_direct = models.BooleanField("允许直连", default=True)
+    xray_grpc_port = models.IntegerField("xray grpc port", default=23456)
 
     ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
     ehco_listen_port = models.CharField("隧道监听端口", max_length=64, blank=True, null=True)
@@ -142,6 +156,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     ehco_web_port = models.IntegerField("隧道web端口", default=0)
     ehco_web_token = models.CharField(
         "隧道web token", max_length=64, blank=True, null=True
+    )
+    ehco_log_level = models.CharField(
+        "隧道日志等级", max_length=64, default="info", choices=EHCO_LOG_LEVELS
     )
 
     class Meta:
@@ -175,8 +192,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return utils.traffic_format(used_traffic)
 
     def get_trojan_node_config(self):
+        xray_config = XRayTemplates.gen_base_config(self.xray_grpc_port)
+
         config = self.trojan_config
-        xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
         inbound = deepcopy(XRayTemplates.TROJAN_INBOUND)
         inbound["port"] = config.multi_user_port
         inbound["settings"]["fallbacks"][0]["dest"] = config.fallback_addr
@@ -215,8 +233,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return configs
 
     def get_ss_node_config(self):
+        xray_config = XRayTemplates.gen_base_config(self.xray_grpc_port)
+
         ss_config = self.ss_config
-        xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
         ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
         ss_inbound["port"] = ss_config.multi_user_port
         xray_config["inbounds"].append(ss_inbound)
@@ -263,6 +282,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             return {
                 "web_port": self.ehco_web_port,
                 "web_token": self.ehco_web_token,
+                "log_level": self.ehco_log_level,
                 "relay_configs": [
                     {
                         "listen": f"{self.ehco_listen_host}:{self.ehco_listen_port}",
