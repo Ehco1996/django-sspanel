@@ -91,9 +91,10 @@ class XRayTemplates:
     }
 
     @classmethod
-    def gen_base_config(cls, xray_grpc_port):
+    def gen_base_config(cls, xray_grpc_port, log_level):
         xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
         xray_config["inbounds"][0]["port"] = xray_grpc_port
+        xray_config["log"]["loglevel"] = log_level
         return xray_config
 
 
@@ -192,7 +193,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return utils.traffic_format(used_traffic)
 
     def get_trojan_node_config(self):
-        xray_config = XRayTemplates.gen_base_config(self.xray_grpc_port)
+        xray_config = XRayTemplates.gen_base_config(
+            self.xray_grpc_port, self.ehco_log_level
+        )
 
         config = self.trojan_config
         inbound = deepcopy(XRayTemplates.TROJAN_INBOUND)
@@ -233,7 +236,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return configs
 
     def get_ss_node_config(self):
-        xray_config = XRayTemplates.gen_base_config(self.xray_grpc_port)
+        xray_config = XRayTemplates.gen_base_config(
+            self.xray_grpc_port, self.ehco_log_level
+        )
 
         ss_config = self.ss_config
         ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
