@@ -86,7 +86,7 @@ class XRayTemplates:
         "streamSettings": {
             "network": "tcp",
             "security": "tls",
-            "tlsSettings": {"alpn": ["h2", "http/1.1"]},
+            "tlsSettings": {"alpn": ["http/1.1"]},
         },
     }
 
