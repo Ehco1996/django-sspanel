@@ -108,7 +108,7 @@ def make_up_lost_order_task():
 def clean_traffic_log_task():
     """清空七天前的所有流量记录"""
     dt = get_current_datetime().subtract(days=7)
-    query = UserTrafficLog.objects.filter(created_at__lt=dt)
+    query = UserTrafficLog.objects.filter(proxy_node=7)
     count, _ = query.delete()
     print(f"UserTrafficLog  removed count:{count}")
 

@@ -74,11 +74,13 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "enable",
         "traffic",
         "relay_count",
+        "provider_remark",
         "sequence",
     ]
     inlines = [RelayRuleInline]
     all_inlines = [SSConfigInline, TrojanConfigInline, RelayRuleInline]
     list_editable = ["sequence"]
+    list_filter = ["node_type", "country", "provider_remark"]
 
     def get_inlines(self, request, instance):
         if not instance:
@@ -111,6 +113,7 @@ class RelayNodeAdmin(admin.ModelAdmin):
     ]
 
     inlines = [RelayRuleInline]
+    list_filter = ["isp", "remark"]
 
 
 class RelayRuleAdmin(admin.ModelAdmin):

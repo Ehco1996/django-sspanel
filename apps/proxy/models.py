@@ -145,6 +145,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     )
     enable_direct = models.BooleanField("允许直连", default=True)
     xray_grpc_port = models.IntegerField("xray grpc port", default=23456)
+    provider_remark = models.CharField("vps备注", max_length=64, default="")
 
     ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
     ehco_listen_port = models.CharField("隧道监听端口", max_length=64, blank=True, null=True)
