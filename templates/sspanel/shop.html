@@ -82,6 +82,34 @@
         {% endfor %}
     </div>
 
+    <div class="box">
+        <div class="content">
+            <p class="subtitle">购买记录：</p>
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>金额</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                {% for record in records %}
+                <tr>
+                    <td>#{{ record.pk }}</td>
+                    <td>{{ record.good_name }}</td>
+                    <td>{{ record.money }}</td>
+                    <td>{{ record.created_at}}</td>
+                </tr>
+                {% empty %}
+                <h2 class="subtitle">
+                    还没有买过东西呢....
+                </h2>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <script>

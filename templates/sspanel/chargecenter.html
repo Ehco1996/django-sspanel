@@ -109,39 +109,38 @@
 </div>
 
 
-<div class="column is-12 box">
-    <form class="form field is-grouped" method="post">
-        <p class="control is-expanded">
-            {% csrf_token %}
-            <input type="text" name="chargecode" class="input " required="" id="chargecode" placeholder="请输入充值码">
-        </p>
-        <p class="control">
-            <button type="submit" class="button is-info is-outlined ">充值</button>
-        </p>
-    </form>
+<div class="column is-12">
+    <div class="box">
+        <form class="form field is-grouped" method="post">
+            <p class="control is-expanded">
+                {% csrf_token %}
+                <input type="text" name="chargecode" class="input " required="" id="chargecode" placeholder="请输入充值码">
+            </p>
+            <p class="control">
+                <button type="submit" class="button is-info is-outlined ">充值</button>
+            </p>
+        </form>
 
-    <div class="content">
-        <p class="subtitle">用过的充值码：</p>
-        <table class="table is-striped">
-            <thead>
+        <div class="content">
+            <p class="subtitle">用过的充值码：</p>
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>代码</th>
+                        <th>金额</th>
+                    </tr>
+                </thead>
+                {% for code in codelist %}
                 <tr>
-                    <th>时间</th>
-                    <th>代码</th>
-                    <th>金额</th>
+                    <td>{{ code.time|date:"m月d日" }}</td>
+                    <td>{{ code.code }}</td>
+                    <td>{{ code.number }}</td>
                 </tr>
-            </thead>
-            {% for code in codelist %}
-            <tr>
-                <td>{{ code.time|date:"m月d日" }}</td>
-                <td>{{ code.code }}</td>
-                <td>{{ code.number }}</td>
-            </tr>
-            {% empty %}
-            <h2 class="subtitle">
-                还没有氪金过，大佬快来吧
-            </h2>
-            {% endfor %}
-        </table>
+                {% empty %}
+                {% endfor %}
+            </table>
+        </div>
     </div>
 </div>
 

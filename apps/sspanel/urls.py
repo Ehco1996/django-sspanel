@@ -14,8 +14,6 @@ urlpatterns = [
     path("register/", views.RegisterView.as_view(), name="register"),
     path("login/", views.UserLogInView.as_view(), name="login"),
     path("logout/", views.UserLogOutView.as_view(), name="logout"),
-    # 节点
-    path("nodeinfo/", views.NodeInfoView.as_view(), name="nodeinfo"),
     path(
         "user_traffic_log/", views.UserTrafficLogView.as_view(), name="user_traffic_log"
     ),
@@ -23,7 +21,6 @@ urlpatterns = [
     path("users/userinfo/", views.UserInfoView.as_view(), name="userinfo"),
     # 捐赠/充值
     path("shop/", views.ShopView.as_view(), name="shop"),
-    path("purchaselog/", views.PurchaseLogView.as_view(), name="purchaselog"),
     path("chargecenter/", views.ChargeView.as_view(), name="chargecenter"),
     # 公告
     path("announcement/", views.AnnouncementView.as_view(), name="announcement"),
@@ -38,7 +35,6 @@ urlpatterns = [
     ),
     # 推广相关
     path("aff/invite/", views.AffInviteView.as_view(), name="aff_invite"),
-    path("aff/status/", views.AffStatusView.as_view(), name="aff_status"),
     # ====================================================================
     # 网站后台界面
     # ====================================================================

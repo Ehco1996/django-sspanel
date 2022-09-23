@@ -5,8 +5,8 @@
 <head>
     {% load static %}
     <title>{% settings_value "TITLE" %}</title>
-    <meta name="keywords" content="{% settings_value "KEYWORDS" %}" />
-    <meta name="description" content="{% settings_value "DESCRIPTION" %}" />
+    <meta name="keywords" content="{% settings_value " KEYWORDS" %}" />
+    <meta name="description" content="{% settings_value " DESCRIPTION" %}" />
     {% include "basehead.html" %}
 </head>
 
@@ -58,18 +58,13 @@
                 <div class="is-hidden-tablet">
                     <a class="navbar-item is-active">我的信息</a>
                     <a class="navbar-item" href="{% url 'sspanel:userinfo' %}">用户中心</a>
-                    <a class="navbar-item" href="{% url 'sspanel:announcement' %}">查看公告</a>
+                    <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
+                    <a class="navbar-item" href="{% url 'sspanel:user_traffic_log' %}">使用记录</a>
+                    <a class="navbar-item" href="{% url 'sspanel:announcement' %}">历史公告</a>
                     <a class="navbar-item" href="{% url 'sspanel:tickets' %}">联系站长</a>
-                    <a class="navbar-item is-active">节点相关</a>
-                    <a class="navbar-item" href="{% url 'sspanel:nodeinfo' %}">节点信息</a>
-                    <a class="navbar-item" href="{% url 'sspanel:user_traffic_log' %}">流量记录</a>
-                    <a class="navbar-item is-active">交易相关</a>
+                    <a class="navbar-item is-active">交易购买</a>
                     <a class="navbar-item" href="{% url 'sspanel:chargecenter' %}">捐赠充值</a>
                     <a class="navbar-item" href="{% url 'sspanel:shop' %}">商品中心</a>
-                    <a class="navbar-item" href="{% url 'sspanel:purchaselog' %}">购买记录</a>
-                    <a class="navbar-item is-active">邀请相关</a>
-                    <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
-                    <a class="navbar-item" href="{% url 'sspanel:aff_status' %}">返利记录</a>
                     {% if perms.sspanel %}
                     <a class="navbar-item is-active">管理面板</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
@@ -105,25 +100,20 @@
                                 <a class="" href="{% url 'sspanel:userinfo' %}">用户中心</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:announcement' %}">查看公告</a>
+                                <a href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:user_traffic_log' %}">使用记录</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:announcement' %}">历史公告</a>
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:tickets' %}">联系站长</a>
                             </li>
                         </ul>
                         <p class="menu-label">
-                            节点相关
-                        </p>
-                        <ul class="menu-list">
-                            <li>
-                                <a href="{% url 'sspanel:nodeinfo' %}">节点信息</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'sspanel:user_traffic_log' %}">流量记录</a>
-                            </li>
-                        </ul>
-                        <p class="menu-label">
-                            交易相关
+                            交易购买
                         </p>
                         <ul class="menu-list">
                             <li>
@@ -131,20 +121,6 @@
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:shop' %}">商品中心</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'sspanel:purchaselog' %}">购买记录</a>
-                            </li>
-                        </ul>
-                        <p class="menu-label">
-                            邀请相关
-                        </p>
-                        <ul class="menu-list">
-                            <li>
-                                <a href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'sspanel:aff_status' %}">返利记录</a>
                             </li>
                         </ul>
                         {% if perms.sspanel %}
@@ -210,4 +186,5 @@
     </div>
 </body>
 {% include "footer.html" %}
+
 </html>

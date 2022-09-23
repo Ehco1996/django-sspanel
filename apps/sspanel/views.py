@@ -113,26 +113,19 @@ class InviteCodeView(View):
 class AffInviteView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        context = {
-            "code_list": InviteCode.list_by_user_id(user.pk),
-            "invite_percent": settings.INVITE_PERCENT * 100,
-            "invitecode_num": InviteCode.calc_num_by_user(user),
-            "ref_link": user.ref_link,
-        }
-        return render(request, "sspanel/aff_invite.html", context=context)
-
-
-class AffStatusView(LoginRequiredMixin, View):
-    def get(self, request):
-        user = request.user
         rebate_logs = RebateRecord.list_by_user_id_with_consumer_username(user.pk)
         bar_config = {
             "labels": ["z", "v", "x", "x", "z", "v", "x", "x", "z", "v"],
             "data": [1, 2, 3, 4, 1, 1, 1, 1, 1, 2],
             "data_title": "每日邀请注册人数",
         }
-        context = {"rebate_logs": rebate_logs, "user": user, "bar_config": bar_config}
-        return render(request, "sspanel/aff_status.html", context=context)
+        context = {
+            "invite_percent": settings.INVITE_PERCENT * 100,
+            "ref_link": user.ref_link,
+            "bar_config": bar_config,
+            "rebate_logs": rebate_logs,
+        }
+        return render(request, "sspanel/aff_invite.html", context=context)
 
 
 class UserInfoView(LoginRequiredMixin, View):
@@ -150,21 +143,8 @@ class UserInfoView(LoginRequiredMixin, View):
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
         }
-        return render(request, "sspanel/userinfo.html", context=context)
-
-
-class NodeInfoView(LoginRequiredMixin, View):
-    def get(self, request):
-        user = request.user
-        node_list = [
-            node.to_dict_with_extra_info(user) for node in ProxyNode.get_active_nodes()
-        ]
-        context = {
-            "node_list": node_list,
-            "user": user,
-        }
         Announcement.send_first_visit_msg(request)
-        return render(request, "sspanel/nodeinfo.html", context=context)
+        return render(request, "sspanel/userinfo.html", context=context)
 
 
 class UserTrafficLogView(LoginRequiredMixin, View):
@@ -179,6 +159,7 @@ class ShopView(LoginRequiredMixin, View):
         context = {
             "user": request.user,
             "goods": Goods.get_user_can_buy_goods(request.user),
+            "records": PurchaseHistory.objects.filter(user=request.user)[:10],
         }
         return render(request, "sspanel/shop.html", context=context)
 

@@ -1,5 +1,7 @@
 import os
 
+import pymysql
+
 if os.getenv("DJANGO_ENV") != "ci":
     # mysql 设置
     DATABASES = {
@@ -16,3 +18,5 @@ if os.getenv("DJANGO_ENV") != "ci":
             },
         }
     }
+
+    pymysql.install_as_MySQLdb()
