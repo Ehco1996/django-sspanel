@@ -60,11 +60,12 @@
                     <a class="navbar-item" href="{% url 'sspanel:userinfo' %}">用户中心</a>
                     <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
                     <a class="navbar-item" href="{% url 'sspanel:user_traffic_log' %}">使用记录</a>
-                    <a class="navbar-item" href="{% url 'sspanel:announcement' %}">历史公告</a>
-                    <a class="navbar-item" href="{% url 'sspanel:tickets' %}">联系站长</a>
                     <a class="navbar-item is-active">交易购买</a>
                     <a class="navbar-item" href="{% url 'sspanel:chargecenter' %}">捐赠充值</a>
                     <a class="navbar-item" href="{% url 'sspanel:shop' %}">商品中心</a>
+                    <a class="navbar-item is-active">公告交流</a>
+                    <a class="navbar-item" href="{% url 'sspanel:announcement' %}">历史公告</a>
+                    <a class="navbar-item" href="{% url 'sspanel:tickets' %}">联系站长</a>
                     {% if perms.sspanel %}
                     <a class="navbar-item is-active">管理面板</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
@@ -92,10 +93,10 @@
                 <div class="box">
                     {% if user.is_authenticated %}
                     <aside class="menu">
-                        <p class="menu-label">
-                            我的信息
-                        </p>
                         <ul class="menu-list">
+                            <p class="menu-label">
+                                我的信息
+                            </p>
                             <li>
                                 <a class="" href="{% url 'sspanel:userinfo' %}">用户中心</a>
                             </li>
@@ -105,17 +106,12 @@
                             <li>
                                 <a href="{% url 'sspanel:user_traffic_log' %}">使用记录</a>
                             </li>
-                            <li>
-                                <a href="{% url 'sspanel:announcement' %}">历史公告</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'sspanel:tickets' %}">联系站长</a>
-                            </li>
                         </ul>
-                        <p class="menu-label">
-                            交易购买
-                        </p>
+
                         <ul class="menu-list">
+                            <p class="menu-label">
+                                交易购买
+                            </p>
                             <li>
                                 <a href="{% url 'sspanel:chargecenter' %}">捐赠充值</a>
                             </li>
@@ -123,6 +119,20 @@
                                 <a href="{% url 'sspanel:shop' %}">商品中心</a>
                             </li>
                         </ul>
+
+                        <ul class="menu-list">
+                            <p class="menu-label">
+                                公告交流
+                            </p>
+                            <li>
+                                <a href="{% url 'sspanel:announcement' %}">历史公告</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:tickets' %}">联系站长</a>
+                            </li>
+                        </ul>
+
+
                         {% if perms.sspanel %}
                         <p class="menu-label">
                             管理面板
