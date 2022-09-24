@@ -4,6 +4,9 @@ on:
     branches:
       - master
       - dev
+    paths:
+      - "apps"
+      - "configs"
 jobs:
   build-code:
     runs-on: ubuntu-latest
