@@ -8,7 +8,7 @@
                     工单系统
                 </h1>
                 <h2 class="subtitle">
-                    有什么问题尽管提...
+                    7 天无更新的工单将自动关闭 ...
                 </h2>
             </div>
         </div>
@@ -33,7 +33,8 @@
                 {% for record in ticket %}
                 <tr>
                     <td><a class="button is-info" href="{% url 'sspanel:ticket_detail' record.pk %}">查看</a><br>
-                        <a class="button is-danger" href="{% url 'sspanel:ticket_delete' record.pk %}">删除</a></td>
+                        <a class="button is-danger" href="{% url 'sspanel:ticket_delete' record.pk %}">删除</a>
+                    </td>
                     <td>#{{ record.pk }}</td>
                     <td>{{ record.time }}</td>
                     <td>{{ record.title }}</td>
@@ -45,7 +46,8 @@
                 </h2>
                 {% endfor %}
             </table>
-            <p align="right"><a class="button is-danger is-outlined" href="{% url 'sspanel:ticket_create' %}">发起工单</a></p>
+            <p align="right"><a class="button is-danger is-outlined" href="{% url 'sspanel:ticket_create' %}">发起工单</a>
+            </p>
         </div>
     </div>
 </div>

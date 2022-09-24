@@ -920,7 +920,7 @@ class PurchaseHistory(models.Model):
 
 
 class Announcement(models.Model):
-    """公告界面"""
+    """公告"""
 
     time = models.DateTimeField("时间", auto_now_add=True)
     body = models.TextField("主体")
@@ -962,12 +962,16 @@ class Ticket(models.Model):
     """工单"""
 
     TICKET_CHOICE = ((1, "开启"), (-1, "关闭"))
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     time = models.DateTimeField(verbose_name="时间", editable=False, auto_now_add=True)
     title = models.CharField(verbose_name="标题", max_length=128)
     body = models.TextField(verbose_name="内容主体")
     status = models.SmallIntegerField(
         verbose_name="状态", choices=TICKET_CHOICE, default=1
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, db_index=True, help_text="更新时间", verbose_name="更新时间"
     )
 
     def __str__(self):
@@ -977,6 +981,15 @@ class Ticket(models.Model):
         verbose_name = "工单"
         verbose_name_plural = "工单"
         ordering = ("-time",)
+
+    @classmethod
+    def close_stale_tickets(cls):
+        dt = get_current_datetime().subtract(seconds=1)
+        tickets = cls.objects.filter(updated_at__lt=dt, status=1)
+        for t in tickets:
+            t.title += " |7 天无更新自动关闭"
+            t.status = -1
+            t.save()
 
 
 class EmailSendLog(models.Model):

@@ -98,6 +98,9 @@ class RebateRecordAdmin(admin.ModelAdmin):
 class TicketAdmin(admin.ModelAdmin):
     list_display = ["user", "title", "status"]
     search_fields = ["title", "user__id"]
+    readonly_fields = [
+        "updated_at",
+    ]
 
 
 # Register your models here.

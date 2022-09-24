@@ -28,14 +28,7 @@ class UserSubManager:
         self.sub_type = sub_type
         self.node_list = node_list
 
-    def get_sub_info(self):
-        if self.sub_type in [self.SUB_TYPE_CLASH, self.SUB_TYPE_CLASH_PRO]:
-            return self.get_clash_sub_yaml()
-        elif self.sub_type == self.SUB_TYPE_SS:
-            return self.get_ss_sub_links()
-        return self.get_clash_proxy_providers()
-
-    def get_clash_sub_yaml(self):
+    def _get_clash_sub_yaml(self):
         return render_to_string(
             "clash/main.yaml",
             {
@@ -45,7 +38,7 @@ class UserSubManager:
             },
         )
 
-    def get_ss_sub_links(self):
+    def _get_ss_sub_links(self):
         sub_links = ""
         relay_node_group = defaultdict(list)
         for node in self.node_list:
@@ -61,6 +54,13 @@ class UserSubManager:
                 sub_links += link + "\n"
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
+
+    def get_sub_info(self):
+        if self.sub_type in [self.SUB_TYPE_CLASH, self.SUB_TYPE_CLASH_PRO]:
+            return self._get_clash_sub_yaml()
+        elif self.sub_type == self.SUB_TYPE_SS:
+            return self._get_ss_sub_links()
+        return self.get_clash_proxy_providers()
 
     def get_clash_proxy_providers(self):
         """todo support multi provider group"""

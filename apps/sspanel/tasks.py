@@ -126,3 +126,8 @@ def send_mail_to_users_task(user_id_list, subject, message):
         print(f"send email success user: address: {address}")
     else:
         raise Exception(f"Could not send mail {address} subject: {subject}")
+
+
+@celery_app.task
+def close_stale_tickets_task():
+    m.Ticket.close_stale_tickets()
