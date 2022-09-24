@@ -984,7 +984,7 @@ class Ticket(models.Model):
 
     @classmethod
     def close_stale_tickets(cls):
-        dt = get_current_datetime().subtract(seconds=1)
+        dt = get_current_datetime().subtract(days=7)
         tickets = cls.objects.filter(updated_at__lt=dt, status=1)
         for t in tickets:
             t.title += " |7 天无更新自动关闭"

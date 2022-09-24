@@ -452,7 +452,7 @@ class TrojanConfig(models.Model):
         help_text="代理节点",
         verbose_name="代理节点",
     )
-    fallback_addr = models.CharField("回落地址", default="", max_length=32)
+    fallback_addr = models.CharField("回落端口", default="", max_length=32)
     multi_user_port = models.IntegerField(
         "多用户端口", help_text="单端口多用户端口", null=True, blank=True
     )
