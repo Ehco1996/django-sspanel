@@ -1,5 +1,7 @@
 .PHONY: setup update fmt check
 
+PM=python manage.py
+
 setup:
 	poetry install
 
@@ -12,3 +14,15 @@ fmt:
 check:
 	isort --check .
 	black  --check .
+
+runserver:
+	$(PM) runserver 0.0.0.0:8000
+
+migrate:
+	$(PM) migrate
+
+makemigrations:
+	$(PM) makemigrations
+
+shell:
+	$(PM) shell

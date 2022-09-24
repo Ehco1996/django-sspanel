@@ -243,11 +243,11 @@ def purchase(request):
     good = Goods.objects.get(id=good_id)
     if not good.purchase_by_user(request.user):
         return JsonResponse(
-            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那捐赠"}
+            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"}
         )
     else:
         return JsonResponse(
-            {"title": "购买成功", "status": "success", "subtitle": "请在用户中心检查最新信息"}
+            {"title": "购买成功", "status": "success", "subtitle": "重新订阅即可获取所有节点"}
         )
 
 
