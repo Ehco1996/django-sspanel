@@ -58,11 +58,11 @@
                 <div class="is-hidden-tablet">
                     <a class="navbar-item is-active">我的信息</a>
                     <a class="navbar-item" href="{% url 'sspanel:userinfo' %}">用户中心</a>
-                    <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
                     <a class="navbar-item" href="{% url 'sspanel:user_traffic_log' %}">使用记录</a>
                     <a class="navbar-item is-active">交易购买</a>
                     <a class="navbar-item" href="{% url 'sspanel:chargecenter' %}">捐赠充值</a>
                     <a class="navbar-item" href="{% url 'sspanel:shop' %}">商品中心</a>
+                    <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
                     <a class="navbar-item is-active">公告交流</a>
                     <a class="navbar-item" href="{% url 'sspanel:announcement' %}">历史公告</a>
                     <a class="navbar-item" href="{% url 'sspanel:tickets' %}">联系站长</a>
@@ -101,9 +101,6 @@
                                 <a class="" href="{% url 'sspanel:userinfo' %}">用户中心</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
-                            </li>
-                            <li>
                                 <a href="{% url 'sspanel:user_traffic_log' %}">使用记录</a>
                             </li>
                         </ul>
@@ -117,6 +114,9 @@
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:shop' %}">商品中心</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
                             </li>
                         </ul>
 

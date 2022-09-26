@@ -54,7 +54,7 @@ class RegisterView(View):
     def post(self, request):
         context = {"simple_extra_static": True}
         if not settings.ALLOW_REGISTER:
-            return HttpResponse("已经关闭注册了喵")
+            return HttpResponse("已经关闭注册了")
 
         form = RegisterForm(data=request.POST)
         if form.is_valid():
@@ -144,7 +144,16 @@ class UserInfoView(LoginRequiredMixin, View):
             "sub_link": user.sub_link,
         }
         Announcement.send_first_visit_msg(request)
-        return render(request, "sspanel/userinfo.html", context=context)
+        return render(request, "sspanel/user_info.html", context=context)
+
+
+class UserSubCenterView(LoginRequiredMixin, View):
+    def get(self, request):
+        context = {
+            "user": request.user,
+            "sub_link": request.user.sub_link,
+        }
+        return render(request, "sspanel/user_sub_center.html", context=context)
 
 
 class UserTrafficLogView(LoginRequiredMixin, View):

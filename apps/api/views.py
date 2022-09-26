@@ -64,12 +64,29 @@ class SubscribeView(View):
         if not user:
             return HttpResponseBadRequest("user not found")
         node_list = m.ProxyNode.get_active_nodes(level=user.level)
+
+        protocol = request.GET.get("protocol")
+        if protocol:
+            node_list = node_list.filter(node_type=protocol)
+
         if len(node_list) == 0:
             return HttpResponseBadRequest("no active nodes for you")
 
-        sub_info = UserSubManager(
-            user, request.GET.get("sub_type"), node_list
-        ).get_sub_info()
+        sub_client = request.GET.get("client")
+        # todo delete this workaround
+        SUB_TYPE_SS = "ss"
+        SUB_TYPE_CLASH = "clash"
+        SUB_TYPE_CLASH_PRO = "clash_pro"
+        sub_type = request.GET.get("sub_type")
+        if not sub_client and sub_type == SUB_TYPE_SS:
+            sub_client = UserSubManager.CLIENT_SHADOWROCKET
+        elif not sub_client and sub_type == SUB_TYPE_CLASH:
+            sub_client = UserSubManager.CLIENT_CLASH
+        elif not sub_client and sub_type == SUB_TYPE_CLASH_PRO:
+            sub_client = UserSubManager.CLIENT_CLASH_PREMIUM
+        # end todo
+
+        sub_info = UserSubManager(user, sub_client, node_list).get_sub_info()
         return HttpResponse(
             sub_info,
             content_type="text/plain; charset=utf-8",

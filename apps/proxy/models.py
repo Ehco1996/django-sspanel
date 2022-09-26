@@ -8,7 +8,6 @@ from urllib.parse import quote, urlencode
 import pendulum
 from django.conf import settings
 from django.db import models
-from django.forms.models import model_to_dict
 
 from apps import constants as c
 from apps import utils
@@ -181,7 +180,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         query = cls.objects.filter(enable=True)
         if level is not None:
             query = query.filter(level__lte=level)
-        return list(
+        return (
             query.select_related("ss_config")
             .prefetch_related("relay_rules")
             .order_by("sequence")
@@ -307,20 +306,24 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         elif self.node_type == self.NODE_TYPE_TROJAN:
             return self.trojan_config.multi_user_port
 
-    def get_user_node_link(self, user, relay_rule=None):
-        if self.node_type != self.NODE_TYPE_SS:
-            return ""
+    def get_user_shadowrocket_sub_link(self, user, relay_rule=None):
         if relay_rule:
             host = relay_rule.relay_host
             port = relay_rule.relay_port
             remark = relay_rule.remark
+            udp = relay_rule.enable_udp
         else:
             host = self.multi_server_address[0]
             port = self.get_user_port(user)
             remark = self.remark
-        code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
-        b64_code = base64.urlsafe_b64encode(code.encode()).decode()
-        return "ss://{}#{}".format(b64_code, quote(remark))
+            udp = False
+        if self.node_type == self.NODE_TYPE_SS:
+            code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
+            b64_code = base64.urlsafe_b64encode(code.encode()).decode()
+        elif self.node_type == self.NODE_TYPE_TROJAN:
+            code = f"{user.ss_password}@{host}:{port}?allowInsecure=1&udp={udp}"
+            b64_code = code  # trojan don't need base64 encode
+        return "{}://{}#{}".format(self.node_type, b64_code, quote(remark))
 
     def get_user_clash_config(self, user, relay_rule=None):
         if relay_rule:
@@ -348,27 +351,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             config["skip-cert-verify"] = True
 
         return json.dumps(config, ensure_ascii=False)
-
-    def to_dict_with_extra_info(self, user):
-        data = model_to_dict(self)
-        data.update(UserTrafficLog.get_latest_online_log_info(self))
-        data["country"] = self.country.lower()
-        data["ss_password"] = user.ss_password
-        data["node_link"] = self.get_user_node_link(user)
-        data["multi_server_address"] = self.multi_server_address
-        data["ss_port"] = self.get_user_port(user)
-
-        # NOTE ss only section
-        if self.node_type == self.NODE_TYPE_SS:
-            data["method"] = self.ss_config.method
-
-        if self.enable_relay:
-            data["enable_relay"] = True
-            data["relay_rules"] = [
-                rule.to_dict_with_extra_info(user)
-                for rule in self.relay_rules.filter(relay_node__enable=True)
-            ]
-        return data
 
     @property
     def human_total_traffic(self):
@@ -565,15 +547,6 @@ class RelayRule(BaseModel):
 
     def __str__(self) -> str:
         return self.remark
-
-    def to_dict_with_extra_info(self, user):
-        data = model_to_dict(self)
-        data["relay_link"] = self.proxy_node.get_user_node_link(user, self)
-        data["relay_host"] = self.relay_host
-        data["relay_isp"] = self.relay_node.isp
-        data["remark"] = self.remark
-        # print("isp",data[""])
-        return data
 
     @property
     def relay_host(self):

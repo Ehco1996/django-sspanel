@@ -1,20 +1,18 @@
 {% extends 'base.html' %} {% block main %}
 <div class="column is-12">
-    <section class="hero is-primary is-smaill">
+    <section class="hero is-info is-smaill">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
                     用户中心
                 </h1>
-                <h2 class="subtitle">
-                    这里有你的所有信息....
-                </h2>
             </div>
         </div>
     </section>
 </div>
 <div class="column is-12">
     <div class="tile is-ancestor">
+
         <div class="tile is-vertical is-parent">
             <div class="tile box is-child">
                 <p class="title">
@@ -90,79 +88,133 @@
         </div>
 
         <div class="tile is-7 is-vertical is-parent">
-            <div class="box card">
-                <header class="card-header">
-                    <p class="card-header-title">订阅地址：（请不要泄露给他人！）</p>
-                </header>
-                <div class="card-content">
 
-                    <div class="field">
-                        <label class="label">通用订阅</label>
+
+            <div class="tile is-child box">
+                <div class="block">
+                    <h1 class="title">订阅地址</h1>
+                    <h2 class="subtitle">导入订阅地址到您的应用以完成订阅</h2>
+                </div>
+
+                <div class="block">
+                    <div class="block">
+                        <div class="icon-text">
+                            <span class="icon has-text-info">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                            <span>选择协议</span>
+                        </div>
+
+
+                        <div class="dropdown">
+                            <div class="dropdown-trigger">
+                                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3">
+                                    <div class="icon is-small is-left">
+                                        <i class="fas fa-globe"></i>
+                                    </div>
+                                    <span class="display-content">默认获取所有协议</span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+                                <div class="dropdown-content">
+                                    <a href="#" class="dropdown-item" data-display="trojan" data-query="protocol">
+                                        <strong>trojan</strong> 推荐使用
+                                    </a>
+                                    <a href="#" class="dropdown-item" data-display="ss" data-query="protocol">
+                                        <strong>ss</strong> 旧设备使用
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content is-small">
+                            <li>选择一个你客户端支持的协议</li>
+                        </div>
+                    </div>
+
+                    <div class="block">
+                        <div class="icon-text">
+                            <span class="icon has-text-success">
+                                <i class="fas fa-check-square"></i>
+                            </span>
+                            <span>选择客户端</span>
+                        </div>
+
+                        <div class="dropdown">
+                            <div class="dropdown-trigger">
+                                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3">
+                                    <div class="icon is-small is-left">
+                                        <i class="fas  fa-desktop"></i>
+                                    </div>
+                                    <span class="display-content">默认使用 clash</span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+                                <div class="dropdown-content">
+
+                                    <a href="#" class="dropdown-item" data-display="clash" data-query="client">
+                                        <div class="icon is-small is-left">
+                                            <i class="fas  fa-cat"></i>
+                                        </div>
+                                        <strong>clash</strong> ss | trojan
+                                    </a>
+
+                                    <a href="#" class="dropdown-item" data-display="clash_premium" data-query="client">
+                                        <div class="icon is-small is-left">
+                                            <i class="fas  fa-cat"></i>
+                                        </div>
+                                        <strong>clash premium</strong> ss | trojan
+                                    </a>
+
+                                    <a href="#" class="dropdown-item" data-display="clash_proxy_provider"
+                                        data-query="client">
+                                        <div class="icon is-small is-left">
+                                            <i class="fas  fa-cat"></i>
+                                        </div>
+                                        <strong>clash proxy provider</strong> ss | trojan
+                                    </a>
+
+                                    <a href="#" class="dropdown-item" data-display="shadowrocket" data-query="client">
+                                        <div class="icon is-small is-left">
+                                            <i class="fa fa-rocket"></i>
+                                        </div>
+                                        <strong>shadowrocket</strong> ss | trojan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content is-small">
+                            <li>推荐使用 clash 作为客户端</li>
+                        </div>
+                    </div>
+
+                    <div class="block">
+                        <div class="icon-text">
+                            <span class="icon has-text-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                            <span>订阅地址（请不要泄露给他人！）</span>
+                        </div>
+
                         <div class="field is-grouped is-grouped-multiline">
                             <p class="control is-expanded">
-                                <input class="input" id="id-sub-link-normal" value="{{ sub_link }}" readonly>
+                                <input class="input" id="id-sub-link" value="{{ sub_link }}">
                             </p>
                             <p class="control">
-                                <a class="button is-rounded" id="id-button-clip"
-                                    data-clipboard-target="#id-sub-link-normal">
+                                <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-sub-link">
                                     <i class="fa fa-clipboard" aria-hidden="true"></i>
                                 </a>
                             </p>
                         </div>
                     </div>
-
-
-                    <div class="field">
-                        <label class="label">Clash 订阅</label>
-                        <div class="field is-grouped is-grouped-multiline">
-                            <p class="control is-expanded">
-                                <input class="input" id="id-sub-link-clash" value="{{ sub_link }}&sub_type=clash"
-                                    readonly>
-                            </p>
-                            <p class="control">
-                                <a class="button is-rounded" id="id-button-clip"
-                                    data-clipboard-target="#id-sub-link-clash">
-                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-
-
-                    <div class="field">
-                        <label class="label">ClashPro 订阅</label>
-                        <div class="field is-grouped is-grouped-multiline">
-                            <p class="control is-expanded">
-                                <input class="input" id="id-sub-link-clash-pro"
-                                    value="{{ sub_link }}&sub_type=clash_pro" readonly>
-                            </p>
-                            <p class="control">
-                                <a class="button is-rounded" id="id-button-clip"
-                                    data-clipboard-target="#id-sub-link-clash-pro">
-                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-
-
-                    <div class="field">
-                        <label class="label">SS 订阅(不推荐使用 获取的节点类型不全)</label>
-                        <div class="field is-grouped is-grouped-multiline">
-                            <p class="control is-expanded">
-                                <input class="input" id="id-sub-link-ss" value="{{ sub_link }}&sub_type=ss" readonly>
-                            </p>
-                            <p class="control">
-                                <a class="button is-rounded" id="id-button-clip"
-                                    data-clipboard-target="#id-sub-link-ss">
-                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-
                     <span class="copied" hidden="true">Copied!</span>
-
                 </div>
             </div>
 
@@ -306,4 +358,28 @@
         }
     }
     PasswordButton.click(changePassword)
+
+
+
+    // 订阅中心
+    subInput = $("#id-sub-link")[0]
+    $(".dropdown .button").click(function () {
+        var dropdown = $(this).parents('.dropdown');
+        dropdown.toggleClass('is-active');
+    });
+
+    $(".dropdown-item").click(function () {
+        var dropdown = $(this).parents('.dropdown');
+        dropdown.toggleClass('is-active');
+        var span = $(dropdown).find('.display-content')[0];
+        span.innerText = $(this).data("display")
+
+        // gen sublink
+        url = new URL(subInput.value)
+        url.searchParams.set($(this).data("query"), $(this).data("display"))
+        subInput.value = url.toString()
+    });
+
+
+
 </script> {% endblock main %}

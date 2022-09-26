@@ -7,12 +7,12 @@
 {% if user.theme and user.theme != "default" %}
 <link href="https://cdn.staticfile.org/bulmaswatch/0.8.1/{{ user.theme }}/bulmaswatch.min.css" rel="stylesheet">
 {% else %}
-<link rel="stylesheet" href="https://cdn.staticfile.org/bulma/0.9.3/css/bulma.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.staticfile.org/bulma/0.9.4/css/bulma.min.css" rel="stylesheet">
 {% endif %}
 <link rel="stylesheet" href="{% static 'sspanel/css/sspanel.css'%}">
 {% if not simple_extra_static or user.is_authenticated %}
 <link rel="stylesheet" href="https://cdn.staticfile.org/flag-icon-css/3.5.0/css/flag-icon.min.css">
-<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/5.14.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/simplemde/1.9.0/simplemde.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css">
 {% endif %}

@@ -44,7 +44,7 @@ proxy-providers:
       interval: 600
       url: http://www.gstatic.com/generate_204
 
-{% if sub_type == "clash" %}
+{% if sub_client == "clash" %}
 {% include "clash/rules.yaml" %}
 {% else %}
 {% include "clash/rule_sets.yaml" %}
