@@ -8,7 +8,7 @@ on:
     paths:
       - "pyproject.toml"
       - "deploy/Dockerfile.RUNTIME"
-    workflow_dispatch:
+  workflow_dispatch:
 jobs:
   build-runtime:
     runs-on: ubuntu-latest
