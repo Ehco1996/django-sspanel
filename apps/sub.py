@@ -1,3 +1,4 @@
+import base64
 from collections import defaultdict
 from decimal import Decimal
 
@@ -52,6 +53,7 @@ class UserSubManager:
         for sub_link_list in relay_node_group.values():
             for link in sub_link_list:
                 sub_links += link + "\n"
+        sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 
     def get_sub_info(self):
