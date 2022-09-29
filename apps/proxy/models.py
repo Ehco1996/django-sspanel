@@ -209,7 +209,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             "xray_config": xray_config,
             "sync_traffic_endpoint": self.api_endpoint,
         }
-        configs.update(self.get_ehco_server_config())
+        configs |= self.get_ehco_server_config()
 
         for user in User.objects.filter(level__gte=self.level).values(
             "id",
@@ -250,7 +250,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             "xray_config": xray_config,
             "sync_traffic_endpoint": self.api_endpoint,
         }
-        configs.update(self.get_ehco_server_config())
+        configs |= self.get_ehco_server_config()
 
         for user in User.objects.filter(level__gte=self.level).values(
             "id",
@@ -323,7 +323,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         elif self.node_type == self.NODE_TYPE_TROJAN:
             code = f"{user.ss_password}@{host}:{port}?allowInsecure=1&udp={udp}"
             b64_code = code  # trojan don't need base64 encode
-        return "{}://{}#{}".format(self.node_type, b64_code, quote(remark))
+        return f"{self.node_type}://{b64_code}#{quote(remark)}"
 
     def get_user_quantumultx_sub_link(self, user, relay_rule=None):
         if relay_rule:
@@ -385,7 +385,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
-        return settings.HOST + f"/api/proxy_configs/{self.id}/?{urlencode(params)}"
+        return f"{settings.HOST}/api/proxy_configs/{self.id}/?{urlencode(params)}"
 
     @property
     def ehco_relay_port(self):
@@ -415,7 +415,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def remark(self):
         name = self.name
         if self.enlarge_scale != Decimal(1.0):
-            name = f"[{self.enlarge_scale}x]" + name
+            name = f"[{self.enlarge_scale}x]{name}"
         return name
 
 
@@ -440,7 +440,7 @@ class SSConfig(models.Model):
         verbose_name_plural = "SS配置"
 
     def __str__(self) -> str:
-        return self.proxy_node.__str__() + "-配置"
+        return f"{self.proxy_node.__str__()}-配置"
 
 
 class TrojanConfig(models.Model):
@@ -462,7 +462,7 @@ class TrojanConfig(models.Model):
         verbose_name_plural = "SS配置"
 
     def __str__(self) -> str:
-        return self.proxy_node.__str__() + "-配置"
+        return f"{self.proxy_node.__str__()}-配置"
 
 
 class RelayNode(BaseNodeModel):
@@ -490,9 +490,7 @@ class RelayNode(BaseNodeModel):
         verbose_name_plural = "中转节点"
 
     def __str__(self) -> str:
-        if self.remark:
-            return f"{self.name}-{self.remark}"
-        return self.name
+        return f"{self.name}-{self.remark}" if self.remark else self.name
 
     def get_relay_rules_configs(self):
         data = []
@@ -506,7 +504,7 @@ class RelayNode(BaseNodeModel):
                 else:
                     tcp_remote = f"{server}:{node.ss_config.multi_user_port}"
                 if rule.transport_type in c.WS_TRANSPORTS:
-                    tcp_remote = "wss://" + tcp_remote
+                    tcp_remote = f"wss://{tcp_remote}"
                 if self.enable_udp:
                     udp_remotes.append(f"{server}:{node.ss_config.multi_user_port}")
                 tcp_remotes.append(tcp_remote)
@@ -530,7 +528,7 @@ class RelayNode(BaseNodeModel):
     @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
-        return settings.HOST + f"/api/ehco_relay_config/{self.id}/?{urlencode(params)}"
+        return f"{settings.HOST}/api/ehco_relay_config/{self.id}/?{urlencode(params)}"
 
 
 class RelayRule(BaseModel):
@@ -585,7 +583,7 @@ class RelayRule(BaseModel):
             return self.rule_name
         name = f"{self.relay_node.name}{self.relay_node.isp}-{self.proxy_node.name}"
         if self.proxy_node.enlarge_scale != Decimal(1.0):
-            name = f"[{self.proxy_node.enlarge_scale}x]" + name
+            name = f"[{self.proxy_node.enlarge_scale}x]{name}"
         return name
 
 
@@ -625,13 +623,12 @@ class UserTrafficLog(BaseLogModel):
 
     @classmethod
     def get_latest_online_log_info(cls, proxy_node):
-        data = {"online": False, "online_user_count": 0}
         now = utils.get_current_datetime()
         query = cls.objects.filter(
             proxy_node=proxy_node,
             created_at__range=[now.subtract(seconds=c.NODE_TIME_OUT), now],
         )
-        data["online"] = query.exists()
+        data = {"online_user_count": 0, "online": query.exists()}
         if data["online"]:
             data["online_user_count"] = (
                 query.filter(user__isnull=False).values("user").distinct().count()
