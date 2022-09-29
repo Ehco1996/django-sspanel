@@ -73,6 +73,7 @@ class SubscribeView(View):
             return HttpResponseBadRequest("no active nodes for you")
 
         sub_client = request.GET.get("client")
+
         # todo delete this workaround
         SUB_TYPE_SS = "ss"
         SUB_TYPE_CLASH = "clash"

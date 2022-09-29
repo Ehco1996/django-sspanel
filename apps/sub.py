@@ -1,6 +1,5 @@
 import base64
 from collections import defaultdict
-from decimal import Decimal
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -13,12 +12,14 @@ class UserSubManager:
     CLIENT_CLASH = "clash"
     CLIENT_CLASH_PREMIUM = "clash_premium"
     CLIENT_CLASH_PROXY_PROVIDER = "clash_proxy_provider"
+    CLIENT_QUANTUMULTX = "quantumultx"
 
     CLIENT_SET = {
         CLIENT_SHADOWROCKET,
         CLIENT_CLASH,
         CLIENT_CLASH_PREMIUM,
         CLIENT_CLASH_PROXY_PROVIDER,
+        CLIENT_QUANTUMULTX,
     }
 
     def __init__(self, user, sub_client, node_list):
@@ -56,11 +57,30 @@ class UserSubManager:
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 
+    def _get_quantumultx_sub_links(self):
+        sub_links = ""
+        relay_node_group = defaultdict(list)
+        for node in self.node_list:
+            if node.enable_relay:
+                for rule in node.relay_rules.filter(relay_node__enable=True):
+                    relay_node_group[rule.relay_node].append(
+                        node.get_user_quantumultx_sub_link(self.user, rule)
+                    )
+            if node.enable_direct:
+                sub_links += node.get_user_quantumultx_sub_link(self.user) + "\n"
+
+        for sub_link_list in relay_node_group.values():
+            for link in sub_link_list:
+                sub_links += link + "\n"
+        return sub_links
+
     def get_sub_info(self):
         if self.sub_client in [self.CLIENT_CLASH, self.CLIENT_CLASH_PREMIUM]:
             return self._get_clash_sub_yaml()
         elif self.sub_client == self.CLIENT_SHADOWROCKET:
             return self._get_shadowrocket_sub_links()
+        elif self.sub_client == self.CLIENT_QUANTUMULTX:
+            return self._get_quantumultx_sub_links()
         else:
             return self.get_clash_proxy_providers()
 
@@ -78,9 +98,6 @@ class UserSubManager:
                         }
                     )
             if node.enable_direct:
-                name = node.name
-                if node.enlarge_scale != Decimal(1.0):
-                    name += f"-{node.enlarge_scale}倍"
                 node_configs.append(
                     {
                         "clash_config": node.get_user_clash_config(self.user),
