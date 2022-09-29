@@ -316,7 +316,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             host = self.multi_server_address[0]
             port = self.get_user_port(user)
             remark = self.remark
-            udp = False
+            udp = True
         if self.node_type == self.NODE_TYPE_SS:
             code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
             b64_code = base64.urlsafe_b64encode(code.encode()).decode()
@@ -324,6 +324,24 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             code = f"{user.ss_password}@{host}:{port}?allowInsecure=1&udp={udp}"
             b64_code = code  # trojan don't need base64 encode
         return "{}://{}#{}".format(self.node_type, b64_code, quote(remark))
+
+    def get_user_quantumultx_sub_link(self, user, relay_rule=None):
+        if relay_rule:
+            host = relay_rule.relay_host
+            port = relay_rule.relay_port
+            udp = relay_rule.enable_udp
+            remark = relay_rule.remark
+        else:
+            host = self.multi_server_address[0]
+            port = self.get_user_port(user)
+            remark = self.remark
+            udp = True
+
+        if self.node_type == self.NODE_TYPE_SS:
+            code = f"shadowsocks={host}:{port},method={self.ss_config.method},password={user.ss_password},udp_relay={udp},tag={remark}"
+        elif self.node_type == self.NODE_TYPE_TROJAN:
+            code = f"trojan={host}:{port},password={user.ss_password},over-tls=true,tls-verification=false,udp_relay={udp},tag={remark}"
+        return code
 
     def get_user_clash_config(self, user, relay_rule=None):
         if relay_rule:
@@ -397,7 +415,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def remark(self):
         name = self.name
         if self.enlarge_scale != Decimal(1.0):
-            name += f"-{self.enlarge_scale}倍"
+            name = f"[{self.enlarge_scale}x]" + name
         return name
 
 
@@ -567,7 +585,7 @@ class RelayRule(BaseModel):
             return self.rule_name
         name = f"{self.relay_node.name}{self.relay_node.isp}-{self.proxy_node.name}"
         if self.proxy_node.enlarge_scale != Decimal(1.0):
-            name += f"-{self.proxy_node.enlarge_scale}倍"
+            name = f"[{self.proxy_node.enlarge_scale}x]" + name
         return name
 
 
