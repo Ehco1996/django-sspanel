@@ -145,9 +145,7 @@ class ProxyConfigsView(View):
     def get(self, request, node_id):
         node = m.ProxyNode.get_or_none(node_id)
         return (
-            JsonResponse(node.get_proxy_configs())
-            if node
-            else HttpResponseBadRequest()
+            JsonResponse(node.get_proxy_configs()) if node else HttpResponseBadRequest()
         )
 
     @method_decorator(handle_json_post)
@@ -262,13 +260,9 @@ def purchase(request):
     good_id = request.POST.get("goodId")
     good = Goods.objects.get(id=good_id)
     return (
-        JsonResponse(
-            {"title": "购买成功", "status": "success", "subtitle": "重新订阅即可获取所有节点"}
-        )
+        JsonResponse({"title": "购买成功", "status": "success", "subtitle": "重新订阅即可获取所有节点"})
         if good.purchase_by_user(request.user)
-        else JsonResponse(
-            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"}
-        )
+        else JsonResponse({"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"})
     )
 
 
