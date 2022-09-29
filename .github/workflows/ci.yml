@@ -24,10 +24,11 @@ jobs:
       #  -----  install & configure poetry  -----
       #----------------------------------------------
       - name: Install Poetry
-        uses: snok/install-poetry@v1.1.4
+        uses: snok/install-poetry@v1
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
+          installer-parallel: true
       #----------------------------------------------
       #       load cached venv if cache exists
       #----------------------------------------------
@@ -36,7 +37,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .venv
-          key: venv-lint-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       #----------------------------------------------
       # install dependencies if cache does not exist
       #----------------------------------------------
@@ -49,4 +50,5 @@ jobs:
       - name: Run Lint
         run: |
           source .venv/bin/activate
+          make setup
           make check
