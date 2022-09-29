@@ -45,10 +45,9 @@ class UserSettingsView(View):
 
     @method_decorator(login_required)
     def post(self, request):
-        success = request.user.update_ss_config_from_dict(
-            data={k: v for k, v in request.POST.items()}
-        )
-        if success:
+        if success := request.user.update_ss_config_from_dict(
+            data=dict(request.POST.items())
+        ):
             data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}
         else:
             data = {"title": "修改失败!", "status": "error", "subtitle": "配置更新失败!"}
@@ -58,15 +57,13 @@ class UserSettingsView(View):
 class SubscribeView(View):
     def get(self, request):
         user = None
-        uid = request.GET.get("uid")
-        if uid:
+        if uid := request.GET.get("uid"):
             user = User.objects.filter(uid=uid).first()
         if not user:
             return HttpResponseBadRequest("user not found")
         node_list = m.ProxyNode.get_active_nodes(level=user.level)
 
-        protocol = request.GET.get("protocol")
-        if protocol:
+        if protocol := request.GET.get("protocol"):
             node_list = node_list.filter(node_type=protocol)
 
         if len(node_list) == 0:
@@ -74,17 +71,18 @@ class SubscribeView(View):
 
         sub_client = request.GET.get("client")
 
-        # todo delete this workaround
-        SUB_TYPE_SS = "ss"
-        SUB_TYPE_CLASH = "clash"
-        SUB_TYPE_CLASH_PRO = "clash_pro"
         sub_type = request.GET.get("sub_type")
-        if not sub_client and sub_type == SUB_TYPE_SS:
-            sub_client = UserSubManager.CLIENT_SHADOWROCKET
-        elif not sub_client and sub_type == SUB_TYPE_CLASH:
-            sub_client = UserSubManager.CLIENT_CLASH
-        elif not sub_client and sub_type == SUB_TYPE_CLASH_PRO:
-            sub_client = UserSubManager.CLIENT_CLASH_PREMIUM
+        if not sub_client:
+            # todo delete this workaround
+            SUB_TYPE_SS = "ss"
+            SUB_TYPE_CLASH = "clash"
+            SUB_TYPE_CLASH_PRO = "clash_pro"
+            if sub_type == SUB_TYPE_SS:
+                sub_client = UserSubManager.CLIENT_SHADOWROCKET
+            elif sub_type == SUB_TYPE_CLASH:
+                sub_client = UserSubManager.CLIENT_CLASH
+            elif sub_type == SUB_TYPE_CLASH_PRO:
+                sub_client = UserSubManager.CLIENT_CLASH_PREMIUM
         # end todo
 
         sub_info = UserSubManager(user, sub_client, node_list).get_sub_info()
@@ -98,8 +96,7 @@ class SubscribeView(View):
 class ClashProxyProviderView(View):
     def get(self, request):
         user = None
-        uid = request.GET.get("uid")
-        if uid:
+        if uid := request.GET.get("uid"):
             user = User.objects.filter(uid=uid).first()
         if not user:
             return HttpResponseBadRequest("user not found")
@@ -147,9 +144,11 @@ class ProxyConfigsView(View):
     @method_decorator(api_authorized)
     def get(self, request, node_id):
         node = m.ProxyNode.get_or_none(node_id)
-        if not node:
-            return HttpResponseBadRequest()
-        return JsonResponse(node.get_proxy_configs())
+        return (
+            JsonResponse(node.get_proxy_configs())
+            if node
+            else HttpResponseBadRequest()
+        )
 
     @method_decorator(handle_json_post)
     @method_decorator(api_authorized)
@@ -167,9 +166,11 @@ class EhcoRelayConfigView(View):
     @method_decorator(api_authorized)
     def get(self, request, node_id):
         node: m.RelayNode = m.RelayNode.get_or_none(node_id)
-        if not node:
-            return HttpResponseBadRequest()
-        return JsonResponse(node.get_relay_rules_configs())
+        return (
+            JsonResponse(node.get_relay_rules_configs())
+            if node
+            else HttpResponseBadRequest()
+        )
 
 
 class UserCheckInView(View):
@@ -246,9 +247,10 @@ def gen_invite_code(request):
     if num > 0:
         registerinfo = {
             "title": "成功",
-            "subtitle": "添加邀请码{}个,请刷新页面".format(num),
+            "subtitle": f"添加邀请码{num}个,请刷新页面",
             "status": "success",
         }
+
     else:
         registerinfo = {"title": "失败", "subtitle": "已经不能生成更多的邀请码了", "status": "error"}
     return JsonResponse(registerinfo)
@@ -259,14 +261,15 @@ def gen_invite_code(request):
 def purchase(request):
     good_id = request.POST.get("goodId")
     good = Goods.objects.get(id=good_id)
-    if not good.purchase_by_user(request.user):
-        return JsonResponse(
-            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"}
-        )
-    else:
-        return JsonResponse(
+    return (
+        JsonResponse(
             {"title": "购买成功", "status": "success", "subtitle": "重新订阅即可获取所有节点"}
         )
+        if good.purchase_by_user(request.user)
+        else JsonResponse(
+            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"}
+        )
+    )
 
 
 @login_required
@@ -286,8 +289,7 @@ def change_theme(request):
 @require_http_methods(["POST"])
 def ailpay_callback(request):
     data = request.POST.dict()
-    success = UserOrder.handle_callback_by_alipay(data)
-    if success:
+    if success := UserOrder.handle_callback_by_alipay(data):
         return HttpResponse("success")
     else:
         return HttpResponse("failure")
