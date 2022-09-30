@@ -209,7 +209,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             "xray_config": xray_config,
             "sync_traffic_endpoint": self.api_endpoint,
         }
-        configs |= self.get_ehco_server_config()
+        configs.update(self.get_ehco_server_config())
 
         for user in User.objects.filter(level__gte=self.level).values(
             "id",
@@ -250,7 +250,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             "xray_config": xray_config,
             "sync_traffic_endpoint": self.api_endpoint,
         }
-        configs |= self.get_ehco_server_config()
+        configs.update(self.get_ehco_server_config())
 
         for user in User.objects.filter(level__gte=self.level).values(
             "id",
