@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.forms import ModelForm
+from django.utils.safestring import mark_safe
 
 from apps.proxy import models
 from apps.sspanel.models import User
@@ -68,14 +69,15 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     form = ProxyNodeAdminForm
 
     list_display = [
-        "name",
-        "node_type",
+        "__str__",
+        "server",
         "country",
         "enable",
         "traffic",
-        "relay_count",
+        "mix_info",
         "provider_remark",
         "sequence",
+        "api_endpoint",
     ]
     inlines = [RelayRuleInline]
     all_inlines = [SSConfigInline, TrojanConfigInline, RelayRuleInline]
@@ -91,29 +93,46 @@ class ProxyNodeAdmin(admin.ModelAdmin):
             return [TrojanConfigInline] + self.inlines
         return self.inlines
 
+    @admin.display(description="等级/中转数量/在线")
+    def mix_info(self, instance):
+        online = instance.online_info["online_user_count"]
+        return f"{instance.level}/{instance.relay_count}/{online}"
+
+    @admin.display(description="流量", ordering="used_traffic")
     def traffic(self, instance):
         return f"{instance.human_used_traffic}/{instance.human_total_traffic}"
 
-    traffic.short_description = "流量"
-
-    def relay_count(self, instance):
-        return instance.relay_count
-
-    relay_count.short_description = "中转数量"
+    @admin.display(description="对接地址")
+    def api_endpoint(self, instance):
+        div = f"""
+        <input readonly class="el-input" value="{instance.api_endpoint}">
+        """
+        return mark_safe(div)
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
 
     list_display = [
-        "name",
-        "isp",
-        "remark",
+        "__str__",
         "server",
+        "isp",
         "enable",
+        "remark",
+        "api_endpoint",
     ]
 
     inlines = [RelayRuleInline]
-    list_filter = ["isp", "remark"]
+    list_filter = [
+        "isp",
+        "remark",
+    ]
+
+    @admin.display(description="对接地址")
+    def api_endpoint(self, instance):
+        div = f"""
+        <input readonly class="el-input" value="{instance.api_endpoint}">
+        """
+        return mark_safe(div)
 
 
 class RelayRuleAdmin(admin.ModelAdmin):
