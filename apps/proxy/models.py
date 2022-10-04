@@ -300,7 +300,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             }
         return {}
 
-    def get_user_port(self, user):
+    def get_user_port(self):
         if self.node_type == self.NODE_TYPE_SS:
             return self.ss_config.multi_user_port
         elif self.node_type == self.NODE_TYPE_TROJAN:
@@ -314,7 +314,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             udp = relay_rule.enable_udp
         else:
             host = self.multi_server_address[0]
-            port = self.get_user_port(user)
+            port = self.get_user_port()
             remark = self.remark
             udp = True
         if self.node_type == self.NODE_TYPE_SS:
@@ -333,7 +333,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             remark = relay_rule.remark
         else:
             host = self.multi_server_address[0]
-            port = self.get_user_port(user)
+            port = self.get_user_port()
             remark = self.remark
             udp = True
 
@@ -353,7 +353,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             host = self.multi_server_address[0]
             remark = self.remark
             udp = True
-            port = self.get_user_port(user)
+            port = self.get_user_port()
 
         config = {
             "name": remark,

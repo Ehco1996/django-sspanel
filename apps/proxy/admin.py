@@ -70,7 +70,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
 
     list_display = [
         "__str__",
-        "server",
+        "link_addr",
         "country",
         "enable",
         "traffic",
@@ -101,6 +101,10 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     @admin.display(description="流量", ordering="used_traffic")
     def traffic(self, instance):
         return f"{instance.human_used_traffic}/{instance.human_total_traffic}"
+
+    @admin.display(description="连接地址")
+    def link_addr(self, instance):
+        return f"{instance.server}:{instance.get_user_port()}"
 
     @admin.display(description="对接地址")
     def api_endpoint(self, instance):
