@@ -182,9 +182,10 @@ class User(AbstractUser):
         if not port_set:
             return cls.MIN_PORT
         max_port = max(port_set) + 1
-        port_set = {i for i in range(cls.MIN_PORT, max_port + 1)}.difference(
+        port_set = set(range(cls.MIN_PORT, max_port + 1)).difference(
             port_set.union(cls.PORT_BLACK_SET)
         )
+
         return random.choice(list(port_set))
 
     @classmethod
@@ -209,13 +210,13 @@ class User(AbstractUser):
     def sub_link(self):
         """订阅地址"""
         params = {"uid": self.uid}
-        return settings.HOST + f"/api/subscribe/?{urlencode(params)}"
+        return f"{settings.HOST}/api/subscribe/?{urlencode(params)}"
 
     @property
     def ref_link(self):
         """ref地址"""
         params = {"ref": self.id}
-        return settings.HOST + f"/register/?{urlencode(params)}"
+        return f"{settings.HOST}/register/?{urlencode(params)}"
 
     @property
     def today_is_checkin(self):
@@ -259,9 +260,7 @@ class User(AbstractUser):
     @property
     def clash_proxy_provider_endpoint(self):
         params = {"uid": self.uid}
-        return (
-            settings.HOST + f"/api/subscribe/clash/proxy_providers/?{urlencode(params)}"
-        )
+        return f"{settings.HOST}/api/subscribe/clash/proxy_providers/?{urlencode(params)}"
 
     @transaction.atomic
     def reset_random_port(self):
@@ -410,8 +409,7 @@ class UserOrder(models.Model, UserMixin):
             try:
                 with lock.order_lock(order.out_trade_no):
                     order.refresh_from_db()
-                    changed = order.check_order_status()
-                    if changed:
+                    if changed := order.check_order_status():
                         print(f"补单：{order.user}={order.amount}")
             except LockError:
                 # NOTE 定时任务跑，抢不到锁就算了吧
@@ -661,7 +659,7 @@ class Donate(models.Model):
     )
 
     def __str__(self):
-        return "{}-{}".format(self.user, self.money)
+        return f"{self.user}-{self.money}"
 
     class Meta:
         verbose_name = "捐赠记录"
@@ -722,7 +720,7 @@ class MoneyCode(models.Model):
         # 保证充值码不会重复
         code_length = len(self.code or "")
         if 0 < code_length < 12:
-            self.code = "{}{}".format(self.code, get_long_random_string())
+            self.code = f"{self.code}{get_long_random_string()}"
         else:
             self.code = get_long_random_string()
 
@@ -793,10 +791,7 @@ class Goods(models.Model):
 
     @property
     def status_cn(self):
-        if self.status == self.STATUS_ON:
-            return "上架"
-        else:
-            return "下架"
+        return "上架" if self.status == self.STATUS_ON else "下架"
 
     @property
     def bulma_color(self):
@@ -895,9 +890,7 @@ class PurchaseHistory(models.Model):
         count = query.count()
         amount = count * good.money
         print(
-            "{} ~ {} 时间内 商品: {} 共销售 {} 次 总金额 {} 元".format(
-                start.date(), end.date(), good, count, amount
-            )
+            f"{start.date()} ~ {end.date()} 时间内 商品: {good} 共销售 {count} 次 总金额 {amount} 元"
         )
 
     @classmethod
@@ -937,7 +930,7 @@ class Announcement(models.Model):
         ordering = ("-time",)
 
     def __str__(self):
-        return "日期:{}".format(str(self.time)[:9])
+        return f"日期:{str(self.time)[:9]}"
 
     def save(self, *args, **kwargs):
         md = markdown.Markdown(extensions=["markdown.extensions.extra"])
