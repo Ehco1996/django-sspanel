@@ -9,7 +9,7 @@ from django.views import View
 from apps import utils
 from apps.custom_views import PageListView
 from apps.mixin import StaffRequiredMixin
-from apps.proxy.models import ProxyNode, RelayNode, UserTrafficLog
+from apps.proxy.models import UserTrafficLog
 from apps.sspanel.forms import AnnoForm, GoodsForm
 from apps.sspanel.models import (
     Announcement,
@@ -22,23 +22,6 @@ from apps.sspanel.models import (
     User,
     UserCheckInLog,
 )
-
-
-class NodeListView(StaffRequiredMixin, View):
-    def get(self, request):
-        context = {
-            "proxy_node_list": ProxyNode.objects.all().order_by("node_type"),
-            "relay_node_list": RelayNode.objects.all(),
-        }
-        return render(request, "my_admin/node_list.html", context=context)
-
-
-class NodeDeleteView(StaffRequiredMixin, View):
-    def get(self, request, node_id):
-        node = ProxyNode.get_or_none(node_id)
-        node and node.delete()
-        messages.success(request, "成功啦", extra_tags="删除节点")
-        return HttpResponseRedirect(reverse("sspanel:admin_node_list"))
 
 
 class UserStatusView(StaffRequiredMixin, View):

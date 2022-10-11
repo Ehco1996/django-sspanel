@@ -55,17 +55,14 @@
                 <div class="is-hidden-tablet">
                     <a class="navbar-item is-active">面板管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:system_status' %}">系统状态</a>
+                    <a class="navbar-item" href="{% url 'sspanel:admin_user_status' %}">用户分析</a>
                     <a class="navbar-item" href="{% url 'sspanel:admin_invite' %}">邀请相关</a>
                     <a class="navbar-item" href="{% url 'sspanel:admin_announcements' %}">公告管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:admin_tickets' %}">工单管理</a>
-                    <a class="navbar-item is-active">节点管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:admin_node_list' %}">节点列表</a>
                     <a class="navbar-item is-active">交易管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:admin_charge' %}">充值管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:admin_goods' %}">商品管理</a>
                     <a class="navbar-item" href="{% url 'sspanel:purchase_history' %}">购买记录</a>
-                    <a class="navbar-item is-active">用户管理</a>
-                    <a class="navbar-item" href="{% url 'sspanel:admin_user_status' %}">用户分析</a>
                     <a class="navbar-item is-active">面板跳转</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
                     <a class="navbar-item" href="{% url 'sspanel:userinfo' %}">用户面板</a>
@@ -100,6 +97,11 @@
                             <li>
                                 <a href="{% url 'sspanel:system_status' %}">系统状态</a>
                             </li>
+                            <ul class="menu-list">
+                                <li>
+                                    <a href="{% url 'sspanel:admin_user_status' %}">用户分析</a>
+                                </li>
+                            </ul>
                             <li>
                                 <a href="{% url 'sspanel:admin_invite' %}">邀请相关</a>
                             </li>
@@ -108,14 +110,6 @@
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:admin_tickets' %}">工单管理</a>
-                            </li>
-                        </ul>
-                        <p class="menu-label">
-                            节点管理
-                        </p>
-                        <ul class="menu-list">
-                            <li>
-                                <a href="{% url 'sspanel:admin_node_list' %}">节点列表</a>
                             </li>
                         </ul>
                         <p class="menu-label">
@@ -130,14 +124,6 @@
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:purchase_history' %}">购买记录</a>
-                            </li>
-                        </ul>
-                        <p class="menu-label">
-                            用户管理
-                        </p>
-                        <ul class="menu-list">
-                            <li>
-                                <a href="{% url 'sspanel:admin_user_status' %}">用户分析</a>
                             </li>
                         </ul>
                         <p class="menu-label">
@@ -164,4 +150,5 @@
     </div>
 </body>
 {% include "footer.html" %}
+
 </html>

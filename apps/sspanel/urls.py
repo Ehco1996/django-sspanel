@@ -41,17 +41,6 @@ urlpatterns = [
     path("my_admin/", admin_views.SystemStatusView.as_view(), name="system_status"),
     # 邀请码相关
     path("my_admin/invite/", admin_views.InviteCodeView.as_view(), name="admin_invite"),
-    # 节点相关
-    path(
-        "my_admin/node_list/",
-        admin_views.NodeListView.as_view(),
-        name="admin_node_list",
-    ),
-    path(
-        "my_admin/node_delete/<int:node_id>/",
-        admin_views.NodeDeleteView.as_view(),
-        name="admin_node_delete",
-    ),
     # 用户相关
     path(
         "my_admin/user_status/",
