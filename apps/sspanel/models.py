@@ -303,7 +303,7 @@ class User(AbstractUser):
 
         return {
             "Subscription-Userinfo:": info,
-            "Content-Disposition": f'attachment; filename= "{filename}.yaml"',
+            "Content-Disposition": f'attachment; filename="{filename}.yaml"',
         }
 
 
