@@ -17,6 +17,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import functional, timezone
 from redis.exceptions import LockError
+from slugify import slugify
 
 from apps import constants as c
 from apps.ext import cache, encoder, lock, pay
@@ -298,7 +299,12 @@ class User(AbstractUser):
         expire = int(datetime.datetime.timestamp(self.level_expire_time))
         info = f"upload={self.upload_traffic}; download={self.download_traffic}; total={self.total_traffic}; expire={expire}"
 
-        return {"Subscription-Userinfo:": info}
+        filename = slugify(settings.TITLE)
+
+        return {
+            "Subscription-Userinfo:": info,
+            "Content-Disposition": f'attachment; filename= "{filename}.yaml"',
+        }
 
 
 class UserMixin:
