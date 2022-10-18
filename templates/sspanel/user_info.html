@@ -214,7 +214,7 @@
 
                         <div class="field is-grouped is-grouped-multiline">
                             <p class="control is-expanded">
-                                <input class="input" id="id-sub-link" value="{{ sub_link }}">
+                                <input class="input" id="id-sub-link" value="{{ sub_link }}&client=clash">
                             </p>
                             <p class="control">
                                 <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-sub-link">
@@ -222,6 +222,9 @@
                                 </a>
                             </p>
                         </div>
+                        <button class="button is-danger is-fullwidth is-outlined is-rounded" id="id-reset-sub-link">
+                            重置订阅
+                        </button>
                     </div>
                     <span class="copied" hidden="true">Copied!</span>
                 </div>
@@ -390,5 +393,18 @@
     });
 
 
+    // 重制订阅
+    var restSubButton = $("#id-reset-sub-link")
+    var restSubButtonReq = function () {
+        url = "{% url 'api:rest_sub_uid' %}"
+        data = {
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        }
+        $.post(url, data, function (results) {
+            info = results
+            swal(info.title, info.subtitle, info.status).then(function () { location.reload(); })
+        })
+    }
+    restSubButton.click(restSubButtonReq)
 
 </script> {% endblock main %}

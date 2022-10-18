@@ -12,10 +12,10 @@ urlpatterns = [
         views.ClashProxyProviderView.as_view(),
         name="proxy_providers",
     ),
-    path("gen/invitecode/", views.gen_invite_code, name="geninvitecode"),
     path("shop/", views.purchase, name="purchase"),
     path("change/theme/", views.change_theme, name="change_theme"),
     path("checkin/", views.UserCheckInView.as_view(), name="checkin"),
+    path("rest_sub_uid/", views.reset_sub_uid, name="rest_sub_uid"),
     # web api 接口
     path(
         "proxy_configs/<int:node_id>/",

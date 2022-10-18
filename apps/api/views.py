@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from apps.ext import lock
 from apps.proxy import models as m
 from apps.sspanel import tasks
-from apps.sspanel.models import Goods, InviteCode, User, UserCheckInLog, UserOrder
+from apps.sspanel.models import Goods, User, UserCheckInLog, UserOrder
 from apps.sub import UserSubManager
 from apps.tianyi import DashBoardManger
 from apps.utils import (
@@ -236,25 +236,6 @@ class OrderView(View):
 
 
 @login_required
-def gen_invite_code(request):
-    """
-    生成用户的邀请码
-    返回是否成功
-    """
-    num = InviteCode.create_by_user(request.user)
-    if num > 0:
-        registerinfo = {
-            "title": "成功",
-            "subtitle": f"添加邀请码{num}个,请刷新页面",
-            "status": "success",
-        }
-
-    else:
-        registerinfo = {"title": "失败", "subtitle": "已经不能生成更多的邀请码了", "status": "error"}
-    return JsonResponse(registerinfo)
-
-
-@login_required
 @require_http_methods(["POST"])
 def purchase(request):
     good_id = request.POST.get("goodId")
@@ -276,6 +257,17 @@ def change_theme(request):
     user.theme = theme
     user.save()
     res = {"title": "修改成功！", "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
+    return JsonResponse(res)
+
+
+@login_required
+def reset_sub_uid(request):
+    """
+    更换用户订阅 uid
+    """
+    user = request.user
+    user.reset_sub_uid()
+    res = {"title": "修改成功！", "subtitle": "订阅更换成功，刷新页面可见", "status": "success"}
     return JsonResponse(res)
 
 
