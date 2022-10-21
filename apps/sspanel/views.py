@@ -142,6 +142,7 @@ class UserInfoView(LoginRequiredMixin, View):
             "max_traffic": max_traffic,
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
+            "active_node_count": ProxyNode.get_active_nodes(user.level).count(),
         }
         Announcement.send_first_visit_msg(request)
         return render(request, "sspanel/user_info.html", context=context)

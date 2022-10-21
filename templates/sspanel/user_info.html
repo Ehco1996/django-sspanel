@@ -243,30 +243,29 @@
                             <li>等级:
                                 <code>{{ user.level }} 级 </code>
                             </li>
-                            {% if user.overflow %}
-                            <li>状态:
-                                <code>失效</code>
-                            </li>
-                            {% else %}
-                            <li>状态:
-                                <code>正常使用</code>
-                            </li>
-                            {% endif %}
-                            <li>主题:
-                                <code>{{ user.theme }} </code>
-                            </li>
-                            <li>邮箱:
-                                <code>{{ user.email }} </code>
-                            </li>
-                            <li>连接密码:
-                                <code>{{ user.ss_password }}</code>
-                            </li>
-                            <li>等级到期时间:
-                                <code>{{ user.level_expire_time }} </code>
-                            </li>
-                            <li>上次使用时间:
-                                <code>{{ user.last_use_time}}</code>
-                            </li>
+                            {% if active_node_count <= 0 %} <li>状态:
+                                <code>已失效(购买后使用)</code>
+                                </li>
+                                {% else %}
+                                <li>状态:
+                                    <code>正常使用(可用节点{{active_node_count}}条)</code>
+                                </li>
+                                {% endif %}
+                                <li>主题:
+                                    <code>{{ user.theme }} </code>
+                                </li>
+                                <li>邮箱:
+                                    <code>{{ user.email }} </code>
+                                </li>
+                                <li>连接密码:
+                                    <code>{{ user.ss_password }}</code>
+                                </li>
+                                <li>等级到期时间:
+                                    <code>{{ user.level_expire_time }} </code>
+                                </li>
+                                <li>上次使用时间:
+                                    <code>{{ user.last_use_time}}</code>
+                                </li>
                         </div>
 
                         <div class="box">
