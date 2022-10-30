@@ -21,7 +21,7 @@ runserver:
 migrate:
 	$(PM) migrate
 
-makemigrations:
+migrations:
 	$(PM) makemigrations
 
 shell:

@@ -19,6 +19,19 @@ class UserAdmin(admin.ModelAdmin):
     list_per_page = 31
 
 
+class UserSocialProfileAdmin(admin.ModelAdmin):
+    list_display = [
+        "user_id",
+        "platform",
+        "platform_username",
+        "created_at",
+    ]
+    list_per_page = 31
+    search_fields = ["user__username", "user_id"]
+    list_filter = ["user_id", "platform", "created_at"]
+    ordering = ("-created_at",)
+
+
 class UserOrderAdmin(admin.ModelAdmin):
     list_display = [
         "user",
@@ -117,6 +130,7 @@ admin.site.register(models.Announcement)
 admin.site.register(models.Ticket, TicketAdmin)
 admin.site.register(models.EmailSendLog, EmailSendLogAdmin)
 admin.site.register(models.RebateRecord, RebateRecordAdmin)
+admin.site.register(models.UserSocialProfile, UserSocialProfileAdmin)
 
 
 admin.site.unregister(Group)

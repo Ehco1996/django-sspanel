@@ -1,0 +1,33 @@
+{% extends 'base.html' %} {% block main %}
+
+<div class="column is-12">
+    <section class="hero is-info is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    绑定 Telegram 账号
+                </h1>
+                <h2 class="subtitle">
+                    绑定操作只需要执行一次
+                </h2>
+            </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box">
+        <form class="form" action="{% url 'sspanel:tg_login' %}" method="post">
+            {% csrf_token %} {{ form.non_field_errors }} {% for field in form %} {{ field.label_tag }} {{ field }}
+            {{ field.errors }}
+            {% if field.help_text %}
+            <p class="help is-danger">{{ field.help_text|safe }}</p>
+            {% endif %} {% endfor %}
+            <hr>
+            <div class="field is-grouped is-grouped-multiline">
+                <p class="control">
+                    <button type="submit" class="button is-danger is-outlined">绑定</button>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock main%}

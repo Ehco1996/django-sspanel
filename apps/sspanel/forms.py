@@ -119,6 +119,43 @@ class LoginForm(forms.Form):
             self.cleaned_data = super(LoginForm, self).clean()
 
 
+class TGLoginForm(forms.Form):
+    username = forms.CharField(
+        required=True,
+        label="用户名",
+        error_messages={"required": "请输入用户名"},
+        widget=forms.TextInput(
+            attrs={"class": "input is-primary", "placeholder": "用户名"}
+        ),
+    )
+    password = forms.CharField(
+        required=True,
+        label="密码",
+        error_messages={"required": "请输入密码"},
+        widget=forms.PasswordInput(
+            attrs={"class": "input is-primary", "placeholder": "密码", "type": "password"}
+        ),
+    )
+
+    tg_username = forms.CharField(
+        required=True,
+        label="TG 用户名",
+        widget=forms.TextInput(
+            attrs={
+                "class": "input is-primary",
+                "placeholder": "TG 用户名",
+                "readonly": "readonly",
+            }
+        ),
+    )
+
+    def clean(self):
+        if not self.is_valid():
+            raise forms.ValidationError("用户名和密码为必填项")
+        else:
+            self.cleaned_data = super(TGLoginForm, self).clean()
+
+
 class GoodsForm(ModelForm):
     class Meta:
         model = Goods

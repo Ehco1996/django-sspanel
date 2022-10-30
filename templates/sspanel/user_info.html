@@ -266,6 +266,11 @@
                                 <li>上次使用时间:
                                     <code>{{ user.last_use_time}}</code>
                                 </li>
+                                {% for usp in usp_list %}
+                                <li>{{ usp.platform }}用户名:
+                                    <code>{{ usp.platform_username }}</code>
+                                </li>
+                                {% endfor %}
                         </div>
 
                         <div class="box">

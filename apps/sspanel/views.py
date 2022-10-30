@@ -3,14 +3,21 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
+from django_telegram_login.authentication import verify_telegram_authentication
+from django_telegram_login.errors import (
+    NotTelegramDataError,
+    TelegramDataIsOutdatedError,
+)
+from django_telegram_login.widgets.constants import LARGE
+from django_telegram_login.widgets.generator import create_redirect_login_widget
 
 from apps.constants import THEME_CHOICES
 from apps.proxy.models import ProxyNode
-from apps.sspanel.forms import LoginForm, RegisterForm
+from apps.sspanel.forms import LoginForm, RegisterForm, TGLoginForm
 from apps.sspanel.models import (
     Announcement,
     Donate,
@@ -21,6 +28,7 @@ from apps.sspanel.models import (
     RebateRecord,
     Ticket,
     User,
+    UserSocialProfile,
 )
 from apps.utils import traffic_format
 
@@ -94,7 +102,69 @@ class UserLogInView(View):
 
     def get(self, request):
         context = {"form": LoginForm(), "simple_extra_static": True}
+        # support tg login
+        if settings.TELEGRAM_BOT_TOKEN != "":
+            context["telegram_login_widget"] = create_redirect_login_widget(
+                settings.TELEGRAM_LOGIN_REDIRECT_URL,
+                settings.TELEGRAM_BOT_NAME,
+                size=LARGE,
+            )
         return render(request, "sspanel/login.html", context=context)
+
+
+class TGLoginView(View):
+    def get(self, request):
+        try:
+            result = verify_telegram_authentication(
+                bot_token=settings.TELEGRAM_BOT_TOKEN, request_data=request.GET
+            )
+        except TelegramDataIsOutdatedError:
+            return HttpResponseBadRequest(
+                "Authentication was received more than a day ago."
+            )
+        except NotTelegramDataError:
+            return HttpResponseBadRequest("The data is not related to Telegram!")
+
+        tg_username = result["username"]
+
+        # 已经绑定过了
+        usp = UserSocialProfile.get_or_create_and_update_info(
+            UserSocialProfile.TYPE_TG, tg_username, result
+        )
+        if usp.user_id:
+            login(
+                request,
+                usp.user,
+                backend="django.contrib.auth.backends.ModelBackend",
+            )
+            messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
+            return HttpResponseRedirect(reverse("sspanel:userinfo"))
+        # 需要渲染绑定页面
+        context = {
+            "form": TGLoginForm(initial={"tg_username": tg_username}),
+        }
+        return render(request, "sspanel/social_login.html", context)
+
+    def post(self, request):
+        form = TGLoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+            )
+            usp = UserSocialProfile.get_by_platform(
+                UserSocialProfile.TYPE_TG, form.cleaned_data["tg_username"]
+            )
+            if user and user.is_active and usp:
+                with transaction.atomic():
+                    login(request, user)
+                    usp.bind(user)
+                messages.success(request, "自动跳转到用户中心", extra_tags="绑定成功！")
+                return HttpResponseRedirect(reverse("sspanel:userinfo"))
+            else:
+                messages.error(request, "账户不存在(请先注册)/密码不正确！", extra_tags="绑定失败！")
+
+        return HttpResponseRedirect(reverse("sspanel:login"))
 
 
 class UserLogOutView(View):
@@ -143,6 +213,7 @@ class UserInfoView(LoginRequiredMixin, View):
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
             "active_node_count": ProxyNode.get_active_nodes(user.level).count(),
+            "usp_list": UserSocialProfile.list_by_user_id(user.id),
         }
         Announcement.send_first_visit_msg(request)
         return render(request, "sspanel/user_info.html", context=context)

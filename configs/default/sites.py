@@ -80,3 +80,9 @@ SIMPLEUI_ICON = {
     "邮件发送记录": "fas fa-envelope",
     "用户订阅记录": "fas fa-download",
 }
+
+
+# TG 相关配置
+TELEGRAM_BOT_NAME = os.getenv("TELEGRAM_BOT_NAME")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_LOGIN_REDIRECT_URL = f"{HOST}/tg_login/"

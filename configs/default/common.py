@@ -13,6 +13,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_prometheus",
+    "django_telegram_login",
     "anymail",
     "apps.sspanel",
     "apps.proxy",

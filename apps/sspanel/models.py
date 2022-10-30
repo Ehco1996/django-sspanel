@@ -315,6 +315,55 @@ class UserMixin:
         return User.get_by_pk(self.user_id)
 
 
+class UserSocialProfile(models.Model, UserMixin):
+
+    TYPE_TG = "tg"
+    TYPE_CHOICES = ((TYPE_TG, TYPE_TG),)
+
+    user_id = models.IntegerField(null=True, blank=True, db_index=True)
+    platform = models.CharField(
+        "平台", default=TYPE_TG, choices=TYPE_CHOICES, max_length=32
+    )
+    platform_username = models.CharField("用户名", max_length=32)
+    created_at = models.DateTimeField(
+        auto_now_add=True, db_index=True, help_text="创建时间", verbose_name="创建时间"
+    )
+    # TG: {"id": "", "username": "", "auth_date": "", "photo_url": "", "first_name": ""}
+    raw_auth_data = models.JSONField("平台回调信息")
+
+    class Meta:
+        verbose_name = "用户社交资料"
+        verbose_name_plural = "用户社交资料"
+        unique_together = [
+            ["platform", "platform_username"],
+            ["platform", "platform_username", "user_id"],
+        ]
+
+    @classmethod
+    def get_or_create_and_update_info(cls, platform, username, data):
+        usp, _ = cls.objects.get_or_create(
+            platform=platform,
+            platform_username=username,
+            defaults={"raw_auth_data": data},
+        )
+        # update auth info
+        usp.raw_auth_data = data
+        usp.save()
+        return usp
+
+    @classmethod
+    def list_by_user_id(cls, user_id):
+        return cls.objects.filter(user_id=user_id)
+
+    @classmethod
+    def get_by_platform(cls, platform, username):
+        return cls.objects.filter(platform=platform, platform_username=username).first()
+
+    def bind(self, user):
+        self.user_id = user.id
+        self.save()
+
+
 class UserOrder(models.Model, UserMixin):
 
     ALIPAY_CALLBACK_URL = f"{settings.HOST}/api/callback/alipay"

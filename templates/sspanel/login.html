@@ -37,6 +37,18 @@
                 <p class="control">
                     <button type="submit" class="button is-danger is-outlined">登录</button>
                 </p>
+
+                {% if telegram_login_widget != "" %}
+                <p class="control">
+                    {% autoescape off %}{{ telegram_login_widget }}{% endautoescape %}
+                    <script type="text/javascript">
+                        function onTelegramAuth(user) {
+                            alert('Logged in as ' + user.first_name + ' ' + user.last_name + '!');
+                        }
+                    </script>
+                </p>
+                {% endif %}
+
                 {% settings_value "USE_SMTP" as use_smtp %}
                 {% if use_smtp %}
                 <p class="control">

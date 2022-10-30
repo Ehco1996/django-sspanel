@@ -37,6 +37,7 @@ ipicn = "^2021.5.5"
 PyMySQL = "^1.0.2"
 ipython = "^8.5.0"
 python-slugify = "^6.1.2"
+django-telegram-login = "^0.2.3"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
