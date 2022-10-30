@@ -38,7 +38,8 @@
                     <button type="submit" class="button is-danger is-outlined">登录</button>
                 </p>
 
-                {% if telegram_login_widget != "" %}
+                {% settings_value "TELEGRAM_BOT_NAME" as tg_bot_name %}
+                {% if tg_bot_name %}
                 <p class="control">
                     {% autoescape off %}{{ telegram_login_widget }}{% endautoescape %}
                     <script type="text/javascript">
