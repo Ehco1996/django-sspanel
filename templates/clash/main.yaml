@@ -37,7 +37,7 @@ proxy-providers:
   {{ provider_name }}:
     type: http
     url: {{ proxy_provider_url }}
-    interval: 86400
+    interval: 3600
     path: ./providers/{{ provider_name }}.yaml
     health-check:
       enable: true
