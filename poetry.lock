@@ -374,7 +374,7 @@ test = ["djangorestframework", "graphene-django", "pytest", "pytest-cov", "pytes
 
 [[package]]
 name = "django-debug-toolbar"
-version = "3.6.0"
+version = "3.7.0"
 description = "A configurable set of panels that display various debug information about the current request/response."
 category = "dev"
 optional = false
@@ -1069,7 +1069,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a2c4cfc3744033050c4aa396bec2b442e2bf865ea04df347245d7895ea4fe7d8"
+content-hash = "2dc2cb065da73d74cc408d0dea3797edcdcd1624dbccc64c1e012626804c36a7"
 
 [metadata.files]
 aiohttp = [
@@ -1367,8 +1367,8 @@ django-countries = [
     {file = "django_countries-7.3.2-py3-none-any.whl", hash = "sha256:27fc8a0f66a87c9d839493f3926b4e0f4dd873ef66465aa8cd3e953f99758cc9"},
 ]
 django-debug-toolbar = [
-    {file = "django-debug-toolbar-3.6.0.tar.gz", hash = "sha256:95fc2fd29c56cc86678aae9f6919ececefe892f2a78c4004b193a223a8380c3d"},
-    {file = "django_debug_toolbar-3.6.0-py3-none-any.whl", hash = "sha256:fe7fe3f21865218827e2162ecc06eba386dfe8cffe4f3501c49bb4359e06a0e6"},
+    {file = "django-debug-toolbar-3.7.0.tar.gz", hash = "sha256:1e3acad24e3d351ba45c6fa2072e4164820307332a776b16c9f06d1f89503465"},
+    {file = "django_debug_toolbar-3.7.0-py3-none-any.whl", hash = "sha256:80de23066b624d3970fd296cf02d61988e5d56c31aa0dc4a428970b46e2883a8"},
 ]
 django-prometheus = [
     {file = "django-prometheus-2.2.0.tar.gz", hash = "sha256:240378a1307c408bd5fc85614a3a57f1ce633d4a222c9e291e2bbf325173b801"},
