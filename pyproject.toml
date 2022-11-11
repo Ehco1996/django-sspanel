@@ -40,7 +40,7 @@ python-slugify = "^6.1.2"
 django-telegram-login = "^0.2.3"
 
 [tool.poetry.dev-dependencies]
-black = "^22.6.0"
+black = "^22.10.0"
 django-debug-toolbar = "^3.2.1"
 isort = "^5.8.0"
 autoflake = "^1.4"
