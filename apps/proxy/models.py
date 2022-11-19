@@ -600,7 +600,6 @@ class UserTrafficLog(BaseLogModel):
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
     ip_list = models.JSONField(verbose_name="IP地址列表", default=list)
-
     class Meta:
         verbose_name = "用户流量记录"
         verbose_name_plural = "用户流量记录"

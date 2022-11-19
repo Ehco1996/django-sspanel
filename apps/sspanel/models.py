@@ -90,7 +90,7 @@ class User(AbstractUser):
     @classmethod
     def get_today_register_user(cls):
         """返回今日注册的用户"""
-        return cls.objects.filter(date_joined__gt=pendulum.today())
+        return cls.objects.filter(date_joined__gt=pendulum.today().date())
 
     @classmethod
     @transaction.atomic
@@ -110,7 +110,7 @@ class User(AbstractUser):
             inviter_id = cleaned_data["ref"]
         if inviter_id:
             # 绑定邀请人
-            UserRefLog.log_ref(inviter_id, pendulum.today())
+            UserRefLog.log_ref(inviter_id, pendulum.today().date())
             user.inviter_id = inviter_id
         # 绑定uuid
         user.uid = str(uuid4())
@@ -539,7 +539,7 @@ class UserOrder(models.Model, UserMixin):
 class UserRefLog(models.Model, UserMixin):
     user_id = models.PositiveIntegerField()
     register_count = models.IntegerField(default=0)
-    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
+    date = models.DateField("记录日期", db_index=True)
 
     class Meta:
         verbose_name = "用户推荐记录"
@@ -566,7 +566,7 @@ class UserRefLog(models.Model, UserMixin):
 
 class UserCheckInLog(models.Model, UserMixin):
     user_id = models.PositiveIntegerField()
-    date = models.DateField("记录日期", default=pendulum.today, db_index=True)
+    date = models.DateField("记录日期", db_index=True)
     increased_traffic = models.BigIntegerField("增加的流量", default=0)
 
     class Meta:
@@ -576,7 +576,9 @@ class UserCheckInLog(models.Model, UserMixin):
 
     @classmethod
     def add_log(cls, user_id, traffic):
-        return cls.objects.create(user_id=user_id, increased_traffic=traffic)
+        return cls.objects.create(
+            user_id=user_id, increased_traffic=traffic, date=pendulum.today().date()
+        )
 
     @classmethod
     @transaction.atomic
