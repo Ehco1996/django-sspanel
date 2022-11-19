@@ -181,7 +181,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         if level is not None:
             query = query.filter(level__lte=level)
         return (
-            query.select_related("ss_config")
+            query.select_related("ss_config", "trojan_config")
             .prefetch_related("relay_rules")
             .order_by("sequence")
         )
@@ -276,11 +276,14 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return configs
 
     def get_proxy_configs(self):
+        data = {}
         if self.node_type == self.NODE_TYPE_SS:
-            return self.get_ss_node_config()
+            data = self.get_ss_node_config()
         elif self.node_type == self.NODE_TYPE_TROJAN:
-            return self.get_trojan_node_config()
-        return {}
+            data = self.get_trojan_node_config()
+        if not self.enable:
+            data["users"] = []
+        return data
 
     def get_ehco_server_config(self):
         if self.enable_ehco_tunnel:
@@ -502,11 +505,11 @@ class RelayNode(BaseNodeModel):
                 if node.enable_ehco_tunnel:
                     tcp_remote = f"{server}:{node.ehco_listen_port}"
                 else:
-                    tcp_remote = f"{server}:{node.ss_config.multi_user_port}"
+                    tcp_remote = f"{server}:{node.get_user_port()}"
                 if rule.transport_type in c.WS_TRANSPORTS:
                     tcp_remote = f"wss://{tcp_remote}"
                 if self.enable_udp:
-                    udp_remotes.append(f"{server}:{node.ss_config.multi_user_port}")
+                    udp_remotes.append(f"{server}:{node.get_user_port()}")
                 tcp_remotes.append(tcp_remote)
             data.append(
                 {

@@ -590,7 +590,9 @@ class UserCheckInLog(models.Model, UserMixin):
 
     @classmethod
     def get_today_is_checkin_by_user_id(cls, user_id):
-        return cls.objects.filter(user_id=user_id, date=pendulum.today()).exists()
+        return cls.objects.filter(
+            user_id=user_id, date=pendulum.today().date()
+        ).exists()
 
     @classmethod
     def get_checkin_user_count(cls, date: pendulum.Date):
