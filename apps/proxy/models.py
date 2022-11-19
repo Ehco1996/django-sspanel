@@ -99,15 +99,11 @@ class XRayTemplates:
 
 class BaseNodeModel(BaseModel):
     name = models.CharField("名字", max_length=32)
-    server = models.CharField("服务器地址", help_text="支持逗号分隔传多个地址", max_length=256)
+    server = models.CharField("服务器地址", help_text="服务器地址", max_length=256)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
 
     class Meta:
         abstract = True
-
-    @property
-    def multi_server_address(self):
-        return self.server.split(",")
 
 
 class ProxyNode(BaseNodeModel, SequenceMixin):
@@ -316,7 +312,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             remark = relay_rule.remark
             udp = relay_rule.enable_udp
         else:
-            host = self.multi_server_address[0]
+            host = self.server
             port = self.get_user_port()
             remark = self.remark
             udp = True
@@ -335,7 +331,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             udp = relay_rule.enable_udp
             remark = relay_rule.remark
         else:
-            host = self.multi_server_address[0]
+            host = self.server
             port = self.get_user_port()
             remark = self.remark
             udp = True
@@ -353,7 +349,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             remark = relay_rule.remark
             udp = relay_rule.enable_udp
         else:
-            host = self.multi_server_address[0]
+            host = self.server
             remark = self.remark
             udp = True
             port = self.get_user_port()
@@ -498,19 +494,20 @@ class RelayNode(BaseNodeModel):
     def get_relay_rules_configs(self):
         data = []
         for rule in self.relay_rules.select_related("proxy_node").all():
-            node = rule.proxy_node
+            node: ProxyNode = rule.proxy_node
+            if not node.enable:
+                continue
             tcp_remotes = []
             udp_remotes = []
-            for server in node.multi_server_address:
-                if node.enable_ehco_tunnel:
-                    tcp_remote = f"{server}:{node.ehco_listen_port}"
-                else:
-                    tcp_remote = f"{server}:{node.get_user_port()}"
-                if rule.transport_type in c.WS_TRANSPORTS:
-                    tcp_remote = f"wss://{tcp_remote}"
-                if self.enable_udp:
-                    udp_remotes.append(f"{server}:{node.get_user_port()}")
-                tcp_remotes.append(tcp_remote)
+            if node.enable_ehco_tunnel:
+                tcp_remote = f"{self.server}:{node.ehco_listen_port}"
+            else:
+                tcp_remote = f"{self.server}:{node.get_user_port()}"
+            if rule.transport_type in c.WS_TRANSPORTS:
+                tcp_remote = f"wss://{tcp_remote}"
+            if self.enable_udp:
+                udp_remotes.append(f"{self.server}:{node.get_user_port()}")
+            tcp_remotes.append(tcp_remote)
             data.append(
                 {
                     "label": node.name,
