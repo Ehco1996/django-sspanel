@@ -70,21 +70,6 @@ class SubscribeView(View):
             return HttpResponseBadRequest("no active nodes for you")
 
         sub_client = request.GET.get("client")
-
-        sub_type = request.GET.get("sub_type")
-        if not sub_client:
-            # todo delete this workaround
-            SUB_TYPE_SS = "ss"
-            SUB_TYPE_CLASH = "clash"
-            SUB_TYPE_CLASH_PRO = "clash_pro"
-            if sub_type == SUB_TYPE_SS:
-                sub_client = UserSubManager.CLIENT_SHADOWROCKET
-            elif sub_type == SUB_TYPE_CLASH:
-                sub_client = UserSubManager.CLIENT_CLASH
-            elif sub_type == SUB_TYPE_CLASH_PRO:
-                sub_client = UserSubManager.CLIENT_CLASH_PREMIUM
-        # end todo
-
         sub_info = UserSubManager(user, sub_client, node_list).get_sub_info()
         return HttpResponse(
             sub_info,
