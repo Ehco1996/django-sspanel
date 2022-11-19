@@ -75,6 +75,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "enable",
         "traffic",
         "mix_info",
+        "info",
         "provider_remark",
         "sequence",
         "api_endpoint",

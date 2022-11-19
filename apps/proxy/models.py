@@ -581,7 +581,7 @@ class RelayRule(BaseModel):
         # 这个字段才是用户真正看到的字段,如果不存在就动态生成一个
         if self.rule_name != "":
             return self.rule_name
-        name = f"{self.relay_node.name}{self.relay_node.isp}-{self.proxy_node.name}"
+        name = f"{self.relay_node.name}-{self.proxy_node.name}"
         if self.proxy_node.enlarge_scale != Decimal(1.0):
             name = f"[{self.proxy_node.enlarge_scale}x]{name}"
         return name
