@@ -500,13 +500,13 @@ class RelayNode(BaseNodeModel):
             tcp_remotes = []
             udp_remotes = []
             if node.enable_ehco_tunnel:
-                tcp_remote = f"{self.server}:{node.ehco_listen_port}"
+                tcp_remote = f"{node.server}:{node.ehco_listen_port}"
             else:
-                tcp_remote = f"{self.server}:{node.get_user_port()}"
+                tcp_remote = f"{node.server}:{node.get_user_port()}"
             if rule.transport_type in c.WS_TRANSPORTS:
                 tcp_remote = f"wss://{tcp_remote}"
             if self.enable_udp:
-                udp_remotes.append(f"{self.server}:{node.get_user_port()}")
+                udp_remotes.append(f"{node.server}:{node.get_user_port()}")
             tcp_remotes.append(tcp_remote)
             data.append(
                 {
