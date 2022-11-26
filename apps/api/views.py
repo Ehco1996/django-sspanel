@@ -45,7 +45,7 @@ class UserSettingsView(View):
 
     @method_decorator(login_required)
     def post(self, request):
-        if success := request.user.update_ss_config_from_dict(
+        if success := request.user.update_proxy_config_from_dict(
             data=dict(request.POST.items())
         ):
             data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}

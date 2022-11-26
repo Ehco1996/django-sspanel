@@ -209,8 +209,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
         for user in User.objects.filter(level__gte=self.level).values(
             "id",
-            "ss_port",
-            "ss_password",
+            "proxy_password",
             "total_traffic",
             "upload_traffic",
             "download_traffic",
@@ -219,12 +218,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                 user["download_traffic"] + user["upload_traffic"]
             )
 
-            port = port = user["ss_port"]
             configs["users"].append(
                 {
                     "user_id": user["id"],
-                    "port": port,
-                    "password": user["ss_password"],
+                    "password": user["proxy_password"],
                     "enable": enable,
                     "protocol": self.NODE_TYPE_TROJAN,
                 }
@@ -250,8 +247,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
         for user in User.objects.filter(level__gte=self.level).values(
             "id",
-            "ss_port",
-            "ss_password",
+            "proxy_password",
             "total_traffic",
             "upload_traffic",
             "download_traffic",
@@ -262,8 +258,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             configs["users"].append(
                 {
                     "user_id": user["id"],
-                    "port": ss_config.multi_user_port,
-                    "password": user["ss_password"],
+                    "password": user["proxy_password"],
                     "enable": enable,
                     "method": ss_config.method,
                     "protocol": self.NODE_TYPE_SS,
@@ -317,10 +312,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             remark = self.remark
             udp = True
         if self.node_type == self.NODE_TYPE_SS:
-            code = f"{self.ss_config.method}:{user.ss_password}@{host}:{port}"
+            code = f"{self.ss_config.method}:{user.proxy_password}@{host}:{port}"
             b64_code = base64.urlsafe_b64encode(code.encode()).decode()
         elif self.node_type == self.NODE_TYPE_TROJAN:
-            code = f"{user.ss_password}@{host}:{port}?allowInsecure=1&udp={udp}"
+            code = f"{user.proxy_password}@{host}:{port}?allowInsecure=1&udp={udp}"
             b64_code = code  # trojan don't need base64 encode
         return f"{self.node_type}://{b64_code}#{quote(remark)}"
 
@@ -337,9 +332,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             udp = True
 
         if self.node_type == self.NODE_TYPE_SS:
-            code = f"shadowsocks={host}:{port},method={self.ss_config.method},password={user.ss_password},udp_relay={udp},tag={remark}"
+            code = f"shadowsocks={host}:{port},method={self.ss_config.method},password={user.proxy_password},udp_relay={udp},tag={remark}"
         elif self.node_type == self.NODE_TYPE_TROJAN:
-            code = f"trojan={host}:{port},password={user.ss_password},over-tls=true,tls-verification=false,udp_relay={udp},tag={remark}"
+            code = f"trojan={host}:{port},password={user.proxy_password},over-tls=true,tls-verification=false,udp_relay={udp},tag={remark}"
         return code
 
     def get_user_clash_config(self, user, relay_rule=None):
@@ -358,7 +353,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             "name": remark,
             "type": self.node_type,
             "server": host,
-            "password": user.ss_password,
+            "password": user.proxy_password,
             "udp": udp,
             "port": port,
         }

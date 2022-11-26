@@ -58,11 +58,10 @@ class User(AbstractUser):
     )
     inviter_id = models.PositiveIntegerField(verbose_name="邀请人id", default=1)
 
-    # ss 相关 TODO delete ss prefix
-    ss_port = models.IntegerField("端口", unique=True, default=MIN_PORT)
-    ss_password = models.CharField(
+    proxy_password = models.CharField(
         "密码", max_length=32, default=get_short_random_string, unique=True
     )
+
     # 流量相关
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
@@ -99,7 +98,6 @@ class User(AbstractUser):
             cleaned_data["username"],
             cleaned_data["email"],
             cleaned_data["password1"],
-            ss_port=cls.get_not_used_port(),
         )
         inviter_id = None
         if "invitecode" in cleaned_data:
@@ -177,17 +175,6 @@ class User(AbstractUser):
             print(f"共有{len(out_of_traffic_users)}个用户流量用超啦")
 
     @classmethod
-    def get_not_used_port(cls):
-        port_set = {log["ss_port"] for log in cls.objects.all().values("ss_port")}
-        if not port_set:
-            return cls.MIN_PORT
-        max_port = max(port_set) + 1
-        port_set = {i for i in range(cls.MIN_PORT, max_port + 1)}.difference(
-            port_set.union(cls.PORT_BLACK_SET)
-        )
-        return random.choice(list(port_set))
-
-    @classmethod
     def get_never_used_user_count(cls):
         return cls.objects.filter(last_use_time__isnull=True).count()
 
@@ -263,16 +250,8 @@ class User(AbstractUser):
             settings.HOST + f"/api/subscribe/clash/proxy_providers/?{urlencode(params)}"
         )
 
-    @transaction.atomic
-    def reset_random_port(self):
-        cls = type(self)
-        port = cls.get_not_used_port()
-        self.ss_port = port
-        self.save()
-        return port
-
-    def update_ss_config_from_dict(self, data):
-        clean_fields = ["ss_password"]
+    def update_proxy_config_from_dict(self, data):
+        clean_fields = ["proxy_password"]
         for k, v in data.items():
             if k in clean_fields:
                 setattr(self, k, v)

@@ -258,7 +258,7 @@
                                     <code>{{ user.email }} </code>
                                 </li>
                                 <li>连接密码:
-                                    <code>{{ user.ss_password }}</code>
+                                    <code>{{ user.proxy_password }}</code>
                                 </li>
                                 <li>等级到期时间:
                                     <code>{{ user.level_expire_time }} </code>
@@ -361,7 +361,7 @@
         var password = $("#id-password").val();
         if (password) {
             data = {
-                ss_password: password,
+                proxy_password: password,
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             }
             url = "{% url 'api:user_settings' %}"
