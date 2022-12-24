@@ -3,8 +3,7 @@
 用 diango 开发的全新的 shadowsocks 网络面板
 
 [![CodeFactor](https://www.codefactor.io/repository/github/ehco1996/django-sspanel/badge)](https://www.codefactor.io/repository/github/ehco1996/django-sspanel)
-[![simpleui](https://img.shields.io/badge/developing%20with-Simpleui-2077ff.svg)](https://github.com/newpanjing/simpleui)
-[![check](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/lint.yml)
+[![lint](https://github.com/Ehco1996/django-sspanel/actions/workflows/ci.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/ci.yml)
 [![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ehco1996/django-sspanel)](https://hub.docker.com/r/ehco1996/django-sspanel)
 
