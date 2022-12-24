@@ -10,12 +10,6 @@
 
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
 
-## 捐赠支持
-
-<a href="https://dun.mianbaoduo.com/@ehco" target="_blank"><img src="https://img.niucodata.com/dundunfan-bt.png"></a>
-
-> 如果你心情好，完全可以请我喝杯咖啡/吃顿饭不是~
-
 ## 部署教程
 
 部署需要 `vps` 的支持
