@@ -1,5 +1,6 @@
 import base64
 import json
+from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
 from functools import cached_property
@@ -513,6 +514,32 @@ class RelayNode(BaseNodeModel):
                     "transport_type": rule.transport_type,
                 }
             )
+        # merge if rule has same port
+        portM = defaultdict(list)
+        for rule in data:
+            portM[rule["listen"]].append(rule)
+        data = []
+        for port, rules in portM.items():
+            if len(rules) == 1:
+                data.append(rules[0])
+            else:
+                tcp_remotes = []
+                udp_remotes = []
+                labels = []
+                for rule in rules:
+                    labels.append(rule["label"])
+                    tcp_remotes.extend(rule["tcp_remotes"])
+                    udp_remotes.extend(rule["udp_remotes"])
+                data.append(
+                    {
+                        "label": "-".join(labels),
+                        "listen": port,
+                        "listen_type": "tcp",
+                        "tcp_remotes": tcp_remotes,
+                        "udp_remotes": udp_remotes,
+                        "transport_type": "tcp",
+                    }
+                )
         return {
             "relay_configs": data,
             "web_port": self.web_port,
