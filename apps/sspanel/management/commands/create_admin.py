@@ -40,7 +40,6 @@ class Command(createsuperuser.Command):
             "username": username,
             "password": password,
             "email": email,
-            "ss_port": User.get_not_used_port(),
             "uid": uuid.uuid4(),
         }
 
