@@ -527,6 +527,8 @@ class RelayNode(BaseNodeModel):
             if len(rules) == 1:
                 data.append(rules[0])
             else:
+                # note that all rules must have same listen_type and transport_type
+                first_rule = rules[0]
                 tcp_remotes = []
                 udp_remotes = []
                 labels = []
@@ -538,10 +540,10 @@ class RelayNode(BaseNodeModel):
                     {
                         "label": "-".join(labels),
                         "listen": port,
-                        "listen_type": "tcp",
+                        "listen_type": first_rule["listen_type"],
                         "tcp_remotes": tcp_remotes,
                         "udp_remotes": udp_remotes,
-                        "transport_type": "tcp",
+                        "transport_type": first_rule["transport_type"],
                     }
                 )
         return {
