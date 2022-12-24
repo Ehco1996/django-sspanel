@@ -365,6 +365,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
         return json.dumps(config, ensure_ascii=False)
 
+    def get_relay_rules(self):
+        # relay node is enabled
+        return self.relay_rules.filter(relay_node__enable=True)
+
     @property
     def human_total_traffic(self):
         return utils.traffic_format(self.total_traffic)

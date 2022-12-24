@@ -41,37 +41,40 @@ class UserSubManager:
 
     def _get_shadowrocket_sub_links(self):
         sub_links = ""
-        relay_node_group = defaultdict(list)
+        # for clean the rule have the same port
+        # key: relay_node_id+port, value: cfg
+        relay_node_group = {}
         for node in self.node_list:
             if node.enable_relay:
-                for rule in node.relay_rules.filter(relay_node__enable=True):
-                    relay_node_group[rule.relay_node].append(
-                        node.get_user_shadowrocket_sub_link(self.user, rule)
+                for rule in node.get_relay_rules():
+                    key = f"{rule.relay_node.id}{rule.relay_port}"
+                    relay_node_group[key] = node.get_user_shadowrocket_sub_link(
+                        self.user, rule
                     )
             if node.enable_direct:
                 sub_links += node.get_user_shadowrocket_sub_link(self.user) + "\n"
 
-        for sub_link_list in relay_node_group.values():
-            for link in sub_link_list:
-                sub_links += link + "\n"
+        for link in relay_node_group.values():
+            sub_links += link + "\n"
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 
     def _get_quantumultx_sub_links(self):
         sub_links = ""
-        relay_node_group = defaultdict(list)
+        # for clean the rule have the same port
+        # key: relay_node_id+port, value: cfg
+        relay_node_group = {}
         for node in self.node_list:
             if node.enable_relay:
-                for rule in node.relay_rules.filter(relay_node__enable=True):
-                    relay_node_group[rule.relay_node].append(
-                        node.get_user_quantumultx_sub_link(self.user, rule)
+                for rule in node.get_relay_rules():
+                    key = f"{rule.relay_node.id}{rule.relay_port}"
+                    relay_node_group[key] = node.get_user_quantumultx_sub_link(
+                        self.user, rule
                     )
             if node.enable_direct:
                 sub_links += node.get_user_quantumultx_sub_link(self.user) + "\n"
-
-        for sub_link_list in relay_node_group.values():
-            for link in sub_link_list:
-                sub_links += link + "\n"
+        for link in relay_node_group.values():
+            sub_links += link + "\n"
         return sub_links
 
     def get_sub_info(self):
@@ -87,24 +90,26 @@ class UserSubManager:
     def get_clash_proxy_providers(self):
         """todo support multi provider group"""
         node_configs = []
-        relay_node_group = defaultdict(list)
+        # for clean the rule have the same port
+        # key: relay_node_id+port, value: cfg
+        relay_node_group = {}
         for node in self.node_list:
             if node.enable_relay:
-                for rule in node.relay_rules.filter(relay_node__enable=True):
-                    relay_node_group[rule.relay_node].append(
-                        {
-                            "clash_config": node.get_user_clash_config(self.user, rule),
-                            "name": rule.remark,
-                        }
-                    )
+                for rule in node.get_relay_rules():
+                    key = f"{rule.relay_node.id}{rule.relay_port}"
+                    relay_node_group[key] = {
+                        "clash_config": node.get_user_clash_config(self.user, rule),
+                        "name": rule.remark,
+                    }
+
             if node.enable_direct:
                 node_configs.append(
                     {
                         "clash_config": node.get_user_clash_config(self.user),
                     }
                 )
-        for cfg_list in relay_node_group.values():
-            node_configs.extend(cfg_list)
+        for cfg in relay_node_group.values():
+            node_configs.append(cfg)
         return render_to_string(
             "clash/providers.yaml",
             {"nodes": node_configs},
