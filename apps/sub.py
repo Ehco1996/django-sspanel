@@ -12,14 +12,12 @@ class UserSubManager:
     CLIENT_CLASH = "clash"
     CLIENT_CLASH_PREMIUM = "clash_premium"
     CLIENT_CLASH_PROXY_PROVIDER = "clash_proxy_provider"
-    CLIENT_QUANTUMULTX = "quantumultx"
 
     CLIENT_SET = {
         CLIENT_SHADOWROCKET,
         CLIENT_CLASH,
         CLIENT_CLASH_PREMIUM,
         CLIENT_CLASH_PROXY_PROVIDER,
-        CLIENT_QUANTUMULTX,
     }
 
     def __init__(self, user, sub_client, node_list):
@@ -59,31 +57,11 @@ class UserSubManager:
         sub_links = base64.urlsafe_b64encode(sub_links.encode()).decode()
         return sub_links
 
-    def _get_quantumultx_sub_links(self):
-        sub_links = ""
-        # for clean the rule have the same port
-        # key: relay_node_id+port, value: cfg
-        relay_node_group = {}
-        for node in self.node_list:
-            if node.enable_relay:
-                for rule in node.get_relay_rules():
-                    key = f"{rule.relay_node.id}{rule.relay_port}"
-                    relay_node_group[key] = node.get_user_quantumultx_sub_link(
-                        self.user, rule
-                    )
-            if node.enable_direct:
-                sub_links += node.get_user_quantumultx_sub_link(self.user) + "\n"
-        for link in relay_node_group.values():
-            sub_links += link + "\n"
-        return sub_links
-
     def get_sub_info(self):
         if self.sub_client in [self.CLIENT_CLASH, self.CLIENT_CLASH_PREMIUM]:
             return self._get_clash_sub_yaml()
         elif self.sub_client == self.CLIENT_SHADOWROCKET:
             return self._get_shadowrocket_sub_links()
-        elif self.sub_client == self.CLIENT_QUANTUMULTX:
-            return self._get_quantumultx_sub_links()
         else:
             return self.get_clash_proxy_providers()
 

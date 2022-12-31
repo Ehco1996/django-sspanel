@@ -12,7 +12,7 @@ class UserAdmin(admin.ModelAdmin):
         "balance",
         "used_percentage",
         "date_joined",
-        "sub_link",
+        "uid",
     ]
     search_fields = ["username", "email", "id"]
     list_filter = ["level"]
@@ -109,7 +109,7 @@ class RebateRecordAdmin(admin.ModelAdmin):
 
 
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ["user", "title", "status"]
+    list_display = ["user", "title", "status", "updated_at"]
     search_fields = ["title", "user__id"]
     readonly_fields = [
         "updated_at",
