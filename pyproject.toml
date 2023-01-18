@@ -42,7 +42,7 @@ django-telegram-login = "^0.2.3"
 [tool.poetry.dev-dependencies]
 black = "^22.10.0"
 django-debug-toolbar = "^3.7.0"
-isort = "^5.10.1"
+isort = "^5.11.4"
 autoflake = "^1.7.7"
 
 [build-system]
