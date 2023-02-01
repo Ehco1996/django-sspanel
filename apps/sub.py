@@ -1,5 +1,4 @@
 import base64
-from collections import defaultdict
 
 from django.conf import settings
 from django.template.loader import render_to_string

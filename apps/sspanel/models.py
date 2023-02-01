@@ -271,7 +271,7 @@ class User(AbstractUser):
         self.reset_traffic(settings.DEFAULT_TRAFFIC)
         self.save()
 
-    def get_subinfo_header(self):
+    def get_sub_info_header(self):
         """
         https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
         """

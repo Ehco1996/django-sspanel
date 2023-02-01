@@ -70,7 +70,7 @@ class XRayTemplates:
         "port": 0,
         "protocol": "shadowsocks",
         "tag": XRayTags.SSProxyTag,
-        "settings": {"clients": [], "network": "tcp,udp"},
+        "settings": {"clients": [], "network": "tcp"},
     }
 
     TROJAN_INBOUND = {
@@ -80,7 +80,7 @@ class XRayTemplates:
         "tag": XRayTags.TrojanProxyTag,
         "settings": {
             "clients": [],
-            "network": "tcp,udp",
+            "network": "tcp",
             "fallbacks": [{"dest": ""}],
         },
         "streamSettings": {
@@ -140,6 +140,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         max_digits=10,
     )
     enable_direct = models.BooleanField("允许直连", default=True)
+    enable_udp = models.BooleanField("是否开启UDP 转发", default=True)
     xray_grpc_port = models.IntegerField("xray grpc port", default=23456)
     provider_remark = models.CharField("vps备注", max_length=64, default="")
 
@@ -198,7 +199,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         inbound = deepcopy(XRayTemplates.TROJAN_INBOUND)
         inbound["port"] = config.multi_user_port
         inbound["settings"]["fallbacks"][0]["dest"] = config.fallback_addr
-
+        if self.enable_udp:
+            inbound["settings"]["network"] += ",udp"
         xray_config["inbounds"].append(inbound)
 
         configs = {
@@ -237,8 +239,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         ss_config = self.ss_config
         ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
         ss_inbound["port"] = ss_config.multi_user_port
+        if self.enable_udp:
+            ss_inbound["settings"]["network"] += ",udp"
         xray_config["inbounds"].append(ss_inbound)
-
         configs = {
             "users": [],
             "xray_config": xray_config,
@@ -306,12 +309,12 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             host = relay_rule.relay_host
             port = relay_rule.relay_port
             remark = relay_rule.remark
-            udp = relay_rule.enable_udp
+            udp = relay_rule.enable_udp and self.enable_udp
         else:
             host = self.server
             port = self.get_user_port()
             remark = self.remark
-            udp = True
+            udp = self.enable_udp
         if self.node_type == self.NODE_TYPE_SS:
             code = f"{self.ss_config.method}:{user.proxy_password}@{host}:{port}"
             b64_code = base64.urlsafe_b64encode(code.encode()).decode()
@@ -320,34 +323,16 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             b64_code = code  # trojan don't need base64 encode
         return f"{self.node_type}://{b64_code}#{quote(remark)}"
 
-    def get_user_quantumultx_sub_link(self, user, relay_rule=None):
-        if relay_rule:
-            host = relay_rule.relay_host
-            port = relay_rule.relay_port
-            udp = relay_rule.enable_udp
-            remark = relay_rule.remark
-        else:
-            host = self.server
-            port = self.get_user_port()
-            remark = self.remark
-            udp = True
-
-        if self.node_type == self.NODE_TYPE_SS:
-            code = f"shadowsocks={host}:{port},method={self.ss_config.method},password={user.proxy_password},udp_relay={udp},tag={remark}"
-        elif self.node_type == self.NODE_TYPE_TROJAN:
-            code = f"trojan={host}:{port},password={user.proxy_password},over-tls=true,tls-verification=false,udp_relay={udp},tag={remark}"
-        return code
-
     def get_user_clash_config(self, user, relay_rule=None):
         if relay_rule:
             host = relay_rule.relay_host
             port = relay_rule.relay_port
             remark = relay_rule.remark
-            udp = relay_rule.enable_udp
+            udp = relay_rule.enable_udp and self.enable_udp
         else:
             host = self.server
             remark = self.remark
-            udp = True
+            udp = self.enable_udp
             port = self.get_user_port()
 
         config = {
