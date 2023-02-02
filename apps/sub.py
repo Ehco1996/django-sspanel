@@ -83,11 +83,12 @@ class UserSubManager:
                 node_configs.append(
                     {
                         "clash_config": node.get_user_clash_config(self.user),
+                        "name": node.remark,
                     }
                 )
         for cfg in relay_node_group.values():
             node_configs.append(cfg)
         return render_to_string(
             "clash/providers.yaml",
-            {"nodes": node_configs},
+            {"nodes": sorted(node_configs, key=lambda x: x["name"])},
         )
