@@ -91,10 +91,12 @@ class XRayTemplates:
     }
 
     @classmethod
-    def gen_base_config(cls, xray_grpc_port, log_level):
+    def gen_base_config(cls, xray_grpc_port, log_level, enable_udp):
         xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
         xray_config["inbounds"][0]["port"] = xray_grpc_port
         xray_config["log"]["loglevel"] = log_level
+        if enable_udp:
+            xray_config["inbounds"][0]["settings"]["network"] += ",udp"
         return xray_config
 
 
@@ -192,17 +194,18 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     def get_trojan_node_config(self):
         xray_config = XRayTemplates.gen_base_config(
-            self.xray_grpc_port, self.ehco_log_level
+            self.xray_grpc_port,
+            self.ehco_log_level,
+            self.enable_udp,
         )
 
         config = self.trojan_config
         inbound = deepcopy(XRayTemplates.TROJAN_INBOUND)
+        inbound["listen"] = self.get_inbound_listen_host()
         inbound["port"] = config.multi_user_port
         inbound["settings"]["fallbacks"][0]["dest"] = config.fallback_addr
-        if self.enable_udp:
-            inbound["settings"]["network"] += ",udp"
-        xray_config["inbounds"].append(inbound)
 
+        xray_config["inbounds"].append(inbound)
         configs = {
             "users": [],
             "xray_config": xray_config,
@@ -233,14 +236,14 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     def get_ss_node_config(self):
         xray_config = XRayTemplates.gen_base_config(
-            self.xray_grpc_port, self.ehco_log_level
+            self.xray_grpc_port,
+            self.ehco_log_level,
+            self.enable_udp,
         )
-
         ss_config = self.ss_config
         ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
+        ss_inbound["listen"] = self.get_inbound_listen_host()
         ss_inbound["port"] = ss_config.multi_user_port
-        if self.enable_udp:
-            ss_inbound["settings"]["network"] += ",udp"
         xray_config["inbounds"].append(ss_inbound)
         configs = {
             "users": [],
@@ -350,9 +353,18 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
         return json.dumps(config, ensure_ascii=False)
 
-    def get_relay_rules(self):
-        # relay node is enabled
+    def get_enabled_relay_rules(self):
         return self.relay_rules.filter(relay_node__enable=True)
+
+    def get_inbound_listen_host(self):
+        if self.enable_direct:
+            return "0.0.0.0"
+        # if self.enable_relay , we need check if there is a raw transport relay rule
+        if self.enable_relay:
+            for rule in self.get_enabled_relay_rules():
+                if rule.transport_type == c.TRANSPORT_RAW:
+                    return "0.0.0.0"
+        return "127.0.0.1"
 
     @property
     def human_total_traffic(self):
@@ -389,7 +401,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     @cached_property
     def enable_relay(self):
-        return self.relay_rules.filter(relay_node__enable=True).exists()
+        return self.get_enabled_relay_rules().exists()
 
     @cached_property
     def enable_ehco_tunnel(self):
