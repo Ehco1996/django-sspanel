@@ -91,12 +91,10 @@ class XRayTemplates:
     }
 
     @classmethod
-    def gen_base_config(cls, xray_grpc_port, log_level, enable_udp):
+    def gen_base_config(cls, xray_grpc_port, log_level):
         xray_config = deepcopy(XRayTemplates.DEFAULT_CONFIG)
         xray_config["inbounds"][0]["port"] = xray_grpc_port
         xray_config["log"]["loglevel"] = log_level
-        if enable_udp:
-            xray_config["inbounds"][0]["settings"]["network"] += ",udp"
         return xray_config
 
 
@@ -196,7 +194,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         xray_config = XRayTemplates.gen_base_config(
             self.xray_grpc_port,
             self.ehco_log_level,
-            self.enable_udp,
         )
 
         config = self.trojan_config
@@ -204,6 +201,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         inbound["listen"] = self.get_inbound_listen_host()
         inbound["port"] = config.multi_user_port
         inbound["settings"]["fallbacks"][0]["dest"] = config.fallback_addr
+        if self.enable_udp:
+            inbound["settings"]["network"] += ",udp"
 
         xray_config["inbounds"].append(inbound)
         configs = {
@@ -238,12 +237,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         xray_config = XRayTemplates.gen_base_config(
             self.xray_grpc_port,
             self.ehco_log_level,
-            self.enable_udp,
         )
         ss_config = self.ss_config
         ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
         ss_inbound["listen"] = self.get_inbound_listen_host()
         ss_inbound["port"] = ss_config.multi_user_port
+        if self.enable_udp:
+            ss_inbound["settings"]["network"] += ",udp"
         xray_config["inbounds"].append(ss_inbound)
         configs = {
             "users": [],
