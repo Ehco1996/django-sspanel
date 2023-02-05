@@ -43,7 +43,7 @@ class UserSubManager:
         relay_node_group = {}
         for node in self.node_list:
             if node.enable_relay:
-                for rule in node.get_relay_rules():
+                for rule in node.get_enabled_relay_rules():
                     key = f"{rule.relay_node.id}{rule.relay_port}"
                     relay_node_group[key] = node.get_user_shadowrocket_sub_link(
                         self.user, rule
@@ -72,7 +72,7 @@ class UserSubManager:
         relay_node_group = {}
         for node in self.node_list:
             if node.enable_relay:
-                for rule in node.get_relay_rules():
+                for rule in node.get_enabled_relay_rules():
                     key = f"{rule.relay_node.id}{rule.relay_port}"
                     relay_node_group[key] = {
                         "clash_config": node.get_user_clash_config(self.user, rule),
