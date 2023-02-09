@@ -496,7 +496,7 @@ class RelayNode(BaseNodeModel):
                 continue
             tcp_remotes = []
             udp_remotes = []
-            if node.enable_ehco_tunnel:
+            if node.enable_ehco_tunnel and rule.transport_type != c.TRANSPORT_RAW:
                 tcp_remote = f"{node.server}:{node.ehco_listen_port}"
             else:
                 tcp_remote = f"{node.server}:{node.get_user_port()}"
