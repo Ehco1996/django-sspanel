@@ -22,6 +22,9 @@ class XRayTags:
     APITag = "api"
     SSProxyTag = "ss_proxy"
     TrojanProxyTag = "trojan_proxy"
+    SSRProxyTag = "ssr_proxy"
+    VmessProxyTag = "vmess_proxy"
+    VlessProxyTag = "vless_proxy"
 
 
 class XRayTemplates:
@@ -72,12 +75,54 @@ class XRayTemplates:
         "tag": XRayTags.SSProxyTag,
         "settings": {"clients": [], "network": "tcp"},
     }
+    
+    SSR_INBOUND = {
+        "listen": "0.0.0.0",
+        "port": 0,
+        "protocol": "shadowsocksr",
+        "tag": XRayTags.SSRProxyTag,
+        "settings": {"clients": [], "network": "tcp"},
+    }
 
     TROJAN_INBOUND = {
         "listen": "0.0.0.0",
         "port": 0,
         "protocol": "trojan",
         "tag": XRayTags.TrojanProxyTag,
+        "settings": {
+            "clients": [],
+            "network": "tcp",
+            "fallbacks": [{"dest": ""}],
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {"alpn": ["http/1.1"]},
+        },
+    }
+    
+    VMESS_INBOUND = {
+        "listen": "0.0.0.0",
+        "port": 0,
+        "protocol": "trojan",
+        "tag": XRayTags.VmessProxyTag,
+        "settings": {
+            "clients": [],
+            "network": "tcp",
+            "fallbacks": [{"dest": ""}],
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {"alpn": ["http/1.1"]},
+        },
+    }
+    
+    VLESS_INBOUND = {
+        "listen": "0.0.0.0",
+        "port": 0,
+        "protocol": "trojan",
+        "tag": XRayTags.VlessProxyTag,
         "settings": {
             "clients": [],
             "network": "tcp",
@@ -111,9 +156,15 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
 
     NODE_TYPE_SS = "ss"
     NODE_TYPE_TROJAN = "trojan"
+    NODE_TYPE_SSR = "ssr"
+    NODE_TYPE_VMESS = "vmess"
+    NODE_TYPE_VLESS = "vless"
     NODE_CHOICES = (
         (NODE_TYPE_SS, NODE_TYPE_SS),
         (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
+        (NODE_TYPE_SSR, NODE_TYPE_SSR),
+        (NODE_TYPE_VMESS, NODE_TYPE_VMESS),
+        (NODE_TYPE_VLESS, NODE_TYPE_VLESS),
     )
 
     EHCO_LOG_LEVELS = (
