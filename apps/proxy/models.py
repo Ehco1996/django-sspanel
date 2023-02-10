@@ -77,7 +77,7 @@ class XRayTemplates:
     }
     
     SSR_INBOUND = {
-        "listen": "0.0.0.0",
+        "listen": "192.168.0.0",
         "port": 0,
         "protocol": "shadowsocksr",
         "tag": XRayTags.SSRProxyTag,
@@ -102,7 +102,7 @@ class XRayTemplates:
     }
     
     VMESS_INBOUND = {
-        "listen": "0.0.0.0",
+        "listen": "192.168.0.0",
         "port": 0,
         "protocol": "vmess",
         "tag": XRayTags.VmessProxyTag,
@@ -119,7 +119,7 @@ class XRayTemplates:
     }
     
     VLESS_INBOUND = {
-        "listen": "0.0.0.0",
+        "listen": "192.168.0.0",
         "port": 0,
         "protocol": "vless",
         "tag": XRayTags.VlessProxyTag,
