@@ -104,7 +104,7 @@ class XRayTemplates:
     VMESS_INBOUND = {
         "listen": "0.0.0.0",
         "port": 0,
-        "protocol": "trojan",
+        "protocol": "vmess",
         "tag": XRayTags.VmessProxyTag,
         "settings": {
             "clients": [],
@@ -121,7 +121,7 @@ class XRayTemplates:
     VLESS_INBOUND = {
         "listen": "0.0.0.0",
         "port": 0,
-        "protocol": "trojan",
+        "protocol": "vless",
         "tag": XRayTags.VlessProxyTag,
         "settings": {
             "clients": [],
