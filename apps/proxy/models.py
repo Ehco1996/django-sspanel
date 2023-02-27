@@ -18,7 +18,6 @@ from apps.sspanel.models import User
 
 
 class XRayTags:
-
     APITag = "api"
     SSProxyTag = "ss_proxy"
     TrojanProxyTag = "trojan_proxy"
@@ -28,7 +27,6 @@ class XRayTags:
 
 
 class XRayTemplates:
-
     DEFAULT_CONFIG = {
         "stats": {},
         "api": {
@@ -75,7 +73,7 @@ class XRayTemplates:
         "tag": XRayTags.SSProxyTag,
         "settings": {"clients": [], "network": "tcp"},
     }
-    
+
     SSR_INBOUND = {
         "listen": "192.168.0.0",
         "port": 0,
@@ -100,7 +98,7 @@ class XRayTemplates:
             "tlsSettings": {"alpn": ["http/1.1"]},
         },
     }
-    
+
     VMESS_INBOUND = {
         "listen": "192.168.0.0",
         "port": 0,
@@ -117,7 +115,7 @@ class XRayTemplates:
             "tlsSettings": {"alpn": ["http/1.1"]},
         },
     }
-    
+
     VLESS_INBOUND = {
         "listen": "192.168.0.0",
         "port": 0,
@@ -153,7 +151,6 @@ class BaseNodeModel(BaseModel):
 
 
 class ProxyNode(BaseNodeModel, SequenceMixin):
-
     NODE_TYPE_SS = "ss"
     NODE_TYPE_TROJAN = "trojan"
     NODE_TYPE_SSR = "ssr"
@@ -513,7 +510,6 @@ class TrojanConfig(models.Model):
 
 
 class RelayNode(BaseNodeModel):
-
     CMCC = "移动"
     CUCC = "联通"
     CTCC = "电信"
@@ -608,7 +604,6 @@ class RelayNode(BaseNodeModel):
 
 
 class RelayRule(BaseModel):
-
     rule_name = models.CharField(
         "规则名", max_length=64, blank=True, null=False, default=""
     )
@@ -664,7 +659,6 @@ class RelayRule(BaseModel):
 
 
 class UserTrafficLog(BaseLogModel):
-
     user = models.ForeignKey(
         User, on_delete=models.DO_NOTHING, verbose_name="用户", null=True
     )
