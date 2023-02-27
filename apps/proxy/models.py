@@ -18,14 +18,15 @@ from apps.sspanel.models import User
 
 
 class XRayTags:
-
     APITag = "api"
     SSProxyTag = "ss_proxy"
     TrojanProxyTag = "trojan_proxy"
+    SSRProxyTag = "ssr_proxy"
+    VmessProxyTag = "vmess_proxy"
+    VlessProxyTag = "vless_proxy"
 
 
 class XRayTemplates:
-
     DEFAULT_CONFIG = {
         "stats": {},
         "api": {
@@ -73,11 +74,53 @@ class XRayTemplates:
         "settings": {"clients": [], "network": "tcp"},
     }
 
+    SSR_INBOUND = {
+        "listen": "192.168.0.0",
+        "port": 0,
+        "protocol": "shadowsocksr",
+        "tag": XRayTags.SSRProxyTag,
+        "settings": {"clients": [], "network": "tcp"},
+    }
+
     TROJAN_INBOUND = {
         "listen": "0.0.0.0",
         "port": 0,
         "protocol": "trojan",
         "tag": XRayTags.TrojanProxyTag,
+        "settings": {
+            "clients": [],
+            "network": "tcp",
+            "fallbacks": [{"dest": ""}],
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {"alpn": ["http/1.1"]},
+        },
+    }
+
+    VMESS_INBOUND = {
+        "listen": "192.168.0.0",
+        "port": 0,
+        "protocol": "vmess",
+        "tag": XRayTags.VmessProxyTag,
+        "settings": {
+            "clients": [],
+            "network": "tcp",
+            "fallbacks": [{"dest": ""}],
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {"alpn": ["http/1.1"]},
+        },
+    }
+
+    VLESS_INBOUND = {
+        "listen": "192.168.0.0",
+        "port": 0,
+        "protocol": "vless",
+        "tag": XRayTags.VlessProxyTag,
         "settings": {
             "clients": [],
             "network": "tcp",
@@ -108,12 +151,17 @@ class BaseNodeModel(BaseModel):
 
 
 class ProxyNode(BaseNodeModel, SequenceMixin):
-
     NODE_TYPE_SS = "ss"
     NODE_TYPE_TROJAN = "trojan"
+    NODE_TYPE_SSR = "ssr"
+    NODE_TYPE_VMESS = "vmess"
+    NODE_TYPE_VLESS = "vless"
     NODE_CHOICES = (
         (NODE_TYPE_SS, NODE_TYPE_SS),
         (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
+        (NODE_TYPE_SSR, NODE_TYPE_SSR),
+        (NODE_TYPE_VMESS, NODE_TYPE_VMESS),
+        (NODE_TYPE_VLESS, NODE_TYPE_VLESS),
     )
 
     EHCO_LOG_LEVELS = (
@@ -462,7 +510,6 @@ class TrojanConfig(models.Model):
 
 
 class RelayNode(BaseNodeModel):
-
     CMCC = "移动"
     CUCC = "联通"
     CTCC = "电信"
@@ -557,7 +604,6 @@ class RelayNode(BaseNodeModel):
 
 
 class RelayRule(BaseModel):
-
     rule_name = models.CharField(
         "规则名", max_length=64, blank=True, null=False, default=""
     )
@@ -613,7 +659,6 @@ class RelayRule(BaseModel):
 
 
 class UserTrafficLog(BaseLogModel):
-
     user = models.ForeignKey(
         User, on_delete=models.DO_NOTHING, verbose_name="用户", null=True
     )
