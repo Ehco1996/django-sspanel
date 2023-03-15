@@ -1437,18 +1437,18 @@ test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [[package]]
 name = "python-alipay-sdk"
-version = "3.1.0"
+version = "3.2.0"
 description = "Python SDK for AliPay, RSA is the only sign method we support"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "python-alipay-sdk-3.1.0.tar.gz", hash = "sha256:871f49cd23ada15d72f33eba066141c7187af2596dc49bf96c5899c3d2c703be"},
+    {file = "python-alipay-sdk-3.2.0.tar.gz", hash = "sha256:a0fc87026d86f88c9a5cec63ea809744cead88e15621426463d45a62a5fbbd26"},
 ]
 
 [package.dependencies]
-pycryptodomex = "3.15.0"
-pyOpenSSL = "22.0.0"
+pycryptodomex = ">=3.15.0"
+pyOpenSSL = ">=22.0.0"
 
 [[package]]
 name = "python-dateutil"
@@ -1854,4 +1854,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "baecf0ac1f23383c02495fefbfacd052674ea8f643934f493bb30aa9a00c5136"
+content-hash = "7f4d8bc5a997fbd9fbedc9e1c21f1c8fbcb3ef32ee37bb769829f081515f0865"
