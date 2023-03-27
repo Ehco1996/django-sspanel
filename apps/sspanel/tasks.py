@@ -32,12 +32,22 @@ def sync_user_traffic_task(node_id, data):
     log_time = get_current_datetime()
     user_model_list = []
     trafficlog_model_list = []
+
+    # load user in batch
+    user_ids = []
     for user_data in data:
         user_id = user_data["user_id"]
-        u = int(user_data["upload_traffic"] * node.enlarge_scale)
-        d = int(user_data["download_traffic"] * node.enlarge_scale)
+        user_ids.append(user_data["user_id"])
+    user_map = {}
+    for u in m.User.objects.filter(id__in=user_ids):
+        user_map[u.id] = u
+
+    for user_data in data:
+        user_id = int(user_data["user_id"])
+        u = int(int(user_data["upload_traffic"]) * node.enlarge_scale)
+        d = int(int(user_data["download_traffic"]) * node.enlarge_scale)
         # 个人流量增量
-        user = m.User.get_by_pk(user_id)
+        user = user_map[user_id]
         user.download_traffic += d
         user.upload_traffic += u
         user.last_use_time = log_time
