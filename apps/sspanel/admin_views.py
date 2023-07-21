@@ -142,7 +142,7 @@ class GoodsCreateView(StaffRequiredMixin, View):
 
     def post(self, request):
         data = request.POST.copy()
-        data["transfer"] = eval(data["transfer"]) * settings.GB
+        data["transfer"] = int(data["transfer"]) * settings.GB
         form = GoodsForm(data)
         if form.is_valid():
             form.save()
@@ -165,7 +165,7 @@ class GoodDetailView(StaffRequiredMixin, View):
     def post(self, request, pk):
         good = Goods.objects.get(pk=pk)
         data = request.POST.copy()
-        data["transfer"] = eval(data["transfer"]) * settings.GB
+        data["transfer"] = int(data["transfer"]) * settings.GB
         form = GoodsForm(data, instance=good)
         if form.is_valid():
             form.save()
