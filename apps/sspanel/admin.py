@@ -14,7 +14,7 @@ class UserAdmin(admin.ModelAdmin):
         "date_joined",
         "uid",
     ]
-    search_fields = ["username", "email", "id"]
+    search_fields = ["username", "email", "id", "uid"]
     list_filter = ["level"]
     list_per_page = 31
 
