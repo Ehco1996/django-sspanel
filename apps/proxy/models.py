@@ -208,6 +208,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         "隧道日志等级", max_length=64, default="info", choices=EHCO_LOG_LEVELS
     )
 
+    upload_bandwidth_bytes = models.BigIntegerField("上传带宽", default=0)
+    current_used_upload_bandwidth_bytes = models.BigIntegerField("当前使用的上传带宽", default=0)
+    download_bandwidth_bytes = models.BigIntegerField("下载带宽", default=0)
+    current_used_download_bandwidth_bytes = models.BigIntegerField(
+        "当前使用的下载带宽", default=0
+    )
+
     class Meta:
         verbose_name = "代理节点"
         verbose_name_plural = "代理节点"
@@ -421,6 +428,16 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     @property
     def human_used_traffic(self):
         return utils.traffic_format(self.used_traffic)
+
+    @property
+    def human_used_current_traffic_rate(self):
+        upload_rate = utils.traffic_rate_format(
+            self.current_used_upload_bandwidth_bytes
+        )
+        download_rate = utils.traffic_rate_format(
+            self.current_used_download_bandwidth_bytes
+        )
+        return f"up:{upload_rate} - down:{download_rate}"
 
     @property
     def overflow(self):

@@ -139,7 +139,7 @@ class ProxyConfigsView(View):
         node = m.ProxyNode.get_or_none(node_id)
         if not node:
             return HttpResponseBadRequest()
-        tasks.sync_user_traffic_task.delay(node_id, request.json["data"])
+        tasks.sync_user_traffic_task.delay(node_id, request.json)
         return JsonResponse(data={})
 
 

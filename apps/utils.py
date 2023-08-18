@@ -48,6 +48,10 @@ def traffic_format(traffic):
     return str(round((traffic / 1073741824.0), 1)) + "GB"
 
 
+def traffic_rate_format(traffic):
+    return f"{traffic_format(traffic)}/s"
+
+
 def reverse_traffic(str):
     """
     将流量字符串转换为整数类型

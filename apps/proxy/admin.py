@@ -74,8 +74,8 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "country",
         "enable",
         "traffic",
+        "human_used_current_traffic_rate",
         "mix_info",
-        "info",
         "provider_remark",
         "sequence",
         "api_endpoint",
@@ -113,6 +113,10 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         <input readonly class="el-input" value="{instance.api_endpoint}">
         """
         return mark_safe(div)
+
+    @admin.display(description="带宽")
+    def human_used_current_traffic_rate(self, instance):
+        return instance.human_used_current_traffic_rate
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
