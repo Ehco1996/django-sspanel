@@ -26,6 +26,9 @@ class UserSubManager:
         self.sub_client = sub_client
         self.node_list = node_list
 
+    def _get_delay_url(self):
+        return settings.HOST + f"/api/delay"
+
     def _get_clash_sub_yaml(self):
         return render_to_string(
             "clash/main.yaml",
@@ -33,6 +36,7 @@ class UserSubManager:
                 "sub_client": self.sub_client,
                 "provider_name": settings.TITLE,
                 "proxy_provider_url": self.user.clash_proxy_provider_endpoint,
+                "check_delay_url": self._get_delay_url(),
             },
         )
 

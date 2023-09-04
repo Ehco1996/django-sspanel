@@ -25,7 +25,7 @@ proxy-groups:
     type: url-test
     use:
       - {{ provider_name }}
-    url: 'http://www.gstatic.com/generate_204'
+    url: {{ check_delay_url }}
     interval: 300
 
 proxy-providers:
@@ -37,7 +37,7 @@ proxy-providers:
     health-check:
       enable: true
       interval: 600
-      url: http://www.gstatic.com/generate_204
+      url: {{ check_delay_url }}
 
 {% if sub_client == "clash" %}
 {% include "clash/rules.yaml" %}

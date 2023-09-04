@@ -34,7 +34,7 @@ def sync_user_traffic_task(node_id, data):
     trafficlog_model_list = []
 
     # TODO to support old version, will delete in future
-    if type(data) == list:
+    if type(data) is list:
         data = {"data": data}
     # END TODO
 

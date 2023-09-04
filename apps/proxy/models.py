@@ -240,6 +240,30 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         )
 
     @classmethod
+    def get_by_ip(cls, ip):
+        return cls.objects.filter(server__contiains=ip).first()
+
+    @classmethod
+    def get_additional_delay_ms(cls):
+        ms_max = 100
+        add_delay_ms = {}
+
+        nodes = cls.get_active_nodes()
+        all_bandwidth = list(node.download_bandwidth_bytes for node in nodes)
+        bw_min = min(all_bandwidth)  # delay 0
+        bw_max = max(all_bandwidth)  # delay ms_max
+        if bw_min >= bw_max:
+            return {}
+
+        for node in nodes:
+            add_delay_ms[node.id] = (
+                int(node.download_bandwidth_bytes - bw_min)
+                / int(bw_max - bw_min)
+                * ms_max
+            )
+        return add_delay_ms
+
+    @classmethod
     def calc_total_traffic(cls):
         aggs = cls.objects.all().aggregate(used_traffic=models.Sum("used_traffic"))
         used_traffic = aggs["used_traffic"] or 0

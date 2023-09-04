@@ -1,3 +1,5 @@
+import time
+
 import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
@@ -218,6 +220,17 @@ class OrderView(View):
         return JsonResponse(
             {"info": info, "qrcode_url": order.qrcode_url, "order_id": order.id}
         )
+
+
+class DelayView(View):
+    def get(self, request):
+        ip = get_client_ip(request)
+        node = m.ProxyNode.get_by_ip(ip)
+        delay_ms_map = m.ProxyNode.get_additional_delay_ms()
+        for node_id, delay_ms in delay_ms_map.items():
+            if node_id == node.id:
+                time.sleep(delay_ms / 1000)
+        return HttpResponse()
 
 
 @login_required

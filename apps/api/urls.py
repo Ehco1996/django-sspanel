@@ -16,6 +16,7 @@ urlpatterns = [
     path("change/theme/", views.change_theme, name="change_theme"),
     path("checkin/", views.UserCheckInView.as_view(), name="checkin"),
     path("rest_sub_uid/", views.reset_sub_uid, name="rest_sub_uid"),
+    path("delay/", views.DelayView.as_view(), name="delay"),
     # web api 接口
     path(
         "proxy_configs/<int:node_id>/",
