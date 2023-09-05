@@ -79,6 +79,7 @@ SIMPLEUI_ICON = {
     "工单": "fas fa-tasks",
     "邮件发送记录": "fas fa-envelope",
     "用户订阅记录": "fas fa-download",
+    "开放API": "fas fa-server",
 }
 
 

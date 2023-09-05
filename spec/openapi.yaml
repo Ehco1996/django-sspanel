@@ -89,6 +89,32 @@ security:
   - OpenApiKeyAuth: []
 
 paths:
+  /proxy_nodes/search/:
+    get:
+      summary: search node by ip
+      tags:
+        - ProxyNode
+      parameters:
+        - name: ip
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "1.1.1.1"
+      responses:
+        200:
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProxyNode"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResp"
+
   /proxy_nodes/{node_id}/:
     patch:
       summary: Update a ProxyNode
