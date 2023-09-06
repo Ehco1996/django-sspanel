@@ -2,9 +2,6 @@ name: "Close stale issues and PRs"
 on:
   schedule:
     - cron: "30 1 * * *"
-  push:
-    branch:
-      - debug-ci
 jobs:
   stale:
     runs-on: ubuntu-latest
