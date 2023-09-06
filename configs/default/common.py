@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "apps.sspanel",
     "apps.proxy",
     "apps.stats",
+    "apps.openapi",
 ]
 
 MIDDLEWARE = [

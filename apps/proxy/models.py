@@ -229,6 +229,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return cls.objects.get(id=id)
 
     @classmethod
+    def get_by_id(cls, id):
+        return cls.objects.filter(id=id).first()
+
+    @classmethod
     def get_active_nodes(cls, level=None):
         query = cls.objects.filter(enable=True)
         if level is not None:
@@ -244,6 +248,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         aggs = cls.objects.all().aggregate(used_traffic=models.Sum("used_traffic"))
         used_traffic = aggs["used_traffic"] or 0
         return utils.traffic_format(used_traffic)
+
+    @classmethod
+    def get_by_ip(clc, ip: str):
+        return clc.objects.filter(server=ip).first()
 
     def get_trojan_node_config(self):
         xray_config = XRayTemplates.gen_base_config(
