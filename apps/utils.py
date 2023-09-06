@@ -78,11 +78,13 @@ def api_authorized(view_func):
     return wrapper
 
 
-def handle_json_post(view_func):
+def handle_json_request(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kw):
-        if request.method == "POST":
+        try:
             request.json = json.loads(request.body)
+        except Exception:
+            return JsonResponse({"msg": "bad request"}, status=400)
         return view_func(request, *args, **kw)
 
     return wrapper

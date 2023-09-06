@@ -18,3 +18,7 @@ class UserOpenAPIKey(BaseModel):
     class Meta:
         verbose_name = "用户秘钥"
         verbose_name_plural = "用户秘钥"
+
+    @classmethod
+    def get_by_key(cls, key: str):
+        return cls.objects.filter(key=key).first()

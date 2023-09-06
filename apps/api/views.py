@@ -18,7 +18,7 @@ from apps.utils import (
     gen_datetime_list,
     get_client_ip,
     get_current_datetime,
-    handle_json_post,
+    handle_json_request,
     traffic_format,
 )
 
@@ -133,7 +133,7 @@ class ProxyConfigsView(View):
             JsonResponse(node.get_proxy_configs()) if node else HttpResponseBadRequest()
         )
 
-    @method_decorator(handle_json_post)
+    @method_decorator(handle_json_request)
     @method_decorator(api_authorized)
     def post(self, request, node_id):
         node = m.ProxyNode.get_or_none(node_id)
