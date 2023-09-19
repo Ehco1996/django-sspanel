@@ -12,8 +12,6 @@ from django_telegram_login.errors import (
     NotTelegramDataError,
     TelegramDataIsOutdatedError,
 )
-from django_telegram_login.widgets.constants import LARGE
-from django_telegram_login.widgets.generator import create_redirect_login_widget
 
 from apps.constants import THEME_CHOICES
 from apps.proxy.models import ProxyNode
@@ -102,17 +100,10 @@ class UserLogInView(View):
 
     def get(self, request):
         context = {"form": LoginForm(), "simple_extra_static": True}
-        # support tg login
-        if settings.TELEGRAM_BOT_TOKEN != "":
-            context["telegram_login_widget"] = create_redirect_login_widget(
-                settings.TELEGRAM_LOGIN_REDIRECT_URL,
-                settings.TELEGRAM_BOT_NAME,
-                size=LARGE,
-            )
         return render(request, "web/login.html", context=context)
 
 
-class TGLoginView(View):
+class TeleGramLoginView(View):
     def get(self, request):
         try:
             result = verify_telegram_authentication(
@@ -125,7 +116,12 @@ class TGLoginView(View):
         except NotTelegramDataError:
             return HttpResponseBadRequest("The data is not related to Telegram!")
 
-        tg_username = result["username"]
+        if "username" in result:
+            tg_username = result["username"]
+        else:
+            tg_username = (
+                result.get("first_name", "") + " " + result.get("last_name", "")
+            )
 
         # 已经绑定过了
         usp = UserSocialProfile.get_or_create_and_update_info(
