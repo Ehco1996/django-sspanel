@@ -64,12 +64,13 @@ class SubscribeView(View):
         node_list = m.ProxyNode.get_active_nodes(level=user.level)
 
         if protocol := request.GET.get("protocol"):
-            node_list = node_list.filter(node_type=protocol)
+            if protocol in m.ProxyNode.NODE_TYPE_SET:
+                node_list = node_list.filter(node_type=protocol)
 
         if len(node_list) == 0:
             return HttpResponseBadRequest("no active nodes for you")
 
-        sub_client = request.GET.get("client")
+        sub_client = request.GET.get("client", UserSubManager.CLIENT_CLASH)
         sub_info = UserSubManager(user, sub_client, node_list).get_sub_info()
         return HttpResponse(
             sub_info,

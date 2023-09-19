@@ -201,10 +201,13 @@ class AffInviteView(LoginRequiredMixin, View):
 class UserInfoView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        # 获取公告
         anno = Announcement.objects.first()
         min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
         max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
+        user_active_nodes = ProxyNode.get_active_nodes(user.level)
+        user_active_nodes_types = {node.node_type for node in user_active_nodes}
+        if len(user_active_nodes_types) > 1:
+            user_active_nodes_types.add("all")
         context = {
             "user": user,
             "anno": anno,
@@ -212,7 +215,8 @@ class UserInfoView(LoginRequiredMixin, View):
             "max_traffic": max_traffic,
             "themes": THEME_CHOICES,
             "sub_link": user.sub_link,
-            "active_node_count": ProxyNode.get_active_nodes(user.level).count(),
+            "active_node_count": user_active_nodes.count(),
+            "active_node_types": user_active_nodes_types,
             "usp_list": UserSocialProfile.list_by_user_id(user.id),
         }
         Announcement.send_first_visit_msg(request)

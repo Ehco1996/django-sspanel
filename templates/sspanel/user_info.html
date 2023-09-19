@@ -102,7 +102,7 @@
                             <span class="icon has-text-info">
                                 <i class="fas fa-info-circle"></i>
                             </span>
-                            <span>选择协议</span>
+                            <span>1. 选择协议</span>
                         </div>
 
 
@@ -121,15 +121,11 @@
 
                             <div class="dropdown-menu" id="dropdown-menu3" role="menu">
                                 <div class="dropdown-content">
-                                    <a class="dropdown-item" data-display="trojan" data-query="protocol">
-                                        <strong>trojan</strong> 推荐使用
+                                    {% for node_type in active_node_types %}
+                                    <a class="dropdown-item" data-display="{{ node_type }}" data-query="protocol">
+                                        <strong>{{ node_type }}</strong>
                                     </a>
-                                    <a class="dropdown-item" data-display="ss" data-query="protocol">
-                                        <strong>ss</strong> 旧设备使用
-                                    </a>
-                                    <a class="dropdown-item" data-display="all" data-query="all">
-                                        <strong>all</strong> 所有协议
-                                    </a>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -144,7 +140,7 @@
                             <span class="icon has-text-success">
                                 <i class="fas fa-check-square"></i>
                             </span>
-                            <span>选择客户端</span>
+                            <span>2. 选择客户端</span>
                         </div>
 
                         <div class="dropdown">
@@ -202,12 +198,11 @@
                             <span class="icon has-text-warning">
                                 <i class="fas fa-exclamation-triangle"></i>
                             </span>
-                            <span>订阅地址（请不要泄露给他人！）</span>
+                            <span>3. 复制订阅地址</span>
                         </div>
-
                         <div class="field is-grouped is-grouped-multiline">
                             <p class="control is-expanded">
-                                <input class="input" id="id-sub-link" value="{{ sub_link }}&client=clash">
+                                <input class="input" id="id-sub-link" value="{{ sub_link }}">
                             </p>
                             <p class="control">
                                 <a class="button is-rounded" id="id-button-clip" data-clipboard-target="#id-sub-link">
@@ -215,11 +210,15 @@
                                 </a>
                             </p>
                         </div>
+                        <div class="content is-small">
+                            <li>请不要泄露给他人！</li>
+                        </div>
                         <button class="button is-danger is-fullwidth is-outlined is-rounded" id="id-reset-sub-link">
-                            重置订阅
+                            重置订阅链接
                         </button>
                     </div>
                     <span class="copied" hidden="true">Copied!</span>
+
                 </div>
             </div>
 
@@ -363,7 +362,7 @@
                 swal(info.title, info.subtitle, info.status)
             })
         } else {
-            swal('错误！', '请输入SS密码', 'error')
+            swal('错误！', '请输入密码', 'error')
         }
     }
     PasswordButton.click(changePassword)

@@ -156,6 +156,13 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     NODE_TYPE_SSR = "ssr"
     NODE_TYPE_VMESS = "vmess"
     NODE_TYPE_VLESS = "vless"
+    NODE_TYPE_SET = {
+        NODE_TYPE_SS,
+        NODE_TYPE_TROJAN,
+        NODE_TYPE_SSR,
+        NODE_TYPE_VMESS,
+        NODE_TYPE_VLESS,
+    }
     NODE_CHOICES = (
         (NODE_TYPE_SS, NODE_TYPE_SS),
         (NODE_TYPE_TROJAN, NODE_TYPE_TROJAN),
