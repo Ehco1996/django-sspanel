@@ -15,7 +15,7 @@
 </div>
 <div class="column is-12">
     <div class="box">
-        <form class="form" action="{% url 'sspanel:tg_login' %}" method="post">
+        <form class="form" action="{% url 'sspanel:telegram_login' %}" method="post">
             {% csrf_token %} {{ form.non_field_errors }} {% for field in form %} {{ field.label_tag }} {{ field }}
             {{ field.errors }}
             {% if field.help_text %}

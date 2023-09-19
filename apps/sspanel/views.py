@@ -103,7 +103,7 @@ class UserLogInView(View):
         return render(request, "web/login.html", context=context)
 
 
-class TeleGramLoginView(View):
+class TelegramLoginView(View):
     def get(self, request):
         try:
             result = verify_telegram_authentication(
@@ -139,7 +139,7 @@ class TeleGramLoginView(View):
         context = {
             "form": TGLoginForm(initial={"tg_username": tg_username}),
         }
-        return render(request, "web/social_login.html", context)
+        return render(request, "web/telegram_login.html", context)
 
     def post(self, request):
         form = TGLoginForm(request.POST)
