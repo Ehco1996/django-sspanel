@@ -39,14 +39,19 @@
                 </p>
 
                 {% settings_value "TELEGRAM_BOT_NAME" as tg_bot_name %}
+                {% settings_value "TELEGRAM_LOGIN_REDIRECT_URL" as tg_redirect_url %}
                 {% if tg_bot_name %}
                 <p class="control">
-                    {% autoescape off %}{{ telegram_login_widget }}{% endautoescape %}
+                    <script async src="https://telegram.org/js/telegram-widget.js?22"
+                        data-telegram-login="{{ tg_bot_name }}" data-size="large" data-auth-url="{{ tg_redirect_url }}"
+                        data-request-access="write"></script>
+
+                    <!-- {% autoescape off %}{{ telegram_login_widget }}{% endautoescape %}
                     <script type="text/javascript">
                         function onTelegramAuth(user) {
                             alert('Logged in as ' + user.first_name + ' ' + user.last_name + '!');
                         }
-                    </script>
+                    </script> -->
                 </p>
                 {% endif %}
 
