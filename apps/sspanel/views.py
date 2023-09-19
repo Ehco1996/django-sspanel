@@ -37,14 +37,14 @@ class IndexView(View):
     def get(self, request):
         """跳转到首页"""
         context = {"simple_extra_static": True}
-        return render(request, "sspanel/index.html", context=context)
+        return render(request, "web/index.html", context=context)
 
 
 class HelpView(View):
     def get(self, request):
         """跳转到帮助界面"""
         context = {"simple_extra_static": True}
-        return render(request, "sspanel/help.html", context=context)
+        return render(request, "web/help.html", context=context)
 
 
 class RegisterView(View):
@@ -57,7 +57,7 @@ class RegisterView(View):
         else:
             form = RegisterForm(initial={"invitecode": request.GET.get("invitecode")})
         context["form"] = form
-        return render(request, "sspanel/register.html", context=context)
+        return render(request, "web/register.html", context=context)
 
     def post(self, request):
         context = {"simple_extra_static": True}
@@ -69,7 +69,7 @@ class RegisterView(View):
             user = User.add_new_user(form.cleaned_data)
             if not user:
                 messages.error(request, "服务出现了点小问题", extra_tags="请尝试或者联系站长~")
-                return render(request, "sspanel/register.html", {"form": form})
+                return render(request, "web/register.html", {"form": form})
             else:
                 messages.success(request, "自动跳转到用户中心", extra_tags="注册成功！")
                 user = authenticate(
@@ -79,7 +79,7 @@ class RegisterView(View):
                 login(request, user)
                 return HttpResponseRedirect(reverse("sspanel:userinfo"))
         context["form"] = form
-        return render(request, "sspanel/register.html", context=context)
+        return render(request, "web/register.html", context=context)
 
 
 class UserLogInView(View):
@@ -98,7 +98,7 @@ class UserLogInView(View):
                 messages.error(request, "请重新填写信息！", extra_tags="登录失败！")
 
         context = {"form": LoginForm(), "simple_extra_static": True}
-        return render(request, "sspanel/login.html", context=context)
+        return render(request, "web/login.html", context=context)
 
     def get(self, request):
         context = {"form": LoginForm(), "simple_extra_static": True}
@@ -109,7 +109,7 @@ class UserLogInView(View):
                 settings.TELEGRAM_BOT_NAME,
                 size=LARGE,
             )
-        return render(request, "sspanel/login.html", context=context)
+        return render(request, "web/login.html", context=context)
 
 
 class TGLoginView(View):
@@ -143,7 +143,7 @@ class TGLoginView(View):
         context = {
             "form": TGLoginForm(initial={"tg_username": tg_username}),
         }
-        return render(request, "sspanel/social_login.html", context)
+        return render(request, "web/social_login.html", context)
 
     def post(self, request):
         form = TGLoginForm(request.POST)
@@ -177,7 +177,7 @@ class UserLogOutView(View):
 class InviteCodeView(View):
     def get(self, request):
         code_list = InviteCode.list_by_code_type(InviteCode.TYPE_PUBLIC)
-        return render(request, "sspanel/invite.html", context={"code_list": code_list})
+        return render(request, "web/invite.html", context={"code_list": code_list})
 
 
 class AffInviteView(LoginRequiredMixin, View):
@@ -195,7 +195,7 @@ class AffInviteView(LoginRequiredMixin, View):
             "bar_config": bar_config,
             "rebate_logs": rebate_logs,
         }
-        return render(request, "sspanel/aff_invite.html", context=context)
+        return render(request, "web/aff_invite.html", context=context)
 
 
 class UserInfoView(LoginRequiredMixin, View):
@@ -220,7 +220,7 @@ class UserInfoView(LoginRequiredMixin, View):
             "usp_list": UserSocialProfile.list_by_user_id(user.id),
         }
         Announcement.send_first_visit_msg(request)
-        return render(request, "sspanel/user_info.html", context=context)
+        return render(request, "web/user_info.html", context=context)
 
 
 class UserSubCenterView(LoginRequiredMixin, View):
@@ -229,14 +229,14 @@ class UserSubCenterView(LoginRequiredMixin, View):
             "user": request.user,
             "sub_link": request.user.sub_link,
         }
-        return render(request, "sspanel/user_sub_center.html", context=context)
+        return render(request, "web/user_sub_center.html", context=context)
 
 
 class UserTrafficLogView(LoginRequiredMixin, View):
     def get(self, request):
         node_list = ProxyNode.get_active_nodes()
         context = {"user": request.user, "node_list": node_list}
-        return render(request, "sspanel/user_traffic_log.html", context=context)
+        return render(request, "web/user_traffic_log.html", context=context)
 
 
 class ShopView(LoginRequiredMixin, View):
@@ -246,13 +246,13 @@ class ShopView(LoginRequiredMixin, View):
             "goods": Goods.get_user_can_buy_goods(request.user),
             "records": PurchaseHistory.objects.filter(user=request.user)[:10],
         }
-        return render(request, "sspanel/shop.html", context=context)
+        return render(request, "web/shop.html", context=context)
 
 
 class ClientView(LoginRequiredMixin, View):
     def get(self, request):
         """跳转到客户端界面"""
-        return render(request, "sspanel/client.html")
+        return render(request, "web/client.html")
 
 
 class PurchaseLogView(LoginRequiredMixin, View):
@@ -261,7 +261,7 @@ class PurchaseLogView(LoginRequiredMixin, View):
 
         records = PurchaseHistory.objects.filter(user=request.user)[:10]
         context = {"records": records}
-        return render(request, "sspanel/purchaselog.html", context=context)
+        return render(request, "web/purchaselog.html", context=context)
 
 
 class ChargeView(LoginRequiredMixin, View):
@@ -271,7 +271,7 @@ class ChargeView(LoginRequiredMixin, View):
         codelist = MoneyCode.objects.filter(user=user)
         donatelist = Donate.objects.all()[:8]
         context = {"user": user, "codelist": codelist, "donatelist": donatelist}
-        return render(request, "sspanel/chargecenter.html", context=context)
+        return render(request, "web/charge_center.html", context=context)
 
     @transaction.atomic
     def post(self, request):
@@ -304,7 +304,7 @@ class AnnouncementView(LoginRequiredMixin, View):
     def get(self, request):
         """网站公告列表"""
         anno = Announcement.objects.all()
-        return render(request, "sspanel/announcement.html", {"anno": anno})
+        return render(request, "web/announcement.html", {"anno": anno})
 
 
 class TicketsView(LoginRequiredMixin, View):
@@ -312,12 +312,12 @@ class TicketsView(LoginRequiredMixin, View):
         """工单系统"""
         ticket = Ticket.objects.filter(user=request.user)
         context = {"ticket": ticket}
-        return render(request, "sspanel/ticket.html", context=context)
+        return render(request, "web/ticket.html", context=context)
 
 
 class TicketCreateView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, "sspanel/ticketcreate.html")
+        return render(request, "web/ticket_create.html")
 
     def post(self, request):
         """工单提交"""
@@ -333,7 +333,7 @@ class TicketDetailView(LoginRequiredMixin, View):
         """工单编辑"""
         ticket = Ticket.objects.get(pk=pk)
         context = {"ticket": ticket}
-        return render(request, "sspanel/ticketedit.html", context=context)
+        return render(request, "web/ticket_edit.html", context=context)
 
     def post(self, request, pk):
         ticket = Ticket.objects.get(pk=pk)
