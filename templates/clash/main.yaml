@@ -4,7 +4,7 @@ socks-port: 7891
 allow-lan: true
 bind-address: "*"
 mode: rule
-log-level: silent
+log-level: info
 external-controller: 0.0.0.0:9090
 
 proxy-groups:
@@ -18,8 +18,8 @@ proxy-groups:
   - name: Final
     type: select
     proxies:
-      - Proxy
       - DIRECT
+      - Proxy
 
   - name: auto
     type: url-test
@@ -27,6 +27,8 @@ proxy-groups:
       - {{ provider_name }}
     url: 'http://www.gstatic.com/generate_204'
     interval: 300
+    tolerance: 150
+    lazy: true
 
 proxy-providers:
   {{ provider_name }}:
@@ -36,7 +38,9 @@ proxy-providers:
     path: ./providers/{{ provider_name }}.yaml
     health-check:
       enable: true
-      interval: 600
+      interval: 300
+      tolerance: 150
+      lazy: true
       url: http://www.gstatic.com/generate_204
 
 {% if sub_client == "clash" %}

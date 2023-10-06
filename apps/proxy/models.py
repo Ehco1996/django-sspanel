@@ -558,7 +558,9 @@ class RelayNode(BaseNodeModel):
     enable_ping = models.BooleanField("是否开启PING", default=True)
     enable_udp = models.BooleanField("是否开启UDP 转发", default=True)
     web_port = models.IntegerField("Web端口", default=0)
-    web_token = models.CharField("Web验证Token", max_length=64, default="")
+    web_token = models.CharField(
+        "Web验证Token", max_length=64, default="", null=True, blank=True
+    )
 
     class Meta:
         verbose_name = "中转节点"
