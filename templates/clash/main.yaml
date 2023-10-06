@@ -13,7 +13,16 @@ proxy-groups:
     proxies:
       - auto
     use:
-      - {{ provider_name }}
+      - { { provider_name } }
+
+  - name: auto
+    type: url-test
+    use:
+      - { { provider_name } }
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 150
+    lazy: true
 
   - name: Final
     type: select
@@ -21,19 +30,10 @@ proxy-groups:
       - DIRECT
       - Proxy
 
-  - name: auto
-    type: url-test
-    use:
-      - {{ provider_name }}
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 300
-    tolerance: 150
-    lazy: true
-
 proxy-providers:
-  {{ provider_name }}:
+  { { provider_name } }:
     type: http
-    url: {{ proxy_provider_url }}
+    url: { { proxy_provider_url } }
     interval: 3600
     path: ./providers/{{ provider_name }}.yaml
     health-check:

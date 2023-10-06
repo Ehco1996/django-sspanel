@@ -101,4 +101,4 @@ rules:
   - RULE-SET,telegramcidr,Proxy
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,DIRECT
+  - MATCH,Final
