@@ -9,6 +9,15 @@ on:
       - "apps/**"
       - "configs/**"
       - "templates/**"
+  pull_request:
+    branches:
+      - master
+      - dev
+      - debug-*
+    paths:
+      - "apps/**"
+      - "configs/**"
+      - "templates/**"
   workflow_dispatch:
 jobs:
   build-code:
@@ -18,7 +27,7 @@ jobs:
 
       - name: build code image
         uses: elgohr/Publish-Docker-Github-Action@master
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/heads/debug-')
         with:
           name: ehco1996/django-sspanel
           username: ${{ secrets.DOCKER_USERNAME }}
