@@ -705,12 +705,12 @@ prometheus-client = ">=0.7"
 
 [[package]]
 name = "django-simpleui"
-version = "2023.3.1"
+version = "2023.8.28"
 description = "django admin theme 后台模板"
 optional = false
 python-versions = "*"
 files = [
-    {file = "django-simpleui-2023.3.1.tar.gz", hash = "sha256:510a3049e0d1f44b127d2d3d61050245894de939b1dedfabaf2fa92cd8b2c3a2"},
+    {file = "django-simpleui-2023.8.28.tar.gz", hash = "sha256:874360a8a0c1144c320a875f1d383d7338944c9a63c96ab3c53f175dce686316"},
 ]
 
 [package.dependencies]
@@ -1781,4 +1781,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "55cc562efd806c526788fe5c8fbdaa53dc36dab24234bd2a7587102fbd2f30f5"
+content-hash = "b77bf74b3f35b234a6d63bdbe204941c9ba40d9b28093650beea77c89f403908"
