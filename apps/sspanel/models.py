@@ -143,7 +143,7 @@ class User(AbstractUser):
             user_id_list = [user.id for user in expired_users]
             send_mail_to_users_task.delay(
                 user_id_list,
-                f"您的{settings.TITLE}账号已到期",
+                f"您的{settings.SITE_TITLE}账号已到期",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
 
@@ -169,7 +169,7 @@ class User(AbstractUser):
             user_id_list = [user.id for user in out_of_traffic_users]
             send_mail_to_users_task.delay(
                 user_id_list,
-                f"您的{settings.TITLE}账号流量已全部用完",
+                f"您的{settings.SITE_TITLE}账号流量已全部用完",
                 f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
             )
             print(f"共有{len(out_of_traffic_users)}个用户流量用超啦")
@@ -277,7 +277,7 @@ class User(AbstractUser):
         """
         expire = int(datetime.datetime.timestamp(self.level_expire_time))
         info = f"upload={self.upload_traffic}; download={self.download_traffic}; total={self.total_traffic}; expire={expire}"
-        filename = slugify(settings.TITLE)
+        filename = slugify(settings.SITE_TITLE)
         return {
             "Subscription-Userinfo:": info,
             "Content-Disposition": f'attachment; filename="{filename}.yaml"',

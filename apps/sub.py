@@ -31,7 +31,7 @@ class UserSubManager:
             "clash/main.yaml",
             {
                 "sub_client": self.sub_client,
-                "provider_name": settings.TITLE,
+                "provider_name": settings.SITE_TITLE,
                 "proxy_provider_url": self.user.clash_proxy_provider_endpoint,
             },
         )

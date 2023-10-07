@@ -4,7 +4,7 @@
 
 <head>
     {% load static %}
-    <title>{% settings_value "TITLE" %}</title>
+    <title>{% settings_value "SITE_TITLE" %}</title>
     {% include "basehead.html" %}
 </head>
 
@@ -12,7 +12,12 @@
     <nav class="navbar is-primary is-spaced">
         <div class="navbar-brand">
             <a class="navbar-item" href="/">
-                <img src="{% static 'img/logo/logo.png' %}" alt="谜之屋logo">
+                {% settings_value "SITE_LOGO_URL" as logo_url %}
+                {% if logo_url %}
+                <img src="{{ logo_url }}" alt="site logo">
+                {% else %}
+                <img src="{% static 'img/logo/logo.png' %}" alt="site logo" width="112" height="28">
+                {% endif %}
             </a>
             <div class="navbar-burger burger" data-target="navMenuColorprimary-example">
                 <span></span>
@@ -75,7 +80,7 @@
         <div class="hero-body">
             <div class="container has-text-centered">
                 <h1 class="title">
-                    {% settings_value "SUBTITLE" %}
+                    {% settings_value "SITE_SUBTITLE" %}
                 </h1>
                 <h2 class="subtitle">
                     你说会发现什么呢？

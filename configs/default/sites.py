@@ -31,10 +31,11 @@ MIN_CHECKIN_TRAFFIC = int(os.getenv("MIN_CHECKIN_TRAFFIC", 10 * MB))
 MAX_CHECKIN_TRAFFIC = int(os.getenv("MAX_CHECKIN_TRAFFIC", 200 * MB))
 
 # 网站title
-TITLE = os.getenv("TITLE", "谜之屋")
-SUBTITLE = os.getenv("SUBTITLE", "秘密的小屋")
-KEYWORDS = os.getenv("KEYWORDS", "")
-DESCRIPTION = os.getenv("DESCRIPTION", "")
+SITE_TITLE = os.getenv("SITE_TITLE", "")
+SITE_SUBTITLE = os.getenv("SITE_SUBTITLE", "")
+SITE_SEO_KEYWORDS = os.getenv("SITE_SEO_KEYWORDS", "")
+SITE_SEO_DESCRIPTION = os.getenv("SITE_SEO_DESCRIPTION", "")
+SITE_LOGO_URL = os.getenv("SITE_LOGO_URL", "")
 
 # 用户邀请返利比例
 INVITE_PERCENT = float(os.getenv("INVITE_PERCENT", 0.2))
