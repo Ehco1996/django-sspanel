@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     "apps.openapi",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+
 
 MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",

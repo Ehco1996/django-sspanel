@@ -11,6 +11,8 @@ ALLOWED_HOSTS = ["*"]
 
 # 网站域名设置（请正确填写，不然订阅功能会失效：
 HOST = os.getenv("HOST", "http://127.0.0.1:8000")
+CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = [HOST]
 
 # 网站密钥
 SECRET_KEY = os.getenv("SECRET_KEY", "aasdasdas")
