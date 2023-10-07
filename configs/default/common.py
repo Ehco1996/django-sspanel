@@ -23,7 +23,6 @@ INSTALLED_APPS = [
 ]
 
 
-
 MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "corsheaders.middleware.CorsMiddleware",

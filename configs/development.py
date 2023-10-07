@@ -1,5 +1,3 @@
-import os
-
 from configs.default import *  # noqa
 
 # NOTE for django debug toolbar
