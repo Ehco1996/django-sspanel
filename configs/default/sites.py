@@ -10,9 +10,9 @@ START_PORT = 1024
 ALLOWED_HOSTS = ["*"]
 
 # 网站域名设置（请正确填写，不然订阅功能会失效：
-HOST = os.getenv("HOST", "http://127.0.0.1:8000")
-CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS = [HOST]
+SITE_HOST = os.getenv("SITE_HOST", "http://127.0.0.1:8000")
+CORS_ALLOWED_ORIGINS = [SITE_HOST]  # django-cors-headers
+CSRF_TRUSTED_ORIGINS = [SITE_HOST]  # django built-in
 
 # 网站密钥
 SECRET_KEY = os.getenv("SECRET_KEY", "aasdasdas")
@@ -20,8 +20,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "aasdasdas")
 # 是否开启注册
 ALLOW_REGISTER = bool(os.getenv("ALLOW_REGISTER", True))
 
-# 默认的theme
-# 可选列表在 apps/constants.py 里的THEME_CHOICES里
+# 默认的theme 可选列表在 apps/constants.py 里的THEME_CHOICES里
 DEFAULT_THEME = os.getenv("DEFAULT_THEME", "default")
 
 
@@ -89,4 +88,4 @@ SIMPLEUI_ICON = {
 # TG 相关配置
 TELEGRAM_BOT_NAME = os.getenv("TELEGRAM_BOT_NAME")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_LOGIN_REDIRECT_URL = f"{HOST}/login/telegram/"
+TELEGRAM_LOGIN_REDIRECT_URL = f"{SITE_HOST}/login/telegram/"

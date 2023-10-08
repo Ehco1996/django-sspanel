@@ -10,7 +10,6 @@ from apps.sspanel import models as sm
 
 
 class DailyStats(models.Model):
-
     date = models.DateField(verbose_name="创建日期", unique=True)
     updated_at = models.DateTimeField(verbose_name="更新时间", auto_now=True)
 

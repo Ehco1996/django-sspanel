@@ -29,7 +29,6 @@ def make_default_key(f, *args, **kwargs):
 
 
 class cached:
-
     client = None
 
     def __init__(self, func=None, ttl=60 * 60, cache_key=make_default_key):

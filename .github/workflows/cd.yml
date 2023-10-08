@@ -1,0 +1,26 @@
+name: build-code-image
+on:
+  push:
+    branches:
+      - master
+      - dev
+      - debug-*
+    paths:
+      - "apps/**"
+      - "configs/**"
+      - "templates/**"
+  workflow_dispatch:
+jobs:
+  build-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: build code image
+        uses: elgohr/Publish-Docker-Github-Action@v4
+        with:
+          name: ehco1996/django-sspanel
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: "latest,code,${{ github.sha }}"
+          dockerfile: deploy/Dockerfile.CODE

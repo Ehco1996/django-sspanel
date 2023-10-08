@@ -30,7 +30,6 @@ from apps.utils import (
 
 
 class User(AbstractUser):
-
     MIN_PORT = 1025
     PORT_BLACK_SET = {6443, 8472}
 
@@ -144,7 +143,7 @@ class User(AbstractUser):
             send_mail_to_users_task.delay(
                 user_id_list,
                 f"您的{settings.SITE_TITLE}账号已到期",
-                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
+                f"您的账号现被暂停使用。如需继续使用请前往 {settings.SITE_HOST} 充值",
             )
 
     @classmethod
@@ -170,7 +169,7 @@ class User(AbstractUser):
             send_mail_to_users_task.delay(
                 user_id_list,
                 f"您的{settings.SITE_TITLE}账号流量已全部用完",
-                f"您的账号现被暂停使用。如需继续使用请前往 {settings.HOST} 充值",
+                f"您的账号现被暂停使用。如需继续使用请前往 {settings.SITE_HOST} 充值",
             )
             print(f"共有{len(out_of_traffic_users)}个用户流量用超啦")
 
@@ -196,13 +195,13 @@ class User(AbstractUser):
     def sub_link(self):
         """订阅地址"""
         params = {"uid": self.uid}
-        return settings.HOST + f"/api/subscribe/?{urlencode(params)}"
+        return settings.SITE_HOST + f"/api/subscribe/?{urlencode(params)}"
 
     @property
     def ref_link(self):
         """ref地址"""
         params = {"ref": self.id}
-        return settings.HOST + f"/register/?{urlencode(params)}"
+        return settings.SITE_HOST + f"/register/?{urlencode(params)}"
 
     @property
     def today_is_checkin(self):
@@ -247,7 +246,8 @@ class User(AbstractUser):
     def clash_proxy_provider_endpoint(self):
         params = {"uid": self.uid}
         return (
-            settings.HOST + f"/api/subscribe/clash/proxy_providers/?{urlencode(params)}"
+            settings.SITE_HOST
+            + f"/api/subscribe/clash/proxy_providers/?{urlencode(params)}"
         )
 
     def update_proxy_config_from_dict(self, data):
@@ -295,7 +295,6 @@ class UserMixin:
 
 
 class UserSocialProfile(models.Model, UserMixin):
-
     TYPE_TG = "tg"
     TYPE_CHOICES = ((TYPE_TG, TYPE_TG),)
 
@@ -344,8 +343,7 @@ class UserSocialProfile(models.Model, UserMixin):
 
 
 class UserOrder(models.Model, UserMixin):
-
-    ALIPAY_CALLBACK_URL = f"{settings.HOST}/api/callback/alipay"
+    ALIPAY_CALLBACK_URL = f"{settings.SITE_HOST}/api/callback/alipay"
     DEFAULT_ORDER_TIME_OUT = "10m"
     STATUS_CREATED = 0
     STATUS_PAID = 1
@@ -679,7 +677,6 @@ class RebateRecord(models.Model, UserMixin):
 
 
 class Donate(models.Model):
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="捐赠人")
     time = models.DateTimeField(
         "捐赠时间", editable=False, auto_now_add=True, db_index=True

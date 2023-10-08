@@ -461,7 +461,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
-        return f"{settings.HOST}/api/proxy_configs/{self.id}/?{urlencode(params)}"
+        return f"{settings.SITE_HOST}/api/proxy_configs/{self.id}/?{urlencode(params)}"
 
     @property
     def ehco_relay_port(self):
@@ -634,7 +634,9 @@ class RelayNode(BaseNodeModel):
     @property
     def api_endpoint(self):
         params = {"token": settings.TOKEN}
-        return f"{settings.HOST}/api/ehco_relay_config/{self.id}/?{urlencode(params)}"
+        return (
+            f"{settings.SITE_HOST}/api/ehco_relay_config/{self.id}/?{urlencode(params)}"
+        )
 
 
 class RelayRule(BaseModel):

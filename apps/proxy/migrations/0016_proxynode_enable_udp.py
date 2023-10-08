@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("proxy", "0015_alter_proxynode_server_alter_relaynode_server_and_more"),
     ]

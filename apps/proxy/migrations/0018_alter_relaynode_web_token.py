@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("proxy", "0017_proxynode_current_used_download_bandwidth_bytes_and_more"),
     ]

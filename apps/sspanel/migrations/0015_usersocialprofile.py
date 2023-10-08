@@ -6,7 +6,6 @@ import apps.sspanel.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sspanel", "0014_ticket_updated_at"),
     ]

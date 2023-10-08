@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sspanel", "0018_alter_usercheckinlog_date_alter_userreflog_date"),
     ]
