@@ -9,15 +9,6 @@ on:
       - "apps/**"
       - "configs/**"
       - "templates/**"
-  pull_request:
-    branches:
-      - master
-      - dev
-      - debug-*
-    paths:
-      - "apps/**"
-      - "configs/**"
-      - "templates/**"
   workflow_dispatch:
 jobs:
   build-code:
