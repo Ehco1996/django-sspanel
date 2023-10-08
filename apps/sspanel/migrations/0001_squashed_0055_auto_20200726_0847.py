@@ -15,7 +15,6 @@ import apps.utils
 
 
 class Migration(migrations.Migration):
-
     replaces = [
         ("sspanel", "0001_initial"),
         ("sspanel", "0002_payrequest_qrcode_url"),

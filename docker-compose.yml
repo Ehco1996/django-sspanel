@@ -65,7 +65,6 @@ services:
     ports:
       - 8080:8080
     working_dir: /usr/src/app
-    entrypoint: sh ./wait-for-it.sh mysql:3306 --
     command: uwsgi uwsgi.ini
   celery-worker:
     container_name: celery-worker
@@ -87,7 +86,6 @@ services:
     networks:
       - sspanel
     working_dir: /usr/src/app
-    entrypoint: sh ./wait-for-it.sh mysql:3306 --
     command:
       - celery
       - -A
@@ -116,7 +114,6 @@ services:
     networks:
       - sspanel
     working_dir: /usr/src/app
-    entrypoint: sh ./wait-for-it.sh mysql:3306 --
     command:
       - celery
       - -A

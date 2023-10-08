@@ -40,11 +40,11 @@ urlpatterns.append(
 )
 
 
-# append django debug toolbar urls TODO fix this
-# if settings.DEBUG is True:
-#     import debug_toolbar
+# append django debug toolbar urls
+if settings.DEBUG is True:
+    import debug_toolbar
 
-#     urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
+    urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
 
 # set admin title
 admin.site.site_title = f"{settings.SITE_TITLE}管理"

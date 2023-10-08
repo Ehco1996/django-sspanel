@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sspanel", "0001_squashed_0055_auto_20200726_0847"),
     ]

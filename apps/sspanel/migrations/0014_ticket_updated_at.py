@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sspanel", "0013_remove_user_vmess_uuid"),
     ]

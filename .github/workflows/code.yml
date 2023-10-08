@@ -31,15 +31,5 @@ jobs:
           name: ehco1996/django-sspanel
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "latest,code"
+          tags: "latest,code,${{ github.sha }}"
           dockerfile: deploy/Dockerfile.CODE
-
-      - name: build debug code image
-        uses: elgohr/Publish-Docker-Github-Action@master
-        if: startsWith(github.ref, 'refs/heads/debug-')
-        with:
-          name: ehco1996/django-sspanel
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "debug"
-          dockerfile: deploy/Dockerfile.DEBUG-CODE

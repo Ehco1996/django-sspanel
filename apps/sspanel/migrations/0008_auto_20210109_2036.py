@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sspanel", "0007_auto_20201122_0831"),
     ]

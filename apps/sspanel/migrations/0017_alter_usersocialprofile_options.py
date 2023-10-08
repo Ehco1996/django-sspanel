@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sspanel", "0016_alter_usersocialprofile_user_id"),
     ]

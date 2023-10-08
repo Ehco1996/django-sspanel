@@ -4,7 +4,6 @@ from apps.stats import models
 
 
 class DailyStatsAdmin(admin.ModelAdmin):
-
     list_display = [
         "date",
         "new_user_count",

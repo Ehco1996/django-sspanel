@@ -32,13 +32,8 @@ def sync_user_traffic_task(node_id, data):
     log_time = get_current_datetime()
     user_model_list = []
     trafficlog_model_list = []
-
-    # TODO to support old version, will delete in future
-    if type(data) == list:
-        data = {"data": data}
-    # END TODO
-
     traffic_data = data.get("data", [])
+
     # load user in batch
     user_ids = []
     for user_data in traffic_data:

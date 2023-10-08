@@ -120,7 +120,6 @@ class ProxyNodeAdmin(admin.ModelAdmin):
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
-
     list_display = [
         "__str__",
         "server",
