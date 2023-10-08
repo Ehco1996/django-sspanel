@@ -1,4 +1,4 @@
-name: runtime
+name: build-runtime-image
 on:
   push:
     branches:
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@master
 
       - name: build runtime image
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v4
         with:
           name: ehco1996/django-sspanel
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -25,7 +25,7 @@ jobs:
           dockerfile: deploy/Dockerfile.RUNTIME
 
       - name: build nginx image
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v4
         with:
           name: ehco1996/django-sspanel
           username: ${{ secrets.DOCKER_USERNAME }}
