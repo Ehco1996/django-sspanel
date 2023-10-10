@@ -15,20 +15,30 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: build runtime image
-        uses: elgohr/Publish-Docker-Github-Action@v4
-        with:
-          name: ehco1996/django-sspanel
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "runtime"
-          dockerfile: deploy/Dockerfile.RUNTIME
+      - name: set up qemu
+        uses: docker/setup-qemu-action@v2
 
-      - name: build nginx image
-        uses: elgohr/Publish-Docker-Github-Action@v4
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: login to docker hub
+        uses: docker/login-action@v2
         with:
-          name: ehco1996/django-sspanel
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "nginx"
-          dockerfile: deploy/Dockerfile.NGINX
+
+      - name: build & push runtime image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ehco1996/django-sspanel:runtime
+          file: deploy/Dockerfile.RUNTIME
+          platforms: linux/amd64,linux/arm64
+
+      - name: build & push nginx image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ehco1996/django-sspanel:nginx
+          file: deploy/Dockerfile.NGINX
+          platforms: linux/amd64,linux/arm64
