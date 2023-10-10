@@ -11,3 +11,5 @@ RUN pip install --upgrade pip  \
     && pip install --no-cache-dir poetry \
     && poetry config virtualenvs.create false \
     && poetry install --no-dev --no-interaction --no-ansi
+
+ENV DJANGO_ENV=ci
