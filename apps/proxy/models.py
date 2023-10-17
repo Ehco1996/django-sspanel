@@ -52,7 +52,7 @@ class XRayTemplates:
                 "tag": "api",
             },
         ],
-        "outbounds": [{"protocol": "freedom"}],
+        "outbounds": [{"tag": "direct", "protocol": "freedom", "settings": {}}],
         "routing": {
             "settings": {
                 "rules": [

@@ -35,4 +35,3 @@ jobs:
           tags: "ehco1996/django-sspanel:latest,ehco1996/django-sspanel:code,ehco1996/django-sspanel:${{ github.sha }}"
           platforms: linux/amd64,linux/arm64
           file: deploy/Dockerfile.CODE
-
