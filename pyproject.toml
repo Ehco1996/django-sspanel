@@ -43,7 +43,7 @@ uWSGI = "^2.0.22"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "^2.2.1"
-black = "^23.9.1"
+black = "^23.10.0"
 isort = "^5.12.0"
 
 [build-system]
