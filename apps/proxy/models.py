@@ -228,7 +228,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         ordering = ("sequence",)
 
     def __str__(self) -> str:
-        return f"{self.name}({self.node_type})"
+        return f"{self.name}-{self.node_type}-{self.id}"
 
     @classmethod
     @cache.cached()

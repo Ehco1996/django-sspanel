@@ -81,7 +81,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "api_endpoint",
     ]
     inlines = [RelayRuleInline]
-    all_inlines = [SSConfigInline, TrojanConfigInline, RelayRuleInline]
+    all_inlines = [TrojanConfigInline, SSConfigInline, RelayRuleInline]
     list_editable = ["sequence"]
     list_filter = ["node_type", "country", "provider_remark"]
 
