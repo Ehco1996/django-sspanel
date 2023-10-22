@@ -87,9 +87,14 @@ rule-providers:
     interval: 86400
 
 rules:
-  - RULE-SET,applications,DIRECT
+  # Proxy Node DIRECT
+{% autoescape off %}
+{% for rule in direct_rules %} - {{ rule }}
+{% endfor %}
+{% endautoescape%}
   - DOMAIN,clash.razord.top,DIRECT
   - DOMAIN,yacd.haishan.me,DIRECT
+  - RULE-SET,applications,DIRECT
   - RULE-SET,private,DIRECT
   - RULE-SET,reject,REJECT
   - RULE-SET,icloud,DIRECT

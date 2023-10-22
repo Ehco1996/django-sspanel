@@ -1,6 +1,7 @@
 import hashlib
 import json
 import random
+import re
 import time
 from functools import wraps
 
@@ -105,3 +106,13 @@ def get_client_ip(request):
         return x_forwarded_for.split(",")[0]
     else:
         return request.META.get("REMOTE_ADDR")
+
+
+def get_clash_direct_rule(addr):
+    ip_pattern = r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"
+
+    # 检查输入字符串是否匹配 IP 地址正则表达式
+    if re.match(ip_pattern, addr):
+        return f"IP-CIDR,{addr}/32,DIRECT"
+    else:
+        return f"DOMAIN,{addr},DIRECT"

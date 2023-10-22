@@ -3,6 +3,8 @@ import base64
 from django.conf import settings
 from django.template.loader import render_to_string
 
+from apps.utils import get_clash_direct_rule
+
 
 class UserSubManager:
     """统一管理用户的订阅"""
@@ -33,13 +35,14 @@ class UserSubManager:
                 "sub_client": self.sub_client,
                 "provider_name": settings.SITE_TITLE,
                 "proxy_provider_url": self.user.clash_proxy_provider_endpoint,
+                "direct_rules": self.get_clash_direct_rules(),
             },
         )
 
     def _get_shadowrocket_sub_links(self):
         sub_links = ""
         # for clean the rule have the same port
-        # key: relay_node_id+port, value: cfg
+        # key: relay_node_id+port, value: shadowrocket_sub_link
         relay_node_group = {}
         for node in self.node_list:
             if node.enable_relay:
@@ -68,7 +71,7 @@ class UserSubManager:
         """todo support multi provider group"""
         node_configs = []
         # for clean the rule have the same port
-        # key: relay_node_id+port, value: cfg
+        # key: relay_node_id+port, value: clash cfg
         relay_node_group = {}
         for node in self.node_list:
             if node.enable_relay:
@@ -92,3 +95,21 @@ class UserSubManager:
             "clash/providers.yaml",
             {"nodes": sorted(node_configs, key=lambda x: x["name"])},
         )
+
+    def get_clash_direct_rules(self):
+        rules = []
+        # for clean the rule have the same port
+        # key: relay_node_id+port, value: rule
+        relay_node_group = {}
+        for node in self.node_list:
+            if node.enable_relay:
+                for rule in node.get_enabled_relay_rules():
+                    key = f"{rule.relay_node.id}{rule.relay_port}"
+                    relay_node_group[key] = get_clash_direct_rule(rule.relay_host)
+
+            if node.enable_direct:
+                rules.append(get_clash_direct_rule(node.server))
+
+        for rule in relay_node_group.values():
+            rules.append(rule)
+        return rules
