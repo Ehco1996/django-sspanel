@@ -89,7 +89,7 @@ rule-providers:
 rules:
   # Proxy Node DIRECT
 {% autoescape off %}
-{% for rule in direct_rules %} - {{ rule }}
+{% for rule in direct_rules %}  - {{ rule }}
 {% endfor %}
 {% endautoescape%}
   - DOMAIN,clash.razord.top,DIRECT

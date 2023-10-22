@@ -97,19 +97,11 @@ class UserSubManager:
         )
 
     def get_clash_direct_rules(self):
-        rules = []
-        # for clean the rule have the same port
-        # key: relay_node_id+port, value: rule
-        relay_node_group = {}
+        rules = set()
         for node in self.node_list:
             if node.enable_relay:
                 for rule in node.get_enabled_relay_rules():
-                    key = f"{rule.relay_node.id}{rule.relay_port}"
-                    relay_node_group[key] = get_clash_direct_rule(rule.relay_host)
-
+                    rules.add(get_clash_direct_rule(rule.relay_host))
             if node.enable_direct:
-                rules.append(get_clash_direct_rule(node.server))
-
-        for rule in relay_node_group.values():
-            rules.append(rule)
-        return rules
+                rules.add(get_clash_direct_rule(node.server))
+        return sorted(list(rules))
