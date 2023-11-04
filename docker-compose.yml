@@ -24,7 +24,7 @@ services:
     networks:
       - sspanel
   mysql:
-    image: mysql:5.7
+    image: mysql:8.2
     container_name: mysql
     restart: always
     environment:
