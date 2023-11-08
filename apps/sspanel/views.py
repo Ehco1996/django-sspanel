@@ -245,12 +245,6 @@ class ShopView(LoginRequiredMixin, View):
         return render(request, "web/shop.html", context=context)
 
 
-class ClientView(LoginRequiredMixin, View):
-    def get(self, request):
-        """跳转到客户端界面"""
-        return render(request, "web/client.html")
-
-
 class PurchaseLogView(LoginRequiredMixin, View):
     def get(self, request):
         """用户购买记录页面"""

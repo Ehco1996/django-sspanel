@@ -7,7 +7,6 @@ urlpatterns = [
     # 网站用户面板
     path("", views.IndexView.as_view(), name="index"),
     path("help/", views.HelpView.as_view(), name="help"),
-    path("client/", views.ClientView.as_view(), name="client"),
     # 邀请
     path("invitecode/", views.InviteCodeView.as_view(), name="invite_code"),
     # 注册/登录

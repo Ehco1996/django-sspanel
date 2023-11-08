@@ -33,7 +33,6 @@
                 <a class="navbar-item" href="{% url 'sspanel:help' %}">使用说明</a>
                 <a class="navbar-item" href="{% url 'sspanel:invite_code' %}">邀请码</a>
                 {% if user.is_authenticated %}
-                <a class="navbar-item" href="{% url 'sspanel:client' %}">客户端</a>
                 <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
                     <span class="navbar-item">
                         <a class="button is-info is-inverted" href="{% url 'sspanel:userinfo' %}">
