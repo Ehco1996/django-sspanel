@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
@@ -84,6 +84,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     all_inlines = [TrojanConfigInline, SSConfigInline, RelayRuleInline]
     list_editable = ["sequence"]
     list_filter = ["node_type", "country", "provider_remark"]
+    actions = ["reset_port"]
 
     def get_inlines(self, request, instance):
         if not instance:
@@ -117,6 +118,16 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     @admin.display(description="带宽")
     def human_used_current_traffic_rate(self, instance):
         return instance.human_used_current_traffic_rate
+
+    def reset_port(self, request, queryset):
+        for node in queryset:
+            new_port = node.reset_random_multi_user_port()
+            messages.add_message(
+                request, messages.SUCCESS, f"{node}:'s new port is :{new_port}"
+            )
+
+    reset_port.short_description = "重置端口"
+    reset_port.type = "warning"
 
 
 class RelayNodeAdmin(admin.ModelAdmin):

@@ -1,5 +1,6 @@
 import base64
 import json
+import random
 from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
@@ -436,6 +437,12 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                     return "0.0.0.0"
         return "127.0.0.1"
 
+    def reset_random_multi_user_port(self):
+        if self.node_type == self.NODE_TYPE_SS:
+            return self.ss_config.reset_random_multi_user_port()
+        elif self.node_type == self.NODE_TYPE_TROJAN:
+            return self.trojan_config.reset_random_multi_user_port()
+
     @property
     def human_total_traffic(self):
         return utils.traffic_format(self.total_traffic)
@@ -495,7 +502,14 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return name
 
 
-class SSConfig(models.Model):
+class ResetPortMixin:
+    def reset_random_multi_user_port(self):
+        self.multi_user_port = random.randint(10024, 65535)
+        self.save()
+        return self.multi_user_port
+
+
+class SSConfig(models.Model, ResetPortMixin):
     proxy_node = models.OneToOneField(
         to=ProxyNode,
         related_name="ss_config",
@@ -519,7 +533,7 @@ class SSConfig(models.Model):
         return f"{self.proxy_node.__str__()}-配置"
 
 
-class TrojanConfig(models.Model):
+class TrojanConfig(models.Model, ResetPortMixin):
     proxy_node = models.OneToOneField(
         to=ProxyNode,
         related_name="trojan_config",
