@@ -1,8 +1,11 @@
 from functools import wraps
 
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.openapi.models import UserOpenAPIKey
+from apps.utils import handle_json_request
 
 
 def gen_common_error_response(msg: str, status=400) -> JsonResponse:
@@ -24,3 +27,11 @@ def openapi_authorized(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+
+class OpenAPIMixin:
+    @method_decorator(openapi_authorized)
+    @method_decorator(handle_json_request)
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(OpenAPIMixin, self).dispatch(*args, **kwargs)

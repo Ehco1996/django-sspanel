@@ -82,6 +82,8 @@ def api_authorized(view_func):
 def handle_json_request(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kw):
+        if request.headers.get("Content-Type") != "application/json":
+            return
         try:
             request.json = json.loads(request.body)
         except Exception:
