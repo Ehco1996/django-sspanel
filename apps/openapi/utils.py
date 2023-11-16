@@ -28,10 +28,9 @@ def openapi_authorized(view_func):
 
     return wrapper
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class OpenAPIMixin:
     @method_decorator(openapi_authorized)
     @method_decorator(handle_json_request)
-    @csrf_exempt
     def dispatch(self, *args, **kwargs):
         return super(OpenAPIMixin, self).dispatch(*args, **kwargs)

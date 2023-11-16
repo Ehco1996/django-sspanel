@@ -3,18 +3,15 @@ from django.views import View
 
 from apps.openapi.utils import OpenAPIMixin, gen_common_error_response
 from apps.proxy.models import ProxyNode
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
-class ProxyNodeSearchView(OpenAPIMixin, View):
-    # @method_decorator(csrf_exempt)
-    # # @method_decorator(openapi_authorized)
-    # # @method_decorator(handle_json_request)
-    # def dispatch(self, *args, **kwargs):
-    #     return super(ProxyNodeSearchView, self).dispatch(*args, **kwargs)
-
-    # @csrf_exempt
-    # def dispatch(self, *args, **kwargs):
-    #     return super(ProxyNodeSearchView, self).dispatch(*args, **kwargs)
+# @method_decorator(csrf_exempt, name="dispatch")
+class ProxyNodeSearchView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(ProxyNodeSearchView, self).dispatch(*args, **kwargs)
 
     def get(self, request):
         ip = request.GET.get("ip")
