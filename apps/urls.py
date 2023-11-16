@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.custom_views import AsyncPasswordResetView
+from apps.openapi.urls import router as openapi_router
 
 urlpatterns = [
     path(
@@ -36,7 +37,7 @@ urlpatterns.append(
 
 # append openapi urls
 urlpatterns.append(
-    path("openapi/v1/", include("apps.openapi.urls", namespace="openapi"))
+    path("openapi/v1/", include(openapi_router.urls)),
 )
 
 

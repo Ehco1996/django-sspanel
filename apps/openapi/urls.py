@@ -1,13 +1,9 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework import routers
 
-from . import views
+from apps.openapi import views
 
 app_name = "openapi"
-urlpatterns = [
-    path("proxy_nodes/search/", views.ProxyNodeSearchView.as_view()),
-    path("proxy_nodes/<int:node_id>/", views.ProxyNodeDetailView.as_view()),
-    path(
-        "proxy_nodes/<int:node_id>/reset_multi_user_port/",
-        views.ProxyNodeResetMultiUserPortView.as_view(),
-    ),
-]
+
+router = routers.DefaultRouter()
+router.register(r"proxy_nodes", views.ProxyNodeViewSet, basename="proxy_nodes")

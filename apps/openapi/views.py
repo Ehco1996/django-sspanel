@@ -1,18 +1,15 @@
 from django.http import JsonResponse
 from django.views import View
 
-from apps.openapi.utils import OpenAPIMixin, gen_common_error_response
+from rest_framework.viewsets import ViewSet
+from rest_framework.decorators import action
+
+from apps.openapi.utils import gen_common_error_response
 from apps.proxy.models import ProxyNode
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 
-# @method_decorator(csrf_exempt, name="dispatch")
-class ProxyNodeSearchView(View):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, *args, **kwargs):
-        return super(ProxyNodeSearchView, self).dispatch(*args, **kwargs)
-
+class ProxyNodeViewSet(ViewSet):
+    @action(detail=False, methods=["post"])
     def get(self, request):
         ip = request.GET.get("ip")
         if not ip:
@@ -25,8 +22,6 @@ class ProxyNodeSearchView(View):
             )
         return JsonResponse(node.to_openapi_dict())
 
-
-class ProxyNodeDetailView(View):
     def patch(self, request, node_id):
         node = ProxyNode.get_by_id(node_id)
         if not node:
