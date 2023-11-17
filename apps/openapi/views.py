@@ -1,21 +1,22 @@
-from django.forms import model_to_dict
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import action
+from rest_framework.viewsets import ModelViewSet
 
-from apps.openapi.utils import gen_common_error_response, openapi_authorized
+from apps.openapi.serializer import ProxyNodeSerializer
+from apps.openapi.utils import OpenAPIAuthentication, gen_common_error_response
 from apps.proxy.models import ProxyNode
-from apps.utils import handle_json_request
 
 
-class ProxyNodeSearchView(View):
-    @csrf_exempt
-    @method_decorator(openapi_authorized)
-    def dispatch(self, *args, **kwargs):
-        return super(ProxyNodeSearchView, self).dispatch(*args, **kwargs)
+class BaseOpenAPIViewSet(ModelViewSet):
+    authentication_classes = [OpenAPIAuthentication]
 
-    def get(self, request):
+
+class ProxyNodeViewSet(BaseOpenAPIViewSet):
+    serializer_class = ProxyNodeSerializer
+    queryset = ProxyNode.objects.all()
+
+    @action(detail=False, methods=["get"])
+    def search(self, request):
         ip = request.GET.get("ip")
         if not ip:
             return gen_common_error_response("ip in query is required")
@@ -25,23 +26,25 @@ class ProxyNodeSearchView(View):
             return gen_common_error_response(
                 f"node with ip:{ip}  not found", status=404
             )
-        return JsonResponse(model_to_dict(node))
+        return JsonResponse(self.serializer_class(node).data)
 
-
-class ProxyNodeDetailView(View):
-    @csrf_exempt
-    @method_decorator(openapi_authorized)
-    @method_decorator(handle_json_request)
-    def dispatch(self, *args, **kwargs):
-        return super(ProxyNodeDetailView, self).dispatch(*args, **kwargs)
-
-    def patch(self, request, node_id):
-        node = ProxyNode.get_by_id(node_id)
+    @action(detail=True, methods=["post"])
+    def reset_multi_user_port(self, request, pk):
+        node = ProxyNode.get_by_id(pk)
         if not node:
             return gen_common_error_response(
-                f"node with id:{node_id}  not found", status=404
+                f"node with id:{pk}  not found", status=404
             )
-        enable = request.json.get("enable")
+        node.reset_random_multi_user_port()
+        return JsonResponse(self.serializer_class(node).data)
+
+    def partial_update(self, request, pk):
+        node = ProxyNode.get_by_id(pk)
+        if not node:
+            return gen_common_error_response(
+                f"node with id:{pk}  not found", status=404
+            )
+        enable = request.data.get("enable")
         node.enable = enable
         node.save()
-        return JsonResponse(model_to_dict(node))
+        return JsonResponse(self.serializer_class(node).data)

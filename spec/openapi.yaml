@@ -70,6 +70,7 @@ components:
         - current_used_upload_bandwidth_bytes
         - download_bandwidth_bytes
         - upload_bandwidth_bytes
+        - multi_user_port
     CommonErrorResp:
       type: object
       properties:
@@ -133,6 +134,43 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateProxyNodeReq"
+      responses:
+        200:
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProxyNode"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResp"
+        404:
+          description: ProxyNode not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResp"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResp"
+  /proxy_nodes/{node_id}/reset_multi_user_port/:
+    post:
+      summary: reset port for proxy node
+      tags:
+        - ProxyNode
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the ProxyNode to update
       responses:
         200:
           description: Successful update
