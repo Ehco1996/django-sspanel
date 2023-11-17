@@ -10,7 +10,6 @@ from urllib.parse import quote, urlencode
 import pendulum
 from django.conf import settings
 from django.db import models
-from django.forms import model_to_dict
 
 from apps import constants as c
 from apps import utils
@@ -443,11 +442,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             return self.ss_config.reset_random_multi_user_port()
         elif self.node_type == self.NODE_TYPE_TROJAN:
             return self.trojan_config.reset_random_multi_user_port()
-
-    def to_openapi_dict(self):
-        data = model_to_dict(self)
-        data["multi_user_port"] = self.get_user_port()
-        return data
 
     @property
     def human_total_traffic(self):
