@@ -277,11 +277,8 @@ class User(AbstractUser):
         """
         expire = int(datetime.datetime.timestamp(self.level_expire_time))
         info = f"upload={self.upload_traffic}; download={self.download_traffic}; total={self.total_traffic}; expire={expire}"
-        filename = slugify(settings.SITE_TITLE)
-        return {
-            "Subscription-Userinfo:": info,
-            "Content-Disposition": f'attachment; filename="{filename}.yaml"',
-        }
+        # filename = slugify(settings.SITE_TITLE)
+        return {"Subscription-Userinfo:": info}
 
     def reset_sub_uid(self):
         self.uid = str(uuid4())
