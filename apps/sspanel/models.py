@@ -17,7 +17,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils import functional, timezone
 from redis.exceptions import LockError
-from slugify import slugify
 
 from apps import constants as c
 from apps.ext import cache, encoder, lock, pay

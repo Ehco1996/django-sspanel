@@ -215,6 +215,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     ehco_log_level = models.CharField(
         "隧道日志等级", max_length=64, default="info", choices=EHCO_LOG_LEVELS
     )
+    ehco_reload_interval = models.IntegerField("配置重载间隔", max_length=64, default=0)
 
     upload_bandwidth_bytes = models.BigIntegerField("上传带宽", default=0)
     current_used_upload_bandwidth_bytes = models.BigIntegerField("当前使用的上传带宽", default=0)
@@ -360,6 +361,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
                 "web_port": self.ehco_web_port,
                 "web_token": self.ehco_web_token,
                 "log_level": self.ehco_log_level,
+                "reload_interval": self.ehco_reload_interval,
                 "relay_configs": [
                     {
                         "listen": f"{self.ehco_listen_host}:{self.ehco_listen_port}",
