@@ -14,6 +14,13 @@ components:
       in: header
       name: x-api-key
   schemas:
+    OnlineInfo:
+      type: object
+      properties:
+        online_user_count:
+          type: integer
+        online:
+          type: boolean
     ProxyNode:
       type: object
       properties:
@@ -52,6 +59,8 @@ components:
           type: integer
         upload_bandwidth_bytes:
           type: integer
+        online_info:
+          $ref: "#/components/schemas/OnlineInfo"
       required:
         - id
         - name
@@ -90,6 +99,51 @@ security:
   - OpenApiKeyAuth: []
 
 paths:
+  /proxy_nodes/:
+    get:
+      summary: List all ProxyNodes
+      tags:
+        - ProxyNode
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    description: URL of the next page
+                  previous:
+                    type: string
+                    description: URL of the previous page
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProxyNode"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResp"
+
   /proxy_nodes/search/:
     get:
       summary: search node by ip

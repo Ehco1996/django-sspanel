@@ -15,6 +15,12 @@ class ProxyNodeViewSet(BaseOpenAPIViewSet):
     serializer_class = ProxyNodeSerializer
     queryset = ProxyNode.objects.all()
 
+    def list(self, request, *args, **kwargs):
+        nodes = ProxyNode.objects.all()
+        page = self.paginate_queryset(nodes)
+        data = self.serializer_class(page, many=True).data
+        return self.get_paginated_response(data)
+
     @action(detail=False, methods=["get"])
     def search(self, request):
         ip = request.GET.get("ip")
