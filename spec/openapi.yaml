@@ -33,6 +33,8 @@ components:
           type: string
         server:
           type: string
+        multi_user_port:
+          type: integer
         enable:
           type: boolean
         node_type:
