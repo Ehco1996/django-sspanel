@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             model_name="usertrafficlog",
             name="proxy_node",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.DO_NOTHING,
+                on_delete=django.db.models.deletion.CASCADE,
                 to="proxy.proxynode",
                 verbose_name="代理节点",
             ),
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
             name="user",
             field=models.ForeignKey(
                 null=True,
-                on_delete=django.db.models.deletion.DO_NOTHING,
+                on_delete=django.db.models.deletion.CASCADE,
                 to=settings.AUTH_USER_MODEL,
                 verbose_name="用户",
             ),
