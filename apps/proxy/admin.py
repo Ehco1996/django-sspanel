@@ -84,7 +84,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     all_inlines = [TrojanConfigInline, SSConfigInline, RelayRuleInline]
     list_editable = ["sequence"]
     list_filter = ["node_type", "country", "provider_remark"]
-    actions = ["reset_port"]
+    actions = ["reset_port", "clear_traffic_logs", "toggle_enable"]
 
     def get_inlines(self, request, instance):
         if not instance:
@@ -128,6 +128,33 @@ class ProxyNodeAdmin(admin.ModelAdmin):
 
     reset_port.short_description = "重置端口"
     reset_port.type = "warning"
+
+    def clear_traffic_logs(self, request, queryset):
+        for node in queryset:
+            query = models.UserTrafficLog.objects.filter(proxy_node=node)
+            query.delete()
+            count = query._raw_delete(query.db)
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                f"{node}:'s traffic logs cleared count={count}",
+            )
+
+    clear_traffic_logs.short_description = "清除流量记录"
+    clear_traffic_logs.type = "danger"
+
+    def toggle_enable(self, request, queryset):
+        for node in queryset:
+            node.enable = not node.enable
+            node.save()
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                f"{node}:'s enable is {node.enable}",
+            )
+
+    toggle_enable.short_description = "启用/禁用"
+    toggle_enable.type = "danger"
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
