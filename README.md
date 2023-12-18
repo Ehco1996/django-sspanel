@@ -4,7 +4,7 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/ehco1996/django-sspanel/badge)](https://www.codefactor.io/repository/github/ehco1996/django-sspanel)
 [![lint](https://github.com/Ehco1996/django-sspanel/actions/workflows/ci.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/ci.yml)
-[![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/code.yml)
+[![code](https://github.com/Ehco1996/django-sspanel/actions/workflows/cd.yml/badge.svg)](https://github.com/Ehco1996/django-sspanel/actions/workflows/cd.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ehco1996/django-sspanel)](https://hub.docker.com/r/ehco1996/django-sspanel)
 
 * Telegram group : [invite link](https://t.me/Ehcobreakwa11)
