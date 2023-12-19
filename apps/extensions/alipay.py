@@ -15,6 +15,7 @@ class Pay:
             alipay_public_key_string=settings.ALIPAY_PUBLIC_KEY_STRING,
             config=AliPayConfig(timeout=3),
         )
+        self.alipay._gateway = "https://globalopenapi.alipay.com/gateway.do"
 
     def trade_precreate(
         self, out_trade_no, total_amount, subject, timeout_express, notify_url
