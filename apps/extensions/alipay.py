@@ -8,17 +8,22 @@ class Pay:
         if not settings.USE_ALIPAY:
             return
         # NOTE 暂时只支持支付宝
-        self.alipay = AliPay(
-            app_notify_url="",
-            appid=settings.ALIPAY_APP_ID,
-            app_private_key_string=settings.ALIPAY_APP_PRIVATE_KEY_STRING,
-            alipay_public_key_string=settings.ALIPAY_PUBLIC_KEY_STRING,
-            config=AliPayConfig(timeout=3),
-        )
+        self.alipay = None
+
+    def init_pay(self):
+        if self.alipay is None:
+            self.alipay = AliPay(
+                app_notify_url="",
+                appid=settings.ALIPAY_APP_ID,
+                app_private_key_string=settings.ALIPAY_APP_PRIVATE_KEY_STRING,
+                alipay_public_key_string=settings.ALIPAY_PUBLIC_KEY_STRING,
+                config=AliPayConfig(timeout=3),
+            )
 
     def trade_precreate(
         self, out_trade_no, total_amount, subject, timeout_express, notify_url
     ):
+        self.init_pay()
         return self.alipay.api_alipay_trade_precreate(
             out_trade_no=out_trade_no,
             total_amount=total_amount,
