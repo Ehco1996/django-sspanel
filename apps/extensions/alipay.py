@@ -33,7 +33,9 @@ class Pay:
         )
 
     def trade_query(self, out_trade_no):
+        self.init_pay()
         return self.alipay.api_alipay_trade_query(out_trade_no=out_trade_no)
 
     def verify(self, data, signature):
+        self.init_pay()
         return self.alipay.verify(data=data, signature=signature)
