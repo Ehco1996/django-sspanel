@@ -152,7 +152,7 @@
     var codeBox = $("#id-qrcode-box")
     var msgline = $("#id-msg-line")
     var url = "{% url 'api:order' %}"
-    var queryTimer;
+    var queryTimer
 
     var payrequest = function () {
         paynum = payinput.val()
@@ -170,7 +170,7 @@
                     codeBox.attr('class', '')
                     qrcode_url = results.qrcode_url
                     $("#id-qrcode-canvas").qrcode(qrcode_url)
-                    var queryTimer = setInterval(payquery, 1000);
+                    queryTimer = setInterval(payquery, 3000);
                 }
             })
         } else {
