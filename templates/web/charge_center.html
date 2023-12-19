@@ -64,7 +64,7 @@
                         <div id="id-qrcode-canvas"></div>
                         <hr>
                         <p>
-                            <strong>付费完成之后请点击确认！</strong>
+                            <strong>付费完成之后请点击确认</strong>
                         </p>
                         <p id="id-msg-line"></p>
                         <div class="control">
@@ -152,6 +152,8 @@
     var codeBox = $("#id-qrcode-box")
     var msgline = $("#id-msg-line")
     var url = "{% url 'api:order' %}"
+    var queryTimer;
+
     var payrequest = function () {
         paynum = payinput.val()
         if (paynum >= 1 && paynum % 1 == 0) {
@@ -168,6 +170,7 @@
                     codeBox.attr('class', '')
                     qrcode_url = results.qrcode_url
                     $("#id-qrcode-canvas").qrcode(qrcode_url)
+                    var queryTimer = setInterval(payquery, 1000);
                 }
             })
         } else {
@@ -176,15 +179,21 @@
     }
     requestButton.click(payrequest)
 
+
+    function payquery() {
+        msgline.html('后台飞速查询结果中，请稍候...');
+        $.getJSON(url, function (results) {
+            info = results.info;
+            swal(info.title, info.subtitle, info.status);
+            if (info.status == "success") {
+                // 停止定时器
+                clearInterval(queryTimer);
+            }
+        });
+    }
+
     // 支付查询部分
     queryButton = $("#id-button-query")
-    var payquery = function () {
-        msgline.html('后台飞速查询结果中 请稍候....')
-        $.getJSON(url, function (results) {
-            info = results.info
-            swal(info.title, info.subtitle, info.status)
-        })
-    }
     queryButton.click(payquery)
 </script>
 
