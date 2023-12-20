@@ -259,15 +259,12 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         base_query = cls.get_active_nodes()
         query = base_query.filter(level__gte=user.level)
         # 2. filter out nodes that has been occupied by other users
-        occupied_node_ids = UserProxyNodeOccupancyRecord.objects.filter(
-            end_time__gte=utils.get_current_datetime(),
-        ).values("proxy_node_id")
+        occupied_node_ids = UserProxyNodeOccupancyRecord.get_occupied_node_ids()
         query = query.exclude(id__in=occupied_node_ids)
         # 3. add nodes that has been occupied by this user
-        user_occupied_node_ids = UserProxyNodeOccupancyRecord.objects.filter(
-            end_time__gte=utils.get_current_datetime(),
-            user=user,
-        ).values("proxy_node_id")
+        user_occupied_node_ids = (
+            UserProxyNodeOccupancyRecord.get_user_occupied_node_ids(user)
+        )
         query = query | base_query.filter(id__in=user_occupied_node_ids)
         return query
 
@@ -286,29 +283,29 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         if not self.enable:
             return []
         # 2. node occupied by users, return users
-        records = UserProxyNodeOccupancyRecord.objects.filter(
-            proxy_node=self,
-            end_time__gte=utils.get_current_datetime(),
-        )
-        if records.exists():
-            user_ids = records.values("user_id")
+        occupancies_query = UserProxyNodeOccupancyRecord.get_node_occupancies(self)
+        if occupancies_query.count() > 0:
+            user_ids = occupancies_query.values("user_id")
             return User.objects.filter(id__in=user_ids)
         # 3. shared node filter user that level >= node.level
         return User.objects.filter(level__gte=self.level)
 
     def get_proxy_configs(self):
-        data = {}
         if self.node_type == self.NODE_TYPE_SS:
-            data = self.ss_config.to_node_config(self)
+            proxy_cfg = self.ss_config
         elif self.node_type == self.NODE_TYPE_TROJAN:
-            data = self.trojan_config.to_node_config()
-        if not self.enable:
-            data["users"] = []
+            proxy_cfg = self.trojan_config
         else:
-            data["users"] = [
-                user.to_user_config(self, user) for user in User.get_active_users()
+            raise Exception("not support node type")
+
+        configs = proxy_cfg.to_node_config(self)
+        if not self.enable:
+            configs["users"] = []
+        else:
+            configs["users"] = [
+                proxy_cfg.to_user_config(self, user) for user in self.get_node_users()
             ]
-        return data
+        return configs
 
     def get_ehco_server_config(self):
         if self.enable_ehco_tunnel:
@@ -862,24 +859,24 @@ class OccupancyConfig(BaseModel):
 
 
 class UserProxyNodeOccupancyRecord(BaseModel):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name="用户", db_index=True
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     proxy_node = models.ForeignKey(
-        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点", db_index=True
+        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点"
     )
     start_time = models.DateTimeField(auto_now_add=True, verbose_name="开始占用时间")
-    end_time = models.DateTimeField(
-        null=False, blank=False, verbose_name="结束占用时间", db_index=True
-    )
+    end_time = models.DateTimeField(null=False, blank=False, verbose_name="结束占用时间")
     traffic_used = models.BigIntegerField(default=0, verbose_name="已用流量")
+    out_of_traffic = models.BooleanField(default=False, verbose_name="是否超出流量")
     occupancy_config_snapshot = models.JSONField(verbose_name="快照", default=dict)
 
     class Meta:
         verbose_name = "用户代理节点占用记录"
         verbose_name_plural = "用户代理节点占用记录"
-        index_together = ["user", "end_time"]
-        index_together = ["proxy_node", "end_time"]
+        index_together = (
+            ["out_of_traffic", "end_time"],
+            ["out_of_traffic", "user", "end_time"],
+            ["out_of_traffic", "proxy_node", "end_time"],
+        )
 
     @classmethod
     @transaction.atomic
@@ -906,3 +903,44 @@ class UserProxyNodeOccupancyRecord(BaseModel):
             traffic_used=occupancy_config.occupancy_traffic,
             occupancy_config_snapshot=occupancy_config.to_dict(),
         )
+
+    @classmethod
+    def get_node_occupancy_user_ids(cls, node: ProxyNode):
+        return cls.objects.filter(
+            out_of_traffic=False,
+            proxy_node=node,
+            end_time__gte=utils.get_current_datetime(),
+        ).values("user_id")
+
+    @classmethod
+    def get_occupied_node_ids(cls):
+        occupied_node_ids = cls.objects.filter(
+            out_of_traffic=False,
+            end_time__gte=utils.get_current_datetime(),
+        ).values("proxy_node_id")
+        return occupied_node_ids
+
+    @classmethod
+    def get_user_occupied_node_ids(cls, user: User):
+        user_occupied_node_ids = cls.objects.filter(
+            out_of_traffic=False,
+            user=user,
+            end_time__gte=utils.get_current_datetime(),
+        ).values("proxy_node_id")
+        return user_occupied_node_ids
+
+    @classmethod
+    def get_node_occupies(cls, node: ProxyNode):
+        return UserProxyNodeOccupancyRecord.objects.filter(
+            out_of_traffic=False,
+            proxy_node=node,
+            end_time__gte=utils.get_current_datetime(),
+        )
+
+    @classmethod
+    def check_and_incr_traffic(cls, user_id, proxy_node_id, traffic):
+        r = cls.objects.get(user__id=user_id, proxy_node__id=proxy_node_id)
+        r.traffic_used += traffic
+        if r.traffic_used > r.occupancy_config_snapshot["occupancy_traffic"]:
+            r.out_of_traffic = True
+        r.save()
