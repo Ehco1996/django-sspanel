@@ -29,9 +29,6 @@ class BaseModel(models.Model):
         with connection.cursor() as cursor:
             cursor.execute("TRUNCATE TABLE {}".format(cls._meta.db_table))
 
-    def to_dict(self):
-        return {field.name: getattr(self, field.name) for field in self._meta.fields}
-
 
 class BaseLogModel(BaseModel):
     created_at = models.DateTimeField(

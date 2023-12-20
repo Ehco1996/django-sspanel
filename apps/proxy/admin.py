@@ -23,6 +23,17 @@ class TrojanConfigInline(admin.StackedInline):
     fields = ["proxy_node", "multi_user_port", "fallback_addr"]
 
 
+class OccupancyConfigInline(admin.StackedInline):
+    model = models.OccupancyConfig
+    verbose_name = "占用配置"
+    fields = [
+        "proxy_node",
+        "occupancy_price",
+        "occupancy_traffic",
+        "occupancy_user_limit",
+    ]
+
+
 class RelayRuleInline(admin.TabularInline):
     model = models.RelayRule
     verbose_name = "中转规则配置"
@@ -80,8 +91,13 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "sequence",
         "api_endpoint",
     ]
-    inlines = [RelayRuleInline]
-    all_inlines = [TrojanConfigInline, SSConfigInline, RelayRuleInline]
+    inlines = [RelayRuleInline, OccupancyConfigInline]
+    all_inlines = [
+        TrojanConfigInline,
+        SSConfigInline,
+        RelayRuleInline,
+        OccupancyConfigInline,
+    ]
     list_editable = ["sequence"]
     list_filter = ["node_type", "country", "provider_remark"]
     actions = ["reset_port", "clear_traffic_logs", "toggle_enable"]
@@ -208,7 +224,23 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
     total_traffic.short_description = "流量"
 
 
+class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
+    list_display = [
+        "proxy_node",
+        "user",
+        "start_time",
+        "end_time",
+        "traffic_used",
+        "out_of_traffic",
+    ]
+    search_fields = ["user__username"]
+    list_filter = ["proxy_node", "user"]
+    list_per_page = 10
+    show_full_result_count = False
+
+
 # Register your models here.
 admin.site.register(models.ProxyNode, ProxyNodeAdmin)
 admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
+admin.site.register(models.UserProxyNodeOccupancy, UserProxyNodeOccupancyAdmin)
