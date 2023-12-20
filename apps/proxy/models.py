@@ -823,3 +823,34 @@ class UserTrafficLog(BaseLogModel):
     @property
     def total_traffic(self):
         return utils.traffic_format(self.download_traffic + self.upload_traffic)
+
+
+class OccupancyConfig(models.Model):
+    proxy_node = models.OneToOneField(
+        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点"
+    )
+    occupancy_price = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="占用价格"
+    )
+    occupancy_user_limit = models.PositiveIntegerField(verbose_name="占用用户限制")
+    occupancy_minute = models.PositiveIntegerField(verbose_name="占用时长分钟")
+    occupancy_traffic = models.BigIntegerField(default=0, verbose_name="已用流量")
+
+    class Meta:
+        verbose_name = "占用配置"
+        verbose_name_plural = "占用配置"
+
+
+class UserProxyNodeOccupancyRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    proxy_node = models.ForeignKey(
+        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点"
+    )
+    start_time = models.DateTimeField(auto_now_add=True, verbose_name="开始占用时间")
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name="结束占用时间")
+    traffic_used = models.BigIntegerField(default=0, verbose_name="已用流量")
+    occupancy_config_snapshot = models.JSONField(verbose_name="快照", default=dict)
+
+    class Meta:
+        verbose_name = "用户代理节点占用记录"
+        verbose_name_plural = "用户代理节点占用记录"
