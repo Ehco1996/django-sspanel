@@ -297,12 +297,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             raise Exception("not support node type")
 
         configs = proxy_cfg.to_node_config(self)
-        if not self.enable:
-            configs["users"] = []
-        else:
-            configs["users"] = [
-                proxy_cfg.to_user_config(self, user) for user in self.get_node_users()
-            ]
+        configs["users"] = [
+            proxy_cfg.to_user_config(self, user) for user in self.get_node_users()
+        ]
         return configs
 
     def get_ehco_server_config(self):
