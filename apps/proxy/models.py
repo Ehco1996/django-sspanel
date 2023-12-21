@@ -257,7 +257,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def get_user_active_nodes(cls, user):
         # 1. filter by user level
         base_query = cls.get_active_nodes()
-        query = base_query.filter(level__gte=user.level)
+        query = base_query.filter(level__lte=user.level)
         # 2. filter out nodes that has been occupied by other users
         occupied_node_ids = UserProxyNodeOccupancy.get_occupied_node_ids()
         query = query.exclude(id__in=occupied_node_ids)
