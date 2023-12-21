@@ -58,7 +58,7 @@ def sync_user_traffic_task(node_id, data):
         # 记录用户占用节点流量
         if user_id in node_occurred_user_ids:
             UserProxyNodeOccupancy.check_and_incr_traffic(
-                user_id=user_id, node_id=node_id, traffic=d + u
+                user_id=user_id, proxy_node_id=node_id, traffic=d + u
             )
         else:
             # 个人流量增量
