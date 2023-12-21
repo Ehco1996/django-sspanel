@@ -61,7 +61,7 @@ class SubscribeView(View):
             user = User.objects.filter(uid=uid).first()
         if not user:
             return HttpResponseBadRequest("user not found")
-        node_list = m.ProxyNode.get_active_nodes(level=user.level)
+        node_list = m.ProxyNode.get_user_active_nodes(user)
 
         if protocol := request.GET.get("protocol"):
             if protocol in m.ProxyNode.NODE_TYPE_SET:
@@ -86,7 +86,7 @@ class ClashProxyProviderView(View):
             user = User.objects.filter(uid=uid).first()
         if not user:
             return HttpResponseBadRequest("user not found")
-        node_list = m.ProxyNode.get_active_nodes(level=user.level)
+        node_list = m.ProxyNode.get_user_active_nodes(user)
         if len(node_list) == 0:
             return HttpResponseBadRequest("no active nodes for you")
 

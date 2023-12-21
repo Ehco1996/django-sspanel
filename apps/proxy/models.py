@@ -9,7 +9,7 @@ from urllib.parse import quote, urlencode
 
 import pendulum
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 
 from apps import constants as c
 from apps import utils
@@ -146,6 +146,9 @@ class BaseNodeModel(BaseModel):
     name = models.CharField("名字", max_length=32)
     server = models.CharField("服务器地址", help_text="服务器地址", max_length=256)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
+    cost_price = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="每月成本价格", default=0
+    )
 
     class Meta:
         abstract = True
@@ -242,15 +245,26 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return cls.objects.filter(id=id).first()
 
     @classmethod
-    def get_active_nodes(cls, level=None):
+    def get_active_nodes(cls):
         query = cls.objects.filter(enable=True)
-        if level is not None:
-            query = query.filter(level__lte=level)
         return (
             query.select_related("ss_config", "trojan_config")
             .prefetch_related("relay_rules")
             .order_by("sequence")
         )
+
+    @classmethod
+    def get_user_active_nodes(cls, user):
+        # 1. filter by user level
+        base_query = cls.get_active_nodes()
+        query = base_query.filter(level__gte=user.level)
+        # 2. filter out nodes that has been occupied by other users
+        occupied_node_ids = UserProxyNodeOccupancy.get_occupied_node_ids()
+        query = query.exclude(id__in=occupied_node_ids)
+        # 3. add nodes that has been occupied by this user
+        user_occupied_node_ids = UserProxyNodeOccupancy.get_user_occupied_node_ids(user)
+        query = query | base_query.filter(id__in=user_occupied_node_ids)
+        return query
 
     @classmethod
     def calc_total_traffic(cls):
@@ -262,98 +276,31 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def get_by_ip(clc, ip: str):
         return clc.objects.filter(server=ip).first()
 
-    def get_trojan_node_config(self):
-        xray_config = XRayTemplates.gen_base_config(
-            self.xray_grpc_port,
-            self.ehco_log_level,
-        )
-
-        config = self.trojan_config
-        inbound = deepcopy(XRayTemplates.TROJAN_INBOUND)
-        inbound["listen"] = self.get_inbound_listen_host()
-        inbound["port"] = config.multi_user_port
-        inbound["settings"]["fallbacks"][0]["dest"] = config.fallback_addr
-        if self.enable_udp:
-            inbound["settings"]["network"] += ",udp"
-
-        xray_config["inbounds"].append(inbound)
-        configs = {
-            "users": [],
-            "xray_config": xray_config,
-            "sync_traffic_endpoint": self.api_endpoint,
-        }
-        configs.update(self.get_ehco_server_config())
-
-        for user in User.objects.filter(level__gte=self.level).values(
-            "id",
-            "proxy_password",
-            "total_traffic",
-            "upload_traffic",
-            "download_traffic",
-        ):
-            enable = self.enable and user["total_traffic"] > (
-                user["download_traffic"] + user["upload_traffic"]
-            )
-
-            configs["users"].append(
-                {
-                    "user_id": user["id"],
-                    "password": user["proxy_password"],
-                    "enable": enable,
-                    "protocol": self.NODE_TYPE_TROJAN,
-                }
-            )
-        return configs
-
-    def get_ss_node_config(self):
-        xray_config = XRayTemplates.gen_base_config(
-            self.xray_grpc_port,
-            self.ehco_log_level,
-        )
-        ss_config = self.ss_config
-        ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
-        ss_inbound["listen"] = self.get_inbound_listen_host()
-        ss_inbound["port"] = ss_config.multi_user_port
-        if self.enable_udp:
-            ss_inbound["settings"]["network"] += ",udp"
-        xray_config["inbounds"].append(ss_inbound)
-        configs = {
-            "users": [],
-            "xray_config": xray_config,
-            "sync_traffic_endpoint": self.api_endpoint,
-        }
-        configs.update(self.get_ehco_server_config())
-
-        for user in User.objects.filter(level__gte=self.level).values(
-            "id",
-            "proxy_password",
-            "total_traffic",
-            "upload_traffic",
-            "download_traffic",
-        ):
-            enable = self.enable and user["total_traffic"] > (
-                user["download_traffic"] + user["upload_traffic"]
-            )
-            configs["users"].append(
-                {
-                    "user_id": user["id"],
-                    "password": user["proxy_password"],
-                    "enable": enable,
-                    "method": ss_config.method,
-                    "protocol": self.NODE_TYPE_SS,
-                }
-            )
-        return configs
+    def get_node_users(self):
+        # 1. if node is not enable, return empty list
+        if not self.enable:
+            return []
+        # 2. node occupied by users, return users
+        occupancies_query = UserProxyNodeOccupancy.get_node_occupancies(self)
+        if occupancies_query.count() > 0:
+            user_ids = occupancies_query.values("user_id")
+            return User.objects.filter(id__in=user_ids)
+        # 3. shared node filter user that level >= node.level
+        return User.objects.filter(level__gte=self.level)
 
     def get_proxy_configs(self):
-        data = {}
         if self.node_type == self.NODE_TYPE_SS:
-            data = self.get_ss_node_config()
+            proxy_cfg = self.ss_config
         elif self.node_type == self.NODE_TYPE_TROJAN:
-            data = self.get_trojan_node_config()
-        if not self.enable:
-            data["users"] = []
-        return data
+            proxy_cfg = self.trojan_config
+        else:
+            raise Exception("not support node type")
+
+        configs = proxy_cfg.to_node_config(self)
+        configs["users"] = [
+            proxy_cfg.to_user_config(self, user) for user in self.get_node_users()
+        ]
+        return configs
 
     def get_ehco_server_config(self):
         if self.enable_ehco_tunnel:
@@ -504,14 +451,14 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         return name
 
 
-class ResetPortMixin:
+class resetPortMixin:
     def reset_random_multi_user_port(self):
         self.multi_user_port = random.randint(10024, 65535)
         self.save()
         return self.multi_user_port
 
 
-class SSConfig(models.Model, ResetPortMixin):
+class SSConfig(models.Model, resetPortMixin):
     proxy_node = models.OneToOneField(
         to=ProxyNode,
         related_name="ss_config",
@@ -534,8 +481,39 @@ class SSConfig(models.Model, ResetPortMixin):
     def __str__(self) -> str:
         return f"{self.proxy_node.__str__()}-配置"
 
+    def to_node_config(self, node: ProxyNode):
+        xray_config = XRayTemplates.gen_base_config(
+            node.xray_grpc_port,
+            node.ehco_log_level,
+        )
+        ss_config = self
+        ss_inbound = deepcopy(XRayTemplates.SS_INBOUND)
+        ss_inbound["listen"] = node.get_inbound_listen_host()
+        ss_inbound["port"] = ss_config.multi_user_port
+        if node.enable_udp:
+            ss_inbound["settings"]["network"] += ",udp"
+        xray_config["inbounds"].append(ss_inbound)
+        configs = {
+            "xray_config": xray_config,
+            "sync_traffic_endpoint": node.api_endpoint,
+        }
+        configs.update(node.get_ehco_server_config())
+        return configs
 
-class TrojanConfig(models.Model, ResetPortMixin):
+    def to_user_config(self, node: ProxyNode, user: User):
+        enable = node.enable and user.total_traffic > (
+            user.download_traffic + user.upload_traffic
+        )
+        return {
+            "user_id": user.id,
+            "password": user.proxy_password,
+            "enable": enable,
+            "method": self.method,
+            "protocol": ProxyNode.NODE_TYPE_SS,
+        }
+
+
+class TrojanConfig(models.Model, resetPortMixin):
     proxy_node = models.OneToOneField(
         to=ProxyNode,
         related_name="trojan_config",
@@ -555,6 +533,37 @@ class TrojanConfig(models.Model, ResetPortMixin):
 
     def __str__(self) -> str:
         return f"{self.proxy_node.__str__()}-配置"
+
+    def to_node_config(self, node: ProxyNode):
+        xray_config = XRayTemplates.gen_base_config(
+            node.xray_grpc_port,
+            node.ehco_log_level,
+        )
+        inbound = deepcopy(XRayTemplates.TROJAN_INBOUND)
+        inbound["listen"] = node.get_inbound_listen_host()
+        inbound["port"] = self.multi_user_port
+        inbound["settings"]["fallbacks"][0]["dest"] = self.fallback_addr
+        if node.enable_udp:
+            inbound["settings"]["network"] += ",udp"
+        xray_config["inbounds"].append(inbound)
+        configs = {
+            "users": [],
+            "xray_config": xray_config,
+            "sync_traffic_endpoint": node.api_endpoint,
+        }
+        configs.update(node.get_ehco_server_config())
+        return configs
+
+    def to_user_config(self, node: ProxyNode, user: User):
+        enable = node.enable and user.total_traffic > (
+            user.download_traffic + user.upload_traffic
+        )
+        return {
+            "user_id": user.id,
+            "password": user.proxy_password,
+            "enable": enable,
+            "protocol": ProxyNode.NODE_TYPE_TROJAN,
+        }
 
 
 class RelayNode(BaseNodeModel):
@@ -613,11 +622,11 @@ class RelayNode(BaseNodeModel):
                 }
             )
         # merge if rule has same port
-        portM = defaultdict(list)
+        port_map = defaultdict(list)
         for rule in data:
-            portM[rule["listen"]].append(rule)
+            port_map[rule["listen"]].append(rule)
         data = []
-        for port, rules in portM.items():
+        for port, rules in port_map.items():
             if len(rules) == 1:
                 data.append(rules[0])
             else:
@@ -823,3 +832,128 @@ class UserTrafficLog(BaseLogModel):
     @property
     def total_traffic(self):
         return utils.traffic_format(self.download_traffic + self.upload_traffic)
+
+
+class OccupancyConfig(BaseModel):
+    proxy_node = models.OneToOneField(
+        ProxyNode,
+        on_delete=models.CASCADE,
+        verbose_name="代理节点",
+        db_index=True,
+        related_name="occupancy_config",
+    )
+    occupancy_price = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="价格"
+    )
+    occupancy_traffic = models.BigIntegerField(default=0, verbose_name="流量")
+    occupancy_user_limit = models.PositiveIntegerField(verbose_name="用户数", default=0)
+
+    class Meta:
+        verbose_name = "占用配置"
+        verbose_name_plural = "占用配置"
+
+    def __str__(self) -> str:
+        return f"占用配置:{self.id}"
+
+    @classmethod
+    def get_by_proxy_node(cls, node: ProxyNode):
+        return cls.objects.filter(proxy_node=node).first()
+
+    def to_snapshot(self):
+        return {
+            "proxy_node_id": self.proxy_node.id,
+            "occupancy_price": self.occupancy_price,
+            "occupancy_traffic": self.occupancy_traffic,
+            "occupancy_user_limit": self.occupancy_user_limit,
+        }
+
+
+class UserProxyNodeOccupancy(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    proxy_node = models.ForeignKey(
+        ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点"
+    )
+    start_time = models.DateTimeField(auto_now_add=True, verbose_name="开始占用时间")
+    end_time = models.DateTimeField(null=False, blank=False, verbose_name="结束占用时间")
+    traffic_used = models.BigIntegerField(default=0, verbose_name="已用流量")
+    out_of_traffic = models.BooleanField(default=False, verbose_name="流量溢出")
+    occupancy_config_snapshot = models.JSONField(verbose_name="快照", default=dict)
+
+    class Meta:
+        verbose_name = "占用记录"
+        verbose_name_plural = "占用记录"
+        index_together = (
+            ["out_of_traffic", "end_time"],
+            ["out_of_traffic", "user", "end_time"],
+            ["out_of_traffic", "proxy_node", "end_time"],
+        )
+
+    def __str__(self) -> str:
+        return f"用户占用配置:{self.id}"
+
+    @classmethod
+    @transaction.atomic
+    def create_by_occupancy_config(
+        cls, user: User, proxy_node: ProxyNode, occupancy_config: OccupancyConfig
+    ):
+        # check user limit first
+        if occupancy_config.occupancy_user_limit <= 0:
+            raise Exception("not allow to create occupancy record with user limit 0")
+        if occupancy_config.occupancy_user_limit > 0:
+            if (
+                cls.objects.filter(
+                    proxy_node=proxy_node,
+                    end_time__gte=utils.get_current_datetime(),
+                ).count()
+                >= occupancy_config.occupancy_user_limit
+            ):
+                raise Exception("occupancy user limit exceed")
+        return cls.objects.create(
+            user=user,
+            proxy_node=proxy_node,
+            start_time=utils.get_current_datetime(),
+            end_time=utils.get_current_datetime().add(days=30),
+            traffic_used=occupancy_config.occupancy_traffic,
+            occupancy_config_snapshot=occupancy_config.to_snapshot(),
+        )
+
+    @classmethod
+    def get_node_occupancy_user_ids(cls, node: ProxyNode):
+        return cls.objects.filter(
+            out_of_traffic=False,
+            proxy_node=node,
+            end_time__gte=utils.get_current_datetime(),
+        ).values("user_id")
+
+    @classmethod
+    def get_occupied_node_ids(cls):
+        occupied_node_ids = cls.objects.filter(
+            out_of_traffic=False,
+            end_time__gte=utils.get_current_datetime(),
+        ).values("proxy_node_id")
+        return occupied_node_ids
+
+    @classmethod
+    def get_user_occupied_node_ids(cls, user: User):
+        user_occupied_node_ids = cls.objects.filter(
+            out_of_traffic=False,
+            user=user,
+            end_time__gte=utils.get_current_datetime(),
+        ).values("proxy_node_id")
+        return user_occupied_node_ids
+
+    @classmethod
+    def get_node_occupancies(cls, node: ProxyNode):
+        return UserProxyNodeOccupancy.objects.filter(
+            out_of_traffic=False,
+            proxy_node=node,
+            end_time__gte=utils.get_current_datetime(),
+        )
+
+    @classmethod
+    def check_and_incr_traffic(cls, user_id, proxy_node_id, traffic):
+        r = cls.objects.get(user__id=user_id, proxy_node__id=proxy_node_id)
+        r.traffic_used += traffic
+        if r.traffic_used > r.occupancy_config_snapshot["occupancy_traffic"]:
+            r.out_of_traffic = True
+        r.save()

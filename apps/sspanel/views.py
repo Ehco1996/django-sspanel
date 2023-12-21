@@ -200,7 +200,7 @@ class UserInfoView(LoginRequiredMixin, View):
         anno = Announcement.objects.first()
         min_traffic = traffic_format(settings.MIN_CHECKIN_TRAFFIC)
         max_traffic = traffic_format(settings.MAX_CHECKIN_TRAFFIC)
-        user_active_nodes = ProxyNode.get_active_nodes(user.level)
+        user_active_nodes = ProxyNode.get_user_active_nodes(user)
         user_active_nodes_types = {node.node_type for node in user_active_nodes}
         if len(user_active_nodes_types) > 1:
             user_active_nodes_types.add("all")
