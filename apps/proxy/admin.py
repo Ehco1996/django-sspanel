@@ -1,10 +1,9 @@
-from django.conf import settings
 from django.contrib import admin, messages
-from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
 from apps.proxy import models
 from apps.sspanel.models import User
+from apps.utils import traffic_format
 
 
 class SSConfigInline(admin.StackedInline):
@@ -33,6 +32,16 @@ class OccupancyConfigInline(admin.StackedInline):
         "occupancy_user_limit",
     ]
 
+    def get_formset(self, request, obj=None, **kwargs):
+        if obj:
+            traffic = traffic_format(obj.occupancy_config.occupancy_traffic)
+            help_texts = {
+                "occupancy_traffic": f"={traffic}",
+            }
+            print("obj", obj, kwargs)
+            kwargs.update({"help_texts": help_texts})
+        return super().get_formset(request, obj, **kwargs)
+
 
 class RelayRuleInline(admin.TabularInline):
     model = models.RelayRule
@@ -48,37 +57,7 @@ class RelayRuleInline(admin.TabularInline):
     ]
 
 
-class ProxyNodeAdminForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        if "instance" in kwargs and kwargs["instance"]:
-            # NOTE trans model traffic to GB
-            kwargs["instance"].total_traffic = (
-                kwargs["instance"].total_traffic // settings.GB
-            )
-            kwargs["instance"].used_traffic = (
-                kwargs["instance"].used_traffic // settings.GB
-            )
-
-        super(ProxyNodeAdminForm, self).__init__(*args, **kwargs)
-        self.fields["used_traffic"].help_text = (
-            self.fields["used_traffic"].help_text + "单位GB"
-        )
-        self.fields["total_traffic"].help_text = (
-            self.fields["total_traffic"].help_text + "单位GB"
-        )
-
-    def clean_used_traffic(self):
-        used_traffic = self.cleaned_data.get("used_traffic")
-        return used_traffic * settings.GB
-
-    def clean_total_traffic(self):
-        total_traffic = self.cleaned_data.get("total_traffic")
-        return total_traffic * settings.GB
-
-
 class ProxyNodeAdmin(admin.ModelAdmin):
-    form = ProxyNodeAdminForm
-
     list_display = [
         "__str__",
         "link_addr",
@@ -101,6 +80,15 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     list_editable = ["sequence"]
     list_filter = ["node_type", "country", "provider_remark"]
     actions = ["reset_port", "clear_traffic_logs", "toggle_enable"]
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            help_texts = {
+                "total_traffic": f"={obj.human_total_traffic}",
+                "used_traffic": f"={obj.human_used_traffic}",
+            }
+            kwargs.update({"help_texts": help_texts})
+        return super().get_form(request, obj, **kwargs)
 
     def get_inlines(self, request, instance):
         if not instance:

@@ -147,7 +147,7 @@ class BaseNodeModel(BaseModel):
     server = models.CharField("服务器地址", help_text="服务器地址", max_length=256)
     enable = models.BooleanField("是否开启", default=True, db_index=True)
     cost_price = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="每月成本价格", default=0
+        max_digits=10, decimal_places=2, verbose_name="成本", default=0
     )
 
     class Meta:
@@ -190,8 +190,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     country = models.CharField(
         "国家", default="CN", max_length=5, choices=c.COUNTRIES_CHOICES
     )
-    used_traffic = models.BigIntegerField("已用流量", default=0)
-    total_traffic = models.BigIntegerField("总流量", default=settings.GB)
+    used_traffic = models.BigIntegerField("已用流量(单位字节)", default=0)
+    total_traffic = models.BigIntegerField("总流量(单位字节)", default=settings.GB)
     enlarge_scale = models.DecimalField(
         "倍率",
         default=Decimal("1.0"),
@@ -845,7 +845,7 @@ class OccupancyConfig(BaseModel):
     occupancy_price = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name="价格"
     )
-    occupancy_traffic = models.BigIntegerField(default=0, verbose_name="流量")
+    occupancy_traffic = models.BigIntegerField(default=0, verbose_name="流量(单位字节)")
     occupancy_user_limit = models.PositiveIntegerField(verbose_name="用户数", default=0)
 
     class Meta:
@@ -875,7 +875,7 @@ class UserProxyNodeOccupancy(BaseModel):
     )
     start_time = models.DateTimeField(auto_now_add=True, verbose_name="开始占用时间")
     end_time = models.DateTimeField(null=False, blank=False, verbose_name="结束占用时间")
-    traffic_used = models.BigIntegerField(default=0, verbose_name="已用流量")
+    traffic_used = models.BigIntegerField(default=0, verbose_name="流量(单位字节)")
     out_of_traffic = models.BooleanField(default=False, verbose_name="流量溢出")
     occupancy_config_snapshot = models.JSONField(verbose_name="快照", default=dict)
 
