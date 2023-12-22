@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block main %}
+
+<div class="column is-12">
+    <section class="hero is-warning is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    独享节点
+                </h1>
+                <h2 class="subtitle">
+                    受够了和别人共享节点?来买一个独享节点吧 :)
+                </h2>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="column is-12">
+    <nav class="level box">
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">用户名:</p>
+                <p class="title">{{ user }}</p>
+            </div>
+        </div>
+        <div class="level-item has-text-centered">
+            <div>
+                <p class="heading">余额：</p>
+                <p class="title">{{ user.balance }}</p>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <div class="box">
+        <h4 class="title is-4">可购买</h4>
+        <div class="pricing-table">
+            {% for node in purchasable_proxy_nodes %}
+            <div class="pricing-plan {{ node.occupancy_config.color }} {{ node.occupancy_config.bulma_is_active}} ">
+                <div class="plan-header">{{ node.name }}</div>
+                <div class="plan-price"><span class="plan-price-amount">
+                        <span class="plan-price-currency">￥</span>{{node.occupancy_config.occupancy_price}}</span>/月
+                </div>
+                <div class="plan-items">
+                    <div class="plan-item">类型：
+                        <span class="tag {{ node.occupancy_config.color }}">{{ node.node_type }}</span>
+                    </div>
+                    <div class="plan-item">地区：{{ node.country }}
+                        <span class="icon">
+                            <i class="flag-icon flag-icon-{{ node.country | lower }}"></i>
+                        </span>
+                    </div>
+                    <div class="plan-item">月流量：{{ node.occupancy_config.human_occupancy_traffic }}</div>
+                    <div class="plan-item">备注：{{ node.occupancy_config.remark }}</div>
+                </div>
+                <form method="post" action="{% url 'sspanel:node_occupancy' %}" onsubmit="return confirm('是否购买？')">
+                    {% csrf_token %}
+                    <div class="plan-footer">
+                        <button class="button is-fullwidth" type="submit">购买</button>
+                    </div>
+                    <input type="hidden" name="node_id" value="{{ node.pk }}">
+                </form>
+            </div>
+            {% empty %}
+            <p class="subtitle">被富哥买完啦,请发工单联系站长补货...</p>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    <div class="box">
+        <h4 class="title is-4">已购买</h4>
+        <table class="table is-striped is-fullwidth">
+            <thead>
+                <tr>
+                    <th>节点</th>
+                    <th>开始时间</th>
+                    <th>到期时间</th>
+                    <th>已用流量</th>
+                    <th>总流量</th>
+                    <th>进度</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in occupies %}
+                <tr>
+                    <td>{{ o.proxy_node.name }}</td>
+                    <td>{{ o.start_time }}</td>
+                    <td>{{ o.end_time }}</td>
+                    <td>{{ o.human_used_traffic }}</td>
+                    <td>{{ o.human_total_traffic }}</td>
+                    <td>
+                        <progress class="progress {{ o.progress_color }}" value="{{ o.used_traffic }}"
+                            max="{{ o.total_traffic }}"></progress>{{ o.used_percentage }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock main %}

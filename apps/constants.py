@@ -52,6 +52,23 @@ THEME_CHOICES = (
     ("superhero", "superhero"),
 )
 
+BULMA_COLOR_EMPTY = ""
+BULMA_COLOR_PRIMARY = "is-primary"
+BULMA_COLOR_LINK = "is-link"
+BULMA_COLOR_INFO = "is-info"
+BULMA_COLOR_DANGER = "is-danger"
+BULMA_COLOR_WARNING = "is-warning"
+BULMA_COLOR_SUCCESS = "is-success"
+BULMA_COLOR_CHOICES = (
+    (BULMA_COLOR_EMPTY, "empty"),
+    (BULMA_COLOR_INFO, "is-info"),
+    (BULMA_COLOR_LINK, "is-link"),
+    (BULMA_COLOR_PRIMARY, "is-primary"),
+    (BULMA_COLOR_DANGER, "is-danger"),
+    (BULMA_COLOR_WARNING, "is-warning"),
+    (BULMA_COLOR_SUCCESS, "is-success"),
+)
+
 
 # 判断节点在线时间间隔
 NODE_TIME_OUT = 75

@@ -14,7 +14,7 @@ from django_telegram_login.errors import (
 )
 
 from apps.constants import THEME_CHOICES
-from apps.proxy.models import ProxyNode
+from apps.proxy.models import OccupancyConfig, ProxyNode, UserProxyNodeOccupancy
 from apps.sspanel.forms import LoginForm, RegisterForm, TGLoginForm
 from apps.sspanel.models import (
     Announcement,
@@ -344,3 +344,32 @@ class TicketDeleteView(LoginRequiredMixin, View):
         else:
             messages.error(request, "该工单不存在", extra_tags="删除失败")
         return HttpResponseRedirect(reverse("sspanel:tickets"))
+
+
+class ProxyNodeOccupancyView(LoginRequiredMixin, View):
+    def get(self, request):
+        purchasable_proxy_nodes = OccupancyConfig.get_purchasable_proxy_nodes(
+            request.user
+        )
+        occupies = UserProxyNodeOccupancy.get_user_occupancies(request.user)
+        context = {
+            "user": request.user,
+            "purchasable_proxy_nodes": purchasable_proxy_nodes,
+            "occupies": occupies,
+        }
+        return render(request, "web/node_occupancy.html", context=context)
+
+    def post(self, request):
+        node_id = request.POST.get("node_id")
+        node = ProxyNode.get_by_id(node_id)
+        if not node:
+            messages.error(request, "节点不存在", extra_tags="购买失败")
+            return HttpResponseRedirect(reverse("sspanel:node_occupancy"))
+        try:
+            UserProxyNodeOccupancy.create_occupancy(user=request.user, node=node)
+        except Exception as e:
+            messages.error(request, str(e), extra_tags="购买失败")
+            return HttpResponseRedirect(reverse("sspanel:node_occupancy"))
+        else:
+            messages.success(request, "更新订阅后使用", extra_tags=f"{node.name} 购买成功!")
+            return HttpResponseRedirect(reverse("sspanel:node_occupancy"))

@@ -22,6 +22,10 @@ urlpatterns = [
     # 捐赠/充值
     path("shop/", views.ShopView.as_view(), name="shop"),
     path("chargecenter/", views.ChargeView.as_view(), name="chargecenter"),
+    # 独享节点
+    path(
+        "node_occupancy/", views.ProxyNodeOccupancyView.as_view(), name="node_occupancy"
+    ),
     # 公告
     path("announcement/", views.AnnouncementView.as_view(), name="announcement"),
     # 工单

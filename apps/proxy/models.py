@@ -3,6 +3,7 @@ import json
 import random
 from collections import defaultdict
 from copy import deepcopy
+from datetime import timedelta
 from decimal import Decimal
 from functools import cached_property
 from urllib.parse import quote, urlencode
@@ -836,6 +837,12 @@ class UserTrafficLog(BaseLogModel):
 
 
 class OccupancyConfig(BaseModel):
+    STATUS_ACTIVE = "active"
+    STATUS_NORMAL = "normal"
+    STATUS_CHOICES = (
+        (STATUS_ACTIVE, "active"),
+        (STATUS_NORMAL, "normal"),
+    )
     proxy_node = models.OneToOneField(
         ProxyNode,
         on_delete=models.CASCADE,
@@ -848,6 +855,17 @@ class OccupancyConfig(BaseModel):
     )
     occupancy_traffic = models.BigIntegerField(default=0, verbose_name="流量(单位字节)")
     occupancy_user_limit = models.PositiveIntegerField(verbose_name="用户数", default=0)
+    color = models.CharField(
+        choices=c.BULMA_COLOR_CHOICES,
+        max_length=32,
+        default=c.BULMA_COLOR_EMPTY,
+        blank=True,
+        verbose_name="颜色",
+    )
+    status = models.CharField(
+        "状态", max_length=32, choices=STATUS_CHOICES, default=STATUS_NORMAL
+    )
+    remark = models.CharField("备注", max_length=64, blank=True, default="")
 
     class Meta:
         verbose_name = "占用配置"
@@ -857,16 +875,47 @@ class OccupancyConfig(BaseModel):
         return f"占用配置:{self.id}"
 
     @classmethod
-    def get_by_proxy_node(cls, node: ProxyNode):
-        return cls.objects.filter(proxy_node=node).first()
+    def get_purchasable_proxy_nodes(cls, user: User):
+        # 1. get all proxy nodes that have occupancy config
+        query = cls.objects.filter(occupancy_user_limit__gt=0)
+        # 2. filter out nodes that has been occupied by other users
+        occupied_node_ids = UserProxyNodeOccupancy.get_occupied_node_ids()
+        not_occupied_node_ids = query.exclude(
+            proxy_node_id__in=occupied_node_ids
+        ).values("proxy_node_id")
+        # 3. add nodes that has been occupied by user but not exceed limit
+        not_reach_limit_node_ids = []
+        for node_query in occupied_node_ids:
+            node_id = node_query["proxy_node_id"]
+            cfg = cls.objects.get(proxy_node_id=node_id)
+            if not cfg.reach_limit(user):
+                not_reach_limit_node_ids.append(node_id)
+        return ProxyNode.objects.filter(id__in=not_occupied_node_ids).select_related(
+            "occupancy_config"
+        ) | ProxyNode.objects.filter(id__in=not_reach_limit_node_ids).select_related(
+            "occupancy_config"
+        )
 
-    def to_snapshot(self):
-        return {
-            "proxy_node_id": self.proxy_node.id,
-            "occupancy_price": self.occupancy_price,
-            "occupancy_traffic": self.occupancy_traffic,
-            "occupancy_user_limit": self.occupancy_user_limit,
-        }
+    def reach_limit(self, user: User):
+        node = self.proxy_node
+        # 1. check if node has been occupied by user, if yes, return False because user can occupy same node multiple times
+        node_user_ids = [
+            i["user_id"]
+            for i in UserProxyNodeOccupancy.get_node_occupancy_user_ids(node)
+        ]
+        if user.id in node_user_ids:
+            return False
+        else:
+            return len(node_user_ids) >= self.occupancy_user_limit
+
+    @property
+    def human_occupancy_traffic(self):
+        return utils.traffic_format(self.occupancy_traffic)
+
+    @property
+    def bulma_is_active(self):
+        if self.status == self.STATUS_ACTIVE:
+            return "is-active"
 
 
 class UserProxyNodeOccupancy(BaseModel):
@@ -899,15 +948,14 @@ class UserProxyNodeOccupancy(BaseModel):
 
     @classmethod
     @transaction.atomic
-    def create_occupancy(
-        cls, user: User, proxy_node: ProxyNode, occupancy_config: OccupancyConfig
-    ):
+    def create_occupancy(cls, user: User, node: ProxyNode):
+        occupancy_config = node.occupancy_config
         # check user limit first
         if occupancy_config.occupancy_user_limit <= 0:
             raise Exception("not allow to create occupancy record with user limit 0")
         if occupancy_config.occupancy_user_limit > 0:
             if (
-                cls.get_node_occupancies(proxy_node).count()
+                cls.get_node_occupancies(node).count()
                 >= occupancy_config.occupancy_user_limit
             ):
                 raise Exception("occupancy user limit exceed")
@@ -916,8 +964,10 @@ class UserProxyNodeOccupancy(BaseModel):
         if user.balance < occupancy_config.occupancy_price:
             raise Exception("user balance not enough")
 
+        user.balance -= occupancy_config.occupancy_price
+        user.save()
         # check if user already occupied this node
-        o = cls.objects.filter(user=user, proxy_node=proxy_node).first()
+        o = cls.objects.filter(user=user, proxy_node=node).first()
         if o:
             if o.out_of_usage():
                 # reset traffic and time when out of usage
@@ -928,13 +978,13 @@ class UserProxyNodeOccupancy(BaseModel):
                 o.save()
             else:
                 # incr traffic and time
-                o.end_time = o.end_time.add(days=30)
+                o.end_time = o.end_time + timedelta(days=30)
                 o.total_traffic += occupancy_config.occupancy_traffic
                 o.save()
         else:
             return cls.objects.create(
                 user=user,
-                proxy_node=proxy_node,
+                proxy_node=node,
                 start_time=utils.get_current_datetime(),
                 end_time=utils.get_current_datetime().add(days=30),
                 total_traffic=occupancy_config.occupancy_traffic,
@@ -963,6 +1013,33 @@ class UserProxyNodeOccupancy(BaseModel):
         r = cls.objects.get(user__id=user_id, proxy_node__id=proxy_node_id)
         r.used_traffic += traffic
         r.save()
+
+    @classmethod
+    def get_user_occupancies(cls, user: User):
+        return cls._valid_occupancy_query().filter(user=user)
+
+    def human_total_traffic(self):
+        return utils.traffic_format(self.total_traffic)
+
+    def human_used_traffic(self):
+        return utils.traffic_format(self.used_traffic)
+
+    def used_percentage(self):
+        return round(self.used_traffic / self.total_traffic, 2) * 100
+
+    @property
+    def progress_color(self):
+        percentage = self.used_percentage()
+        if percentage < 20:
+            return c.BULMA_COLOR_SUCCESS
+        elif percentage < 40:
+            return c.BULMA_COLOR_INFO
+        elif percentage < 60:
+            return c.BULMA_COLOR_LINK
+        elif percentage < 80:
+            return c.BULMA_COLOR_WARNING
+        else:
+            return c.BULMA_COLOR_DANGER
 
     def out_of_usage(self):
         return (

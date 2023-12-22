@@ -30,6 +30,9 @@ class OccupancyConfigInline(admin.StackedInline):
         "occupancy_price",
         "occupancy_traffic",
         "occupancy_user_limit",
+        "color",
+        "status",
+        "remark",
     ]
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -235,6 +238,15 @@ class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
     @admin.display(description="是否超出")
     def out_of_usage(self, instance):
         return instance.out_of_usage()
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            help_texts = {
+                "total_traffic": f"={traffic_format(obj.total_traffic)}",
+                "used_traffic": f"={traffic_format(obj.used_traffic)}",
+            }
+            kwargs.update({"help_texts": help_texts})
+        return super().get_form(request, obj, **kwargs)
 
 
 # Register your models here.
