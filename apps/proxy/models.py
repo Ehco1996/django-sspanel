@@ -261,12 +261,20 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         base_query = cls.get_active_nodes()
         query = base_query.filter(level__lte=user.level)
         # 2. filter out nodes that has been occupied by other users
-        occupied_node_ids = UserProxyNodeOccupancy.get_occupied_node_ids()
-        query = query.exclude(id__in=occupied_node_ids)
+        occupied_node_ids = [
+            i["proxy_node_id"] for i in UserProxyNodeOccupancy.get_occupied_node_ids()
+        ]
+        not_occupied_node_ids = [
+            i["id"] for i in query.exclude(id__in=occupied_node_ids).values("id")
+        ]
         # 3. add nodes that has been occupied by this user
-        user_occupied_node_ids = UserProxyNodeOccupancy.get_user_occupied_node_ids(user)
-        query = query | base_query.filter(id__in=user_occupied_node_ids)
-        return query
+        user_occupied_node_ids = [
+            i["proxy_node_id"]
+            for i in UserProxyNodeOccupancy.get_user_occupied_node_ids(user)
+        ]
+        return cls.objects.filter(id__in=not_occupied_node_ids) | cls.objects.filter(
+            id__in=user_occupied_node_ids
+        )
 
     @classmethod
     def calc_total_traffic(cls):
@@ -1016,7 +1024,8 @@ class UserProxyNodeOccupancy(BaseModel):
 
     @classmethod
     def get_user_occupancies(cls, user: User):
-        return cls._valid_occupancy_query().filter(user=user)
+        # no mater out of usage or not, return all occupancies
+        return cls.objects.filter(user=user)
 
     def human_total_traffic(self):
         return utils.traffic_format(self.total_traffic)

@@ -82,6 +82,7 @@
                     <th>已用流量</th>
                     <th>总流量</th>
                     <th>进度</th>
+                    <th>状态</th>
                 </tr>
             </thead>
             <tbody>
@@ -95,6 +96,13 @@
                     <td>
                         <progress class="progress {{ o.progress_color }}" value="{{ o.used_traffic }}"
                             max="{{ o.total_traffic }}"></progress>{{ o.used_percentage }}%
+                    </td>
+                    <td>
+                        {% if o.out_of_usage %}
+                        失效
+                        {% else %}
+                        正常
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
