@@ -10,6 +10,7 @@ from urllib.parse import quote, urlencode
 import pendulum
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import F
 
 from apps import constants as c
 from apps import utils
@@ -875,25 +876,30 @@ class UserProxyNodeOccupancy(BaseModel):
     )
     start_time = models.DateTimeField(auto_now_add=True, verbose_name="开始占用时间")
     end_time = models.DateTimeField(null=False, blank=False, verbose_name="结束占用时间")
-    traffic_used = models.BigIntegerField(default=0, verbose_name="流量(单位字节)")
-    out_of_traffic = models.BooleanField(default=False, verbose_name="流量溢出")
-    occupancy_config_snapshot = models.JSONField(verbose_name="快照", default=dict)
+    used_traffic = models.BigIntegerField("已用流量(单位字节)", default=0)
+    total_traffic = models.BigIntegerField("总流量(单位字节)", default=settings.GB)
 
     class Meta:
         verbose_name = "占用记录"
         verbose_name_plural = "占用记录"
-        index_together = (
-            ["out_of_traffic", "end_time"],
-            ["out_of_traffic", "user", "end_time"],
-            ["out_of_traffic", "proxy_node", "end_time"],
-        )
+        indexes = [
+            models.Index(fields=["end_time"]),
+            models.Index(fields=["user", "end_time"]),
+            models.Index(fields=["proxy_node", "end_time"]),
+        ]
 
     def __str__(self) -> str:
         return f"用户占用配置:{self.id}"
 
     @classmethod
+    def _valid_occupancy_query(cls):
+        return cls.objects.filter(end_time__gt=utils.get_current_datetime()).filter(
+            used_traffic__lt=F("total_traffic")
+        )
+
+    @classmethod
     @transaction.atomic
-    def create_by_occupancy_config(
+    def create_occupancy(
         cls, user: User, proxy_node: ProxyNode, occupancy_config: OccupancyConfig
     ):
         # check user limit first
@@ -901,59 +907,65 @@ class UserProxyNodeOccupancy(BaseModel):
             raise Exception("not allow to create occupancy record with user limit 0")
         if occupancy_config.occupancy_user_limit > 0:
             if (
-                cls.objects.filter(
-                    proxy_node=proxy_node,
-                    end_time__gte=utils.get_current_datetime(),
-                ).count()
+                cls.get_node_occupancies(proxy_node).count()
                 >= occupancy_config.occupancy_user_limit
             ):
                 raise Exception("occupancy user limit exceed")
-        return cls.objects.create(
-            user=user,
-            proxy_node=proxy_node,
-            start_time=utils.get_current_datetime(),
-            end_time=utils.get_current_datetime().add(days=30),
-            traffic_used=occupancy_config.occupancy_traffic,
-            occupancy_config_snapshot=occupancy_config.to_snapshot(),
-        )
 
-    @classmethod
-    def get_node_occupancy_user_ids(cls, node: ProxyNode):
-        return cls.objects.filter(
-            out_of_traffic=False,
-            proxy_node=node,
-            end_time__gte=utils.get_current_datetime(),
-        ).values("user_id")
+        # check user balance
+        if user.balance < occupancy_config.occupancy_price:
+            raise Exception("user balance not enough")
+
+        # check if user already occupied this node
+        o = cls.objects.filter(user=user, proxy_node=proxy_node).first()
+        if o:
+            if o.out_of_usage():
+                # reset traffic and time when out of usage
+                o.end_time = utils.get_current_datetime().add(days=30)
+                o.start_time = utils.get_current_datetime()
+                o.used_traffic = 0
+                o.total_traffic = occupancy_config.occupancy_traffic
+                o.save()
+            else:
+                # incr traffic and time
+                o.end_time = o.end_time.add(days=30)
+                o.total_traffic += occupancy_config.occupancy_traffic
+                o.save()
+        else:
+            return cls.objects.create(
+                user=user,
+                proxy_node=proxy_node,
+                start_time=utils.get_current_datetime(),
+                end_time=utils.get_current_datetime().add(days=30),
+                total_traffic=occupancy_config.occupancy_traffic,
+            )
 
     @classmethod
     def get_occupied_node_ids(cls):
-        occupied_node_ids = cls.objects.filter(
-            out_of_traffic=False,
-            end_time__gte=utils.get_current_datetime(),
-        ).values("proxy_node_id")
+        occupied_node_ids = cls._valid_occupancy_query().values("proxy_node_id")
         return occupied_node_ids
 
     @classmethod
+    def get_node_occupancy_user_ids(cls, node: ProxyNode):
+        return cls._valid_occupancy_query().filter(proxy_node=node).values("user_id")
+
+    @classmethod
+    @classmethod
     def get_user_occupied_node_ids(cls, user: User):
-        user_occupied_node_ids = cls.objects.filter(
-            out_of_traffic=False,
-            user=user,
-            end_time__gte=utils.get_current_datetime(),
-        ).values("proxy_node_id")
-        return user_occupied_node_ids
+        return cls._valid_occupancy_query().filter(user=user).values("proxy_node_id")
 
     @classmethod
     def get_node_occupancies(cls, node: ProxyNode):
-        return UserProxyNodeOccupancy.objects.filter(
-            out_of_traffic=False,
-            proxy_node=node,
-            end_time__gte=utils.get_current_datetime(),
-        )
+        return cls._valid_occupancy_query().filter(proxy_node=node)
 
     @classmethod
     def check_and_incr_traffic(cls, user_id, proxy_node_id, traffic):
         r = cls.objects.get(user__id=user_id, proxy_node__id=proxy_node_id)
-        r.traffic_used += traffic
-        if r.traffic_used > r.occupancy_config_snapshot["occupancy_traffic"]:
-            r.out_of_traffic = True
+        r.used_traffic += traffic
         r.save()
+
+    def out_of_usage(self):
+        return (
+            self.used_traffic >= self.total_traffic
+            or self.end_time < utils.get_current_datetime()
+        )

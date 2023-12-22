@@ -34,12 +34,14 @@ class OccupancyConfigInline(admin.StackedInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         if obj:
-            traffic = traffic_format(obj.occupancy_config.occupancy_traffic)
-            help_texts = {
-                "occupancy_traffic": f"={traffic}",
-            }
-            print("obj", obj, kwargs)
-            kwargs.update({"help_texts": help_texts})
+            try:
+                traffic = traffic_format(obj.occupancy_config.occupancy_traffic)
+                help_texts = {
+                    "occupancy_traffic": f"={traffic}",
+                }
+                kwargs.update({"help_texts": help_texts})
+            except models.OccupancyConfig.DoesNotExist:
+                pass
         return super().get_formset(request, obj, **kwargs)
 
 
@@ -218,13 +220,21 @@ class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
         "user",
         "start_time",
         "end_time",
-        "traffic_used",
-        "out_of_traffic",
+        "traffic_info",
+        "out_of_usage",
     ]
     search_fields = ["user__username"]
     list_filter = ["proxy_node", "user"]
     list_per_page = 10
     show_full_result_count = False
+
+    @admin.display(description="已用/总流量")
+    def traffic_info(self, instance):
+        return f"{traffic_format(instance.used_traffic)}/{traffic_format(instance.total_traffic)}"
+
+    @admin.display(description="是否超出")
+    def out_of_usage(self, instance):
+        return instance.out_of_usage()
 
 
 # Register your models here.
