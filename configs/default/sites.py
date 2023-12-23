@@ -20,6 +20,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "aasdasdas")
 # 是否开启注册
 ALLOW_REGISTER = bool(os.getenv("ALLOW_REGISTER", True))
 
+HIDE_FOOTER = bool(os.getenv("HIDE_FOOTER", False))
+
 # 默认的theme 可选列表在 apps/constants.py 里的THEME_CHOICES里
 DEFAULT_THEME = os.getenv("DEFAULT_THEME", "default")
 

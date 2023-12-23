@@ -65,6 +65,7 @@
                     <a class="navbar-item" href="{% url 'sspanel:user_traffic_log' %}">使用记录</a>
                     <a class="navbar-item is-active">交易购买</a>
                     <a class="navbar-item" href="{% url 'sspanel:chargecenter' %}">捐赠充值</a>
+                    <a class="navbar-item" href="{% url 'sspanel:node_occupancy' %}">独享节点</a>
                     <a class="navbar-item" href="{% url 'sspanel:shop' %}">商品中心</a>
                     <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
                     <a class="navbar-item is-active">公告交流</a>
@@ -115,6 +116,16 @@
                             </p>
                             <li>
                                 <a href="{% url 'sspanel:chargecenter' %}">捐赠充值</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'sspanel:node_occupancy' %}">
+                                    <div class="icon-text">
+                                        <span>独享节点</span>
+                                        <span class="icon has-text-info">
+                                            <i class="fas fa-rocket"></i>
+                                        </span>
+                                    </div>
+                                </a>
                             </li>
                             <li>
                                 <a href="{% url 'sspanel:shop' %}">商品中心</a>
@@ -199,6 +210,9 @@
         </div>
     </div>
 </body>
+{% settings_value "HIDE_FOOTER" as hide_footer %}
+{% if not hide_footer %}
 {% include "footer.html" %}
+{% endif %}
 
 </html>
