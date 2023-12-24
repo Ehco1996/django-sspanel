@@ -460,6 +460,32 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             name = f"[{self.enlarge_scale}x]{name}"
         return name
 
+    @transaction.atomic
+    def duplicate(self):
+        new_node = deepcopy(self)
+        new_node.id = None
+        new_node.name = f"{new_node.name}-副本"
+        new_node.enable = False
+        new_node.save()
+        if self.node_type == self.NODE_TYPE_SS:
+            new_node.ss_config = deepcopy(self.ss_config)
+            new_node.ss_config.id = None
+            new_node.ss_config.proxy_node = new_node
+            new_node.ss_config.save()
+        elif self.node_type == self.NODE_TYPE_TROJAN:
+            new_node.trojan_config = deepcopy(self.trojan_config)
+            new_node.trojan_config.id = None
+            new_node.trojan_config.proxy_node = new_node
+            new_node.trojan_config.save()
+
+        occupancy_config = OccupancyConfig.objects.filter(proxy_node=self).first()
+        if occupancy_config:
+            new_occupancy_config = deepcopy(occupancy_config)
+            new_occupancy_config.id = None
+            new_occupancy_config.proxy_node = new_node
+            new_occupancy_config.save()
+        return new_node
+
 
 class resetPortMixin:
     def reset_random_multi_user_port(self):

@@ -82,9 +82,8 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         RelayRuleInline,
         OccupancyConfigInline,
     ]
-    list_editable = ["sequence"]
-    list_filter = ["node_type", "country", "provider_remark"]
-    actions = ["reset_port", "clear_traffic_logs", "toggle_enable"]
+    list_filter = ["provider_remark", "country"]
+    actions = ["clear_traffic_logs", "toggle_enable", "reset_port", "duplicate"]
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
@@ -164,6 +163,18 @@ class ProxyNodeAdmin(admin.ModelAdmin):
 
     toggle_enable.short_description = "启用/禁用"
     toggle_enable.type = "danger"
+
+    def duplicate(self, request, queryset):
+        for node in queryset:
+            node.duplicate()
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                f"{node}:'s duplicate success",
+            )
+
+    duplicate.short_description = "复制"
+    duplicate.type = "warning"
 
 
 class RelayNodeAdmin(admin.ModelAdmin):
