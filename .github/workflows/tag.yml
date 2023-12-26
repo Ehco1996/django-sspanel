@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
 jobs:
   build-tag-image:
     runs-on: ubuntu-latest
@@ -15,4 +16,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tag_names: true
-          dockerfile: deploy/Dockerfile.DEBUG-CODE
+          dockerfile: deploy/Dockerfile.CODE
