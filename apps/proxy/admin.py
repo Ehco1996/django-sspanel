@@ -228,6 +228,34 @@ class UserTrafficLogAdmin(admin.ModelAdmin):
     total_traffic.short_description = "流量"
 
 
+class OccupancyConfigAdmin(admin.ModelAdmin):
+    list_display = [
+        "proxy_node",
+        "occupancy_price",
+        "traffic_info",
+        "limit_info",
+    ]
+    list_filter = ["proxy_node"]
+    list_per_page = 10
+    show_full_result_count = False
+
+    @admin.display(description="流量")
+    def traffic_info(self, instance):
+        return f"{traffic_format(instance.occupancy_traffic)}"
+
+    @admin.display(description="已购/总人数")
+    def limit_info(self, instance):
+        return f"{instance.active_user_count()}/{instance.occupancy_user_limit}"
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            help_texts = {
+                "occupancy_traffic": f"={traffic_format(obj.occupancy_traffic)}",
+            }
+            kwargs.update({"help_texts": help_texts})
+        return super().get_form(request, obj, **kwargs)
+
+
 class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
     list_display = [
         "proxy_node",
@@ -265,3 +293,4 @@ admin.site.register(models.ProxyNode, ProxyNodeAdmin)
 admin.site.register(models.RelayNode, RelayNodeAdmin)
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
 admin.site.register(models.UserProxyNodeOccupancy, UserProxyNodeOccupancyAdmin)
+admin.site.register(models.OccupancyConfig, OccupancyConfigAdmin)

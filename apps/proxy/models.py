@@ -942,6 +942,13 @@ class OccupancyConfig(BaseModel):
         else:
             return len(node_user_ids) >= self.occupancy_user_limit
 
+    def active_user_count(self):
+        node_user_ids = [
+            i["user_id"]
+            for i in UserProxyNodeOccupancy.get_node_occupancy_user_ids(self.proxy_node)
+        ]
+        return len(node_user_ids)
+
     @property
     def human_occupancy_traffic(self):
         return utils.traffic_format(self.occupancy_traffic)
