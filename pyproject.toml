@@ -19,7 +19,7 @@ version = "0.1.0"
 
 [tool.poetry.dependencies]
 Django = "^4.2.6"
-Markdown = "^3.3.4"
+Markdown = "^3.5.1"
 PyMySQL = "^1.1.0"
 celery = "^5.3.4"
 django-anymail = "^8.2"
