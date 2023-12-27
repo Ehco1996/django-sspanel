@@ -69,7 +69,11 @@
             </div>
             <div class="plan-footer">
                 <a class="modal-button  is-fullwidth" data-target="modal-{{ good.pk }}">
+                    {% if good.already_buy %}
+                    <span class="button is-fullwidth">续费</span>
+                    {% else %}
                     <span class="button is-fullwidth">购买</span>
+                    {% endif %}
                 </a>
             </div>
         </div>
@@ -80,7 +84,7 @@
 
     <div class="box">
         <div class="content">
-            <p class="subtitle">购买记录：</p>
+            <p class="subtitle">购买记录</p>
             <table class="table is-striped">
                 <thead>
                     <tr>

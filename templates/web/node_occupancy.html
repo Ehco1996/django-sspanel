@@ -59,7 +59,11 @@
                 <form method="post" action="{% url 'sspanel:node_occupancy' %}" onsubmit="return confirm('是否购买？')">
                     {% csrf_token %}
                     <div class="plan-footer">
+                        {% if node.already_buy %}
+                        <button class="button is-fullwidth" type="submit">续费</button>
+                        {% else %}
                         <button class="button is-fullwidth" type="submit">购买</button>
+                        {% endif %}
                     </div>
                     <input type="hidden" name="node_id" value="{{ node.pk }}">
                 </form>

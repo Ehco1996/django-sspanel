@@ -237,9 +237,12 @@ class UserTrafficLogView(LoginRequiredMixin, View):
 
 class ShopView(LoginRequiredMixin, View):
     def get(self, request):
+        goods = Goods.get_user_can_buy_goods(request.user)
+        for good in goods:
+            good.already_buy = good.user_already_buy(request.user)
         context = {
             "user": request.user,
-            "goods": Goods.get_user_can_buy_goods(request.user),
+            "goods": goods,
             "records": PurchaseHistory.objects.filter(user=request.user)[:10],
         }
         return render(request, "web/shop.html", context=context)
@@ -348,15 +351,20 @@ class TicketDeleteView(LoginRequiredMixin, View):
 
 class ProxyNodeOccupancyView(LoginRequiredMixin, View):
     def get(self, request):
+        usable_occupies = UserProxyNodeOccupancy.get_user_occupancies(
+            request.user, out_of_usage=False
+        )
+        user_occupy_node_ids = [occupy.proxy_node_id for occupy in usable_occupies]
         purchasable_proxy_nodes = OccupancyConfig.get_purchasable_proxy_nodes(
             request.user
         )
+        for node in purchasable_proxy_nodes:
+            node.already_buy = node.id in user_occupy_node_ids
+
         context = {
             "user": request.user,
             "purchasable_proxy_nodes": purchasable_proxy_nodes,
-            "usable_occupies": UserProxyNodeOccupancy.get_user_occupancies(
-                request.user, out_of_usage=False
-            ),
+            "usable_occupies": usable_occupies,
             "outdated_occupies": UserProxyNodeOccupancy.get_user_occupancies(
                 request.user, out_of_usage=True, limit=10
             ),

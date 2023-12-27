@@ -843,6 +843,11 @@ class Goods(models.Model):
             >= self.user_purchase_count
         )
 
+    def user_already_buy(self, user: User):
+        return (
+            user.level == self.level and user.level_expire_time > get_current_datetime()
+        )
+
     @transaction.atomic
     def purchase_by_user(self, user):
         """购买商品 返回是否成功"""
