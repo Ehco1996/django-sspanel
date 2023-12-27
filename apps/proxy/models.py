@@ -1056,9 +1056,20 @@ class UserProxyNodeOccupancy(BaseModel):
         r.save()
 
     @classmethod
-    def get_user_occupancies(cls, user: User):
+    def get_user_occupancies(cls, user: User, out_of_usage=False, limit=None):
         # no mater out of usage or not, return all occupancies
-        return cls.objects.filter(user=user)
+        query = cls.objects.filter(user=user)
+        if out_of_usage:
+            query = query.filter(
+                end_time__lt=utils.get_current_datetime()
+            ) | query.filter(used_traffic__gte=F("total_traffic"))
+        else:
+            query = query.filter(end_time__gt=utils.get_current_datetime()).filter(
+                used_traffic__lt=F("total_traffic")
+            )
+        if limit:
+            query = query[:limit]
+        return query
 
     def human_total_traffic(self):
         return utils.traffic_format(self.total_traffic)

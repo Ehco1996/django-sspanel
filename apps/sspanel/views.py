@@ -351,11 +351,15 @@ class ProxyNodeOccupancyView(LoginRequiredMixin, View):
         purchasable_proxy_nodes = OccupancyConfig.get_purchasable_proxy_nodes(
             request.user
         )
-        occupies = UserProxyNodeOccupancy.get_user_occupancies(request.user)
         context = {
             "user": request.user,
             "purchasable_proxy_nodes": purchasable_proxy_nodes,
-            "occupies": occupies,
+            "usable_occupies": UserProxyNodeOccupancy.get_user_occupancies(
+                request.user, out_of_usage=False
+            ),
+            "outdated_occupies": UserProxyNodeOccupancy.get_user_occupancies(
+                request.user, out_of_usage=True, limit=10
+            ),
         }
         return render(request, "web/node_occupancy.html", context=context)
 

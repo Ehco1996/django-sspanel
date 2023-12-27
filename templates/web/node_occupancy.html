@@ -71,44 +71,106 @@
     </div>
 
 
+
     <div class="box">
-        <h4 class="title is-4">已购买</h4>
-        <table class="table is-striped is-fullwidth">
-            <thead>
-                <tr>
-                    <th>节点</th>
-                    <th>开始时间</th>
-                    <th>到期时间</th>
-                    <th>已用流量</th>
-                    <th>总流量</th>
-                    <th>流量进度</th>
-                    <th>状态</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for o in occupies %}
-                <tr>
-                    <td>{{ o.proxy_node.name }}</td>
-                    <td>{{ o.start_time }}</td>
-                    <td>{{ o.end_time }}</td>
-                    <td>{{ o.human_used_traffic }}</td>
-                    <td>{{ o.human_total_traffic }}</td>
-                    <td>
-                        <progress class="progress {{ o.progress_color }}" value="{{ o.used_traffic }}"
-                            max="{{ o.total_traffic }}"></progress>{{ o.used_percentage }}%
-                    </td>
-                    <td>
-                        {% if o.out_of_usage %}
-                        失效
-                        {% else %}
-                        正常
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <nav class="panel is-info">
+            <p class="panel-heading">
+                已购买
+            </p>
+            <p class="panel-tabs">
+                <a class="is-active" id="tab-usable">可使用</a>
+                <a id="tab-outdated">已过期</a>
+            </p>
+
+
+            <a class="panel-block" id="block-usable">
+                <table class="table is-striped is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th>节点</th>
+                            <th>开始时间</th>
+                            <th>到期时间</th>
+                            <th>已用流量</th>
+                            <th>总流量</th>
+                            <th>流量进度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in usable_occupies %}
+                        <tr>
+                            <td>{{ o.proxy_node.name }}</td>
+                            <td>{{ o.start_time }}</td>
+                            <td>{{ o.end_time }}</td>
+                            <td>{{ o.human_used_traffic }}</td>
+                            <td>{{ o.human_total_traffic }}</td>
+                            <td>
+                                <progress class="progress {{ o.progress_color }}" value="{{ o.used_traffic }}"
+                                    max="{{ o.total_traffic }}"></progress>{{ o.used_percentage }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </a>
+
+            <a class="panel-block is-hidden" id="block-outdated">
+                <table class="table is-striped is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th>节点</th>
+                            <th>开始时间</th>
+                            <th>到期时间</th>
+                            <th>已用流量</th>
+                            <th>总流量</th>
+                            <th>流量进度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in outdated_occupies %}
+                        <tr>
+                            <td>{{ o.proxy_node.name }}</td>
+                            <td>{{ o.start_time }}</td>
+                            <td>{{ o.end_time }}</td>
+                            <td>{{ o.human_used_traffic }}</td>
+                            <td>{{ o.human_total_traffic }}</td>
+                            <td>
+                                <progress class="progress {{ o.progress_color }}" value="{{ o.used_traffic }}"
+                                    max="{{ o.total_traffic }}"></progress>{{ o.used_percentage }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </a>
+        </nav>
     </div>
 </div>
 
+<script>
+    // when click tab-usable, add class is-active to tab and block and hide block-outdated
+    $('#tab-usable').click(function () {
+        // for tab
+        $('#tab-usable').addClass('is-active');
+        $('#tab-outdated').removeClass('is-active');
+
+        // for block
+        $('#block-usable').addClass('is-active');
+        $('#block-usable').removeClass('is-hidden');
+        $('#block-outdated').removeClass('is-active');
+        $('#block-outdated').addClass('is-hidden');
+    });
+
+    // when click tab-outdated, add class is-active to tab and block and hide block-usable
+    $('#tab-outdated').click(function () {
+        // for tab
+        $('#tab-outdated').addClass('is-active');
+        $('#tab-usable').removeClass('is-active');
+
+        // for block
+        $('#block-outdated').addClass('is-active');
+        $('#block-outdated').removeClass('is-hidden');
+        $('#block-usable').removeClass('is-active');
+        $('#block-usable').addClass('is-hidden');
+    });
+</script>
 {% endblock main %}
