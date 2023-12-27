@@ -845,7 +845,7 @@ class Goods(models.Model):
 
     def user_already_buy(self, user: User):
         return (
-            user.level == self.level and user.level_expire_time > get_current_datetime()
+            user.level >= self.level and user.level_expire_time > get_current_datetime()
         )
 
     @transaction.atomic
