@@ -19,53 +19,51 @@
         </div>
     </section>
 </div>
-<div class="column is-12">
-    <!-- 原始内容 -->
-    <div class="box">
-        <div class="control field">
-            <article class="message">
-                <div class="message-header">
-                    <p>标题:{{ ticket.title }}</p>
-                </div>
-                <div class="message-body">
-                    <div class="control">
-                        <textarea class="textarea" rows="{{ ticket_body_line_count }}" readonly>{{ ticket.body }}
-                        </textarea>
-                    </div>
-                </div>
-            </article>
-        </div>
 
-        <!-- 回复记录 -->
-        <div class="columns is-flex-direction-column">
-            {% for message in ticket_messages %}
-            {% if message.is_staff %}
-            <div class="column">
-                <div class="notification is-info is-light is-pulled-right">
-                    <p>{{ message.message }}</p>
-                    <div class="chat-footer">
-                        <span>staff:{{ message.user.id }} - {{ message.created_at }}</span>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="column">
-                <div class="notification is-success is-light is-pulled-left">
-                    <p>{{ message.message }}</p>
-                    <div class="chat-footer">
-                        <span>{{ message.user }} - {{ message.created_at }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            {% endfor %}
+<div class="column is-12 box">
+    <!-- 原始内容 -->
+    <article class="message">
+        <div class="message-header">
+            <p>标题:{{ ticket.title }}</p>
         </div>
+        <div class="message-body">
+            <div class="control">
+                <textarea class="textarea" rows="{{ ticket_body_line_count }}" readonly>{{ ticket.body }}
+                        </textarea>
+            </div>
+        </div>
+    </article>
+</div>
+
+<div class="column is-12 box">
+    <!-- 回复记录 -->
+    <div class="columns is-multiline is-mobile">
+        {% for message in ticket_messages %}
+        {% if message.is_staff %}
+        <div class="column is-12">
+            <div class="notification is-info is-light is-pulled-right">
+                <p>{{ message.message }}</p>
+                <div class="chat-footer">
+                    <span>staff:{{ message.user.id }} - {{ message.created_at }}</span>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="column is-12">
+            <div class="notification is-success is-light is-pulled-left">
+                <p>{{ message.message }}</p>
+                <div class="chat-footer">
+                    <span>{{ message.user }} - {{ message.created_at }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
     </div>
 </div>
 
-
-<!-- 新的回复 -->
-<div class="box control field">
+<div class="column is-12 box">
+    <!-- 新的回复 -->
     <form method="post">
         {% csrf_token %}
         <div class="field">
@@ -74,22 +72,13 @@
                 <textarea class="textarea" id="message" name="message" rows="3"></textarea>
             </div>
         </div>
-        <div class="columns">
-            <div class="column">
-                <div class="is-pulled-right">
-                    <div class="field is-grouped">
-                        <div class="control">
-                            <a class="button is-link is-light" href="{% url 'sspanel:ticket_list' %}">取消</a>
-                        </div>
-                        <div class="control">
-                            <button type="submit" class="button is-link ">确定</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+        <div class="buttons is-right">
+            <button class="button is-link is-light" href="{% url 'sspanel:ticket_list' %}">取消</button>
+            <button type="submit" class="button is-link ">确定</button>
         </div>
     </form>
-</div>
+
 </div>
 
 
