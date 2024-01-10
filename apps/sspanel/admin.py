@@ -125,6 +125,7 @@ class TicketMessageInline(admin.TabularInline):
 class TicketAdmin(admin.ModelAdmin):
     inlines = [TicketMessageInline]
     list_display = ["user", "title", "status_with_message_count", "updated_at"]
+    list_filter = ["status"]
     search_fields = ["title", "user"]
     readonly_fields = ["updated_at"]
 
