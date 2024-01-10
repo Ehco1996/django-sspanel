@@ -23,10 +23,9 @@
                 <thead>
                     <tr>
                         <th>操作</th>
-                        <th>ID</th>
-                        <th>时间</th>
                         <th>标题</th>
                         <th>状态</th>
+                        <th>更新时间</th>
                     </tr>
                 </thead>
 
@@ -35,10 +34,9 @@
                     <td><a class="button is-info" href="{% url 'sspanel:ticket_detail' record.pk %}">查看</a><br>
                         <a class="button is-danger" href="{% url 'sspanel:ticket_delete' record.pk %}">删除</a>
                     </td>
-                    <td>#{{ record.pk }}</td>
-                    <td>{{ record.time }}</td>
                     <td>{{ record.title }}</td>
-                    <td>{{ record.get_status_display }}</td>
+                    <td>{{ record.status_with_message_count }}</td>
+                    <td>{{ record.updated_at }}</td>
                 </tr>
                 {% empty %}
                 <h2 class="subtitle">

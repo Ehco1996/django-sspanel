@@ -108,12 +108,25 @@ class RebateRecordAdmin(admin.ModelAdmin):
     search_fields = ["user_id", "consumer_id"]
 
 
-class TicketAdmin(admin.ModelAdmin):
-    list_display = ["user", "title", "status", "updated_at"]
-    search_fields = ["title", "user__id"]
-    readonly_fields = [
-        "updated_at",
+class TicketMessageInline(admin.TabularInline):
+    model = models.TicketMessage
+    verbose_name = "回复"
+    fields = [
+        "user",
+        "message",
+        "created_at",
     ]
+    readonly_fields = [
+        "created_at",
+    ]
+    extra = 0
+
+
+class TicketAdmin(admin.ModelAdmin):
+    inlines = [TicketMessageInline]
+    list_display = ["user", "title", "status_with_message_count", "updated_at"]
+    search_fields = ["title", "user"]
+    readonly_fields = ["updated_at"]
 
 
 # Register your models here.

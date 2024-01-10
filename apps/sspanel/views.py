@@ -28,7 +28,7 @@ from apps.sspanel.models import (
     User,
     UserSocialProfile,
 )
-from apps.utils import traffic_format
+from apps.utils import get_current_datetime, traffic_format
 
 
 class IndexView(View):
@@ -300,12 +300,13 @@ class AnnouncementView(LoginRequiredMixin, View):
         return render(request, "web/announcement.html", {"anno": anno})
 
 
-class TicketsView(LoginRequiredMixin, View):
+class TicketListView(LoginRequiredMixin, View):
     def get(self, request):
         """工单系统"""
+        # TODO paginate
         ticket = Ticket.objects.filter(user=request.user)
         context = {"ticket": ticket}
-        return render(request, "web/ticket.html", context=context)
+        return render(request, "web/ticket_list.html", context=context)
 
 
 class TicketCreateView(LoginRequiredMixin, View):
@@ -318,35 +319,43 @@ class TicketCreateView(LoginRequiredMixin, View):
         body = request.POST.get("body", "")
         Ticket.objects.create(user=request.user, title=title, body=body)
         messages.success(request, "数据更新成功！", extra_tags="添加成功")
-        return HttpResponseRedirect(reverse("sspanel:tickets"))
+        return HttpResponseRedirect(reverse("sspanel:ticket_list"))
 
 
 class TicketDetailView(LoginRequiredMixin, View):
     def get(self, request, pk):
         """工单编辑"""
         ticket = Ticket.objects.get(pk=pk)
-        context = {"ticket": ticket}
+        context = {
+            "ticket": ticket,
+            "ticket_messages": ticket.list_messages(),
+            "ticket_body_line_count": ticket.body.count("\n") + 2,
+        }
         return render(request, "web/ticket_edit.html", context=context)
 
     def post(self, request, pk):
+        """添加回复"""
         ticket = Ticket.objects.get(pk=pk)
-        ticket.title = request.POST.get("title", "")
-        ticket.body = request.POST.get("body", "")
+        ticket.updated_at = get_current_datetime()
         ticket.save()
-        messages.success(request, "数据更新成功", extra_tags="修改成功")
-        return HttpResponseRedirect(reverse("sspanel:tickets"))
+        message = request.POST.get("message", "")
+        if not message:
+            messages.error(request, "回复内容不能为空", extra_tags="回复失败")
+        else:
+            ticket.add_message(request.user, message)
+            messages.success(request, "数据更新成功", extra_tags="修改成功")
+        return HttpResponseRedirect(reverse("sspanel:ticket_detail", args=(pk,)))
 
 
 class TicketDeleteView(LoginRequiredMixin, View):
     def get(self, request, pk):
-        """删除指定"""
         ticket = Ticket.objects.filter(pk=pk, user=request.user).first()
         if ticket:
             ticket.delete()
             messages.success(request, "该工单已经删除", extra_tags="删除成功")
         else:
             messages.error(request, "该工单不存在", extra_tags="删除失败")
-        return HttpResponseRedirect(reverse("sspanel:tickets"))
+        return HttpResponseRedirect(reverse("sspanel:ticket_list"))
 
 
 class ProxyNodeOccupancyView(LoginRequiredMixin, View):

@@ -1,37 +1,97 @@
 {% extends 'base.html' %} {% block main %}
+
+<style>
+    .chat-footer {
+        font-size: 12px;
+        color: #888;
+    }
+</style>
+
+
 <div class="column is-12">
     <section class="hero is-light is-smaill">
         <div class="hero-body">
             <div class="container">
                 <h1 class="title">
-                    工单编辑
+                    工单详情
                 </h1>
-                <h2 class="subtitle">
-                    反悔了一次
-                </h2>
             </div>
         </div>
     </section>
 </div>
 <div class="column is-12">
+    <!-- 原始内容 -->
     <div class="box">
-        <form class="form" method="post">
-            {% csrf_token %}
-            <div class="control is-loading">
-                <span class="tag is-info">标题:</span>
-                <textarea class="textarea" name="title" type="text" placeholder="标题" rows="1" maxlength="32">{{ ticket.title }}</textarea>
-                <br>
-                <span class="tag is-info">内容:</span>
-                <textarea class="textarea" id="id-markdown-body" name="body" type="text" rows="10">{{ ticket.body }}</textarea>
+        <div class="control field">
+            <article class="message">
+                <div class="message-header">
+                    <p>标题:{{ ticket.title }}</p>
+                </div>
+                <div class="message-body">
+                    <div class="control">
+                        <textarea class="textarea" rows="{{ ticket_body_line_count }}" readonly>{{ ticket.body }}
+                        </textarea>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <!-- 回复记录 -->
+        <div class="columns is-flex-direction-column">
+            {% for message in ticket_messages %}
+            {% if message.is_staff %}
+            <div class="column">
+                <div class="notification is-info is-light is-pulled-right">
+                    <p>{{ message.message }}</p>
+                    <div class="chat-footer">
+                        <span>staff:{{ message.user.id }} - {{ message.created_at }}</span>
+                    </div>
+                </div>
             </div>
-            <div class="is-grouped">
-                <button type="submit" class="button is-danger is-outlined ">确认</button>
-                <a class="button is-success is-outlined" href="{% url 'sspanel:tickets' %}">取消</a>
+            {% else %}
+            <div class="column">
+                <div class="notification is-success is-light is-pulled-left">
+                    <p>{{ message.message }}</p>
+                    <div class="chat-footer">
+                        <span>{{ message.user }} - {{ message.created_at }}</span>
+                    </div>
+                </div>
             </div>
-        </form>
+            {% endif %}
+            {% endfor %}
+        </div>
     </div>
 </div>
-<script>
-    var simplemde = new SimpleMDE({ spellChecker: false, element: $("#id-markdown-body")[0] });
-    simplemde.togglePreview();
-</script> {% endblock main %}
+
+
+<!-- 新的回复 -->
+<div class="box control field">
+    <form method="post">
+        {% csrf_token %}
+        <div class="field">
+            <label class="label" for="message">追加</label>
+            <div class="control">
+                <textarea class="textarea" id="message" name="message" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="is-pulled-right">
+                    <div class="field is-grouped">
+                        <div class="control">
+                            <a class="button is-link is-light" href="{% url 'sspanel:ticket_list' %}">取消</a>
+                        </div>
+                        <div class="control">
+                            <button type="submit" class="button is-link ">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+
+
+
+{% endblock main %}

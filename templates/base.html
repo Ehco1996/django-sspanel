@@ -70,7 +70,7 @@
                     <a class="navbar-item" href="{% url 'sspanel:aff_invite' %}">邀请返利</a>
                     <a class="navbar-item is-active">公告交流</a>
                     <a class="navbar-item" href="{% url 'sspanel:announcement' %}">历史公告</a>
-                    <a class="navbar-item" href="{% url 'sspanel:tickets' %}">联系站长</a>
+                    <a class="navbar-item" href="{% url 'sspanel:ticket_list' %}">联系站长</a>
                     {% if perms.sspanel %}
                     <a class="navbar-item is-active">管理面板</a>
                     <a class="navbar-item" href="/admin">数据后台</a>
@@ -143,7 +143,7 @@
                                 <a href="{% url 'sspanel:announcement' %}">历史公告</a>
                             </li>
                             <li>
-                                <a href="{% url 'sspanel:tickets' %}">联系站长</a>
+                                <a href="{% url 'sspanel:ticket_list' %}">联系站长</a>
                             </li>
                         </ul>
 
