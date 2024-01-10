@@ -1015,6 +1015,10 @@ class Ticket(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def status_with_message_count(self):
+        return f"{self.get_status_display()} (回复数量:{self.messages.count()})"
+
     class Meta:
         verbose_name = "工单"
         verbose_name_plural = "工单"
@@ -1028,6 +1032,46 @@ class Ticket(models.Model):
             t.title += " |3 天无更新自动关闭"
             t.status = -1
             t.save()
+
+    def add_message(self, user, message):
+        return TicketMessage.create_message(user, self, message)
+
+    def list_messages(self):
+        return self.messages.all()
+
+
+class TicketMessage(models.Model):
+    """工单回复"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        verbose_name="工单",
+        db_index=True,
+        related_name="messages",
+    )
+    message = models.TextField(verbose_name="内容主体")
+    created_at = models.DateTimeField(
+        verbose_name="时间", editable=False, auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = "工单回复"
+        verbose_name_plural = "工单回复"
+        ordering = ("ticket", "created_at")
+        index_together = ["ticket", "created_at"]
+
+    @classmethod
+    def create_message(cls, user, ticket, message):
+        return cls.objects.create(user=user, ticket=ticket, message=message)
+
+    @property
+    def is_staff(self):
+        return self.user.is_staff
+
+    def __str__(self) -> str:
+        return f"{self.id}"
 
 
 class EmailSendLog(models.Model):

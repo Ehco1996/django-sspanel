@@ -18,7 +18,6 @@ from apps.sspanel.models import (
     InviteCode,
     MoneyCode,
     PurchaseHistory,
-    Ticket,
     User,
     UserCheckInLog,
 )
@@ -95,29 +94,6 @@ class PurchaseHistoryView(StaffRequiredMixin, View):
         obj = PurchaseHistory.objects.all()
         context = PageListView(request, obj, 10).get_page_context()
         return render(request, "my_admin/purchasehistory.html", context=context)
-
-
-class TicketsView(StaffRequiredMixin, View):
-    def get(self, request):
-        ticket = Ticket.objects.filter(status=1)
-        context = {"ticket": ticket}
-        return render(request, "my_admin/tickets.html", context=context)
-
-
-class TicketDetailView(StaffRequiredMixin, View):
-    def get(self, request, pk):
-        ticket = Ticket.objects.get(pk=pk)
-        context = {"ticket": ticket}
-        return render(request, "my_admin/ticket_detail.html", context=context)
-
-    def post(self, request, pk):
-        ticket = Ticket.objects.get(pk=pk)
-        ticket.title = request.POST.get("title", "")
-        ticket.body = request.POST.get("body", "")
-        ticket.status = request.POST.get("status", 1)
-        ticket.save()
-        messages.success(request, "数据更新成功", extra_tags="修改成功")
-        return HttpResponseRedirect(reverse("sspanel:admin_tickets"))
 
 
 class GoodsView(StaffRequiredMixin, View):

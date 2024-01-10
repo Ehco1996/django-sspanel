@@ -29,11 +29,11 @@ urlpatterns = [
     # 公告
     path("announcement/", views.AnnouncementView.as_view(), name="announcement"),
     # 工单
-    path("tickets/", views.TicketsView.as_view(), name="tickets"),
-    path("tickets/(<int:pk>)/", views.TicketDetailView.as_view(), name="ticket_detail"),
+    path("tickets/", views.TicketListView.as_view(), name="ticket_list"),
+    path("tickets/<int:pk>/", views.TicketDetailView.as_view(), name="ticket_detail"),
     path("ticket_create/", views.TicketCreateView.as_view(), name="ticket_create"),
     path(
-        "ticket_delete/<int:pk>)/",
+        "ticket_delete/<int:pk>/",
         views.TicketDeleteView.as_view(),
         name="ticket_delete",
     ),
@@ -94,12 +94,5 @@ urlpatterns = [
         "my_admin/announcement_create/",
         admin_views.AnnouncementCreateView.as_view(),
         name="announcement_create",
-    ),
-    # 工单相关
-    path("my_admin/tickets/", admin_views.TicketsView.as_view(), name="admin_tickets"),
-    path(
-        "my_admin/tickets/<int:pk>/",
-        admin_views.TicketDetailView.as_view(),
-        name="admin_ticket_detail",
     ),
 ]
