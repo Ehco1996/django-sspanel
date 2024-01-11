@@ -1,5 +1,9 @@
+from typing import Any
+
 from django.contrib import admin
 from django.contrib.auth.models import Group
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
 from . import models
 
@@ -124,10 +128,19 @@ class TicketMessageInline(admin.TabularInline):
 
 class TicketAdmin(admin.ModelAdmin):
     inlines = [TicketMessageInline]
-    list_display = ["user", "title", "status_with_message_count", "updated_at"]
+    list_display = ["user", "title", "status_info", "updated_at"]
     list_filter = ["status"]
     search_fields = ["title", "user"]
     readonly_fields = ["updated_at"]
+    list_per_page = 10
+
+    @admin.display(description="状态")
+    def status_info(self, instance):
+        return instance.status_with_message_count
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        qs = super().get_queryset(request).prefetch_related("messages")
+        return qs
 
 
 # Register your models here.
