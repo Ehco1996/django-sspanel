@@ -115,6 +115,8 @@ class TelegramLoginView(View):
             )
         except NotTelegramDataError:
             return HttpResponseBadRequest("The data is not related to Telegram!")
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
 
         if "username" in result:
             tg_username = result["username"]

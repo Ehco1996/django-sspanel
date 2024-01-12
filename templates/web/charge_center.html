@@ -153,6 +153,8 @@
     var msgline = $("#id-msg-line")
     var url = "{% url 'api:order' %}"
     var queryTimer
+    const maxRepetitions = 20;
+    let repetitionCount = 0;
 
     var payrequest = function () {
         paynum = payinput.val()
@@ -181,7 +183,6 @@
     }
     requestButton.click(payrequest)
 
-
     function payquery(byTicker = false) {
         msgline.html('后台飞速查询结果中，请稍候...');
         $.getJSON(url, function (results) {
@@ -189,13 +190,19 @@
             if (byTicker == false) {
                 swal(info.title, info.subtitle, info.status);
             } else {
+                repetitionCount++;
+                if (repetitionCount >= maxRepetitions) {
+                    clearInterval(queryTimer);
+                    swal("自动查询超时", "请点击按钮手动查询", "error");
+                }
                 // only show msg when success
                 if (info.status == "success") {
                     // 停止定时器
                     clearInterval(queryTimer);
                     swal(info.title, info.subtitle, info.status);
-                }else{
-                    console.log(info)
+                } else {
+                    console.log("repetitionCount", repetitionCount)
+                    console.log("api return", info)
                 }
             }
         });
