@@ -1,3 +1,5 @@
+import uuid
+
 import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
@@ -58,7 +60,14 @@ class SubscribeView(View):
     def get(self, request):
         user = None
         if uid := request.GET.get("uid"):
-            user = User.objects.filter(uid=uid).first()
+            # check if uid is valid
+            try:
+                uuid.UUID(uid)
+            except ValueError:
+                return HttpResponseBadRequest("invalid uid")
+        else:
+            return HttpResponseBadRequest("uid is required")
+        user = User.objects.filter(uid=uid).first()
         if not user:
             return HttpResponseBadRequest("user not found")
         node_list = m.ProxyNode.get_user_active_nodes(user)
@@ -83,7 +92,14 @@ class ClashProxyProviderView(View):
     def get(self, request):
         user = None
         if uid := request.GET.get("uid"):
-            user = User.objects.filter(uid=uid).first()
+            # check if uid is valid
+            try:
+                uuid.UUID(uid)
+            except ValueError:
+                return HttpResponseBadRequest("invalid uid")
+        else:
+            return HttpResponseBadRequest("uid is required")
+        user = User.objects.filter(uid=uid).first()
         if not user:
             return HttpResponseBadRequest("user not found")
         node_list = m.ProxyNode.get_user_active_nodes(user)
