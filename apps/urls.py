@@ -34,7 +34,6 @@ urlpatterns.append(
     path("prom/", include("django_prometheus.urls")),
 )
 
-
 # append openapi urls
 urlpatterns.append(
     path("openapi/v1/", include(openapi_router.urls)),

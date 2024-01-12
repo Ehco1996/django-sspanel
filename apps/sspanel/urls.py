@@ -12,7 +12,9 @@ urlpatterns = [
     # 注册/登录
     path("register/", views.RegisterView.as_view(), name="register"),
     path("login/", views.UserLogInView.as_view(), name="login"),
-    path("login/telegram/", views.TelegramLoginView.as_view(), name="telegram_login"),
+    path(
+        "login-with-telegram/", views.TelegramLoginView.as_view(), name="telegram_login"
+    ),
     path("logout/", views.UserLogOutView.as_view(), name="logout"),
     path(
         "user_traffic_log/", views.UserTrafficLogView.as_view(), name="user_traffic_log"
