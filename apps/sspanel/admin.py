@@ -124,6 +124,11 @@ class TicketMessageInline(admin.TabularInline):
         "created_at",
     ]
     extra = 0
+    raw_id_fields = ["user"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related("user")
 
 
 class TicketAdmin(admin.ModelAdmin):
@@ -139,7 +144,12 @@ class TicketAdmin(admin.ModelAdmin):
         return instance.status_with_message_count
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        qs = super().get_queryset(request).prefetch_related("messages")
+        qs = (
+            super()
+            .get_queryset(request)
+            .prefetch_related("user")
+            .prefetch_related("messages__user")
+        )
         return qs
 
 

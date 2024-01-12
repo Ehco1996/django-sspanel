@@ -59,6 +59,8 @@ DEFAULT_ALPHABET = os.getenv("DEFAULT_ALPHABET", "qwertyuiopasdfghjklzxcvbnm")
 
 # FOR SIMPLE UI
 SIMPLEUI_ANALYSIS = False
+SIMPLEUI_HOME_ACTION = False
+SIMPLEUI_HOME_QUICK = True
 SIMPLEUI_HOME_INFO = bool(os.getenv("SIMPLEUI_HOME_INFO", False))
 SIMPLEUI_DEFAULT_ICON = bool(os.getenv("SIMPLEUI_DEFAULT_ICON", True))
 SIMPLEUI_ICON = {
@@ -85,7 +87,6 @@ SIMPLEUI_ICON = {
     "用户订阅记录": "fas fa-download",
     "开放API": "fas fa-server",
 }
-
 
 # TG 相关配置
 TELEGRAM_BOT_NAME = os.getenv("TELEGRAM_BOT_NAME")

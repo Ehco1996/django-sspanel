@@ -1,6 +1,9 @@
 from django.contrib import admin, messages
+from django.db import models
+from django.db.models import F
 from django.utils.safestring import mark_safe
 
+from apps import utils
 from apps.proxy import models
 from apps.sspanel.models import User
 from apps.utils import traffic_format
@@ -257,16 +260,38 @@ class OccupancyConfigAdmin(admin.ModelAdmin):
 
 
 class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
+    class StatusFilter(admin.SimpleListFilter):
+        title = "状态"
+        parameter_name = "status"
+
+        def lookups(self, request, model_admin):
+            return (
+                ("valid", "正常"),
+                ("invalid", "失效"),
+            )
+
+        def queryset(self, request, queryset):
+            value = self.value()
+            if value == "valid":
+                return queryset.filter(
+                    end_time__gt=utils.get_current_datetime()
+                ).filter(used_traffic__lt=F("total_traffic"))
+            elif value == "invalid":
+                return queryset.exclude(
+                    end_time__gt=utils.get_current_datetime()
+                ).filter(used_traffic__lt=F("total_traffic"))
+            return queryset
+
     list_display = [
         "proxy_node",
         "user",
         "start_time",
         "end_time",
         "traffic_info",
-        "out_of_usage",
+        "status",
     ]
     search_fields = ["user__username"]
-    list_filter = ["proxy_node", "user"]
+    list_filter = ["proxy_node", "user", StatusFilter]
     list_per_page = 10
     show_full_result_count = False
 
@@ -274,9 +299,12 @@ class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
     def traffic_info(self, instance):
         return f"{traffic_format(instance.used_traffic)}/{traffic_format(instance.total_traffic)}"
 
-    @admin.display(description="是否超出")
-    def out_of_usage(self, instance):
-        return instance.out_of_usage()
+    @admin.display(description="状态")
+    def status(self, instance):
+        if instance.out_of_usage():
+            return "失效"
+        else:
+            return "正常"
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
