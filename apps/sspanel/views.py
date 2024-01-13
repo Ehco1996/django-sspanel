@@ -104,9 +104,15 @@ class UserLogInView(View):
 
 
 class TelegramLoginView(View):
+    def _find_tg_username(self, auth_data):
+        for key in ["username", "first_name", "last_name"]:
+            if auth_data.get(key):
+                return auth_data[key]
+        return ""
+
     def get(self, request):
         try:
-            result = verify_telegram_authentication(
+            auth_data = verify_telegram_authentication(
                 bot_token=settings.TELEGRAM_BOT_TOKEN, request_data=request.GET
             )
         except TelegramDataIsOutdatedError:
@@ -117,19 +123,16 @@ class TelegramLoginView(View):
             return HttpResponseBadRequest("The data is not related to Telegram!")
         except Exception as e:
             return HttpResponseBadRequest(str(e))
-
-        if "username" in result:
-            tg_username = result["username"]
-        else:
-            tg_username = (
-                result.get("first_name", "") + " " + result.get("last_name", "")
-            )
-
+        try:
+            tg_user_id = auth_data["id"]
+        except KeyError:
+            return HttpResponseBadRequest(f"The data is not valid {auth_data}")
+        tg_username = self._find_tg_username(auth_data)
         # 已经绑定过了
         usp = UserSocialProfile.get_or_create_and_update_info(
-            UserSocialProfile.TYPE_TG, tg_username, result
+            UserSocialProfile.TYPE_TG, tg_user_id, tg_username, auth_data
         )
-        if usp.user_id:
+        if usp.user_id and usp.user.is_active:
             login(
                 request,
                 usp.user,
@@ -137,32 +140,40 @@ class TelegramLoginView(View):
             )
             messages.success(request, "自动跳转到用户中心", extra_tags="登录成功！")
             return HttpResponseRedirect(reverse("sspanel:userinfo"))
-        # 需要渲染绑定页面
+        # user not found 渲染绑定页面
         context = {
-            "form": TGLoginForm(initial={"tg_username": tg_username}),
+            "form": TGLoginForm(
+                initial={"tg_username": tg_username, "tg_user_id": tg_user_id}
+            ),
         }
         return render(request, "web/telegram_login.html", context)
 
     def post(self, request):
         form = TGLoginForm(request.POST)
-        if form.is_valid():
-            user = authenticate(
-                username=form.cleaned_data["username"],
-                password=form.cleaned_data["password"],
-            )
-            usp = UserSocialProfile.get_by_platform(
-                UserSocialProfile.TYPE_TG, form.cleaned_data["tg_username"]
-            )
-            if user and user.is_active and usp:
-                with transaction.atomic():
-                    login(request, user)
-                    usp.bind(user)
-                messages.success(request, "自动跳转到用户中心", extra_tags="绑定成功！")
-                return HttpResponseRedirect(reverse("sspanel:userinfo"))
-            else:
-                messages.error(request, "账户不存在(请先注册)/密码不正确！", extra_tags="绑定失败！")
-
-        return HttpResponseRedirect(reverse("sspanel:login"))
+        if not form.is_valid():
+            return HttpResponseBadRequest("表单数据不合法")
+        user = authenticate(
+            username=form.cleaned_data["username"],
+            password=form.cleaned_data["password"],
+        )
+        if not user:
+            messages.error(request, "账户不存在(请先注册)/密码不正确！", extra_tags="绑定失败！")
+            return HttpResponseRedirect(reverse("sspanel:login"))
+        usp = UserSocialProfile.get_by_platform_user_id(
+            UserSocialProfile.TYPE_TG, form.cleaned_data["tg_user_id"]
+        )
+        if not usp:
+            messages.error(request, "请先登录TG账号！", extra_tags="绑定失败！")
+            return HttpResponseRedirect(reverse("sspanel:login"))
+        elif usp.user_id:
+            messages.error(request, "该TG账号已经绑定过了！", extra_tags="绑定失败！")
+            return HttpResponseRedirect(reverse("sspanel:login"))
+        else:
+            with transaction.atomic():
+                login(request, user)
+                usp.bind(user)
+            messages.success(request, "自动跳转到用户中心", extra_tags="绑定成功！")
+            return HttpResponseRedirect(reverse("sspanel:userinfo"))
 
 
 class UserLogOutView(View):

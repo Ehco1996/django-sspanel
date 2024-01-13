@@ -13,6 +13,7 @@ ALLOWED_HOSTS = ["*"]
 SITE_HOST = os.getenv("SITE_HOST", "http://127.0.0.1:8000")
 CORS_ALLOWED_ORIGINS = [SITE_HOST]  # django-cors-headers
 CSRF_TRUSTED_ORIGINS = [SITE_HOST]  # django built-in
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 # 网站密钥
 SECRET_KEY = os.getenv("SECRET_KEY", "aasdasdas")

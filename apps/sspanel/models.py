@@ -299,6 +299,7 @@ class UserSocialProfile(models.Model, UserMixin):
         "平台", default=TYPE_TG, choices=TYPE_CHOICES, max_length=32
     )
     platform_username = models.CharField("用户名", max_length=32)
+    platform_user_id = models.CharField("用户ID", max_length=32, null=True, blank=True)
     created_at = models.DateTimeField(
         auto_now_add=True, db_index=True, help_text="创建时间", verbose_name="创建时间"
     )
@@ -309,16 +310,18 @@ class UserSocialProfile(models.Model, UserMixin):
         verbose_name = "用户社交资料"
         verbose_name_plural = "用户社交资料"
         unique_together = [
-            ["platform", "platform_username"],
-            ["platform", "platform_username", "user_id"],
+            ["platform", "platform_user_id"],
+            ["platform", "platform_user_id", "user_id"],
         ]
 
     @classmethod
-    def get_or_create_and_update_info(cls, platform, username, data):
+    def get_or_create_and_update_info(
+        cls, platform, platform_user_id, platform_username, data
+    ):
         usp, _ = cls.objects.get_or_create(
             platform=platform,
-            platform_username=username,
-            defaults={"raw_auth_data": data},
+            platform_user_id=platform_user_id,
+            defaults={"raw_auth_data": data, "platform_username": platform_username},
         )
         # update auth info
         usp.raw_auth_data = data
@@ -330,8 +333,10 @@ class UserSocialProfile(models.Model, UserMixin):
         return cls.objects.filter(user_id=user_id)
 
     @classmethod
-    def get_by_platform(cls, platform, username):
-        return cls.objects.filter(platform=platform, platform_username=username).first()
+    def get_by_platform_user_id(cls, platform, platform_user_id):
+        return cls.objects.filter(
+            platform=platform, platform_user_id=platform_user_id
+        ).first()
 
     def bind(self, user):
         self.user_id = user.id

@@ -149,6 +149,18 @@ class TGLoginForm(forms.Form):
         ),
     )
 
+    tg_user_id = forms.CharField(
+        required=True,
+        label="TG ID",
+        widget=forms.TextInput(
+            attrs={
+                "class": "input is-primary",
+                "placeholder": "TG ID",
+                "readonly": "readonly",
+            }
+        ),
+    )
+
     def clean(self):
         if not self.is_valid():
             raise forms.ValidationError("用户名和密码为必填项")
