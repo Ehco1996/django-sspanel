@@ -145,7 +145,9 @@ class TicketAdmin(admin.ModelAdmin):
     def status_info(self, instance):
         res = instance.status_with_message_count
         last_reply = instance.messages.last()
-        if not last_reply.user.is_staff:
+        if not last_reply:
+            res += " | 未读"
+        elif last_reply.user.is_staff:
             res += " | 未读"
         return res
 
