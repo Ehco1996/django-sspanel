@@ -147,7 +147,7 @@ class TicketAdmin(admin.ModelAdmin):
         last_reply = instance.messages.last()
         if not last_reply:
             res += " | 未读"
-        elif last_reply.user.is_staff:
+        elif not last_reply.user.is_staff:
             res += " | 未读"
         return res
 
