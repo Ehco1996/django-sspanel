@@ -132,6 +132,8 @@ class TicketMessageInline(admin.TabularInline):
 
 
 class TicketAdmin(admin.ModelAdmin):
+    ALREADY_REPLIED = " | 已回复"
+
     inlines = [TicketMessageInline]
     list_display = ["user", "title", "status_info", "updated_at"]
     list_filter = ["status"]
@@ -141,16 +143,27 @@ class TicketAdmin(admin.ModelAdmin):
 
     @admin.display(description="状态")
     def status_info(self, instance):
-        return instance.status_with_message_count
+        res = instance.status_with_message_count
+        last_reply = instance.messages.last()
+        if not last_reply.user.is_staff:
+            res += " | 未读"
+        return res
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         qs = (
             super()
             .get_queryset(request)
-            .prefetch_related("user")
+            .prefetch_related("user", "messages")
             .prefetch_related("messages__user")
         )
         return qs
+
+    def save_model(
+        self, request: Any, obj: models.Ticket, form: Any, change: Any
+    ) -> None:
+        if self.ALREADY_REPLIED not in obj.title:
+            obj.title += self.ALREADY_REPLIED
+        return super().save_model(request, obj, form, change)
 
 
 # Register your models here.
