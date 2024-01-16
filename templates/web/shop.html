@@ -1,118 +1,108 @@
-{% extends 'base.html' %} {% block main %}
-
-<div class="column is-12">
-    <section class="hero is-warning is-smaill">
-        <div class="hero-body">
-            <div class="container">
-                <h1 class="title">
-                    共享节点
-                </h1>
-                <h2 class="subtitle">
-                    量大管饱，便宜实惠, 不容错过
-                </h2>
+{% extends 'base.html' %}
+{% block main %}
+    <div class="column is-12">
+        <section class="hero is-warning is-smaill">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">共享节点</h1>
+                    <h2 class="subtitle">量大管饱，便宜实惠, 不容错过</h2>
+                </div>
             </div>
-        </div>
-    </section>
-</div>
-<div class="column is-12">
-    <nav class="level box">
-        <div class="level-item has-text-centered">
-            <div>
-                <p class="heading">用户名:</p>
-                <p class="title">{{ user }}</p>
-            </div>
-        </div>
-        <div class="level-item has-text-centered">
-            <div>
-                <p class="heading">余额：</p>
-                <p class="title">{{ user.balance }}</p>
-            </div>
-        </div>
-    </nav>
-
-    <div class="pricing-table box" id="id-goodlist">
-        {% for good in goods %}
-        <div class="modal" id="modal-{{ good.pk }}">
-            <div class="modal-background"></div>
-            <div class="modal-card">
-                <header class="modal-card-head">
-                    <p class="modal-card-title">订单确认:</p>
-                    <button class="delete"></button>
-                </header>
-                <section class="modal-card-body" data-id="{{ good.pk }}">
-                    <strong>商品名：</strong>{{ good.name }}
-                    <br>
-                    <strong>描述：</strong>{{good.content}}
-                    <hr>
-                    <strong>价格：</strong>
-                    <code>{{ good.money }}元</code>
-                    <br>
-                    <strong>流量：</strong>
-                    <code>{{ good.total_transfer }}</code>
-                    <br>
-                    <strong>有效期：</strong>
-                    <code>{{ good.days }} 天</code>
-                    <hr>
-                    <a class="button is-danger is-outlined" id="id-button-pruchase">确认购买</a>
-                </section>
-            </div>
-        </div>
-
-        <div class="pricing-plan {{good.bulma_color}}">
-            <div class="plan-header">{{ good.name }}</div>
-            <div class="plan-price"><span class="plan-price-amount">
-                    <span class="plan-price-currency">￥</span>{{good.money}}</span>/{{ good.days }}天
-            </div>
-            <div class="plan-items">
-                <div class="plan-item">流量：{{ good.total_transfer }}</div>
-                <div class="plan-item">有效期：{{ good.days }}天</div>
-            </div>
-            <div class="plan-footer">
-                <a class="modal-button  is-fullwidth" data-target="modal-{{ good.pk }}">
-                    {% if good.already_buy %}
-                    <span class="button is-fullwidth">续费</span>
-                    {% else %}
-                    <span class="button is-fullwidth">购买</span>
-                    {% endif %}
-                </a>
-            </div>
-        </div>
-        {% empty %}
-        <p class="subtitle">暂时没有共享节点,请发工单联系站长补货...</p>
-        {% endfor %}
+        </section>
     </div>
-
-    <div class="box">
-        <div class="content">
-            <p class="subtitle">购买记录</p>
-            <table class="table is-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>名称</th>
-                        <th>金额</th>
-                        <th>时间</th>
-                    </tr>
-                </thead>
-                {% for record in records %}
-                <tr>
-                    <td>#{{ record.pk }}</td>
-                    <td>{{ record.good_name }}</td>
-                    <td>{{ record.money }}</td>
-                    <td>{{ record.created_at}}</td>
-                </tr>
+    <div class="column is-12">
+        <nav class="level box">
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">用户名:</p>
+                    <p class="title">{{ user }}</p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">余额：</p>
+                    <p class="title">{{ user.balance }}</p>
+                </div>
+            </div>
+        </nav>
+        <div class="pricing-table box" id="id-goodlist">
+            {% for good in goods %}
+                <div class="modal" id="modal-{{ good.pk }}">
+                    <div class="modal-background"></div>
+                    <div class="modal-card">
+                        <header class="modal-card-head">
+                            <p class="modal-card-title">订单确认:</p>
+                            <button class="delete"></button>
+                        </header>
+                        <section class="modal-card-body" data-id="{{ good.pk }}">
+                            <strong>商品名：</strong>{{ good.name }}
+                            <br>
+                            <strong>描述：</strong>{{ good.content }}
+                            <hr>
+                            <strong>价格：</strong>
+                            <code>{{ good.money }}元</code>
+                            <br>
+                            <strong>流量：</strong>
+                            <code>{{ good.total_transfer }}</code>
+                            <br>
+                            <strong>有效期：</strong>
+                            <code>{{ good.days }} 天</code>
+                            <hr>
+                            <a class="button is-danger is-outlined" id="id-button-pruchase">确认购买</a>
+                        </section>
+                    </div>
+                </div>
+                <div class="pricing-plan {{ good.bulma_color }}">
+                    <div class="plan-header">{{ good.name }}</div>
+                    <div class="plan-price">
+                        <span class="plan-price-amount">
+                            <span class="plan-price-currency">￥</span>{{ good.money }}</span>/{{ good.days }}天
+                        </div>
+                        <div class="plan-items">
+                            <div class="plan-item">流量：{{ good.total_transfer }}</div>
+                            <div class="plan-item">有效期：{{ good.days }}天</div>
+                        </div>
+                        <div class="plan-footer">
+                            <a class="modal-button  is-fullwidth" data-target="modal-{{ good.pk }}">
+                                {% if good.already_buy %}
+                                    <span class="button is-fullwidth">续费</span>
+                                {% else %}
+                                    <span class="button is-fullwidth">购买</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
                 {% empty %}
-                <h2 class="subtitle">
-                    还没有买过东西呢....
-                </h2>
+                    <p class="subtitle">暂时没有共享节点,请发工单联系站长补货...</p>
                 {% endfor %}
-            </table>
+            </div>
+            <div class="box">
+                <div class="content">
+                    <p class="subtitle">购买记录</p>
+                    <table class="table is-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>名称</th>
+                                <th>金额</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        {% for record in records %}
+                            <tr>
+                                <td>#{{ record.pk }}</td>
+                                <td>{{ record.good_name }}</td>
+                                <td>{{ record.money }}</td>
+                                <td>{{ record.created_at }}</td>
+                            </tr>
+                        {% empty %}
+                            <h2 class="subtitle">还没有买过东西呢....</h2>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
-
-</div>
-
-<script>
+        <script>
     var goodList = $("#id-goodlist")
     // 事件委托绑定按钮
     goodList.on('click', '#id-button-pruchase', function (event) {
@@ -129,4 +119,5 @@
             swal(results.title, results.subtitle, results.status)
         })
     })
-</script> {% endblock main %}
+        </script>
+    {% endblock main %}

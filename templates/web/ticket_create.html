@@ -1,48 +1,49 @@
-{% extends 'base.html' %} {% block main %}
-
-<div class="column is-12">
-    <section class="hero is-light is-smaill">
-        <div class="hero-body">
-            <div class="container">
-                <h1 class="title">
-                    提交新工单
-                </h1>
-            </div>
-        </div>
-    </section>
-</div>
-
-<div class="column is-12">
-    <div class="box">
-        <form class="form" method="post">
-            {% csrf_token %}
-
-            <div class="field">
-                <label class="label">标题</label>
-                <div class="control">
-                    <input class="input" name="title" type="text" placeholder="标题" maxlength="32">
+{% extends 'base.html' %}
+{% block main %}
+    <div class="column is-12">
+        <section class="hero is-light is-smaill">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">提交新工单</h1>
                 </div>
             </div>
-
-            <div class="field">
-                <label class="label">正文</label>
-                <div class="control">
-                    <textarea class="textarea" id="id-markdown-body" name="body" type="text" placeholder="正文"
-                        rows="10"></textarea>
-                </div>
-            </div>
-
-            <div class="field is-grouped">
-                <div class="control">
-                    <button type="submit" class="button is-link ">确认</button>
-                </div>
-
-                <div class="control">
-                    <a class="button is-link is-light" href="{% url 'sspanel:ticket_list' %}">取消</a>
-                </div>
-            </div>
-
-        </form>
+        </section>
     </div>
-</div>
+    <div class="column is-12">
+        <div class="box">
+            <form class="form" method="post">
+                {% csrf_token %}
+                <div class="field">
+                    <label class="label">标题</label>
+                    <div class="control">
+                        <input class="input"
+                               name="title"
+                               type="text"
+                               placeholder="标题"
+                               maxlength="32">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">正文</label>
+                    <div class="control">
+                        <textarea class="textarea"
+                                  id="id-markdown-body"
+                                  name="body"
+                                  type="text"
+                                  placeholder="正文"
+                                  rows="10"></textarea>
+                    </div>
+                </div>
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button type="submit" class="button is-link ">确认</button>
+                    </div>
+                    <div class="control">
+                        <a class="button is-link is-light"
+                           href="{% url 'sspanel:ticket_list' %}">取消</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock main %}

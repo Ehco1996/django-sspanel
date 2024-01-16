@@ -13,7 +13,7 @@ class DailyStatsAdmin(admin.ModelAdmin):
         "order_amount",
         "total_used_traffic",
     ]
-    list_per_page = 31
+    list_per_page = 10
     list_filter = ["date"]
 
 

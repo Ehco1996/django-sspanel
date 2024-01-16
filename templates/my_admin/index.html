@@ -1,74 +1,69 @@
-{% extends 'adminbase.html' %} {% block main %}
-<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
-<div class="column is-12">
-    <section class="hero is-light is-smaill">
-        <div class="hero-body">
-            <div class="container">
-                <h1 class="title">
-                    汇总
-                </h1>
-                <h2 class="subtitle">
-                    下面是系统运行状态简报
-                </h2>
+{% extends 'adminbase.html' %}
+{% block main %}
+    <script type="text/javascript"
+            src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <div class="column is-12">
+        <section class="hero is-light is-smaill">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">汇总</h1>
+                    <h2 class="subtitle">下面是系统运行状态简报</h2>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="columns">
+        <div class="column is-6"></div>
+        <div class="column is-6">
+            <div class="field is-grouped">
+                <div class="field-label is-normal">
+                    <label class="label">日期范围:</label>
+                </div>
+                <p class="control is-expanded">
+                    <input class="input" type="text" name="daterange" />
+                </p>
+                <p class="control">
+                    <a class="button is-info" id="id-button-query">查询</a>
+                </p>
             </div>
         </div>
-    </section>
-</div>
-
-<div class="columns">
-    <div class="column is-6"> </div>
-    <div class="column is-6">
-        <div class="field is-grouped">
-            <div class="field-label is-normal">
-                <label class="label">日期范围:</label>
+    </div>
+    <div class="box">
+        <div class="columns">
+            <div class="column">
+                <canvas id="id-user-status"></canvas>
             </div>
-            <p class="control is-expanded">
-                <input class="input" type="text" name="daterange" />
-            </p>
-            <p class="control">
-                <a class="button is-info" id="id-button-query">
-                    查询
-                </a>
-            </p>
+            <div class="column">
+                <canvas id="id-node-status"></canvas>
+            </div>
+            <div class="column">
+                <canvas id="id-amount-status"></canvas>
+            </div>
         </div>
+        <div class="columns">
+            <div class="column">
+                <canvas id="id-active-user-status"></canvas>
+            </div>
+            <div class="column">
+                <canvas id="id-new-user-status"></canvas>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <canvas id="id-node-traffic-status"></canvas>
+            </div>
+            <div class="column">
+                <canvas id="id-order-status"></canvas>
+            </div>
+        </div>
+        <canvas id="id-order-amount-status"></canvas>
     </div>
-</div>
-<div class="box">
-    <div class="columns">
-        <div class="column">
-            <canvas id="id-user-status"></canvas>
-        </div>
-        <div class="column">
-            <canvas id="id-node-status"></canvas>
-        </div>
-        <div class="column">
-            <canvas id="id-amount-status"></canvas>
-        </div>
-    </div>
-    <div class="columns">
-        <div class="column">
-            <canvas id="id-active-user-status"></canvas>
-        </div>
-        <div class="column">
-            <canvas id="id-new-user-status"></canvas>
-        </div>
-    </div>
-    <div class="columns">
-        <div class="column">
-            <canvas id="id-node-traffic-status"></canvas>
-        </div>
-        <div class="column">
-            <canvas id="id-order-status"></canvas>
-        </div>
-    </div>
-    <canvas id="id-order-amount-status"></canvas>
-</div>
-
-
-<script>
+    <script>
     var startStr = moment().subtract(7, 'day').format('YYYY-MM-DD')
     var endStr = moment().format('YYYY-MM-DD')
     $(function () {
@@ -116,4 +111,5 @@
     getSystemStatus()
 
     $("#id-button-query").on("click", getSystemStatus)
-</script> {% endblock main %}
+    </script>
+{% endblock main %}

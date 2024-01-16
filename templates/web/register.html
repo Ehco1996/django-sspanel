@@ -1,44 +1,38 @@
-{% extends 'base.html' %} {% block main %}
-
-<div class="column is-12">
-    <section class="hero is-info is-smaill">
-        <div class="hero-body">
-            <div class="container">
-                <h1 class="title">
-                    注册
-                </h1>
-                <h2 class="subtitle">
-                    没有邀请码？点击<a href="{% url 'sspanel:invite_code' %}"><strong>这里</strong></a>碰碰运气
-                </h2>
+{% extends 'base.html' %}
+{% block main %}
+    <div class="column is-12">
+        <section class="hero is-info is-smaill">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">注册</h1>
+                    <h2 class="subtitle">
+                        没有邀请码？点击<a href="{% url 'sspanel:invite_code' %}"><strong>这里</strong></a>碰碰运气
+                    </h2>
+                </div>
             </div>
-        </div>
-    </section>
-</div>
-<div class="column is-12">
-    <div class="box">
-        <h3 class="title">注册:</h3>
-        <form class="form" action="{% url 'sspanel:register' %}" method="post">
-            {% csrf_token %}
-            {% for field in form %}
-                {% if field.label != 'not show' %}
-                    {{ field.label }}
-                {% endif %}
-                {{ field }}
-                {{ field.errors }}
-                {% if field.help_text %}
-                    <p class="help is-danger">{{ field.help_text|safe }}</p>
-                {% endif %}
-            {% endfor %}
-            <hr>
-            <div class="field is-grouped is-grouped-multiline">
-                <p class="control">
-                    <button type="submit" class="button is-primary is-outlined">注册吧少年！</button>
-                </p>
-                <p class="control">
-                    <a class="button is-info is-outlined " href="{% url 'sspanel:login' %}">刚注册过了？</a>
-                </p>
-            </div>
-        </form>
+        </section>
     </div>
-</div>
-{% endblock main%}
+    <div class="column is-12">
+        <div class="box">
+            <h3 class="title">注册:</h3>
+            <form class="form" action="{% url 'sspanel:register' %}" method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if field.label != 'not show' %}{{ field.label }}{% endif %}
+                    {{ field }}
+                    {{ field.errors }}
+                    {% if field.help_text %}<p class="help is-danger">{{ field.help_text|safe }}</p>{% endif %}
+                {% endfor %}
+                <hr>
+                <div class="field is-grouped is-grouped-multiline">
+                    <p class="control">
+                        <button type="submit" class="button is-primary is-outlined">注册吧少年！</button>
+                    </p>
+                    <p class="control">
+                        <a class="button is-info is-outlined " href="{% url 'sspanel:login' %}">刚注册过了？</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock main %}

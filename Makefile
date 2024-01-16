@@ -10,10 +10,14 @@ update:
 
 fmt:
 	autoflake --recursive --remove-all-unused-imports --in-place . && isort . && black .
+	echo "fmt django templates"
+	djlint --reformat templates/
+
 
 check:
 	isort --check .
 	black  --check .
+	djlint --check templates/
 
 runserver:
 	$(PM) runserver 0.0.0.0:8000

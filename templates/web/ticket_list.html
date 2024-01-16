@@ -1,52 +1,50 @@
-{% extends 'base.html' %} {% block main %}
-
-<div class="column is-12">
-    <section class="hero is-success">
-        <div class="hero-body">
-            <div class="container">
-                <h1 class="title">
-                    工单系统
-                </h1>
-                <h2 class="subtitle">
-                    3 天无更新的工单将自动关闭 ...
-                </h2>
+{% extends 'base.html' %}
+{% block main %}
+    <div class="column is-12">
+        <section class="hero is-success">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">工单系统</h1>
+                    <h2 class="subtitle">3 天无更新的工单将自动关闭 ...</h2>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="column is-12">
+        <div class="box">
+            <div class="content">
+                <p class="subtitle">我的工单:</p>
+                <table class="table is-striped">
+                    <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>标题</th>
+                            <th>状态</th>
+                            <th>更新时间</th>
+                        </tr>
+                    </thead>
+                    {% for record in ticket %}
+                        <tr>
+                            <td>
+                                <a class="button is-info"
+                                   href="{% url 'sspanel:ticket_detail' record.pk %}">查看</a>
+                                <br>
+                                <a class="button is-danger"
+                                   href="{% url 'sspanel:ticket_delete' record.pk %}">删除</a>
+                            </td>
+                            <td>{{ record.title }}</td>
+                            <td>{{ record.status_with_message_count }}</td>
+                            <td>{{ record.updated_at }}</td>
+                        </tr>
+                    {% empty %}
+                        <h2 class="subtitle">暂时还没提过工单呢</h2>
+                    {% endfor %}
+                </table>
+                <p align="right">
+                    <a class="button is-danger is-outlined"
+                       href="{% url 'sspanel:ticket_create' %}">发起工单</a>
+                </p>
             </div>
         </div>
-    </section>
-</div>
-
-<div class="column is-12">
-    <div class="box">
-        <div class="content">
-            <p class="subtitle">我的工单:</p>
-            <table class="table is-striped">
-                <thead>
-                    <tr>
-                        <th>操作</th>
-                        <th>标题</th>
-                        <th>状态</th>
-                        <th>更新时间</th>
-                    </tr>
-                </thead>
-
-                {% for record in ticket %}
-                <tr>
-                    <td><a class="button is-info" href="{% url 'sspanel:ticket_detail' record.pk %}">查看</a><br>
-                        <a class="button is-danger" href="{% url 'sspanel:ticket_delete' record.pk %}">删除</a>
-                    </td>
-                    <td>{{ record.title }}</td>
-                    <td>{{ record.status_with_message_count }}</td>
-                    <td>{{ record.updated_at }}</td>
-                </tr>
-                {% empty %}
-                <h2 class="subtitle">
-                    暂时还没提过工单呢
-                </h2>
-                {% endfor %}
-            </table>
-            <p align="right"><a class="button is-danger is-outlined" href="{% url 'sspanel:ticket_create' %}">发起工单</a>
-            </p>
-        </div>
     </div>
-</div>
 {% endblock main %}
