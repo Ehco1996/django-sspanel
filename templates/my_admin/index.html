@@ -64,52 +64,87 @@
         <canvas id="id-order-amount-status"></canvas>
     </div>
     <script>
-    var startStr = moment().subtract(7, 'day').format('YYYY-MM-DD')
-    var endStr = moment().format('YYYY-MM-DD')
+    var startStr = moment().subtract(7, "day").format("YYYY-MM-DD");
+    var endStr = moment().format("YYYY-MM-DD");
     $(function () {
         $(function () {
-            $('input[name="daterange"]').daterangepicker({
-                opens: 'left',
-                endDate: moment(),
-                startDate: moment().subtract(7, 'days'),
-                ranges: {
-                    '今天': [moment(), moment()],
-                    '最近七天': [moment().subtract(7, 'day'), moment()],
-                    '最近一月': [moment().subtract(1, 'month'), moment()],
-                    '最近三月': [moment().subtract(3, 'month'), moment()],
-                    '最近一年': [moment().subtract(1, 'year'), moment()],
+            $('input[name="daterange"]').daterangepicker(
+                {
+                    opens: "left",
+                    endDate: moment(),
+                    startDate: moment().subtract(7, "days"),
+                    ranges: {
+                        今天: [moment(), moment()],
+                        最近七天: [moment().subtract(7, "day"), moment()],
+                        最近一月: [moment().subtract(1, "month"), moment()],
+                        最近三月: [moment().subtract(3, "month"), moment()],
+                        最近一年: [moment().subtract(1, "year"), moment()],
+                    },
+                    autoApply: true,
+                    locale: {
+                        format: "YYYY-MM-DD",
+                        customRangeLabel: "自定义",
+                    },
                 },
-                "autoApply": true,
-                "locale": {
-                    "format": "YYYY-MM-DD",
-                    "customRangeLabel": "自定义",
+                function (start, end, label) {
+                    startStr = start.format("YYYY-MM-DD");
+                    endStr = end.format("YYYY-MM-DD");
                 }
-            }, function (start, end, label) {
-                startStr = start.format('YYYY-MM-DD')
-                endStr = end.format('YYYY-MM-DD')
-            });
+            );
         });
     });
 
-
     // 获取后台首页状态
     var getSystemStatus = function () {
-        url = "{% url 'api:system_status' %}" + "?start=" + startStr + "&end=" + endStr
+        url =
+            "{% url 'api:system_status' %}" +
+            "?start=" +
+            startStr +
+            "&end=" +
+            endStr;
         $.getJSON(url, function (res) {
-            genChart('id-node-traffic-status', 'bar', res.node_status.bar_config)
-            genChart('id-node-status', 'doughnut', res.node_status.doughnut_config)
+            genChart(
+                "id-node-traffic-status",
+                "bar",
+                res.node_status.bar_config
+            );
+            genChart(
+                "id-node-status",
+                "doughnut",
+                res.node_status.doughnut_config
+            );
 
-            genChart('id-user-status', 'doughnut', res.user_status.doughnut_config)
-            genChart('id-new-user-status', 'line', res.user_status.new_user_line_config)
-            genChart('id-active-user-status', 'line', res.user_status.active_user_line_config)
+            genChart(
+                "id-user-status",
+                "doughnut",
+                res.user_status.doughnut_config
+            );
+            genChart(
+                "id-new-user-status",
+                "line",
+                res.user_status.new_user_line_config
+            );
+            genChart(
+                "id-active-user-status",
+                "line",
+                res.user_status.active_user_line_config
+            );
 
-            genChart('id-order-status', 'bar', res.order_status.bar_config)
-            genChart('id-order-amount-status', 'line', res.order_status.line_config)
-            genChart('id-amount-status', 'doughnut', res.order_status.doughnut_config)
-        })
-    }
-    getSystemStatus()
+            genChart("id-order-status", "bar", res.order_status.bar_config);
+            genChart(
+                "id-order-amount-status",
+                "line",
+                res.order_status.line_config
+            );
+            genChart(
+                "id-amount-status",
+                "doughnut",
+                res.order_status.doughnut_config
+            );
+        });
+    };
+    getSystemStatus();
 
-    $("#id-button-query").on("click", getSystemStatus)
+    $("#id-button-query").on("click", getSystemStatus);
     </script>
 {% endblock main %}

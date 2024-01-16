@@ -1,0 +1,142 @@
+<!-- copied from https://github.com/newpanjing/simpleui/blob/master/simpleui/templates/admin/home.html -->
+{% load static %}
+
+<script src="https://cdn.staticfile.org/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="text/javascript"
+        src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script src="{% static 'sspanel/js/sspanel.js' %}"></script>
+<link rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<div id="home">
+    <!-- quick action -->
+    <el-row class="info-card">
+    <el-col :span="24">
+    <el-card class="box-card">
+    <div slot="header" class="clearfix">
+        <i class="fas fa-link"></i>
+        <span v-text="getLanuage('Quick navigation')"></span>
+    </div>
+    <div class="clearfix">
+        <div v-for="(c,j) in models" :key="c.name" class="quick-wrap">
+            <a href="javascript:;" @click="openTab(c,(j+1)+'')">
+                <span class="icon" :class="c.icon"></span>
+                <span class="card-name" v-text="c.name"></span>
+            </a>
+        </div>
+    </div>
+    </el-card>
+    </el-col>
+    </el-row>
+
+    <!-- dashboard -->
+    <el-row class="info-card">
+    <el-col :span="24">
+    <el-card class="box-card">
+    <div slot="header" class="clearfix">
+        <el-row type="flex" class="row-bg" justify="end">
+        <el-col :span="18">
+        <i class="fas fa-dashboard"></i>
+        <span>系统状态</span>
+        </el-col>
+
+        <el-col :span="5">
+        <el-input placeholder="日期" name="daterange"></el-input>
+        </el-col>
+        <el-col :span="2">
+        <el-button type="primary" id="id-button-query">查询</el-button>
+        </el-col>
+        </el-row>
+    </div>
+    <div>
+        <el-row type="flex" class="row-bg" justify="center">
+        <el-col :span="12">
+        <canvas id="id-user-status"></canvas>
+        </el-col>
+        <el-col :span="12">
+        <canvas id="id-new-user-status"></canvas>
+        </el-col>
+        </el-row>
+
+        <el-row type="flex" class="row-bg" justify="center">
+        <el-col :span="12">
+        <canvas id="id-node-traffic-status"></canvas>
+        </el-col>
+        <el-col :span="12">
+        <canvas id="id-order-status"></canvas>
+        </el-col>
+        </el-row>
+
+        <el-row type="flex" class="row-bg" justify="center">
+        <el-col :span="24">
+        <canvas id="id-order-amount-status"></canvas>
+        </el-col>
+        </el-row>
+    </div>
+    </el-card>
+    </el-col>
+    </el-row>
+</div>
+
+<script>
+    var startStr = moment().subtract(7, "day").format("YYYY-MM-DD");
+    var endStr = moment().format("YYYY-MM-DD");
+
+
+    var getSystemStatus = function () {
+        url =
+            "{% url 'api:system_status' %}" +
+            "?start=" +
+            startStr +
+            "&end=" +
+            endStr;
+        $.getJSON(url, function (res) {
+            genLineChart(
+                "id-user-status",
+                res.user_status.active_user_line_config
+            );
+            genLineChart(
+                "id-new-user-status",
+                res.user_status.new_user_line_config
+            );
+            genLineChart(
+                "id-order-amount-status",
+                res.order_status.line_config
+            );
+
+            genBarChart("id-node-traffic-status", res.node_status.bar_config);
+            genBarChart("id-order-status", res.order_status.bar_config);
+        });
+    };
+    window.onload = function () {
+        $("#id-button-query").on("click", getSystemStatus);
+        $('input[name="daterange"]').daterangepicker(
+            {
+                opens: "left",
+                endDate: moment(),
+                startDate: moment().subtract(7, "days"),
+                ranges: {
+                    今天: [moment(), moment()],
+                    最近七天: [moment().subtract(7, "day"), moment()],
+                    最近一月: [moment().subtract(1, "month"), moment()],
+                    最近三月: [moment().subtract(3, "month"), moment()],
+                    最近一年: [moment().subtract(1, "year"), moment()],
+                },
+                autoApply: true,
+                locale: {
+                    format: "YYYY-MM-DD",
+                    customRangeLabel: "自定义",
+                },
+            },
+            function (start, end, label) {
+                startStr = start.format("YYYY-MM-DD");
+                endStr = end.format("YYYY-MM-DD");
+            }
+        );
+        getSystemStatus();
+    };
+</script>

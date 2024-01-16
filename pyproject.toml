@@ -17,6 +17,9 @@ license = "GPL-3.0 License"
 name = "django-sspanel"
 version = "0.1.0"
 
+[tool.djlint]
+preserve_blank_lines = true
+
 [tool.poetry.dependencies]
 Django = "^4.2.6"
 Markdown = "^3.3.4"

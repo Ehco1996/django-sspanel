@@ -1,28 +1,27 @@
 /* 动态为footer添加类fixed-bottom */
 
 .fixed-bottom {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
 
 .errorlist {
-  color: red;
+    color: red;
 }
 
 /* Navbar免js自动响应 */
-
 #nav-toggle-state {
-  display: none;
+    display: none;
 }
 
 #nav-toggle-state:checked ~ .nav-menu {
-  display: block;
+    display: block;
 }
 
 @media all and (max-width: 768px) {
-  body {
-    /* On modern browsers, prevent the whole page to bounce */
-    overflow: hidden;
-  }
+    body {
+        /* On modern browsers, prevent the whole page to bounce */
+        overflow: hidden;
+    }
 }
