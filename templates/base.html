@@ -14,12 +14,12 @@
                 <a class="navbar-item" href="/">
                     {% settings_value "SITE_LOGO_URL" as logo_url %}
                     {% if logo_url %}
-                        <img src="{{ logo_url }}" alt="site logo">
+                        <img src="{{ logo_url }}" alt="site logo" />
                     {% else %}
                         <img src="{% static 'img/logo/logo.png' %}"
                              alt="site logo"
                              width="112"
-                             height="28">
+                             height="28" />
                     {% endif %}
                 </a>
                 <div class="navbar-burger burger"
@@ -52,7 +52,7 @@
                                     </span>
                                     <span>用户中心</span>
                                 </a>
-                                <hr class="navbar-divider">
+                                <hr class="navbar-divider" />
                                 <a class="navbar-item" href="{% url 'sspanel:logout' %}">
                                     <span class="icon">
                                         <i class="fa fa-sign-out"></i>
@@ -77,7 +77,6 @@
                             {% if perms.sspanel %}
                                 <a class="navbar-item is-active">管理面板</a>
                                 <a class="navbar-item" href="/admin">数据后台</a>
-                                <a class="navbar-item" href="{% url 'sspanel:system_status' %}">网站后台</a>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -92,7 +91,7 @@
                 </div>
             </div>
         </section>
-        <hr>
+        <hr />
         <div class="container">
             <div class="columns">
                 <div class="column is-2 is-hidden-mobile">
@@ -146,12 +145,8 @@
                                             <a href="/admin">数据后台</a>
                                         </li>
                                     </ul>
-                                    <ul class="menu-list">
-                                        <li>
-                                            <a href="{% url 'sspanel:system_status' %}">网站后台</a>
-                                        </li>
-                                    </ul>
                                 {% endif %}
+
                             {% else %}
                                 <article class="message is-primary">
                                     <div class="message-header">
@@ -199,7 +194,7 @@
     <!--整站消息提醒功能 -->
     {% if messages %}
         <script>
-    {% for message in messages %}swal("{{ message.extra_tags }}", '{{ message }}', '{{ message.level_tag }}');{% endfor %}
+        {% for message in messages %}swal("{{ message.extra_tags }}", '{{ message }}', '{{ message.level_tag }}');{% endfor %}
         </script>
     {% endif %}
 </html>
