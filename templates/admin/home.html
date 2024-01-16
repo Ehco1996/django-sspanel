@@ -73,7 +73,9 @@
 
         <el-row type="flex" class="row-bg" justify="center">
         <el-col :span="24">
-        <canvas id="id-order-amount-status"></canvas>
+        <div style="height: 300px">
+            <canvas id="id-order-amount-status"></canvas>
+        </div>
         </el-col>
         </el-row>
     </div>
@@ -85,7 +87,6 @@
 <script>
     var startStr = moment().subtract(7, "day").format("YYYY-MM-DD");
     var endStr = moment().format("YYYY-MM-DD");
-
 
     var getSystemStatus = function () {
         url =

@@ -24,7 +24,7 @@
                         <input class="input is-rounded is-focused"
                                id="id-sub-link"
                                value="{{ ref_link }}"
-                               readonly>
+                               readonly />
                     </p>
                     <p class="control">
                         <a class="button is-rounded"
@@ -38,8 +38,10 @@
             </div>
         </div>
         <div class="box" height="100">
-            <canvas id="id-ref-canvas"></canvas>
-            <hr>
+            <div height="300px">
+                <canvas id="id-ref-canvas"></canvas>
+            </div>
+            <hr />
             <div class="content">
                 <table class="table is-striped">
                     <thead>
@@ -62,17 +64,17 @@
     </div>
     <script>
     // 点击复制
-    var clip = new Clipboard('#id-button-clip');
-    clip.on('success', function (e) {
-        $('.copied').show();
-        $('.copied').fadeOut(1000);
+    var clip = new Clipboard("#id-button-clip");
+    clip.on("success", function (e) {
+        $(".copied").show();
+        $(".copied").fadeOut(1000);
     });
     var genRefChart = function () {
-        url = "{% url 'api:user_ref_chart' %}"
+        url = "{% url 'api:user_ref_chart' %}";
         $.get(url, function (results) {
-            genChart('id-ref-canvas', "bar", results)
-        })
-    }
-    genRefChart()
+            genBarChart("id-ref-canvas", results);
+        });
+    };
+    genRefChart();
     </script>
 {% endblock main %}

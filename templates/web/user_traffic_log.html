@@ -10,7 +10,7 @@
         </section>
     </div>
     <div class="column is-12">
-        <nav class="level box ">
+        <nav class="level box">
             <div class="level-item has-text-centered">
                 <div>
                     <p class="heading">用户名:</p>
@@ -30,10 +30,7 @@
                 <div class="control">
                     <div class="select">
                         <select id="id-select-nodes" name="nodes">
-                            {% for node in node_list %}
-                                <option node-id={{ node.id }}>{{ node.name }}
-                                </option>
-                            {% endfor %}
+                            {% for node in node_list %}<option node-id="{{ node.id }}">{{ node.name }}</option>{% endfor %}
                         </select>
                     </div>
                 </div>
@@ -41,22 +38,24 @@
                     <button id="id-button-query" class="button is-outlined is-info">查询</button>
                 </div>
             </div>
-            <canvas id="traffic" width="auto" height="auto"></canvas>
+            <div height="300px">
+                <canvas id="traffic"></canvas>
+            </div>
         </div>
     </div>
     <script>
     // 流量记录查询部分
-    queryButton = $("#id-button-query")
+    queryButton = $("#id-button-query");
     var traffic_query = function () {
-        url = "{% url 'api:user_traffic_chart' %}"
-        var options = $("#id-select-nodes option:selected")
+        url = "{% url 'api:user_traffic_chart' %}";
+        var options = $("#id-select-nodes option:selected");
         var data = {
-            'node_id': options.attr("node-id"),
-        }
+            node_id: options.attr("node-id"),
+        };
         $.get(url, data, function (results) {
-            genChart('traffic', 'line', results)
-        })
-    }
-    queryButton.click(traffic_query)
+            genLineChart("traffic", results);
+        });
+    };
+    queryButton.click(traffic_query);
     </script>
 {% endblock main %}
