@@ -109,7 +109,7 @@ components:
           description: The username of the user.
         balance:
           type: number
-          format: float
+          format: decimal
           description: The balance of the user.
         level:
           type: integer
