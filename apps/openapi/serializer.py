@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.proxy.models import ProxyNode
+from apps.sspanel.models import User
 
 
 def get_proxy_node_exclude_fields():
@@ -24,3 +25,20 @@ class ProxyNodeSerializer(serializers.ModelSerializer):
 
     def get_online_info(self, node: ProxyNode):
         return node.online_info
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        # only show safe fields
+        fields = [
+            "id",
+            "username",
+            "balance",
+            "level",
+            "level_expire_time",
+            "upload_traffic",
+            "download_traffic",
+            "total_traffic",
+            "last_use_time",
+        ]

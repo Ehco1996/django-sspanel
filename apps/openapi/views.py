@@ -2,13 +2,15 @@ from django.http import JsonResponse
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 
-from apps.openapi.serializer import ProxyNodeSerializer
-from apps.openapi.utils import OpenAPIAuthentication, gen_common_error_response
+from apps.ext import lock
+from apps.openapi.serializer import ProxyNodeSerializer, UserInfoSerializer
+from apps.openapi.utils import OpenAPIStaffAuthentication, gen_common_error_response
 from apps.proxy.models import ProxyNode
+from apps.sspanel.models import UserCheckInLog
 
 
 class BaseOpenAPIViewSet(ModelViewSet):
-    authentication_classes = [OpenAPIAuthentication]
+    authentication_classes = [OpenAPIStaffAuthentication]
 
 
 class ProxyNodeViewSet(BaseOpenAPIViewSet):
@@ -54,3 +56,27 @@ class ProxyNodeViewSet(BaseOpenAPIViewSet):
         node.enable = enable
         node.save()
         return JsonResponse(self.serializer_class(node).data)
+
+
+class UserViewSet(BaseOpenAPIViewSet):
+    serializer_class = UserInfoSerializer
+    queryset = UserInfoSerializer.Meta.model.objects.all()
+
+    @action(detail=True, methods=["get"])
+    def info(self, request, pk):
+        user = self.get_object()
+        return JsonResponse(self.serializer_class(user).data)
+
+    @action(detail=True, methods=["post"])
+    def checkin(self, request, pk):
+        user = self.get_object()
+        with lock.user_checkin_lock(user.pk):
+            if user.today_is_checkin:
+                return gen_common_error_response("today is checkin")
+            log = UserCheckInLog.checkin(user)
+            data = {
+                "user_id": user.pk,
+                "checkin_time": log.date,
+                "increased_traffic": log.increased_traffic,
+            }
+            return JsonResponse(data=data)
