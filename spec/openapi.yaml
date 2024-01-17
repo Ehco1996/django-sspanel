@@ -97,6 +97,20 @@ components:
           type: boolean
           description: Whether to enable or disable the ProxyNode
         # TODO Add more properties as needed
+
+    SearchUserReq:
+      type: object
+      properties:
+        platform:
+          type: string
+          description: platform
+        platform_user_id:
+          type: string
+          description: platform user id
+      required:
+        - platform
+        - platform_user_id
+
     UserInfo:
       type: object
       properties:
@@ -302,6 +316,31 @@ paths:
                 $ref: "#/components/schemas/CommonErrorResp"
         500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResp"
+
+  /users/search/:
+    post:
+      summary: search user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchUserReq"
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        400:
+          description: Bad request
           content:
             application/json:
               schema:

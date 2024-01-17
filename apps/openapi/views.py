@@ -6,7 +6,7 @@ from apps.ext import lock
 from apps.openapi.serializer import ProxyNodeSerializer, UserInfoSerializer
 from apps.openapi.utils import OpenAPIStaffAuthentication, gen_common_error_response
 from apps.proxy.models import ProxyNode
-from apps.sspanel.models import UserCheckInLog
+from apps.sspanel.models import UserCheckInLog, UserSocialProfile
 
 
 class BaseOpenAPIViewSet(ModelViewSet):
@@ -80,3 +80,19 @@ class UserViewSet(BaseOpenAPIViewSet):
                 "increased_traffic": log.increased_traffic,
             }
             return JsonResponse(data=data)
+
+    @action(detail=False, methods=["post"])
+    def search(self, request):
+        platform = request.data.get("platform")
+        platform_user_id = request.data.get("platform_user_id")
+        if not platform or not platform_user_id:
+            return gen_common_error_response(
+                "platform and platform_user_id in body is required"
+            )
+        user = UserSocialProfile.get_by_platform_user_id(platform, platform_user_id)
+        if not user:
+            return gen_common_error_response(
+                f"user with platform:{platform} platform_user_id:{platform_user_id} not found",
+                status=404,
+            )
+        return JsonResponse(self.serializer_class(user).data)
