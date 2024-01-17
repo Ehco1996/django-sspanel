@@ -52,7 +52,11 @@ class UserSettingsView(View):
         ):
             data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}
         else:
-            data = {"title": "修改失败!", "status": "error", "subtitle": "配置更新失败!"}
+            data = {
+                "title": "修改失败!",
+                "status": "error",
+                "subtitle": "配置更新失败请重试!可能是密码太简单了",
+            }
         return JsonResponse(data)
 
 

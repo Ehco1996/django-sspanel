@@ -14,7 +14,7 @@ from django.contrib import messages
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.utils import functional, timezone
 from redis.exceptions import LockError
 
@@ -258,6 +258,8 @@ class User(AbstractUser):
             self.save()
             return True
         except ValidationError as e:
+            return False
+        except IntegrityError as e:
             return False
 
     def reset_traffic(self, new_traffic):
