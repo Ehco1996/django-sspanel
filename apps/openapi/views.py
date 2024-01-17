@@ -89,10 +89,10 @@ class UserViewSet(BaseOpenAPIViewSet):
             return gen_common_error_response(
                 "platform and platform_user_id in body is required"
             )
-        user = UserSocialProfile.get_by_platform_user_id(platform, platform_user_id)
-        if not user:
+        up = UserSocialProfile.get_by_platform_user_id(platform, platform_user_id)
+        if not up:
             return gen_common_error_response(
                 f"user with platform:{platform} platform_user_id:{platform_user_id} not found",
                 status=404,
             )
-        return JsonResponse(self.serializer_class(user).data)
+        return JsonResponse(self.serializer_class(up.user).data)
