@@ -31,7 +31,6 @@ from apps.sspanel.models import (
 from apps.utils import get_current_datetime, traffic_format
 
 
-
 class HelpView(View):
     def get(self, request):
         context = {"simple_extra_static": True}
