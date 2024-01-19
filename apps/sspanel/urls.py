@@ -6,7 +6,7 @@ app_name = "sspanel"
 
 urlpatterns = [
     # 网站用户面板
-    path("", views.IndexView.as_view(), name="index"),
+    path("", views.UserLogInView.as_view(), name="index"),
     path("help/", views.HelpView.as_view(), name="help"),
     # 邀请
     path("invitecode/", views.InviteCodeView.as_view(), name="invite_code"),

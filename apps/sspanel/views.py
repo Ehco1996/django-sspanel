@@ -31,16 +31,9 @@ from apps.sspanel.models import (
 from apps.utils import get_current_datetime, traffic_format
 
 
-class IndexView(View):
-    def get(self, request):
-        """跳转到首页"""
-        context = {"simple_extra_static": True}
-        return render(request, "web/index.html", context=context)
-
 
 class HelpView(View):
     def get(self, request):
-        """跳转到帮助界面"""
         context = {"simple_extra_static": True}
         return render(request, "web/help.html", context=context)
 

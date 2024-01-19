@@ -55,7 +55,7 @@
                                 <hr class="navbar-divider" />
                                 <a class="navbar-item" href="{% url 'sspanel:logout' %}">
                                     <span class="icon">
-                                        <i class="fa fa-sign-out"></i>
+                                        <i class="fas fa-sign-out-alt"></i>
                                     </span>
                                     <span>注销登录</span>
                                 </a>
@@ -86,17 +86,18 @@
         <section class="hero is-small is-info">
             <div class="hero-body">
                 <div class="container has-text-centered">
-                    <h1 class="title">{% settings_value "SITE_SUBTITLE" %}</h1>
-                    <h2 class="subtitle">你说会发现什么呢？</h2>
+                    <h2 class="title">{% settings_value "SITE_TITLE" %}</h2>
+                    <h1 class="subtitle">{% settings_value "SITE_SUBTITLE" %}</h1>
                 </div>
             </div>
         </section>
         <hr />
         <div class="container">
             <div class="columns">
-                <div class="column is-2 is-hidden-mobile">
-                    <div class="box">
-                        {% if user.is_authenticated %}
+                <!-- 左侧导航栏 -->
+                {% if user.is_authenticated %}
+                    <div class="column is-2 is-hidden-mobile">
+                        <div class="box">
                             <aside class="menu">
                                 <ul class="menu-list">
                                     <p class="menu-label">我的信息</p>
@@ -146,45 +147,21 @@
                                         </li>
                                     </ul>
                                 {% endif %}
-
-                            {% else %}
-                                <article class="message is-primary">
-                                    <div class="message-header">
-                                        <p>幻想乡</p>
-                                        <button class="delete"></button>
-                                    </div>
-                                    <div class="message-body">幻想中的「地方」</div>
-                                </article>
-                                <article class="message is-info">
-                                    <div class="message-header">
-                                        <p>谜の屋</p>
-                                        <button class="delete"></button>
-                                    </div>
-                                    <div class="message-body">他不存于「地表」</div>
-                                </article>
-                                <article class="message is-success">
-                                    <div class="message-header">
-                                        <p>时之塔</p>
-                                        <button class="delete"></button>
-                                    </div>
-                                    <div class="message-body">这囚禁着「思想」</div>
-                                </article>
-                                <article class="message is-warning">
-                                    <div class="message-header">
-                                        <p>旧の桥</p>
-                                        <button class="delete"></button>
-                                    </div>
-                                    <div class="message-body">却连接着「自由」</div>
-                                </article>
-                            {% endif %}
-                        </aside>
+                            </aside>
+                        </div>
+                    </div>
+                    <!-- 右侧内容 -->
+                    <div class="column is-10">
+                        {% block authed %}
+                        {% endblock authed %}
                     </div>
                 </div>
-                <div class="column is-10">
-                    {% block main %}
-                    {% endblock main %}
+            {% else %}
+                <div class="column is-12">
+                    {% block un-authed %}
+                    {% endblock un-authed %}
                 </div>
-            </div>
+            {% endif %}
         </div>
     </body>
     {% settings_value "HIDE_FOOTER" as hide_footer %}

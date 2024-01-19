@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block main %}
+{% block authed %}
     {% load static %}
     {% load ehcofilter %}
     <div class="column is-12">
@@ -221,4 +221,4 @@
         payquery(false);
     });
     </script>
-{% endblock main %}
+{% endblock authed %}

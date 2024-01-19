@@ -1,68 +1,72 @@
 {% extends 'base.html' %}
 {% load ehcofilter %}
-{% block main %}
+
+{% block un-authed %}
     <div class="column is-12">
         <section class="hero is-info is-smaill">
             <div class="hero-body">
                 <div class="container">
                     <h1 class="title">登录</h1>
-                    <h2 class="subtitle">请问需要加点咖啡吗？</h2>
+                    <h2 class="subtitle">需要加点咖啡吗？</h2>
                 </div>
             </div>
         </section>
     </div>
+
     <div class="column is-12">
-        {% if user.is_authenticated %}
-            <div class="box">
-                <p class="title">欢迎小主: {{ user.username }}</p>
-                <p class="subtitle">点击下方按钮进入用户中心</p>
-                <button class="button">
-                    <a href="{% url 'sspanel:userinfo' %}">进入</a>
-                </button>
-            </div>
-        {% else %}
-            <div class="box">
-                <h3 class="title">登录:</h3>
-                <form class="form" action="{% url 'sspanel:login' %}" method="post">
-                    {% csrf_token %} {{ form.non_field_errors }}
-                    {% for field in form %}
-                        {{ field.label_tag }} {{ field }}
-                        {{ field.errors }}
-                        {% if field.help_text %}<p class="help is-danger">{{ field.help_text|safe }}</p>{% endif %}
-                    {% endfor %}
-                    <hr>
-                    <div class="field is-grouped is-grouped-multiline">
+        <div class="box">
+            <form class="form" action="{% url 'sspanel:login' %}" method="post">
+                {% csrf_token %} {{ form.non_field_errors }}
+                {% for field in form %}
+                    {{ field.label_tag }} {{ field }} {{ field.errors }}
+                    {% if field.help_text %}<p class="help is-danger">{{ field.help_text|safe }}</p>{% endif %}
+                {% endfor %}
+                <hr />
+                <div class="field is-grouped is-grouped-multiline">
+                    <p class="control">
+                        <button type="submit" class="button is-danger is-outlined">登录</button>
+                    </p>
+                    {% settings_value "TELEGRAM_BOT_NAME" as tg_bot_name %}
+                    {% settings_value "TELEGRAM_LOGIN_REDIRECT_URL" as tg_redirect_url %}
+                    {% if tg_bot_name and request.get_host in tg_redirect_url %}
                         <p class="control">
-                            <button type="submit" class="button is-danger is-outlined">登录</button>
+                            <script async
+                                    src="https://telegram.org/js/telegram-widget.js?22"
+                                    data-telegram-login="{{ tg_bot_name }}"
+                                    data-size="large"
+                                    data-auth-url="{{ tg_redirect_url }}"
+                                    data-request-access="write"></script>
                         </p>
-                        {% settings_value "TELEGRAM_BOT_NAME" as tg_bot_name %}
-                        {% settings_value "TELEGRAM_LOGIN_REDIRECT_URL" as tg_redirect_url %}
-                        {% if tg_bot_name and request.get_host in tg_redirect_url %}
-                            <p class="control">
-                                <script async
-                                        src="https://telegram.org/js/telegram-widget.js?22"
-                                        data-telegram-login="{{ tg_bot_name }}"
-                                        data-size="large"
-                                        data-auth-url="{{ tg_redirect_url }}"
-                                        data-request-access="write"></script>
-                            </p>
-                        {% endif %}
-                        {% settings_value "USE_SMTP" as use_smtp %}
-                        {% if use_smtp %}
-                            <p class="control">
-                                <a class="button is-info is-outlined" href="{% url 'password_reset' %}">忘记密码</a>
-                            </p>
-                        {% endif %}
-                        {% settings_value "ALLOW_REGISTER" as allow_register %}
-                        {% if allow_register is True %}
-                            <p class="control">
-                                <a class="button is-primary is-outlined"
-                                   href="{% url 'sspanel:register' %}">注册一个</a>
-                            </p>
-                        {% endif %}
-                    </div>
-                </form>
-            </div>
+                    {% endif %}
+                    {% settings_value "USE_SMTP" as use_smtp %}
+
+                    {% if use_smtp %}
+                        <p class="control">
+                            <a class="button is-info is-outlined" href="{% url 'password_reset' %}">忘记密码</a>
+                        </p>
+                    {% endif %}
+                    {% settings_value "ALLOW_REGISTER" as allow_register %}
+                    {% if allow_register is True %}
+                        <p class="control">
+                            <a class="button is-primary is-outlined"
+                               href="{% url 'sspanel:register' %}">注册</a>
+                        </p>
+                    {% endif %}
+                </div>
+            </form>
         </div>
-    {% endif %}
-{% endblock main %}
+    </div>
+
+{% endblock un-authed %}
+
+{% block authed %}
+    <div class="column is-12">
+        <div class="box">
+            <p class="title">欢迎小主: {{ user.username }}</p>
+            <p class="subtitle">点击下方按钮进入用户中心</p>
+            <button class="button">
+                <a href="{% url 'sspanel:userinfo' %}">进入</a>
+            </button>
+        </div>
+    </div>
+{% endblock authed %}
