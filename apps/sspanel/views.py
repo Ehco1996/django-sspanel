@@ -369,15 +369,19 @@ class ProxyNodeOccupancyView(LoginRequiredMixin, View):
             request.user, out_of_usage=False
         )
         user_occupy_node_ids = [occupy.proxy_node_id for occupy in usable_occupies]
-        purchasable_proxy_nodes = OccupancyConfig.get_purchasable_proxy_nodes(
-            request.user
-        )
-        for node in purchasable_proxy_nodes:
-            node.already_buy = node.id in user_occupy_node_ids
+        all_proxy_nodes = OccupancyConfig.get_purchasable_proxy_nodes(request.user)
+        purchasable_proxy_nodes = []
+        renewable_proxy_nodes = []
+        for node in all_proxy_nodes:
+            if node.id in user_occupy_node_ids:
+                renewable_proxy_nodes.append(node)
+            else:
+                purchasable_proxy_nodes.append(node)
 
         context = {
             "user": request.user,
             "purchasable_proxy_nodes": purchasable_proxy_nodes,
+            "renewable_proxy_nodes": renewable_proxy_nodes,
             "usable_occupies": usable_occupies,
             "outdated_occupies": UserProxyNodeOccupancy.get_user_occupancies(
                 request.user, out_of_usage=True, limit=10
