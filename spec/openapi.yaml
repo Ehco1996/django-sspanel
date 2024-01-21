@@ -175,7 +175,7 @@ paths:
       tags:
         - ProxyNode
       parameters:
-        - name: page
+        - name: offset
           in: query
           required: false
           schema:
