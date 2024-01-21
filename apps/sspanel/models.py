@@ -276,10 +276,9 @@ class User(AbstractUser):
         """
         https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
         """
-        expire = int(datetime.datetime.timestamp(self.level_expire_time))
-        info = f"upload={self.upload_traffic}; download={self.download_traffic}; total={self.total_traffic}; expire={expire}"
-        # filename = slugify(settings.SITE_TITLE)
-        return {"Subscription-Userinfo:": info}
+        expire = self.level_expire_time.date().strftime("%Y-%m-%d")
+        info = f"u={traffic_format(self.upload_traffic)}; d={traffic_format(self.download_traffic)}; t={traffic_format(self.total_traffic)}; expire={expire}"
+        return {"Subscription-Userinfo": info}
 
     def reset_sub_uid(self):
         self.uid = str(uuid4())
