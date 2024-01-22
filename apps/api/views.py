@@ -209,7 +209,7 @@ class OrderView(View):
     def post(self, request):
         try:
             amount = int(request.POST.get("num"))
-            if amount < 1:
+            if amount < 1 or amount > 1000:
                 raise ValueError
         except ValueError:
             return JsonResponse(
