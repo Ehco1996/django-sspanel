@@ -970,8 +970,8 @@ class UserProxyNodeOccupancy(BaseModel):
     total_traffic = models.BigIntegerField("总流量(单位字节)", default=settings.GB)
 
     class Meta:
-        verbose_name = "占用记录"
-        verbose_name_plural = "占用记录"
+        verbose_name = "用户占用记录"
+        verbose_name_plural = "用户占用记录"
         indexes = [
             models.Index(fields=["end_time"]),
             models.Index(fields=["user", "end_time"]),
