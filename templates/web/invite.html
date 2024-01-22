@@ -1,40 +1,60 @@
-{% extends 'base.html' %}
-{% block un-authed %}
-    {% load ehcofilter %}
-    <div class="column is-12">
-        <section class="hero is-info is-smaill">
-            <div class="hero-body">
-                <div class="container">
-                    <h1 class="title">邀请码列表</h1>
-                    <h2 class="subtitle">{% settings_value "INVITEINFO" %}</h2>
+{% extends 'base.html' %} {% load ehcofilter %} {% block authed %}
+<div class="column">
+    <section class="section">
+        <div class="container">
+            <div class="notification is-info">
+                <h1 class="title">邀请</h1>
+                <p class="subtitle">
+                    已注册用户可以使用自己的邀请链接邀请好友注册
+                </p>
+                <p>通过该链接注册的用户每消费一笔,你都能收到返利</p>
+                <p>请点击下面的按钮跳转到邀请链接页面，获取您的专属邀请链接</p>
+                <div class="buttons is-right">
+                    <a class="button is-light" href="/aff/invite/">点击跳转</a>
                 </div>
             </div>
-        </section>
-    </div>
-    <div class="column is-12">
-        <div class="box">
-            <div class="content">
-                <table class="table is-striped">
-                    <thead>
-                        <tr>
-                            <th>创建时间</th>
-                            <th>邀请码</th>
-                        </tr>
-                    </thead>
-                    {% for code in code_list %}
-                        <tr>
-                            <td>{{ code.created_at|date:"m月d日" }}</td>
-                            <td>
-                                <a href="{% url 'sspanel:register' %}?invitecode={{ code.code }}"code.code }}>
-                                    {{ code.code }}
-                                </a>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <h2 class="subtitle">哦哦哦，用完了！</h2>
-                    {% endfor %}
-                </table>
+        </div>
+    </section>
+</div>
+{% endblock authed %} {% block un-authed %}
+<div class="column is-12">
+    <section class="hero is-info is-smaill">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">邀请码列表</h1>
+                <h2 class="subtitle">{% settings_value "INVITEINFO" %}</h2>
             </div>
         </div>
+    </section>
+</div>
+<div class="column is-12">
+    <div class="box">
+        <div class="content">
+            <table class="table is-striped">
+                <thead>
+                    <tr>
+                        <th>创建时间</th>
+                        <th>邀请码</th>
+                    </tr>
+                </thead>
+                {% for code in code_list %}
+                <tr>
+                    <td>{{ code.created_at|date:"m月d日" }}</td>
+                    <td>
+                        <a
+                            href="{% url 'sspanel:register' %}?invitecode={{ code.code }}"
+                            code.code
+                            }}
+                        >
+                            {{ code.code }}
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <h2 class="subtitle">哦哦哦，用完了！</h2>
+                {% endfor %}
+            </table>
+        </div>
     </div>
+</div>
 {% endblock un-authed %}
