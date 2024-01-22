@@ -605,6 +605,11 @@ class InviteCode(models.Model):
     used = models.BooleanField(verbose_name="是否使用", default=False)
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
 
+    @classmethod
+    def batch_create(cls, number, code_type):
+        models = [cls(code_type=code_type) for _ in range(number)]
+        cls.objects.bulk_create(models)
+
     def __str__(self):
         return f"<{self.user_id}>-<{self.code}>"
 
@@ -727,7 +732,7 @@ class Donate(models.Model):
 class MoneyCode(models.Model):
     """充值码"""
 
-    user = models.CharField(verbose_name="用户名", max_length=128, blank=True, null=True)
+    user = models.CharField(verbose_name="使用人", max_length=128, blank=True, null=True)
     time = models.DateTimeField("捐赠时间", editable=False, auto_now_add=True)
     code = models.CharField(
         verbose_name="充值码",
@@ -737,7 +742,7 @@ class MoneyCode(models.Model):
         default=get_long_random_string,
     )
     number = models.DecimalField(
-        verbose_name="捐赠金额",
+        verbose_name="金额",
         decimal_places=2,
         max_digits=10,
         default=10,
@@ -765,6 +770,11 @@ class MoneyCode(models.Model):
     @property
     def isused_cn(self):
         return "已使用" if self.isused else "未使用"
+
+    @classmethod
+    def batch_create(cls, number, amount):
+        models = [cls(number=amount) for _ in range(number)]
+        cls.objects.bulk_create(models)
 
 
 class Goods(models.Model):

@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.models import Group
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
@@ -85,10 +85,44 @@ class PurchaseHistoryAdmin(admin.ModelAdmin):
 class InviteCodeAdmin(admin.ModelAdmin):
     list_display = ["code", "created_at", "used", "code_type"]
     search_fields = ["code"]
+    list_per_page = 10
+    actions = ["batch_add"]
+    list_filter = ["used"]
+
+    def batch_add(self, request, queryset):
+        # todo support params
+        amount = request.POST.get("amount", 10)
+        number = request.POST.get("number", 10)
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            f"create code:{amount} x {number}",
+        )
+        models.InviteCode.batch_create(number, 1)
+
+    batch_add.short_description = "批量添加"
+    batch_add.type = "danger"
 
 
 class MoneyCodeAdmin(admin.ModelAdmin):
-    list_display = ["user", "code", "isused"]
+    list_display = ["code", "number", "isused", "user"]
+    list_per_page = 10
+    actions = ["batch_add"]
+    list_filter = ["isused"]
+
+    def batch_add(self, request, queryset):
+        # todo support params
+        amount = request.POST.get("amount", 10)
+        number = request.POST.get("number", 10)
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            f"create code:={amount}x{number}",
+        )
+        models.MoneyCode.batch_create(amount, number)
+
+    batch_add.short_description = "批量添加"
+    batch_add.type = "danger"
 
 
 class DonateAdmin(admin.ModelAdmin):
@@ -169,13 +203,15 @@ class TicketAdmin(admin.ModelAdmin):
 
 
 # Register your models here.
+admin.site.register(models.MoneyCode, MoneyCodeAdmin)
+admin.site.register(models.InviteCode, InviteCodeAdmin)
+
+
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserOrder, UserOrderAdmin)
 admin.site.register(models.UserCheckInLog, UserCheckInAdmin)
 admin.site.register(models.UserRefLog, UserRefLogAdmin)
-admin.site.register(models.InviteCode, InviteCodeAdmin)
 admin.site.register(models.Donate, DonateAdmin)
-admin.site.register(models.MoneyCode, MoneyCodeAdmin)
 admin.site.register(models.Goods, GoodsAdmin)
 admin.site.register(models.PurchaseHistory, PurchaseHistoryAdmin)
 admin.site.register(models.Announcement)
