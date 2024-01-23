@@ -3,84 +3,107 @@
 
 <script src="https://cdn.staticfile.org/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script type="text/javascript"
-        src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script
+    type="text/javascript"
+    src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"
+></script>
+<script
+    type="text/javascript"
+    src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"
+></script>
 <script src="{% static 'sspanel/js/sspanel.js' %}"></script>
-<link rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"
+/>
 
 <div id="home">
     <!-- quick action -->
     <el-row class="info-card">
-    <el-col :span="24">
-    <el-card class="box-card">
-    <div slot="header" class="clearfix">
-        <i class="fas fa-link"></i>
-        <span v-text="getLanuage('Quick navigation')"></span>
-    </div>
-    <div class="clearfix">
-        <div v-for="(c,j) in models" :key="c.name" class="quick-wrap">
-            <a href="javascript:;" @click="openTab(c,(j+1)+'')">
-                <span class="icon" :class="c.icon"></span>
-                <span class="card-name" v-text="c.name"></span>
-            </a>
-        </div>
-    </div>
-    </el-card>
-    </el-col>
+        <el-col :span="24">
+            <el-card class="box-card">
+                <div slot="header" class="clearfix">
+                    <i class="fas fa-link"></i>
+                    <span v-text="getLanuage('Quick navigation')"></span>
+                </div>
+                <div class="clearfix">
+                    <div
+                        v-for="(c,j) in models"
+                        :key="c.name"
+                        class="quick-wrap"
+                    >
+                        <a href="javascript:;" @click="openTab(c,(j+1)+'')">
+                            <span class="icon" :class="c.icon"></span>
+                            <span class="card-name" v-text="c.name"></span>
+                        </a>
+                    </div>
+                </div>
+            </el-card>
+        </el-col>
     </el-row>
 
     <!-- dashboard -->
     <el-row class="info-card">
-    <el-col :span="24">
-    <el-card class="box-card">
-    <div slot="header" class="clearfix">
-        <el-row type="flex" class="row-bg" justify="end">
-        <el-col :span="18">
-        <i class="fas fa-dashboard"></i>
-        <span>系统状态</span>
-        </el-col>
-
-        <el-col :span="8">
-        <el-input placeholder="日期" name="daterange"></el-input>
-        </el-col>
-        <el-col :span="5">
-        <el-button type="primary" id="id-button-query">查询</el-button>
-        </el-col>
-        </el-row>
-    </div>
-    <div>
-        <el-row type="flex" class="row-bg" justify="center">
-        <el-col :span="12">
-        <canvas id="id-user-status"></canvas>
-        </el-col>
-        <el-col :span="12">
-        <canvas id="id-new-user-status"></canvas>
-        </el-col>
-        </el-row>
-
-        <el-row type="flex" class="row-bg" justify="center">
-        <el-col :span="12">
-        <canvas id="id-node-traffic-status"></canvas>
-        </el-col>
-        <el-col :span="12">
-        <canvas id="id-order-status"></canvas>
-        </el-col>
-        </el-row>
-
-        <el-row type="flex" class="row-bg" justify="center">
         <el-col :span="24">
-        <div style="height: 300px">
-            <canvas id="id-order-amount-status"></canvas>
-        </div>
+            <el-card class="box-card">
+                <div slot="header" class="clearfix">
+                    <el-row type="flex" class="row-bg" justify="end">
+                        <el-col :span="18">
+                            <i class="fas fa-dashboard"></i>
+                            <span>系统状态</span>
+                        </el-col>
+
+                        <el-col :span="8">
+                            <el-input
+                                placeholder="日期"
+                                name="daterange"
+                            ></el-input>
+                        </el-col>
+                        <el-col :span="5">
+                            <el-button type="primary" id="id-button-query"
+                                >查询</el-button
+                            >
+                        </el-col>
+                    </el-row>
+                </div>
+                <div>
+                    <el-row type="flex" class="row-bg" justify="center">
+                        <el-col :span="12">
+                            <canvas id="id-user-status"></canvas>
+                        </el-col>
+                        <el-col :span="12">
+                            <canvas id="id-new-user-status"></canvas>
+                        </el-col>
+                    </el-row>
+
+                    <el-row type="flex" class="row-bg" justify="center">
+                        <el-col :span="12">
+                            <canvas id="id-node-traffic-status"></canvas>
+                        </el-col>
+                        <el-col :span="12">
+                            <canvas id="id-order-status"></canvas>
+                        </el-col>
+                    </el-row>
+
+                    <el-row type="flex" class="row-bg" justify="center">
+                        <el-col :span="24">
+                            <div style="height: 300px">
+                                <canvas id="id-order-amount-status"></canvas>
+                            </div>
+                        </el-col>
+                    </el-row>
+
+                    <el-row type="flex" class="row-bg" justify="center">
+                        <el-col :span="24">
+                            <div style="height: 300px">
+                                <canvas id="id-order-cost-status"></canvas>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+            </el-card>
         </el-col>
-        </el-row>
-    </div>
-    </el-card>
-    </el-col>
     </el-row>
 </div>
 
@@ -104,10 +127,10 @@
                 "id-new-user-status",
                 res.user_status.new_user_line_config
             );
-            genLineChart(
-                "id-order-amount-status",
-                res.order_status.line_config
-            );
+            genLineChartWithDataList("id-order-amount-status", [
+                res.order_status.line_config,
+                res.order_status.cost_line_config,
+            ]);
 
             genBarChart("id-node-traffic-status", res.node_status.bar_config);
             genBarChart("id-order-status", res.order_status.bar_config);

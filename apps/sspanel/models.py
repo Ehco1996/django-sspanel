@@ -756,14 +756,6 @@ class MoneyCode(models.Model):
         verbose_name_plural = "充值码"
         ordering = ("isused",)
 
-    def clean(self):
-        # 保证充值码不会重复
-        code_length = len(self.code or "")
-        if 0 < code_length < 12:
-            self.code = "{}{}".format(self.code, get_long_random_string())
-        else:
-            self.code = get_long_random_string()
-
     def __str__(self):
         return self.code
 

@@ -155,9 +155,11 @@ var genLineChart = function (id, config_data) {
         {
           label: config_data.title,
           data: config_data.data,
+          fill: false,
+          tension: 0.2,
           backgroundColor: getRandomColor(),
-          borderColor: getRandomColor,
-          borderWidth: 1,
+          borderColor: getRandomColor(),
+          borderWidth: 2,
         },
       ],
     },
@@ -166,40 +168,20 @@ var genLineChart = function (id, config_data) {
         mode: "nearest",
         intersect: true,
       },
-      title: {
-        display: true,
-        text: config_data.title,
-      },
-      elements: {
-        point: {
-          radius: 2,
-        },
-      },
       responsive: true,
       maintainAspectRatio: false,
-      legend: {
-        display: true,
-      },
-      scales: {
-        xAxes: [
-          {
-            display: true,
-            scaleLabel: {
-              display: true,
-              labelString: config_data.x_label,
+      plugins: {
+        tooltip: {
+          // only show value
+          callbacks: {
+            label: function (context) {
+              if (context.parsed.y == 0) {
+                return " 0";
+              }
+              return " " + context.parsed.y;
             },
           },
-        ],
-        yAxes: [
-          {
-            display: true,
-            ticks: { beginAtZero: true },
-            scaleLabel: {
-              display: true,
-              labelString: config_data.y_label,
-            },
-          },
-        ],
+        },
       },
     },
   });
@@ -222,7 +204,9 @@ var genBarChart = function (id, config_data) {
           data: config_data.data,
           backgroundColor: getRandomColor(),
           borderColor: getRandomColor,
-          borderWidth: 1,
+          borderWidth: 2,
+          tension: 0.2,
+          fill: false,
         },
       ],
     },
@@ -242,29 +226,70 @@ var genBarChart = function (id, config_data) {
       },
       responsive: true,
       maintainAspectRatio: false,
-      legend: {
-        display: true,
+      plugins: {
+        tooltip: {
+          // only show value
+          callbacks: {
+            label: function (context) {
+              if (context.parsed.y == 0) {
+                return " 0";
+              }
+              return " " + context.parsed.y;
+            },
+          },
+        },
       },
-      scales: {
-        xAxes: [
-          {
-            display: true,
-            scaleLabel: {
-              display: true,
-              labelString: config_data.x_label,
+    },
+  });
+  return myChart;
+};
+
+var genLineChartWithDataList = function (id, config_data_list) {
+  let chartStatus = Chart.getChart(id);
+  if (chartStatus != undefined) {
+    chartStatus.destroy();
+  }
+
+  var datasets = [];
+  for (let i = 0; i < config_data_list.length; i++) {
+    var config_data = config_data_list[i];
+    datasets.push({
+      label: config_data.title,
+      data: config_data.data,
+      fill: false,
+      tension: 0.2,
+      backgroundColor: getRandomColor(),
+      borderColor: getRandomColor(),
+      borderWidth: 2,
+    });
+  }
+
+  var ctx = document.getElementById(id);
+  var myChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: config_data.labels,
+      datasets: datasets,
+    },
+    options: {
+      hover: {
+        mode: "nearest",
+        intersect: true,
+      },
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          // only show value
+          callbacks: {
+            label: function (context) {
+              if (context.parsed.y == 0) {
+                return " 0";
+              }
+              return " " + context.parsed.y;
             },
           },
-        ],
-        yAxes: [
-          {
-            display: true,
-            ticks: { beginAtZero: true },
-            scaleLabel: {
-              display: true,
-              labelString: config_data.y_label,
-            },
-          },
-        ],
+        },
       },
     },
   });

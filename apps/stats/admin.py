@@ -11,6 +11,7 @@ class DailyStatsAdmin(admin.ModelAdmin):
         "checkin_user_count",
         "order_count",
         "order_amount",
+        "cost_amount",
         "total_used_traffic",
     ]
     list_per_page = 10

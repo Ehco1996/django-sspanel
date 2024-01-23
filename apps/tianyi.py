@@ -35,8 +35,6 @@ class DashBoardManger:
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
                 "data": [self._get_by_dt(dt).total_used_traffic for dt in dt_list],
                 "data_title": "每日流量(GB)",
-                "x_label": f"最近{len(dt_list)}天",
-                "y_label": "单位:GB",
             }
 
         def gen_doughnut_config():
@@ -68,8 +66,6 @@ class DashBoardManger:
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
                 "data": active_user_count,
                 "data_title": "活跃用户",
-                "x_label": f"最近{len(dt_list)}天",
-                "y_label": "活跃用户数",
             }
             new_user_count = [self._get_by_dt(dt).new_user_count for dt in dt_list]
             new_user_line_config = {
@@ -77,8 +73,6 @@ class DashBoardManger:
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
                 "data": new_user_count,
                 "data_title": "新增用户",
-                "x_label": f"最近{len(dt_list)}天",
-                "y_label": "新用户数",
             }
             return {
                 "active_user_line_config": active_user_line_config,
@@ -114,8 +108,6 @@ class DashBoardManger:
                 "labels": [f"{date.month}-{date.day}" for date in dt_list],
                 "data": success_order_count,
                 "data_title": "每日订单数量",
-                "x_label": f"最近{len(dt_list)}天",
-                "y_label": "订单数量",
             }
 
         def gen_doughnut_config(dt_list):
@@ -157,14 +149,22 @@ class DashBoardManger:
                 "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
                 "data": amount_data,
                 "data_title": "收益",
-                "x_label": f"最近{len(dt_list)}天",
-                "y_label": "金额/元",
+            }
+
+        def get_cost_line_data(dt_list):
+            cost_data = [self._get_by_dt(dt).cost_amount for dt in dt_list]
+            return {
+                "title": f"最近{len(dt_list)}天 总成本为{sum(cost_data)}元",
+                "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
+                "data": cost_data,
+                "data_title": "成本",
             }
 
         return {
             "bar_config": gen_bar_config(self.dt_list),
             "doughnut_config": gen_doughnut_config(self.dt_list),
             "line_config": gen_line_config(self.dt_list),
+            "cost_line_config": get_cost_line_data(self.dt_list),
         }
 
     @classmethod
@@ -182,8 +182,6 @@ class DashBoardManger:
                 for dt in dt_list
             ],
             "data_title": proxy_node.name,
-            "x_label": f"最近{len(dt_list)}天",
-            "y_label": "单位:GB",
         }
 
     @classmethod
@@ -199,6 +197,5 @@ class DashBoardManger:
             "labels": [f"{date.month}-{date.day}" for date in dt_list],
             "data": [logs.get(date, 0) for date in dt_list],
             "data_title": "每日邀请注册人数",
-            "x_label": f"最近{len(dt_list)}天",
             "y_label": "人",
         }

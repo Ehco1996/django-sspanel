@@ -151,9 +151,20 @@ class BaseNodeModel(BaseModel):
     cost_price = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name="成本", default=0
     )
+    enlarge_scale = models.DecimalField(
+        "倍率",
+        default=Decimal("1.0"),
+        decimal_places=1,
+        max_digits=10,
+    )
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def calc_all_cost_price(cls):
+        aggs = cls.objects.all().aggregate(cost_price=models.Sum("cost_price"))
+        return aggs["cost_price"] or 0
 
 
 class ProxyNode(BaseNodeModel, SequenceMixin):
@@ -194,12 +205,6 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     )
     used_traffic = models.BigIntegerField("已用流量(单位字节)", default=0)
     total_traffic = models.BigIntegerField("总流量(单位字节)", default=settings.GB)
-    enlarge_scale = models.DecimalField(
-        "倍率",
-        default=Decimal("1.0"),
-        decimal_places=1,
-        max_digits=10,
-    )
     enable_direct = models.BooleanField("允许直连", default=True)
     enable_udp = models.BooleanField("是否开启UDP 转发", default=True)
     xray_grpc_port = models.IntegerField("xray grpc port", default=23456)
