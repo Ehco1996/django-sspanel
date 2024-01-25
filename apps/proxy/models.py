@@ -542,9 +542,14 @@ class SSConfig(models.Model, resetPortMixin):
         return configs
 
     def to_user_config(self, node: ProxyNode, user: User):
-        enable = node.enable and user.total_traffic > (
+        have_shared_traffic = user.total_traffic > (
             user.download_traffic + user.upload_traffic
         )
+        have_oc_traffic = False
+        oc = UserProxyNodeOccupancy.get_by_proxy_node_and_user(node, user)
+        if oc:
+            have_oc_traffic = not oc.out_of_usage()
+        enable = node.enable and (have_shared_traffic or have_oc_traffic)
         return {
             "user_id": user.id,
             "password": user.proxy_password,
@@ -596,9 +601,15 @@ class TrojanConfig(models.Model, resetPortMixin):
         return configs
 
     def to_user_config(self, node: ProxyNode, user: User):
-        enable = node.enable and user.total_traffic > (
+        have_shared_traffic = user.total_traffic > (
             user.download_traffic + user.upload_traffic
         )
+        have_oc_traffic = False
+        oc = UserProxyNodeOccupancy.get_by_proxy_node_and_user(node, user)
+        if oc:
+            have_oc_traffic = not oc.out_of_usage()
+        enable = node.enable and (have_shared_traffic or have_oc_traffic)
+
         return {
             "user_id": user.id,
             "password": user.proxy_password,
@@ -1046,9 +1057,12 @@ class UserProxyNodeOccupancy(BaseModel):
         return cls._valid_occupancy_query().filter(proxy_node=node).values("user_id")
 
     @classmethod
-    @classmethod
     def get_user_occupied_node_ids(cls, user: User):
         return cls._valid_occupancy_query().filter(user=user).values("proxy_node_id")
+
+    @classmethod
+    def get_by_proxy_node_and_user(cls, proxy_node: ProxyNode, user: User):
+        return cls.objects.filter(proxy_node=proxy_node, user=user).first()
 
     @classmethod
     def get_node_occupancies(cls, node: ProxyNode):
