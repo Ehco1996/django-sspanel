@@ -291,6 +291,11 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     def get_by_ip(clc, ip: str):
         return clc.objects.filter(server=ip).first()
 
+    @cached_property
+    def have_oc_users(self) -> bool:
+        occupancies_query = UserProxyNodeOccupancy.get_node_occupancies(self)
+        return occupancies_query.count() > 0
+
     def get_node_users(self):
         # 1. if node is not enable, return empty list
         if not self.enable:
@@ -546,9 +551,10 @@ class SSConfig(models.Model, resetPortMixin):
             user.download_traffic + user.upload_traffic
         )
         have_oc_traffic = False
-        oc = UserProxyNodeOccupancy.get_by_proxy_node_and_user(node, user)
-        if oc:
-            have_oc_traffic = not oc.out_of_usage()
+        if node.have_oc_users:
+            oc = UserProxyNodeOccupancy.get_by_proxy_node_and_user(node, user)
+            if oc:
+                have_oc_traffic = not oc.out_of_usage()
         enable = node.enable and (have_shared_traffic or have_oc_traffic)
         return {
             "user_id": user.id,
@@ -605,9 +611,10 @@ class TrojanConfig(models.Model, resetPortMixin):
             user.download_traffic + user.upload_traffic
         )
         have_oc_traffic = False
-        oc = UserProxyNodeOccupancy.get_by_proxy_node_and_user(node, user)
-        if oc:
-            have_oc_traffic = not oc.out_of_usage()
+        if node.have_oc_users:
+            oc = UserProxyNodeOccupancy.get_by_proxy_node_and_user(node, user)
+            if oc:
+                have_oc_traffic = not oc.out_of_usage()
         enable = node.enable and (have_shared_traffic or have_oc_traffic)
 
         return {
