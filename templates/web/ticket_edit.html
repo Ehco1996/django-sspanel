@@ -35,8 +35,8 @@
             {% for message in ticket_messages %}
                 {% if message.is_staff %}
                     <div class="column is-12">
-                        <div class="notification is-info is-light is-pulled-right">
-                            <p>{{ message.message }}</p>
+                        <div class="notification multi-line-notification is-info is-light is-pulled-right">
+                            {{ message.message|linebreaks }}
                             <div class="chat-footer">
                                 <span>staff:{{ message.user.id }} - {{ message.created_at }}</span>
                             </div>
@@ -44,8 +44,8 @@
                     </div>
                 {% else %}
                     <div class="column is-12">
-                        <div class="notification is-success is-light is-pulled-left">
-                            <p>{{ message.message }}</p>
+                        <div class="notification multi-line-notification is-success is-light is-pulled-left">
+                            {{ message.message|linebreaks }}
                             <div class="chat-footer">
                                 <span>{{ message.user }} - {{ message.created_at }}</span>
                             </div>

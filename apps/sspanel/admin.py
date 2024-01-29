@@ -169,7 +169,7 @@ class TicketAdmin(admin.ModelAdmin):
     ALREADY_REPLIED = " | 已回复"
 
     inlines = [TicketMessageInline]
-    list_display = ["user", "title", "status_info", "updated_at"]
+    list_display = ["user_info", "title", "status_info", "updated_at"]
     list_filter = ["status"]
     search_fields = ["title", "user"]
     readonly_fields = ["updated_at"]
@@ -184,6 +184,11 @@ class TicketAdmin(admin.ModelAdmin):
         elif not last_reply.user.is_staff:
             res += " | 未读"
         return res
+
+    @admin.display(description="用户-等级-余额")
+    def user_info(self, instance):
+        user = instance.user
+        return f"{user.username}-{user.level}-{user.balance}"
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         qs = (

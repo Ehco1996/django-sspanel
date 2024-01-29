@@ -195,6 +195,7 @@ class RelayNodeAdmin(admin.ModelAdmin):
         "isp",
         "remark",
     ]
+    actions = ["toggle_enable"]
 
     @admin.display(description="对接地址")
     def api_endpoint(self, instance):
@@ -202,6 +203,19 @@ class RelayNodeAdmin(admin.ModelAdmin):
         <input readonly class="el-input" value="{instance.api_endpoint}">
         """
         return mark_safe(div)
+
+    def toggle_enable(self, request, queryset):
+        for node in queryset:
+            node.enable = not node.enable
+            node.save()
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                f"{node}:'s enable is {node.enable}",
+            )
+
+    toggle_enable.short_description = "启用/禁用"
+    toggle_enable.type = "danger"
 
 
 class UserTrafficLogAdmin(admin.ModelAdmin):

@@ -277,7 +277,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
             i["proxy_node_id"]
             for i in UserProxyNodeOccupancy.get_user_occupied_node_ids(user)
         ]
-        return cls.objects.filter(id__in=not_occupied_node_ids) | cls.objects.filter(
+        return base_query.filter(id__in=not_occupied_node_ids) | cls.objects.filter(
             id__in=user_occupied_node_ids
         )
 
