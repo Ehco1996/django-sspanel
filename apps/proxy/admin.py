@@ -87,6 +87,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     ]
     list_filter = ["provider_remark", "country"]
     actions = ["clear_traffic_logs", "toggle_enable", "reset_port", "duplicate"]
+    list_editable = ["sequence"]
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
