@@ -216,7 +216,10 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         "隧道监听类型", max_length=64, choices=c.LISTEN_TYPES, default=c.LISTEN_RAW
     )
     ehco_transport_type = models.CharField(
-        "隧道传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
+        "隧道传输类型",
+        max_length=64,
+        choices=c.TRANSPORT_TYPES,
+        default=c.TRANSPORT_RAW,
     )
     ehco_web_port = models.IntegerField("隧道web端口", default=0)
     ehco_web_token = models.CharField(
@@ -514,7 +517,10 @@ class SSConfig(models.Model, resetPortMixin):
         verbose_name="代理节点",
     )
     method = models.CharField(
-        "加密类型", default=settings.DEFAULT_METHOD, max_length=32, choices=c.METHOD_CHOICES
+        "加密类型",
+        default=settings.DEFAULT_METHOD,
+        max_length=32,
+        choices=c.METHOD_CHOICES,
     )
     multi_user_port = models.IntegerField(
         "多用户端口", help_text="单端口多用户端口", null=True, blank=True
@@ -1018,9 +1024,14 @@ class UserProxyNodeOccupancy(BaseModel):
         if occupancy_config.occupancy_user_limit <= 0:
             raise Exception("not allow to create occupancy record with user limit 0")
         if occupancy_config.occupancy_user_limit > 0:
-            if (
-                cls.get_node_occupancies(node).count()
-                >= occupancy_config.occupancy_user_limit
+            node_user_ids = [
+                i["user_id"]
+                for i in UserProxyNodeOccupancy.get_node_occupancy_user_ids(node)
+            ]
+            if cls.get_node_occupancies(
+                node
+            ).count() >= occupancy_config.occupancy_user_limit and (
+                user.id not in node_user_ids  # 续费的时候不需要检查
             ):
                 raise Exception("occupancy user limit exceed")
 
