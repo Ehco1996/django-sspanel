@@ -79,7 +79,7 @@ class UserSubManager:
                     key = f"{rule.relay_node.id}{rule.relay_port}"
                     relay_node_group[key] = {
                         "clash_config": node.get_user_clash_config(self.user, rule),
-                        "name": rule.remark,
+                        "name": rule.name,
                     }
 
             if node.enable_direct:

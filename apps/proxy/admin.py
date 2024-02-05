@@ -51,20 +51,6 @@ class OccupancyConfigInline(admin.StackedInline):
         return super().get_formset(request, obj, **kwargs)
 
 
-class RelayRuleInline(admin.TabularInline):
-    model = models.RelayRule
-    verbose_name = "中转规则配置"
-    extra = 0
-    fields = [
-        "rule_name",
-        "proxy_node",
-        "relay_node",
-        "relay_port",
-        "listen_type",
-        "transport_type",
-    ]
-
-
 class ProxyNodeAdmin(admin.ModelAdmin):
     list_display = [
         "__str__",
@@ -78,11 +64,10 @@ class ProxyNodeAdmin(admin.ModelAdmin):
         "sequence",
         "api_endpoint",
     ]
-    inlines = [RelayRuleInline, OccupancyConfigInline]
+    inlines = [OccupancyConfigInline]
     all_inlines = [
         TrojanConfigInline,
         SSConfigInline,
-        RelayRuleInline,
         OccupancyConfigInline,
     ]
     list_filter = ["provider_remark", "country"]
@@ -181,6 +166,20 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     duplicate.type = "warning"
 
 
+class RelayRuleInline(admin.TabularInline):
+    model = models.RelayRule
+    verbose_name = "中转规则配置"
+    extra = 0
+    fields = [
+        "name",
+        "relay_node",
+        "relay_port",
+        "proxy_nodes",
+        "listen_type",
+        "transport_type",
+    ]
+
+
 class RelayNodeAdmin(admin.ModelAdmin):
     list_display = [
         "__str__",
@@ -217,6 +216,24 @@ class RelayNodeAdmin(admin.ModelAdmin):
 
     toggle_enable.short_description = "启用/禁用"
     toggle_enable.type = "danger"
+
+
+class RelayRuleAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "relay_node",
+        "relay_port",
+        "listen_type",
+        "transport_type",
+        "traffic_info",
+    ]
+    list_filter = ["relay_node"]
+    list_per_page = 10
+    show_full_result_count = False
+
+    @admin.display(description="流量")
+    def traffic_info(self, instance):
+        return f"up:{traffic_format(instance.up_traffic) }/down:{traffic_format(instance.down_traffic)}"
 
 
 class UserTrafficLogAdmin(admin.ModelAdmin):
@@ -334,6 +351,8 @@ class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(models.ProxyNode, ProxyNodeAdmin)
 admin.site.register(models.RelayNode, RelayNodeAdmin)
+admin.site.register(models.RelayRule, RelayRuleAdmin)
+
 admin.site.register(models.UserTrafficLog, UserTrafficLogAdmin)
 admin.site.register(models.UserProxyNodeOccupancy, UserProxyNodeOccupancyAdmin)
 admin.site.register(models.OccupancyConfig, OccupancyConfigAdmin)

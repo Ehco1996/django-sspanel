@@ -1,11 +1,11 @@
 import base64
 import json
 import random
-from collections import defaultdict
 from copy import deepcopy
 from datetime import timedelta
 from decimal import Decimal
 from functools import cached_property
+from typing import List
 from urllib.parse import quote, urlencode
 
 import pendulum
@@ -354,7 +354,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         if relay_rule:
             host = relay_rule.relay_host
             port = relay_rule.relay_port
-            remark = relay_rule.remark
+            remark = relay_rule.name
             udp = relay_rule.enable_udp and self.enable_udp
         else:
             host = self.server
@@ -373,7 +373,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         if relay_rule:
             host = relay_rule.relay_host
             port = relay_rule.relay_port
-            remark = relay_rule.remark
+            remark = relay_rule.name
             udp = relay_rule.enable_udp and self.enable_udp
         else:
             host = self.server
@@ -660,25 +660,33 @@ class RelayNode(BaseNodeModel):
         return f"{self.name}-{self.remark}" if self.remark else self.name
 
     def get_relay_rules_configs(self):
-        data = []
-        for rule in self.relay_rules.select_related("proxy_node").all():
-            node: ProxyNode = rule.proxy_node
-            if not node.enable:
-                continue
+        relay_configs = []
+        rules = self.relay_rules.prefetch_related("proxy_nodes")
+        for rule in rules:
+            # NOTE 这里要求代理节点的隧道监听类型一致
+            nodes: List[ProxyNode] = rule.proxy_nodes.all()
             tcp_remotes = []
             udp_remotes = []
-            if node.enable_ehco_tunnel and rule.transport_type != c.TRANSPORT_RAW:
-                tcp_remote = f"{node.server}:{node.ehco_listen_port}"
-            else:
-                tcp_remote = f"{node.server}:{node.get_user_port()}"
-            if rule.transport_type in c.WS_TRANSPORTS:
-                tcp_remote = f"wss://{tcp_remote}"
-            if self.enable_udp:
-                udp_remotes.append(f"{node.server}:{node.get_user_port()}")
-            tcp_remotes.append(tcp_remote)
-            data.append(
+            for proxy_node in nodes:
+                if not proxy_node.enable:
+                    continue
+                if (
+                    proxy_node.enable_ehco_tunnel
+                    and rule.transport_type != c.TRANSPORT_RAW
+                ):
+                    tcp_remote = f"{proxy_node.server}:{proxy_node.ehco_listen_port}"
+                else:
+                    tcp_remote = f"{proxy_node.server}:{proxy_node.get_user_port()}"
+                if rule.transport_type in c.WS_TRANSPORTS:
+                    tcp_remote = f"wss://{tcp_remote}"
+                if self.enable_udp and proxy_node.enable_udp:
+                    udp_remotes.append(
+                        f"{proxy_node.server}:{proxy_node.get_user_port()}"
+                    )
+                tcp_remotes.append(tcp_remote)
+            relay_configs.append(
                 {
-                    "label": node.name,
+                    "label": rule.name,
                     "listen": f"0.0.0.0:{rule.relay_port}",
                     "listen_type": rule.listen_type,
                     "tcp_remotes": tcp_remotes,
@@ -686,39 +694,13 @@ class RelayNode(BaseNodeModel):
                     "transport_type": rule.transport_type,
                 }
             )
-        # merge if rule has same port
-        port_map = defaultdict(list)
-        for rule in data:
-            port_map[rule["listen"]].append(rule)
-        data = []
-        for port, rules in port_map.items():
-            if len(rules) == 1:
-                data.append(rules[0])
-            else:
-                # note that all rules must have same listen_type and transport_type
-                first_rule = rules[0]
-                tcp_remotes = []
-                udp_remotes = []
-                labels = []
-                for rule in rules:
-                    labels.append(rule["label"])
-                    tcp_remotes.extend(rule["tcp_remotes"])
-                    udp_remotes.extend(rule["udp_remotes"])
-                data.append(
-                    {
-                        "label": "-".join(labels),
-                        "listen": port,
-                        "listen_type": first_rule["listen_type"],
-                        "tcp_remotes": tcp_remotes,
-                        "udp_remotes": udp_remotes,
-                        "transport_type": first_rule["transport_type"],
-                    }
-                )
         return {
-            "relay_configs": data,
             "web_port": self.web_port,
             "web_token": self.web_token,
             "enable_ping": self.enable_ping,
+            "relay_configs": relay_configs,
+            "relay_sync_duration": 10,
+            "relay_sync_url": self.api_endpoint,
         }
 
     @property
@@ -730,14 +712,8 @@ class RelayNode(BaseNodeModel):
 
 
 class RelayRule(BaseModel):
-    rule_name = models.CharField(
-        "规则名", max_length=64, blank=True, null=False, default=""
-    )
-    proxy_node = models.ForeignKey(
-        ProxyNode,
-        on_delete=models.CASCADE,
-        verbose_name="代理节点",
-        related_name="relay_rules",
+    name = models.CharField(
+        "规则名", max_length=64, blank=True, null=False, default="", unique=True
     )
     relay_node = models.ForeignKey(
         RelayNode,
@@ -745,7 +721,11 @@ class RelayRule(BaseModel):
         verbose_name="中转节点",
         related_name="relay_rules",
     )
-
+    proxy_nodes = models.ManyToManyField(
+        ProxyNode,
+        verbose_name="代理节点",
+        related_name="relay_rules",
+    )
     relay_port = models.CharField("中转端口", max_length=64, blank=False, null=False)
     listen_type = models.CharField(
         "监听类型", max_length=64, choices=c.LISTEN_TYPES, default=c.LISTEN_RAW
@@ -753,13 +733,15 @@ class RelayRule(BaseModel):
     transport_type = models.CharField(
         "传输类型", max_length=64, choices=c.TRANSPORT_TYPES, default=c.TRANSPORT_RAW
     )
+    up_traffic = models.BigIntegerField("上传流量", default=0)
+    down_traffic = models.BigIntegerField("下载流量", default=0)
 
     class Meta:
         verbose_name = "中转规则"
         verbose_name_plural = "中转规则"
 
     def __str__(self) -> str:
-        return self.remark
+        return self.name
 
     @property
     def relay_host(self):
@@ -772,16 +754,6 @@ class RelayRule(BaseModel):
     @property
     def enable_udp(self):
         return self.relay_node.enable_udp
-
-    @property
-    def remark(self):
-        # 这个字段才是用户真正看到的字段,如果不存在就动态生成一个
-        if self.rule_name != "":
-            return self.rule_name
-        name = f"{self.relay_node.name}-{self.proxy_node.name}"
-        if self.proxy_node.enlarge_scale != Decimal(1.0):
-            name = f"[{self.proxy_node.enlarge_scale}x]{name}"
-        return name
 
 
 class UserTrafficLog(BaseLogModel):

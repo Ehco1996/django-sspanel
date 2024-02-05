@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 import pendulum
 from django.conf import settings
@@ -50,7 +51,11 @@ class UserSettingsView(View):
         if success := request.user.update_proxy_config_from_dict(
             data=dict(request.POST.items())
         ):
-            data = {"title": "修改成功!", "status": "success", "subtitle": "请及时更换客户端配置!"}
+            data = {
+                "title": "修改成功!",
+                "status": "success",
+                "subtitle": "请及时更换客户端配置!",
+            }
         else:
             data = {
                 "title": "修改失败!",
@@ -167,6 +172,10 @@ class ProxyConfigsView(View):
 class EhcoRelayConfigView(View):
     """中转机器"""
 
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(EhcoRelayConfigView, self).dispatch(*args, **kwargs)
+
     @method_decorator(api_authorized)
     def get(self, request, node_id):
         node: m.RelayNode = m.RelayNode.get_or_none(node_id)
@@ -175,6 +184,28 @@ class EhcoRelayConfigView(View):
             if node
             else HttpResponseBadRequest()
         )
+
+    @method_decorator(handle_json_request)
+    @method_decorator(api_authorized)
+    def post(self, request, node_id):
+        node: m.RelayNode = m.RelayNode.get_or_none(node_id)
+        if not node:
+            return HttpResponseBadRequest()
+        if not request.json:
+            return JsonResponse(data={})
+
+        # TODO make this async
+        rules: List[m.RelayRule] = node.relay_rules.all()
+        name_rule_map = {rule.name: rule for rule in rules}
+        for data in request.json:
+            name = data["relay_label"]
+            if name in name_rule_map:
+                rule = name_rule_map[name]
+                rule.up_traffic += data["stats"]["up"]
+                rule.down_traffic += data["stats"]["down"]
+        for rule in rules:
+            rule.save()
+        return JsonResponse(data={})
 
 
 class UserCheckInView(View):
@@ -190,7 +221,11 @@ class UserCheckInView(View):
                     "status": "success",
                 }
             else:
-                data = {"title": "签到失败！", "subtitle": "今天已经签到过了", "status": "error"}
+                data = {
+                    "title": "签到失败！",
+                    "subtitle": "今天已经签到过了",
+                    "status": "error",
+                }
         return JsonResponse(data)
 
 
@@ -200,9 +235,17 @@ class OrderView(View):
         user = request.user
         order = UserOrder.get_and_check_recent_created_order(user)
         if order and order.status != UserOrder.STATUS_CREATED:
-            info = {"title": "充值成功!", "subtitle": "请去商品界面购买商品！", "status": "success"}
+            info = {
+                "title": "充值成功!",
+                "subtitle": "请去商品界面购买商品！",
+                "status": "success",
+            }
         else:
-            info = {"title": "支付查询失败!", "subtitle": "亲，确认支付了么？", "status": "error"}
+            info = {
+                "title": "支付查询失败!",
+                "subtitle": "亲，确认支付了么？",
+                "status": "error",
+            }
         return JsonResponse({"info": info})
 
     @method_decorator(login_required)
@@ -213,7 +256,13 @@ class OrderView(View):
                 raise ValueError
         except ValueError:
             return JsonResponse(
-                {"info": {"title": "校验失败", "subtitle": "请保证金额正确", "status": "error"}},
+                {
+                    "info": {
+                        "title": "校验失败",
+                        "subtitle": "请保证金额正确",
+                        "status": "error",
+                    }
+                },
             )
 
         if settings.CHECK_PAY_REQ_IP_FROM_CN:
@@ -247,7 +296,13 @@ def purchase(request):
     good_id = request.POST.get("goodId")
     good = Goods.objects.get(id=good_id)
     return (
-        JsonResponse({"title": "购买成功", "status": "success", "subtitle": "重新订阅即可获取所有节点"})
+        JsonResponse(
+            {
+                "title": "购买成功",
+                "status": "success",
+                "subtitle": "重新订阅即可获取所有节点",
+            }
+        )
         if good.purchase_by_user(request.user)
         else JsonResponse({"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"})
     )
@@ -262,7 +317,11 @@ def change_theme(request):
     user = request.user
     user.theme = theme
     user.save()
-    res = {"title": "修改成功！", "subtitle": "主题更换成功，刷新页面可见", "status": "success"}
+    res = {
+        "title": "修改成功！",
+        "subtitle": "主题更换成功，刷新页面可见",
+        "status": "success",
+    }
     return JsonResponse(res)
 
 
@@ -273,7 +332,11 @@ def reset_sub_uid(request):
     """
     user = request.user
     user.reset_sub_uid()
-    res = {"title": "修改成功！", "subtitle": "订阅更换成功，刷新页面可见", "status": "success"}
+    res = {
+        "title": "修改成功！",
+        "subtitle": "订阅更换成功，刷新页面可见",
+        "status": "success",
+    }
     return JsonResponse(res)
 
 
