@@ -10,15 +10,20 @@ line_length = 88
 multi_line_output = 3
 use_parentheses = true
 
+[tool.flake8]
+extend-ignore = "E203, E266, E501"
+max-line-length = 88
+max-complexity = 18
+
+[tool.djlint]
+preserve_blank_lines = true
+
 [tool.poetry]
 authors = ["Ehco1996 <zh19960202@gmail.com>"]
 description = "django sspanel"
 license = "GPL-3.0 License"
 name = "django-sspanel"
 version = "0.1.0"
-
-[tool.djlint]
-preserve_blank_lines = true
 
 [tool.poetry.dependencies]
 Django = "^4.2.6"
@@ -50,6 +55,7 @@ autoflake = "^2.2.1"
 black = "^23.12.1"
 isort = "^5.12.0"
 djlint = "^1.34.1"
+ruff = "^0.2.1"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
