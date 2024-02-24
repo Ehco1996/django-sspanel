@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.db import models
 from django.db.models import F
 from django.utils.safestring import mark_safe
+from django import forms
 
 from apps import utils
 from apps.proxy import models
@@ -73,6 +74,7 @@ class ProxyNodeAdmin(admin.ModelAdmin):
     list_filter = ["provider_remark", "country"]
     actions = ["clear_traffic_logs", "toggle_enable", "reset_port", "duplicate"]
     list_editable = ["sequence"]
+    search_fields = ["name", "provider_remark"]
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
@@ -292,6 +294,15 @@ class OccupancyConfigAdmin(admin.ModelAdmin):
 
 
 class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
+
+    class UserProxyNodeOccupancyForm(forms.ModelForm):
+        used_traffic = utils.BytesToGigabytesField(label="已用流量(GB)")
+        total_traffic = utils.BytesToGigabytesField(label="总流量(GB)")
+
+        class Meta:
+            model = models.UserProxyNodeOccupancy
+            fields = "__all__"
+
     class StatusFilter(admin.SimpleListFilter):
         title = "状态"
         parameter_name = "status"
@@ -314,6 +325,7 @@ class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
                 ).filter(used_traffic__lt=F("total_traffic"))
             return queryset
 
+    form = UserProxyNodeOccupancyForm
     list_display = [
         "proxy_node",
         "user",
@@ -326,6 +338,7 @@ class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
     list_filter = ["proxy_node", "user", StatusFilter]
     list_per_page = 10
     show_full_result_count = False
+    autocomplete_fields = ["user", "proxy_node"]
 
     @admin.display(description="已用/总流量")
     def traffic_info(self, instance):

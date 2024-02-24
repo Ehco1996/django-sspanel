@@ -9,6 +9,7 @@ import pendulum
 from django.conf import settings
 from django.http import JsonResponse
 from django.utils import timezone
+from django import forms
 
 
 def get_random_string(
@@ -51,21 +52,6 @@ def traffic_format(traffic):
 
 def traffic_rate_format(traffic):
     return f"{traffic_format(traffic)}/s"
-
-
-def reverse_traffic(str):
-    """
-    将流量字符串转换为整数类型
-    """
-    if "GB" in str:
-        num = float(str.replace("GB", "")) * 1024 * 1024 * 1024
-    elif "MB" in str:
-        num = float(str.replace("MB", "")) * 1024 * 1024
-    elif "KB" in str:
-        num = float(str.replace("KB", "")) * 1024
-    else:
-        num = num = float(str.replace("B", ""))
-    return round(num)
 
 
 def api_authorized(view_func):
@@ -118,3 +104,19 @@ def get_clash_direct_rule(addr):
         return f"IP-CIDR,{addr}/32,DIRECT"
     else:
         return f"DOMAIN,{addr},DIRECT"
+
+
+class BytesToGigabytesField(forms.CharField):
+    def prepare_value(self, value):
+        # 将字节转换为GB用于显示
+        if value is None:
+            return None
+        return value / (1024**3)
+
+    def to_python(self, value):
+        if value in self.empty_values:
+            return None
+        try:
+            return int(float(value) * (1024**3))
+        except (ValueError, TypeError):
+            raise forms.ValidationError("请输入有效的GB数值")
