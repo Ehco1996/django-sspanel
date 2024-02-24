@@ -1,8 +1,8 @@
+from django import forms
 from django.contrib import admin, messages
 from django.db import models
 from django.db.models import F
 from django.utils.safestring import mark_safe
-from django import forms
 
 from apps import utils
 from apps.proxy import models
@@ -294,7 +294,6 @@ class OccupancyConfigAdmin(admin.ModelAdmin):
 
 
 class UserProxyNodeOccupancyAdmin(admin.ModelAdmin):
-
     class UserProxyNodeOccupancyForm(forms.ModelForm):
         used_traffic = utils.BytesToGigabytesField(label="已用流量(GB)")
         total_traffic = utils.BytesToGigabytesField(label="总流量(GB)")
