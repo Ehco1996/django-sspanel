@@ -179,11 +179,7 @@ class EhcoRelayConfigView(View):
     @method_decorator(api_authorized)
     def get(self, request, node_id):
         node: m.RelayNode = m.RelayNode.get_or_none(node_id)
-        return (
-            JsonResponse(node.get_relay_rules_configs())
-            if node
-            else HttpResponseBadRequest()
-        )
+        return JsonResponse(node.get_config()) if node else HttpResponseBadRequest()
 
     @method_decorator(handle_json_request)
     @method_decorator(api_authorized)
@@ -201,8 +197,8 @@ class EhcoRelayConfigView(View):
             name = data["relay_label"]
             if name in name_rule_map:
                 rule = name_rule_map[name]
-                rule.up_traffic += data["stats"]["up"]
-                rule.down_traffic += data["stats"]["down"]
+                rule.up_traffic += data["stats"]["up"] * node.enlarge_scale
+                rule.down_traffic += data["stats"]["down"] * node.enlarge_scale
         for rule in rules:
             rule.save()
         return JsonResponse(data={})
