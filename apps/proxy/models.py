@@ -705,6 +705,7 @@ class RelayNode(BaseNodeModel):
             "relay_configs": relay_configs,
             "reload_interval": self.reload_interval,
             "relay_sync_duration": self.relay_sync_duration,
+            "relay_sync_url": self.api_endpoint,
         }
         if self.web_host and self.web_port:
             cfg["web_host"] = self.web_host
