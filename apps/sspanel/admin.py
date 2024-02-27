@@ -4,6 +4,9 @@ from django.contrib import admin, messages
 from django.contrib.auth.models import Group
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
+from django.utils.html import format_html
+
+from apps.sub import UserSubManager
 
 from . import models
 
@@ -160,10 +163,6 @@ class TicketMessageInline(admin.TabularInline):
     extra = 0
     raw_id_fields = ["user"]
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.prefetch_related("user")
-
 
 class TicketAdmin(admin.ModelAdmin):
     ALREADY_REPLIED = " | 已回复"
@@ -172,7 +171,7 @@ class TicketAdmin(admin.ModelAdmin):
     list_display = ["user_info", "title", "status_info", "updated_at"]
     list_filter = ["status"]
     search_fields = ["title", "user"]
-    readonly_fields = ["updated_at"]
+    readonly_fields = ["user_details"]
     list_per_page = 10
 
     @admin.display(description="状态")
@@ -190,13 +189,22 @@ class TicketAdmin(admin.ModelAdmin):
         user = instance.user
         return f"{user.username}-{user.level}-{user.balance}"
 
+    @admin.display(description="用户详细信息")
+    def user_details(self, instance):
+        user = instance.user
+        base_sub_link = user.sub_link
+        html = '<table class="table">'
+        html += "<thead><tr><th>Client</th><th>Link</th></tr></thead>"
+        html += "<tbody>"
+        for client in UserSubManager.CLIENT_SET:
+            link = f"{base_sub_link}&client={client}"
+            html += format_html(f"<tr><td>{client}</td><td>{link}</td>")
+        html += "</tbody>"
+        html += "</table>"
+        return format_html(html)
+
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        qs = (
-            super()
-            .get_queryset(request)
-            .prefetch_related("user", "messages")
-            .prefetch_related("messages__user")
-        )
+        qs = super().get_queryset(request).prefetch_related("messages__user", "user")
         return qs
 
     def save_model(

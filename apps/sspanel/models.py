@@ -1017,7 +1017,11 @@ class Ticket(models.Model):
         verbose_name="状态", choices=TICKET_CHOICE, default=1
     )
     updated_at = models.DateTimeField(
-        auto_now=True, db_index=True, help_text="更新时间", verbose_name="更新时间"
+        auto_now=True,
+        db_index=True,
+        help_text="更新时间",
+        verbose_name="更新时间",
+        editable=False,
     )
 
     def __str__(self):
@@ -1035,11 +1039,11 @@ class Ticket(models.Model):
     @classmethod
     def close_stale_tickets(cls):
         dt = get_current_datetime().subtract(days=3)
-        tickets = cls.objects.filter(updated_at__lt=dt, status=1)
+        tickets = list(cls.objects.filter(updated_at__lt=dt, status=1))
         for t in tickets:
             t.title += " |3 天无更新自动关闭"
             t.status = -1
-            t.save()
+        cls.objects.bulk_update(tickets, ["title", "status"])
 
     def add_message(self, user, message):
         return TicketMessage.create_message(user, self, message)
