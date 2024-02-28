@@ -90,8 +90,8 @@
             <div class="tile is-7 is-vertical is-parent">
                 <div class="tile is-child box">
                     <div class="block">
-                        <h1 class="title">订阅地址</h1>
-                        <h2 class="subtitle">导入订阅地址到您的应用以完成订阅</h2>
+                        <h1 class="title">快速设置订阅地址</h1>
+                        <h2 class="subtitle">根据您的客户端一键选择</h2>
                     </div>
                     <div class="block">
                         <div class="block">
@@ -119,7 +119,7 @@
                                             <a class="dropdown-item"
                                                data-display="{{ node_type }}"
                                                data-query="protocol">
-                                                <strong>{{ node_type }}</strong>
+                                                {{ node_type }}
                                             </a>
                                         {% endfor %}
                                     </div>
@@ -149,40 +149,18 @@
                                     </button>
                                 </div>
                                 <div class="dropdown-menu" id="dropdown-menu3" role="menu">
-                                    <div class="dropdown-content">
-                                        <a class="dropdown-item" data-display="clash" data-query="client">
-                                            <div class="icon is-small is-left">
-                                                <i class="fas  fa-cat"></i>
-                                            </div>
-                                            <strong>clash</strong>
-                                        </a>
-                                        <a class="dropdown-item"
-                                           data-display="clash_premium"
-                                           data-query="client">
-                                            <div class="icon is-small is-left">
-                                                <i class="fas  fa-cat"></i>
-                                            </div>
-                                            <strong>clash premium</strong>
-                                        </a>
-                                        <a class="dropdown-item"
-                                           data-display="clash_proxy_provider"
-                                           data-query="client">
-                                            <div class="icon is-small is-left">
-                                                <i class="fas  fa-cat"></i>
-                                            </div>
-                                            <strong>clash proxy provider</strong>
-                                        </a>
-                                        <a class="dropdown-item" data-display="shadowrocket" data-query="client">
-                                            <div class="icon is-small is-left">
-                                                <i class="fa fa-rocket"></i>
-                                            </div>
-                                            <strong>shadowrocket</strong>
-                                        </a>
-                                    </div>
+                                    {% for client in supported_clients %}
+                                        <div class="dropdown-content">
+                                            <a class="dropdown-item"
+                                               data-display="{{ client }}"
+                                               data-query="{{ client }}">{{ client }}</a>
+                                        </div>
+                                    {% endfor %}
                                 </div>
                             </div>
                             <div class="content is-small">
-                                <li>推荐使用 clash 作为客户端</li>
+                                <li>pc/andriod 推荐使用 clash 作为客户端</li>
+                                <li>ios 推荐使用 shadowrocket 作为客户端</li>
                             </div>
                         </div>
                         <div class="block">
@@ -309,107 +287,113 @@
                     </div>
                 </div>
             </div>
-            <script>
-                // 点击复制
-                var clip = new Clipboard('#id-button-clip');
-                clip.on('success', function(e) {
-                    $('.copied').show();
-                    $('.copied').fadeOut(1000);
-                });
+        </div>
+    </div>
+{% endblock authed %}
+{% block extra_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 签到
+            var CheckButton = $("#id-checkin")
+            var Checkin = function() {
+                url = "{% url 'api:checkin' %}"
+                data = {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                }
+                $.post(url, data, function(results) {
+                    info = results
+                    swal(info.title, info.subtitle, info.status).then(function() {
+                        location.reload();
+                    })
+                })
+            }
+            CheckButton.click(Checkin)
 
-                // 签到
-                var CheckButton = $("#id-checkin")
-                var Checkin = function() {
-                    url = "{% url 'api:checkin' %}"
+            // 更换主题
+            var ThemeButton = $("#id-button-theme")
+            var changeTheme = function() {
+                var theme = $("select[name=selects]").val();
+                if (theme) {
                     data = {
+                        theme: theme,
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     }
+                    url = "{% url 'api:change_theme' %}"
                     $.post(url, data, function(results) {
                         info = results
                         swal(info.title, info.subtitle, info.status).then(function() {
                             location.reload();
                         })
                     })
+                } else {
+                    swal('错误！', '请选择你要更换的主题', 'error')
                 }
-                CheckButton.click(Checkin)
-
-                // 更换主题
-                var ThemeButton = $("#id-button-theme")
-                var changeTheme = function() {
-                    var theme = $("select[name=selects]").val();
-                    if (theme) {
-                        data = {
-                            theme: theme,
-                            csrfmiddlewaretoken: '{{ csrf_token }}',
-                        }
-                        url = "{% url 'api:change_theme' %}"
-                        $.post(url, data, function(results) {
-                            info = results
-                            swal(info.title, info.subtitle, info.status).then(function() {
-                                location.reload();
-                            })
-                        })
-                    } else {
-                        swal('错误！', '请选择你要更换的主题', 'error')
-                    }
-                }
-                ThemeButton.click(changeTheme)
-                // 更换密码
-                var PasswordButton = $("#id-button-password")
-                var changePassword = function() {
-                    var password = $("#id-password").val();
-                    if (password) {
-                        data = {
-                            proxy_password: password,
-                            csrfmiddlewaretoken: '{{ csrf_token }}',
-                        }
-                        url = "{% url 'api:user_settings' %}"
-                        $.post(url, data, function(results) {
-                            info = results
-                            swal(info.title, info.subtitle, info.status)
-                        })
-                    } else {
-                        swal('错误！', '请输入密码', 'error')
-                    }
-                }
-                PasswordButton.click(changePassword)
-
-
-
-                // 订阅中心
-                subInput = $("#id-sub-link")[0]
-                $(".dropdown .button").click(function() {
-                    var dropdown = $(this).parents('.dropdown');
-                    dropdown.toggleClass('is-active');
-                });
-
-                $(".dropdown-item").click(function() {
-                    var dropdown = $(this).parents('.dropdown');
-                    dropdown.toggleClass('is-active');
-                    var span = $(dropdown).find('.display-content')[0];
-                    span.innerText = $(this).data("display")
-
-                    // gen sublink
-                    url = new URL(subInput.value)
-                    url.searchParams.set($(this).data("query"), $(this).data("display"))
-                    subInput.value = url.toString()
-                });
-
-
-                // 重制订阅
-                var restSubButton = $("#id-reset-sub-link")
-                var restSubButtonReq = function() {
-                    url = "{% url 'api:rest_sub_uid' %}"
+            }
+            ThemeButton.click(changeTheme)
+            // 更换密码
+            var PasswordButton = $("#id-button-password")
+            var changePassword = function() {
+                var password = $("#id-password").val();
+                if (password) {
                     data = {
+                        proxy_password: password,
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     }
+                    url = "{% url 'api:user_settings' %}"
                     $.post(url, data, function(results) {
                         info = results
-                        swal(info.title, info.subtitle, info.status).then(function() {
-                            location.reload();
-                        })
+                        swal(info.title, info.subtitle, info.status)
                     })
+                } else {
+                    swal('错误！', '请输入密码', 'error')
                 }
-                restSubButton.click(restSubButtonReq)
-            </script>
-        {% endblock authed %}
+            }
+            PasswordButton.click(changePassword)
+
+
+            // 订阅中心
+            subInput = $("#id-sub-link")[0]
+            $(".dropdown .button").click(function() {
+                var dropdown = $(this).parents('.dropdown');
+                dropdown.toggleClass('is-active');
+            });
+
+            $(".dropdown-item").click(function() {
+                var dropdown = $(this).parents('.dropdown');
+                dropdown.toggleClass('is-active');
+                var span = $(dropdown).find('.display-content')[0];
+                span.innerText = $(this).data("display")
+
+                // gen sublink
+                url = new URL(subInput.value)
+                url.searchParams.set($(this).data("query"), $(this).data("display"))
+                subInput.value = url.toString()
+            });
+
+
+            // 复制订阅地址
+            var clip = new Clipboard('#id-button-clip');
+            clip.on('success', function(e) {
+                swal("复制成功", "订阅地址已复制到剪贴板", "success");
+            });
+
+
+
+            // 重置订阅连接
+            var restSubButton = $("#id-reset-sub-link")
+            var restSubButtonReq = function() {
+                url = "{% url 'api:rest_sub_uid' %}"
+                data = {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                }
+                $.post(url, data, function(results) {
+                    info = results
+                    swal(info.title, info.subtitle, info.status).then(function() {
+                        location.reload();
+                    })
+                })
+            }
+            restSubButton.click(restSubButtonReq)
+        });
+    </script>
+{% endblock extra_js %}

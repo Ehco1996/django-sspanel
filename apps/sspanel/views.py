@@ -29,6 +29,7 @@ from apps.sspanel.models import (
     UserSocialProfile,
 )
 from apps.utils import get_current_datetime, traffic_format
+from apps.sub import UserSubManager
 
 
 class HelpView(View):
@@ -222,6 +223,7 @@ class UserInfoView(LoginRequiredMixin, View):
             "sub_link": user.sub_link,
             "active_node_count": user_active_nodes.count(),
             "active_node_types": user_active_nodes_types,
+            "supported_clients": UserSubManager.CLIENT_SET,
             "usp_list": UserSocialProfile.list_by_user_id(user.id),
         }
         Announcement.send_first_visit_msg(request)
