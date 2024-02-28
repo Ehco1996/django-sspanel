@@ -48,9 +48,7 @@ class UserSettingsView(View):
 
     @method_decorator(login_required)
     def post(self, request):
-        if success := request.user.update_proxy_config_from_dict(
-            data=dict(request.POST.items())
-        ):
+        if request.user.update_proxy_config_from_dict(data=dict(request.POST.items())):
             data = {
                 "title": "修改成功!",
                 "status": "success",
@@ -300,7 +298,9 @@ def purchase(request):
             }
         )
         if good.purchase_by_user(request.user)
-        else JsonResponse({"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"})
+        else JsonResponse(
+            {"title": "余额不足", "status": "error", "subtitle": "先去捐赠充值那充值"}
+        )
     )
 
 
@@ -340,7 +340,7 @@ def reset_sub_uid(request):
 @require_http_methods(["POST"])
 def ailpay_callback(request):
     data = request.POST.dict()
-    if success := UserOrder.handle_callback_by_alipay(data):
+    if UserOrder.handle_callback_by_alipay(data):
         return HttpResponse("success")
     else:
         return HttpResponse("failure")

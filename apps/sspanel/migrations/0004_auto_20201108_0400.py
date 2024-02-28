@@ -97,13 +97,19 @@ class Migration(migrations.Migration):
                 (
                     "ehco_listen_host",
                     models.CharField(
-                        blank=True, max_length=64, null=True, verbose_name="隧道监听地址"
+                        blank=True,
+                        max_length=64,
+                        null=True,
+                        verbose_name="隧道监听地址",
                     ),
                 ),
                 (
                     "ehco_listen_port",
                     models.CharField(
-                        blank=True, max_length=64, null=True, verbose_name="隧道监听端口"
+                        blank=True,
+                        max_length=64,
+                        null=True,
+                        verbose_name="隧道监听端口",
                     ),
                 ),
                 (
@@ -133,13 +139,18 @@ class Migration(migrations.Migration):
                 ("server", models.CharField(max_length=128, verbose_name="服务器地址")),
                 (
                     "inbound_tag",
-                    models.CharField(default="proxy", max_length=64, verbose_name="标签"),
+                    models.CharField(
+                        default="proxy", max_length=64, verbose_name="标签"
+                    ),
                 ),
                 (
                     "service_port",
                     models.IntegerField(default=443, verbose_name="服务端端口"),
                 ),
-                ("client_port", models.IntegerField(default=443, verbose_name="客户端端口")),
+                (
+                    "client_port",
+                    models.IntegerField(default=443, verbose_name="客户端端口"),
+                ),
                 (
                     "listen_host",
                     models.CharField(
@@ -160,7 +171,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "network",
-                    models.CharField(default="tcp", max_length=64, verbose_name="连接方式"),
+                    models.CharField(
+                        default="tcp", max_length=64, verbose_name="连接方式"
+                    ),
                 ),
                 (
                     "security",
@@ -244,7 +257,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("relay_port", models.CharField(max_length=64, verbose_name="中转端口")),
+                (
+                    "relay_port",
+                    models.CharField(max_length=64, verbose_name="中转端口"),
+                ),
                 (
                     "listen_type",
                     models.CharField(

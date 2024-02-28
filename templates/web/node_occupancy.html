@@ -1,279 +1,234 @@
-{% extends 'base.html' %} {% block authed %}
-<div class="column is-12">
-    <section class="hero is-warning is-smaill">
-        <div class="hero-body">
-            <div class="container">
-                <h1 class="title">独享节点</h1>
-                <h2 class="subtitle">
-                    受够了和别人共享节点?来买一个独享节点吧 :)
-                </h2>
-            </div>
-        </div>
-    </section>
-</div>
-
-<div class="column is-12">
-    <nav class="level box">
-        <div class="level-item has-text-centered">
-            <div>
-                <p class="heading">用户名:</p>
-                <p class="title">{{ user }}</p>
-            </div>
-        </div>
-        <div class="level-item has-text-centered">
-            <div>
-                <p class="heading">余额：</p>
-                <p class="title">{{ user.balance }}</p>
-            </div>
-        </div>
-    </nav>
-</div>
-
-<div class="column is-12">
-    <div class="box">
-        <div class="tabs is-centered">
-            <ul>
-                <li class="is-active">
-                    <a data-price-table-id="id-pricing-table-purchasable"
-                        >可购买</a
-                    >
-                </li>
-                <li>
-                    <a data-price-table-id="id-pricing-table-renewable"
-                        >可续费</a
-                    >
-                </li>
-            </ul>
-        </div>
-        <div class="pricing-table" id="id-pricing-table-purchasable">
-            {% for node in purchasable_proxy_nodes %}
-            <div
-                class="pricing-plan {{ node.occupancy_config.color }} {{ node.occupancy_config.bulma_is_active }} "
-            >
-                <div class="plan-header">{{ node.name }}</div>
-                <div class="plan-price">
-                    <span class="plan-price-amount">
-                        <span class="plan-price-currency">￥</span>{{ node.occupancy_config.occupancy_price }} </span
-                    >/月
+{% extends 'base.html' %}
+{% block authed %}
+    <div class="column is-12">
+        <section class="hero is-warning is-smaill">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">独享节点</h1>
+                    <h2 class="subtitle">受够了和别人共享节点?来买一个独享节点吧 :)</h2>
                 </div>
-                <div class="plan-items">
-                    <div class="plan-item">
-                        类型：
-                        <span class="tag {{ node.occupancy_config.color }}"
-                            >{{ node.node_type }}</span
-                        >
-                    </div>
-                    <div class="plan-item">
-                        地区：{{ node.country }}
-                        <span class="icon">
-                            <i
-                                class="flag-icon flag-icon-{{ node.country | lower }}"
-                            ></i>
-                        </span>
-                    </div>
-                    <div class="plan-item">
-                        月流量：{{ node.occupancy_config.human_occupancy_traffic }}
-                    </div>
-                    <div class="plan-item">
-                        备注：{{ node.occupancy_config.remark }}
-                    </div>
-                </div>
-                <form
-                    method="post"
-                    action="{% url 'sspanel:node_occupancy' %}"
-                    onsubmit="return confirm('是否购买？')"
-                >
-                    {% csrf_token %}
-                    <div class="plan-footer">
-                        <button class="button is-fullwidth" type="submit">
-                            购买
-                        </button>
-                    </div>
-                    <input type="hidden" name="node_id" value="{{ node.pk }}" />
-                </form>
             </div>
-            {% empty %}
-            <p class="subtitle">被富哥买完啦,请发工单联系站长补货...</p>
-            {% endfor %}
-        </div>
-        <div class="pricing-table is-hidden" id="id-pricing-table-renewable">
-            {% for node in renewable_proxy_nodes %}
-            <div
-                class="pricing-plan {{ node.occupancy_config.color }} {{ node.occupancy_config.bulma_is_active }} "
-            >
-                <div class="plan-header">{{ node.name }}</div>
-                <div class="plan-price">
-                    <span class="plan-price-amount">
-                        <span class="plan-price-currency">￥</span>{{ node.occupancy_config.occupancy_price }}</span
-                    >/月
-                </div>
-                <div class="plan-items">
-                    <div class="plan-item">
-                        类型：
-                        <span class="tag {{ node.occupancy_config.color }}"
-                            >{{ node.node_type }}</span
-                        >
-                    </div>
-                    <div class="plan-item">
-                        地区：{{ node.country }}
-                        <span class="icon">
-                            <i
-                                class="flag-icon flag-icon-{{ node.country | lower }}"
-                            ></i>
-                        </span>
-                    </div>
-                    <div class="plan-item">
-                        月流量：{{ node.occupancy_config.human_occupancy_traffic }}
-                    </div>
-                    <div class="plan-item">
-                        备注：{{ node.occupancy_config.remark }}
-                    </div>
-                </div>
-                <form
-                    method="post"
-                    action="{% url 'sspanel:node_occupancy' %}"
-                    onsubmit="return confirm('是否续费？')"
-                >
-                    {% csrf_token %}
-                    <div class="plan-footer">
-                        <button class="button is-fullwidth" type="submit">
-                            续费
-                        </button>
-                    </div>
-                    <input type="hidden" name="node_id" value="{{ node.pk }}" />
-                </form>
-            </div>
-            {% endfor %}
-        </div>
+        </section>
     </div>
-</div>
-
-<div class="column is-12">
-    <div class="box">
-        <nav class="panel is-info">
-            <p class="panel-heading">已购买</p>
-            <p class="panel-tabs">
-                <a class="is-active" id="tab-usable">可使用</a>
-                <a id="tab-outdated">已过期</a>
-            </p>
-            <a class="panel-block" id="block-usable">
-                <table class="table is-striped is-fullwidth">
-                    <thead>
-                        <tr>
-                            <th>节点</th>
-                            <th>开始时间</th>
-                            <th>到期时间</th>
-                            <th>已用流量</th>
-                            <th>总流量</th>
-                            <th>流量进度</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for o in usable_occupies %}
-                        <tr>
-                            <td>{{ o.proxy_node.name }}</td>
-                            <td>{{ o.start_time }}</td>
-                            <td>{{ o.end_time }}</td>
-                            <td>{{ o.human_used_traffic }}</td>
-                            <td>{{ o.human_total_traffic }}</td>
-                            <td>
-                                <progress
-                                    class="progress {{ o.progress_color }}"
-                                    value="{{ o.used_traffic }}"
-                                    max="{{ o.total_traffic }}"
-                                ></progress
-                                >{{ o.used_percentage }}%
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </a>
-            <a class="panel-block is-hidden" id="block-outdated">
-                <table class="table is-striped is-fullwidth">
-                    <thead>
-                        <tr>
-                            <th>节点</th>
-                            <th>开始时间</th>
-                            <th>到期时间</th>
-                            <th>已用流量</th>
-                            <th>总流量</th>
-                            <th>流量进度</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for o in outdated_occupies %}
-                        <tr>
-                            <td>{{ o.proxy_node.name }}</td>
-                            <td>{{ o.start_time }}</td>
-                            <td>{{ o.end_time }}</td>
-                            <td>{{ o.human_used_traffic }}</td>
-                            <td>{{ o.human_total_traffic }}</td>
-                            <td>
-                                <progress
-                                    class="progress {{ o.progress_color }}"
-                                    value="{{ o.used_traffic }}"
-                                    max="{{ o.total_traffic }}"
-                                ></progress
-                                >{{ o.used_percentage }}%
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </a>
+    <div class="column is-12">
+        <nav class="level box">
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">用户名:</p>
+                    <p class="title">{{ user }}</p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">余额：</p>
+                    <p class="title">{{ user.balance }}</p>
+                </div>
+            </div>
         </nav>
     </div>
-</div>
+    <div class="column is-12">
+        <div class="box">
+            <div class="tabs is-centered">
+                <ul>
+                    <li class="is-active">
+                        <a data-price-table-id="id-pricing-table-purchasable">可购买</a>
+                    </li>
+                    <li>
+                        <a data-price-table-id="id-pricing-table-renewable">可续费</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="pricing-table" id="id-pricing-table-purchasable">
+                {% for node in purchasable_proxy_nodes %}
+                    <div class="pricing-plan {{ node.occupancy_config.color }} {{ node.occupancy_config.bulma_is_active }} ">
+                        <div class="plan-header">{{ node.name }}</div>
+                        <div class="plan-price">
+                            <span class="plan-price-amount">
+                                <span class="plan-price-currency">￥</span>{{ node.occupancy_config.occupancy_price }} </span>/月
+                            </div>
+                            <div class="plan-items">
+                                <div class="plan-item">
+                                    类型：
+                                    <span class="tag {{ node.occupancy_config.color }}">{{ node.node_type }}</span>
+                                </div>
+                                <div class="plan-item">
+                                    地区：{{ node.country }}
+                                    <span class="icon">
+                                        <i class="flag-icon flag-icon-{{ node.country | lower }}"></i>
+                                    </span>
+                                </div>
+                                <div class="plan-item">月流量：{{ node.occupancy_config.human_occupancy_traffic }}</div>
+                                <div class="plan-item">备注：{{ node.occupancy_config.remark }}</div>
+                            </div>
+                            <form method="post"
+                                  action="{% url 'sspanel:node_occupancy' %}"
+                                  onsubmit="return confirm('是否购买？')">
+                                {% csrf_token %}
+                                <div class="plan-footer">
+                                    <button class="button is-fullwidth" type="submit">购买</button>
+                                </div>
+                                <input type="hidden" name="node_id" value="{{ node.pk }}" />
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p class="subtitle">被富哥买完啦,请发工单联系站长补货...</p>
+                    {% endfor %}
+                </div>
+                <div class="pricing-table is-hidden" id="id-pricing-table-renewable">
+                    {% for node in renewable_proxy_nodes %}
+                        <div class="pricing-plan {{ node.occupancy_config.color }} {{ node.occupancy_config.bulma_is_active }} ">
+                            <div class="plan-header">{{ node.name }}</div>
+                            <div class="plan-price">
+                                <span class="plan-price-amount">
+                                    <span class="plan-price-currency">￥</span>{{ node.occupancy_config.occupancy_price }}</span>/月
+                                </div>
+                                <div class="plan-items">
+                                    <div class="plan-item">
+                                        类型：
+                                        <span class="tag {{ node.occupancy_config.color }}">{{ node.node_type }}</span>
+                                    </div>
+                                    <div class="plan-item">
+                                        地区：{{ node.country }}
+                                        <span class="icon">
+                                            <i class="flag-icon flag-icon-{{ node.country | lower }}"></i>
+                                        </span>
+                                    </div>
+                                    <div class="plan-item">月流量：{{ node.occupancy_config.human_occupancy_traffic }}</div>
+                                    <div class="plan-item">备注：{{ node.occupancy_config.remark }}</div>
+                                </div>
+                                <form method="post"
+                                      action="{% url 'sspanel:node_occupancy' %}"
+                                      onsubmit="return confirm('是否续费？')">
+                                    {% csrf_token %}
+                                    <div class="plan-footer">
+                                        <button class="button is-fullwidth" type="submit">续费</button>
+                                    </div>
+                                    <input type="hidden" name="node_id" value="{{ node.pk }}" />
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="column is-12">
+                <div class="box">
+                    <nav class="panel is-info">
+                        <p class="panel-heading">已购买</p>
+                        <p class="panel-tabs">
+                            <a class="is-active" id="tab-usable">可使用</a>
+                            <a id="tab-outdated">已过期</a>
+                        </p>
+                        <a class="panel-block" id="block-usable">
+                            <table class="table is-striped is-fullwidth">
+                                <thead>
+                                    <tr>
+                                        <th>节点</th>
+                                        <th>开始时间</th>
+                                        <th>到期时间</th>
+                                        <th>已用流量</th>
+                                        <th>总流量</th>
+                                        <th>流量进度</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for o in usable_occupies %}
+                                        <tr>
+                                            <td>{{ o.proxy_node.name }}</td>
+                                            <td>{{ o.start_time }}</td>
+                                            <td>{{ o.end_time }}</td>
+                                            <td>{{ o.human_used_traffic }}</td>
+                                            <td>{{ o.human_total_traffic }}</td>
+                                            <td>
+                                                <progress class="progress {{ o.progress_color }}"
+                                                          value="{{ o.used_traffic }}"
+                                                          max="{{ o.total_traffic }}"></progress>{{ o.used_percentage }}%
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </a>
+                        <a class="panel-block is-hidden" id="block-outdated">
+                            <table class="table is-striped is-fullwidth">
+                                <thead>
+                                    <tr>
+                                        <th>节点</th>
+                                        <th>开始时间</th>
+                                        <th>到期时间</th>
+                                        <th>已用流量</th>
+                                        <th>总流量</th>
+                                        <th>流量进度</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for o in outdated_occupies %}
+                                        <tr>
+                                            <td>{{ o.proxy_node.name }}</td>
+                                            <td>{{ o.start_time }}</td>
+                                            <td>{{ o.end_time }}</td>
+                                            <td>{{ o.human_used_traffic }}</td>
+                                            <td>{{ o.human_total_traffic }}</td>
+                                            <td>
+                                                <progress class="progress {{ o.progress_color }}"
+                                                          value="{{ o.used_traffic }}"
+                                                          max="{{ o.total_traffic }}"></progress>{{ o.used_percentage }}%
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            <script>
+                // when click tab-usable, add class is-active to tab and block and hide block-outdated
+                $("#tab-usable").click(function() {
+                    // for tab
+                    $("#tab-usable").addClass("is-active");
+                    $("#tab-outdated").removeClass("is-active");
 
-<script>
-    // when click tab-usable, add class is-active to tab and block and hide block-outdated
-    $("#tab-usable").click(function () {
-        // for tab
-        $("#tab-usable").addClass("is-active");
-        $("#tab-outdated").removeClass("is-active");
+                    // for block
+                    $("#block-usable").addClass("is-active");
+                    $("#block-usable").removeClass("is-hidden");
+                    $("#block-outdated").removeClass("is-active");
+                    $("#block-outdated").addClass("is-hidden");
+                });
 
-        // for block
-        $("#block-usable").addClass("is-active");
-        $("#block-usable").removeClass("is-hidden");
-        $("#block-outdated").removeClass("is-active");
-        $("#block-outdated").addClass("is-hidden");
-    });
+                // when click tab-outdated, add class is-active to tab and block and hide block-usable
+                $("#tab-outdated").click(function() {
+                    // for tab
+                    $("#tab-outdated").addClass("is-active");
+                    $("#tab-usable").removeClass("is-active");
 
-    // when click tab-outdated, add class is-active to tab and block and hide block-usable
-    $("#tab-outdated").click(function () {
-        // for tab
-        $("#tab-outdated").addClass("is-active");
-        $("#tab-usable").removeClass("is-active");
+                    // for block
+                    $("#block-outdated").addClass("is-active");
+                    $("#block-outdated").removeClass("is-hidden");
+                    $("#block-usable").removeClass("is-active");
+                    $("#block-usable").addClass("is-hidden");
+                });
 
-        // for block
-        $("#block-outdated").addClass("is-active");
-        $("#block-outdated").removeClass("is-hidden");
-        $("#block-usable").removeClass("is-active");
-        $("#block-usable").addClass("is-hidden");
-    });
+                $(document).ready(function() {
+                    // Get all tab elements
+                    var tabs = $(".tabs");
 
-    $(document).ready(function () {
-        // Get all tab elements
-        var tabs = $(".tabs");
+                    // Add click event listener to each tab
+                    tabs.find("li").on("click", function() {
+                        // Remove active class from all tabs
+                        tabs.find("li").removeClass("is-active");
+                        // Add active class to the clicked tab
+                        $(this).addClass("is-active");
 
-        // Add click event listener to each tab
-        tabs.find("li").on("click", function () {
-            // Remove active class from all tabs
-            tabs.find("li").removeClass("is-active");
-            // Add active class to the clicked tab
-            $(this).addClass("is-active");
+                        // Get the data-price-table-id attribute of the clicked tab
+                        var priceTableId = $(this).find("a").attr("data-price-table-id");
+                        console.log("priceTableId:", priceTableId);
+                        // Hide all price tables
+                        $(".pricing-table").addClass("is-hidden");
 
-            // Get the data-price-table-id attribute of the clicked tab
-            var priceTableId = $(this).find("a").attr("data-price-table-id");
-            console.log("priceTableId:", priceTableId);
-            // Hide all price tables
-            $(".pricing-table").addClass("is-hidden");
-
-            // add is-active class to the price table
-            $("#" + priceTableId).removeClass("is-hidden");
-            $("#" + priceTableId).addClass("is-active");
-        });
-    });
-</script>
-{% endblock authed %}
+                        // add is-active class to the price table
+                        $("#" + priceTableId).removeClass("is-hidden");
+                        $("#" + priceTableId).addClass("is-active");
+                    });
+                });
+            </script>
+        {% endblock authed %}

@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib import admin, messages
-from django.db import models
 from django.db.models import F
 from django.utils.safestring import mark_safe
 

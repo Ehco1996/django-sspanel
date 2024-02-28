@@ -63,18 +63,18 @@
         </div>
     </div>
     <script>
-    // 点击复制
-    var clip = new Clipboard("#id-button-clip");
-    clip.on("success", function (e) {
-        $(".copied").show();
-        $(".copied").fadeOut(1000);
-    });
-    var genRefChart = function () {
-        url = "{% url 'api:user_ref_chart' %}";
-        $.get(url, function (results) {
-            genBarChart("id-ref-canvas", results);
+        // 点击复制
+        var clip = new Clipboard("#id-button-clip");
+        clip.on("success", function(e) {
+            $(".copied").show();
+            $(".copied").fadeOut(1000);
         });
-    };
-    genRefChart();
+        var genRefChart = function() {
+            url = "{% url 'api:user_ref_chart' %}";
+            $.get(url, function(results) {
+                genBarChart("id-ref-canvas", results);
+            });
+        };
+        genRefChart();
     </script>
 {% endblock authed %}

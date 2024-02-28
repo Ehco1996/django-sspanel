@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load ehcofilter %}
-
 {% block un-authed %}
     <div class="column is-12">
         <section class="hero is-info is-smaill">
@@ -12,7 +11,6 @@
             </div>
         </section>
     </div>
-
     <div class="column is-12">
         <div class="box">
             <form class="form" action="{% url 'sspanel:login' %}" method="post">
@@ -39,7 +37,6 @@
                         </p>
                     {% endif %}
                     {% settings_value "USE_SMTP" as use_smtp %}
-
                     {% if use_smtp %}
                         <p class="control">
                             <a class="button is-info is-outlined" href="{% url 'password_reset' %}">忘记密码</a>
@@ -56,9 +53,7 @@
             </form>
         </div>
     </div>
-
 {% endblock un-authed %}
-
 {% block authed %}
     <div class="column is-12">
         <div class="box">

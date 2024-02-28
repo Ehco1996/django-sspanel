@@ -175,7 +175,9 @@ class DashBoardManger:
         )
         dt_list = sorted(dt_list)
         return {
-            "title": "节点 {} 当月共消耗：{}".format(proxy_node.name, user_total_traffic),
+            "title": "节点 {} 当月共消耗：{}".format(
+                proxy_node.name, user_total_traffic
+            ),
             "labels": ["{}-{}".format(t.month, t.day) for t in dt_list],
             "data": [
                 pm.UserTrafficLog.calc_traffic_by_datetime(dt, user_id, proxy_node)

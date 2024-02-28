@@ -13,7 +13,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name="userproxynodeoccupancy",
-            options={"verbose_name": "用户占用记录", "verbose_name_plural": "用户占用记录"},
+            options={
+                "verbose_name": "用户占用记录",
+                "verbose_name_plural": "用户占用记录",
+            },
         ),
         migrations.AddField(
             model_name="relaynode",

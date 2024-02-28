@@ -80,7 +80,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "start_time",
-                    models.DateTimeField(auto_now_add=True, verbose_name="开始占用时间"),
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="开始占用时间"
+                    ),
                 ),
                 ("end_time", models.DateTimeField(verbose_name="结束占用时间")),
                 (

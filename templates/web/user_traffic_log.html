@@ -44,18 +44,18 @@
         </div>
     </div>
     <script>
-    // 流量记录查询部分
-    queryButton = $("#id-button-query");
-    var traffic_query = function () {
-        url = "{% url 'api:user_traffic_chart' %}";
-        var options = $("#id-select-nodes option:selected");
-        var data = {
-            node_id: options.attr("node-id"),
+        // 流量记录查询部分
+        queryButton = $("#id-button-query");
+        var traffic_query = function() {
+            url = "{% url 'api:user_traffic_chart' %}";
+            var options = $("#id-select-nodes option:selected");
+            var data = {
+                node_id: options.attr("node-id"),
+            };
+            $.get(url, data, function(results) {
+                genLineChart("traffic", results);
+            });
         };
-        $.get(url, data, function (results) {
-            genLineChart("traffic", results);
-        });
-    };
-    queryButton.click(traffic_query);
+        queryButton.click(traffic_query);
     </script>
 {% endblock authed %}

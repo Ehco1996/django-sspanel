@@ -12,6 +12,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="purchasehistory",
             name="good_name",
-            field=models.CharField(db_index=True, max_length=128, verbose_name="商品名"),
+            field=models.CharField(
+                db_index=True, max_length=128, verbose_name="商品名"
+            ),
         ),
     ]

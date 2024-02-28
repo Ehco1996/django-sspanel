@@ -9,15 +9,16 @@ update:
 	poetry update
 
 fmt:
-	autoflake --recursive --remove-all-unused-imports --in-place . && isort . && black .
-	echo "fmt django templates"
+	isort .
+	ruff format .
+	djlint --reformat .
 
 fmt-templates:
 	djlint --reformat templates/
 
 check:
 	isort --check .
-	black  --check .
+	ruff check .
 
 runserver:
 	$(PM) runserver 0.0.0.0:8000

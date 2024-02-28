@@ -27,7 +27,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "fallback_addr",
-                    models.CharField(default="", max_length=32, verbose_name="回落地址"),
+                    models.CharField(
+                        default="", max_length=32, verbose_name="回落地址"
+                    ),
                 ),
                 (
                     "multi_user_port",

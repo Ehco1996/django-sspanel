@@ -179,7 +179,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "invitecode_num",
-                    models.PositiveIntegerField(default=5, verbose_name="可生成的邀请码数量"),
+                    models.PositiveIntegerField(
+                        default=5, verbose_name="可生成的邀请码数量"
+                    ),
                 ),
                 (
                     "level",
@@ -248,7 +250,10 @@ class Migration(migrations.Migration):
                 (
                     "last_use_time",
                     models.DateTimeField(
-                        blank=True, db_index=True, null=True, verbose_name="上次使用时间"
+                        blank=True,
+                        db_index=True,
+                        null=True,
+                        verbose_name="上次使用时间",
                     ),
                 ),
                 (
@@ -391,7 +396,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "transfer",
-                    models.BigIntegerField(default=1073741824, verbose_name="增加的流量"),
+                    models.BigIntegerField(
+                        default=1073741824, verbose_name="增加的流量"
+                    ),
                 ),
                 (
                     "money",
@@ -429,7 +436,9 @@ class Migration(migrations.Migration):
                 (
                     "status",
                     models.SmallIntegerField(
-                        choices=[(1, "上架"), (-1, "下架")], default=1, verbose_name="商品状态"
+                        choices=[(1, "上架"), (-1, "下架")],
+                        default=1,
+                        verbose_name="商品状态",
                     ),
                 ),
                 (
@@ -448,7 +457,9 @@ class Migration(migrations.Migration):
                 (
                     "code_type",
                     models.IntegerField(
-                        choices=[(1, "公开"), (0, "不公开")], default=0, verbose_name="类型"
+                        choices=[(1, "公开"), (0, "不公开")],
+                        default=0,
+                        verbose_name="类型",
                     ),
                 ),
                 (
@@ -492,7 +503,10 @@ class Migration(migrations.Migration):
                         blank=True, max_length=128, null=True, verbose_name="用户名"
                     ),
                 ),
-                ("time", models.DateTimeField(auto_now_add=True, verbose_name="捐赠时间")),
+                (
+                    "time",
+                    models.DateTimeField(auto_now_add=True, verbose_name="捐赠时间"),
+                ),
                 (
                     "code",
                     models.CharField(
@@ -619,7 +633,9 @@ class Migration(migrations.Migration):
                 (
                     "status",
                     models.SmallIntegerField(
-                        choices=[(1, "开启"), (-1, "关闭")], default=1, verbose_name="状态"
+                        choices=[(1, "开启"), (-1, "关闭")],
+                        default=1,
+                        verbose_name="状态",
                     ),
                 ),
                 (
@@ -664,7 +680,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "qrcode_url",
-                    models.CharField(max_length=512, null=True, verbose_name="支付连接"),
+                    models.CharField(
+                        max_length=512, null=True, verbose_name="支付连接"
+                    ),
                 ),
                 (
                     "amount",
@@ -950,7 +968,9 @@ class Migration(migrations.Migration):
                 ("server", models.CharField(max_length=128, verbose_name="服务器地址")),
                 (
                     "inbound_tag",
-                    models.CharField(default="proxy", max_length=64, verbose_name="标签"),
+                    models.CharField(
+                        default="proxy", max_length=64, verbose_name="标签"
+                    ),
                 ),
                 ("alter_id", models.IntegerField(default=1, verbose_name="额外ID数量")),
                 (
@@ -1003,13 +1023,19 @@ class Migration(migrations.Migration):
                 (
                     "ehco_listen_host",
                     models.CharField(
-                        blank=True, max_length=64, null=True, verbose_name="隧道监听地址"
+                        blank=True,
+                        max_length=64,
+                        null=True,
+                        verbose_name="隧道监听地址",
                     ),
                 ),
                 (
                     "ehco_listen_port",
                     models.CharField(
-                        blank=True, max_length=64, null=True, verbose_name="隧道监听端口"
+                        blank=True,
+                        max_length=64,
+                        null=True,
+                        verbose_name="隧道监听端口",
                     ),
                 ),
                 (
@@ -1145,19 +1171,28 @@ class Migration(migrations.Migration):
                 (
                     "port",
                     models.IntegerField(
-                        blank=True, help_text="单端口多用户端口", null=True, verbose_name="单端口"
+                        blank=True,
+                        help_text="单端口多用户端口",
+                        null=True,
+                        verbose_name="单端口",
                     ),
                 ),
                 (
                     "ehco_listen_host",
                     models.CharField(
-                        blank=True, max_length=64, null=True, verbose_name="隧道监听地址"
+                        blank=True,
+                        max_length=64,
+                        null=True,
+                        verbose_name="隧道监听地址",
                     ),
                 ),
                 (
                     "ehco_listen_port",
                     models.CharField(
-                        blank=True, max_length=64, null=True, verbose_name="隧道监听端口"
+                        blank=True,
+                        max_length=64,
+                        null=True,
+                        verbose_name="隧道监听端口",
                     ),
                 ),
                 (
@@ -1315,7 +1350,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("relay_port", models.CharField(max_length=64, verbose_name="中转端口")),
+                (
+                    "relay_port",
+                    models.CharField(max_length=64, verbose_name="中转端口"),
+                ),
                 (
                     "ss_node",
                     models.ForeignKey(
@@ -1371,7 +1409,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("relay_port", models.CharField(max_length=64, verbose_name="中转端口")),
+                (
+                    "relay_port",
+                    models.CharField(max_length=64, verbose_name="中转端口"),
+                ),
                 (
                     "vmess_node",
                     models.ForeignKey(

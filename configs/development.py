@@ -1,4 +1,7 @@
-from configs.default import *  # noqa
+# flake8: noqa
+import os
+
+from configs.default import *
 
 # NOTE for django debug toolbar
 DEBUG = True

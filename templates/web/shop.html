@@ -103,21 +103,21 @@
             </div>
         </div>
         <script>
-    var goodList = $("#id-goodlist")
-    // 事件委托绑定按钮
-    goodList.on('click', '#id-button-pruchase', function (event) {
-        var button = $(event.target)
-        var good = button.closest('.modal-card-body')
-        // 找到节点id
-        var goodId = good.data('id')
-        data = {
-            csrfmiddlewaretoken: "{{ csrf_token }}",
-            goodId: goodId
-        }
-        url = "{% url 'api:purchase' %}"
-        $.post(url, data, function (results) {
-            swal(results.title, results.subtitle, results.status)
-        })
-    })
+            var goodList = $("#id-goodlist")
+            // 事件委托绑定按钮
+            goodList.on('click', '#id-button-pruchase', function(event) {
+                var button = $(event.target)
+                var good = button.closest('.modal-card-body')
+                // 找到节点id
+                var goodId = good.data('id')
+                data = {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    goodId: goodId
+                }
+                url = "{% url 'api:purchase' %}"
+                $.post(url, data, function(results) {
+                    swal(results.title, results.subtitle, results.status)
+                })
+            })
         </script>
     {% endblock authed %}

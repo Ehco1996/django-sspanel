@@ -47,7 +47,9 @@ class User(AbstractUser):
     level = models.PositiveIntegerField(
         verbose_name="用户等级", default=0, validators=[MinValueValidator(0)]
     )
-    level_expire_time = models.DateTimeField(verbose_name="等级有效期", default=timezone.now)
+    level_expire_time = models.DateTimeField(
+        verbose_name="等级有效期", default=timezone.now
+    )
     theme = models.CharField(
         verbose_name="主题",
         choices=c.THEME_CHOICES,
@@ -64,8 +66,12 @@ class User(AbstractUser):
     upload_traffic = models.BigIntegerField("上传流量", default=0)
     download_traffic = models.BigIntegerField("下载流量", default=0)
     total_traffic = models.BigIntegerField("总流量", default=settings.DEFAULT_TRAFFIC)
-    last_use_time = models.DateTimeField("上次使用时间", blank=True, db_index=True, null=True)
-    uid = models.UUIDField("uid", null=True, unique=True)  # NOTE 不要用用这个 uid 当主键，是有可能会变的
+    last_use_time = models.DateTimeField(
+        "上次使用时间", blank=True, db_index=True, null=True
+    )
+    uid = models.UUIDField(
+        "uid", null=True, unique=True
+    )  # NOTE 不要用用这个 uid 当主键，是有可能会变的
 
     class Meta(AbstractUser.Meta):
         verbose_name = "用户"
@@ -257,9 +263,9 @@ class User(AbstractUser):
         try:
             self.save()
             return True
-        except ValidationError as e:
+        except ValidationError:
             return False
-        except IntegrityError as e:
+        except IntegrityError:
             return False
 
     def reset_traffic(self, new_traffic):
@@ -732,7 +738,9 @@ class Donate(models.Model):
 class MoneyCode(models.Model):
     """充值码"""
 
-    user = models.CharField(verbose_name="使用人", max_length=128, blank=True, null=True)
+    user = models.CharField(
+        verbose_name="使用人", max_length=128, blank=True, null=True
+    )
     time = models.DateTimeField("捐赠时间", editable=False, auto_now_add=True)
     code = models.CharField(
         verbose_name="充值码",
@@ -777,7 +785,9 @@ class Goods(models.Model):
     STATUS_TYPE = ((STATUS_ON, "上架"), (STATUS_OFF, "下架"))
 
     name = models.CharField(verbose_name="商品名字", max_length=128, default="待编辑")
-    content = models.CharField(verbose_name="商品描述", max_length=256, default="待编辑")
+    content = models.CharField(
+        verbose_name="商品描述", max_length=256, default="待编辑"
+    )
     transfer = models.BigIntegerField(verbose_name="增加的流量", default=settings.GB)
     money = models.DecimalField(
         verbose_name="金额",
@@ -1097,7 +1107,3 @@ class EmailSendLog(models.Model):
     class Meta:
         verbose_name = "邮件发送记录"
         verbose_name_plural = "邮件发送记录"
-
-    @classmethod
-    def get_user_dict_by_subject(cls, subject):
-        return {l.user: 1 for l in cls.objects.filter(subject=subject)}

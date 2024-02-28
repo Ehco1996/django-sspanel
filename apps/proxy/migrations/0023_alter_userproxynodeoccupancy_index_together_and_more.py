@@ -17,7 +17,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="userproxynodeoccupancy",
             name="total_traffic",
-            field=models.BigIntegerField(default=1073741824, verbose_name="总流量(单位字节)"),
+            field=models.BigIntegerField(
+                default=1073741824, verbose_name="总流量(单位字节)"
+            ),
         ),
         migrations.AddField(
             model_name="userproxynodeoccupancy",
@@ -61,7 +63,9 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="proxynode",
             name="total_traffic",
-            field=models.BigIntegerField(default=1073741824, verbose_name="总流量(单位字节)"),
+            field=models.BigIntegerField(
+                default=1073741824, verbose_name="总流量(单位字节)"
+            ),
         ),
         migrations.AlterField(
             model_name="proxynode",

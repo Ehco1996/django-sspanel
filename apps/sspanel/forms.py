@@ -108,7 +108,11 @@ class LoginForm(forms.Form):
         label="密码",
         error_messages={"required": "请输入密码"},
         widget=forms.PasswordInput(
-            attrs={"class": "input is-primary", "placeholder": "密码", "type": "password"}
+            attrs={
+                "class": "input is-primary",
+                "placeholder": "密码",
+                "type": "password",
+            }
         ),
     )
 
@@ -133,7 +137,11 @@ class TGLoginForm(forms.Form):
         label="密码",
         error_messages={"required": "请输入密码"},
         widget=forms.PasswordInput(
-            attrs={"class": "input is-primary", "placeholder": "密码", "type": "password"}
+            attrs={
+                "class": "input is-primary",
+                "placeholder": "密码",
+                "type": "password",
+            }
         ),
     )
 

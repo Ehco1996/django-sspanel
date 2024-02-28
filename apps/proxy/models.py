@@ -210,8 +210,12 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     xray_grpc_port = models.IntegerField("xray grpc port", default=23456)
     provider_remark = models.CharField("vps备注", max_length=64, default="")
 
-    ehco_listen_host = models.CharField("隧道监听地址", max_length=64, blank=True, null=True)
-    ehco_listen_port = models.CharField("隧道监听端口", max_length=64, blank=True, null=True)
+    ehco_listen_host = models.CharField(
+        "隧道监听地址", max_length=64, blank=True, null=True
+    )
+    ehco_listen_port = models.CharField(
+        "隧道监听端口", max_length=64, blank=True, null=True
+    )
     ehco_listen_type = models.CharField(
         "隧道监听类型", max_length=64, choices=c.LISTEN_TYPES, default=c.LISTEN_RAW
     )
@@ -231,7 +235,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     ehco_reload_interval = models.IntegerField("配置重载间隔", default=0)
 
     upload_bandwidth_bytes = models.BigIntegerField("上传带宽", default=0)
-    current_used_upload_bandwidth_bytes = models.BigIntegerField("当前使用的上传带宽", default=0)
+    current_used_upload_bandwidth_bytes = models.BigIntegerField(
+        "当前使用的上传带宽", default=0
+    )
     download_bandwidth_bytes = models.BigIntegerField("下载带宽", default=0)
     current_used_download_bandwidth_bytes = models.BigIntegerField(
         "当前使用的下载带宽", default=0
@@ -654,7 +660,9 @@ class RelayNode(BaseNodeModel):
         "Web验证Token", max_length=64, default="", null=True, blank=True
     )
     web_auth_user = models.CharField("Web用户名", max_length=64, null=True, blank=True)
-    web_auth_pass = models.CharField("Web用户密码", max_length=64, null=True, blank=True)
+    web_auth_pass = models.CharField(
+        "Web用户密码", max_length=64, null=True, blank=True
+    )
     reload_interval = models.IntegerField("配置重载间隔(秒)", null=True)
     relay_sync_duration = models.IntegerField("上报间隔(秒)", null=True)
 
@@ -978,7 +986,9 @@ class UserProxyNodeOccupancy(BaseModel):
         ProxyNode, on_delete=models.CASCADE, verbose_name="代理节点"
     )
     start_time = models.DateTimeField(auto_now_add=True, verbose_name="开始占用时间")
-    end_time = models.DateTimeField(null=False, blank=False, verbose_name="结束占用时间")
+    end_time = models.DateTimeField(
+        null=False, blank=False, verbose_name="结束占用时间"
+    )
     used_traffic = models.BigIntegerField("已用流量(单位字节)", default=0)
     total_traffic = models.BigIntegerField("总流量(单位字节)", default=settings.GB)
 

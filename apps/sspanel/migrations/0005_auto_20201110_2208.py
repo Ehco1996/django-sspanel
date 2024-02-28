@@ -34,13 +34,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="trojannode",
             name="skip_cert_verify",
-            field=models.BooleanField(default=False, verbose_name="是否允许不安全连接(跳过tls验证)"),
+            field=models.BooleanField(
+                default=False, verbose_name="是否允许不安全连接(跳过tls验证)"
+            ),
         ),
         migrations.AlterField(
             model_name="ssnode",
             name="server",
             field=models.CharField(
-                help_text="支持逗号分隔传多个地址", max_length=128, verbose_name="服务器地址"
+                help_text="支持逗号分隔传多个地址",
+                max_length=128,
+                verbose_name="服务器地址",
             ),
         ),
         migrations.AlterField(
@@ -53,6 +57,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="trojannode",
             name="security",
-            field=models.CharField(default="tls", max_length=64, verbose_name="加密方式"),
+            field=models.CharField(
+                default="tls", max_length=64, verbose_name="加密方式"
+            ),
         ),
     ]

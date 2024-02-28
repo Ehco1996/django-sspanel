@@ -153,72 +153,72 @@
         </div>
     </div>
     <script>
-    // 支付请求 部分
-    var requestButton = $("#id-button-payrequest")
-    var payinput = $("#id-input-payinput")
-    var codeBox = $("#id-qrcode-box")
-    var msgline = $("#id-msg-line")
-    var url = "{% url 'api:order' %}"
-    var queryTimer
-    const maxRepetitions = 20;
-    let repetitionCount = 0;
+        // 支付请求 部分
+        var requestButton = $("#id-button-payrequest")
+        var payinput = $("#id-input-payinput")
+        var codeBox = $("#id-qrcode-box")
+        var msgline = $("#id-msg-line")
+        var url = "{% url 'api:order' %}"
+        var queryTimer
+        const maxRepetitions = 20;
+        let repetitionCount = 0;
 
-    var payrequest = function () {
-        paynum = payinput.val()
-        if (paynum >= 1 && paynum % 1 == 0) {
-            data = {
-                num: paynum,
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-            }
-            requestButton.attr("disabled", "disabled")
-            $.post(url, data, function (results) {
-                info = results.info
-                swal(info.title, info.subtitle, info.status)
-                if (info.status == "success") {
-                    // 追加二维码图片
-                    codeBox.attr('class', '')
-                    qrcode_url = results.qrcode_url
-                    $("#id-qrcode-canvas").qrcode(qrcode_url)
-                    queryTimer = setInterval(function () {
-                        payquery(true);
-                    }, 3000);
+        var payrequest = function() {
+            paynum = payinput.val()
+            if (paynum >= 1 && paynum % 1 == 0) {
+                data = {
+                    num: paynum,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
                 }
-            })
-        } else {
-            swal('抱歉~', '最少捐赠一元', 'error')
-        }
-    }
-    requestButton.click(payrequest)
-
-    function payquery(byTicker = false) {
-        msgline.html('后台飞速查询结果中，请稍候...');
-        $.getJSON(url, function (results) {
-            info = results.info;
-            if (byTicker == false) {
-                swal(info.title, info.subtitle, info.status);
+                requestButton.attr("disabled", "disabled")
+                $.post(url, data, function(results) {
+                    info = results.info
+                    swal(info.title, info.subtitle, info.status)
+                    if (info.status == "success") {
+                        // 追加二维码图片
+                        codeBox.attr('class', '')
+                        qrcode_url = results.qrcode_url
+                        $("#id-qrcode-canvas").qrcode(qrcode_url)
+                        queryTimer = setInterval(function() {
+                            payquery(true);
+                        }, 3000);
+                    }
+                })
             } else {
-                repetitionCount++;
-                if (repetitionCount >= maxRepetitions) {
-                    clearInterval(queryTimer);
-                    swal("自动查询超时", "请点击按钮手动查询", "error");
-                }
-                // only show msg when success
-                if (info.status == "success") {
-                    // 停止定时器
-                    clearInterval(queryTimer);
+                swal('抱歉~', '最少捐赠一元', 'error')
+            }
+        }
+        requestButton.click(payrequest)
+
+        function payquery(byTicker = false) {
+            msgline.html('后台飞速查询结果中，请稍候...');
+            $.getJSON(url, function(results) {
+                info = results.info;
+                if (byTicker == false) {
                     swal(info.title, info.subtitle, info.status);
                 } else {
-                    console.log("repetitionCount", repetitionCount)
-                    console.log("api return", info)
+                    repetitionCount++;
+                    if (repetitionCount >= maxRepetitions) {
+                        clearInterval(queryTimer);
+                        swal("自动查询超时", "请点击按钮手动查询", "error");
+                    }
+                    // only show msg when success
+                    if (info.status == "success") {
+                        // 停止定时器
+                        clearInterval(queryTimer);
+                        swal(info.title, info.subtitle, info.status);
+                    } else {
+                        console.log("repetitionCount", repetitionCount)
+                        console.log("api return", info)
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    // 支付查询部分
-    queryButton = $("#id-button-query")
-    queryButton.click(function () {
-        payquery(false);
-    });
+        // 支付查询部分
+        queryButton = $("#id-button-query")
+        queryButton.click(function() {
+            payquery(false);
+        });
     </script>
 {% endblock authed %}

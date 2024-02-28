@@ -11,6 +11,9 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name="usersocialprofile",
-            options={"verbose_name": "用户社交资料", "verbose_name_plural": "用户社交资料"},
+            options={
+                "verbose_name": "用户社交资料",
+                "verbose_name_plural": "用户社交资料",
+            },
         ),
     ]

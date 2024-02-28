@@ -58,7 +58,9 @@ class RegisterView(View):
         if form.is_valid():
             user = User.add_new_user(form.cleaned_data)
             if not user:
-                messages.error(request, "服务出现了点小问题", extra_tags="请尝试或者联系站长~")
+                messages.error(
+                    request, "服务出现了点小问题", extra_tags="请尝试或者联系站长~"
+                )
                 return render(request, "web/register.html", {"form": form})
             else:
                 messages.success(request, "自动跳转到用户中心", extra_tags="注册成功！")
@@ -149,7 +151,9 @@ class TelegramLoginView(View):
             password=form.cleaned_data["password"],
         )
         if not user:
-            messages.error(request, "账户不存在(请先注册)/密码不正确！", extra_tags="绑定失败！")
+            messages.error(
+                request, "账户不存在(请先注册)/密码不正确！", extra_tags="绑定失败！"
+            )
             return HttpResponseRedirect(reverse("sspanel:login"))
         usp = UserSocialProfile.get_by_platform_user_id(
             UserSocialProfile.TYPE_TG, form.cleaned_data["tg_user_id"]
@@ -401,5 +405,7 @@ class ProxyNodeOccupancyView(LoginRequiredMixin, View):
             messages.error(request, str(e), extra_tags="购买失败")
             return HttpResponseRedirect(reverse("sspanel:node_occupancy"))
         else:
-            messages.success(request, "更新订阅后使用", extra_tags=f"{node.name} 购买成功!")
+            messages.success(
+                request, "更新订阅后使用", extra_tags=f"{node.name} 购买成功!"
+            )
             return HttpResponseRedirect(reverse("sspanel:node_occupancy"))

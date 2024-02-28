@@ -310,101 +310,106 @@
                 </div>
             </div>
             <script>
-    // 点击复制
-    var clip = new Clipboard('#id-button-clip');
-    clip.on('success', function (e) {
-        $('.copied').show();
-        $('.copied').fadeOut(1000);
-    });
+                // 点击复制
+                var clip = new Clipboard('#id-button-clip');
+                clip.on('success', function(e) {
+                    $('.copied').show();
+                    $('.copied').fadeOut(1000);
+                });
 
-    // 签到
-    var CheckButton = $("#id-checkin")
-    var Checkin = function () {
-        url = "{% url 'api:checkin' %}"
-        data = {
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-        }
-        $.post(url, data, function (results) {
-            info = results
-            swal(info.title, info.subtitle, info.status).then(function () { location.reload(); })
-        })
-    }
-    CheckButton.click(Checkin)
+                // 签到
+                var CheckButton = $("#id-checkin")
+                var Checkin = function() {
+                    url = "{% url 'api:checkin' %}"
+                    data = {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    }
+                    $.post(url, data, function(results) {
+                        info = results
+                        swal(info.title, info.subtitle, info.status).then(function() {
+                            location.reload();
+                        })
+                    })
+                }
+                CheckButton.click(Checkin)
 
-    // 更换主题
-    var ThemeButton = $("#id-button-theme")
-    var changeTheme = function () {
-        var theme = $("select[name=selects]").val();
-        if (theme) {
-            data = {
-                theme: theme,
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-            }
-            url = "{% url 'api:change_theme' %}"
-            $.post(url, data, function (results) {
-                info = results
-                swal(info.title, info.subtitle, info.status).then(function () { location.reload(); })
-            })
-        } else {
-            swal('错误！', '请选择你要更换的主题', 'error')
-        }
-    }
-    ThemeButton.click(changeTheme)
-    // 更换密码
-    var PasswordButton = $("#id-button-password")
-    var changePassword = function () {
-        var password = $("#id-password").val();
-        if (password) {
-            data = {
-                proxy_password: password,
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-            }
-            url = "{% url 'api:user_settings' %}"
-            $.post(url, data, function (results) {
-                info = results
-                swal(info.title, info.subtitle, info.status)
-            })
-        } else {
-            swal('错误！', '请输入密码', 'error')
-        }
-    }
-    PasswordButton.click(changePassword)
-
-
-
-    // 订阅中心
-    subInput = $("#id-sub-link")[0]
-    $(".dropdown .button").click(function () {
-        var dropdown = $(this).parents('.dropdown');
-        dropdown.toggleClass('is-active');
-    });
-
-    $(".dropdown-item").click(function () {
-        var dropdown = $(this).parents('.dropdown');
-        dropdown.toggleClass('is-active');
-        var span = $(dropdown).find('.display-content')[0];
-        span.innerText = $(this).data("display")
-
-        // gen sublink
-        url = new URL(subInput.value)
-        url.searchParams.set($(this).data("query"), $(this).data("display"))
-        subInput.value = url.toString()
-    });
+                // 更换主题
+                var ThemeButton = $("#id-button-theme")
+                var changeTheme = function() {
+                    var theme = $("select[name=selects]").val();
+                    if (theme) {
+                        data = {
+                            theme: theme,
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                        }
+                        url = "{% url 'api:change_theme' %}"
+                        $.post(url, data, function(results) {
+                            info = results
+                            swal(info.title, info.subtitle, info.status).then(function() {
+                                location.reload();
+                            })
+                        })
+                    } else {
+                        swal('错误！', '请选择你要更换的主题', 'error')
+                    }
+                }
+                ThemeButton.click(changeTheme)
+                // 更换密码
+                var PasswordButton = $("#id-button-password")
+                var changePassword = function() {
+                    var password = $("#id-password").val();
+                    if (password) {
+                        data = {
+                            proxy_password: password,
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                        }
+                        url = "{% url 'api:user_settings' %}"
+                        $.post(url, data, function(results) {
+                            info = results
+                            swal(info.title, info.subtitle, info.status)
+                        })
+                    } else {
+                        swal('错误！', '请输入密码', 'error')
+                    }
+                }
+                PasswordButton.click(changePassword)
 
 
-    // 重制订阅
-    var restSubButton = $("#id-reset-sub-link")
-    var restSubButtonReq = function () {
-        url = "{% url 'api:rest_sub_uid' %}"
-        data = {
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-        }
-        $.post(url, data, function (results) {
-            info = results
-            swal(info.title, info.subtitle, info.status).then(function () { location.reload(); })
-        })
-    }
-    restSubButton.click(restSubButtonReq)
 
+                // 订阅中心
+                subInput = $("#id-sub-link")[0]
+                $(".dropdown .button").click(function() {
+                    var dropdown = $(this).parents('.dropdown');
+                    dropdown.toggleClass('is-active');
+                });
+
+                $(".dropdown-item").click(function() {
+                    var dropdown = $(this).parents('.dropdown');
+                    dropdown.toggleClass('is-active');
+                    var span = $(dropdown).find('.display-content')[0];
+                    span.innerText = $(this).data("display")
+
+                    // gen sublink
+                    url = new URL(subInput.value)
+                    url.searchParams.set($(this).data("query"), $(this).data("display"))
+                    subInput.value = url.toString()
+                });
+
+
+                // 重制订阅
+                var restSubButton = $("#id-reset-sub-link")
+                var restSubButtonReq = function() {
+                    url = "{% url 'api:rest_sub_uid' %}"
+                    data = {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    }
+                    $.post(url, data, function(results) {
+                        info = results
+                        swal(info.title, info.subtitle, info.status).then(function() {
+                            location.reload();
+                        })
+                    })
+                }
+                restSubButton.click(restSubButtonReq)
             </script>
         {% endblock authed %}

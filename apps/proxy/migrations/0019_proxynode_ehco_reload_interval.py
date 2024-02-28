@@ -12,6 +12,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="proxynode",
             name="ehco_reload_interval",
-            field=models.IntegerField(default=0, max_length=64, verbose_name="配置重载间隔"),
+            field=models.IntegerField(
+                default=0, max_length=64, verbose_name="配置重载间隔"
+            ),
         ),
     ]

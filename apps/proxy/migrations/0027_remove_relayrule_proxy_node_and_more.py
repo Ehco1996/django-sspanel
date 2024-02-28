@@ -26,14 +26,20 @@ class Migration(migrations.Migration):
             model_name="relayrule",
             name="name",
             field=models.CharField(
-                blank=True, default="", max_length=64, unique=True, verbose_name="规则名"
+                blank=True,
+                default="",
+                max_length=64,
+                unique=True,
+                verbose_name="规则名",
             ),
         ),
         migrations.AddField(
             model_name="relayrule",
             name="proxy_nodes",
             field=models.ManyToManyField(
-                related_name="relay_rules", to="proxy.proxynode", verbose_name="代理节点"
+                related_name="relay_rules",
+                to="proxy.proxynode",
+                verbose_name="代理节点",
             ),
         ),
         migrations.AddField(
