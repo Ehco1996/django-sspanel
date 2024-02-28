@@ -7,29 +7,29 @@
       type="image/x-icon" />
 <!-- css -->
 {% if user.theme and user.theme != "default" %}
-    <link href="https://cdn.staticfile.org/bulmaswatch/0.8.1/{{ user.theme }}/bulmaswatch.min.css"
-          rel="stylesheet" />
+      <link href="https://cdn.staticfile.org/bulmaswatch/0.8.1/{{ user.theme }}/bulmaswatch.min.css"
+            rel="stylesheet" />
 {% else %}
-    <link href="https://cdn.staticfile.org/bulma/0.9.4/css/bulma.min.css"
-          rel="stylesheet" />
+      <link href="https://cdn.staticfile.org/bulma/0.9.4/css/bulma.min.css"
+            rel="stylesheet" />
 {% endif %}
 <link rel="stylesheet" href="{% static 'sspanel/css/sspanel.css' %}" />
 {% if not simple_extra_static or user.is_authenticated %}
-    <link rel="stylesheet"
-          href="https://cdn.staticfile.org/flag-icon-css/3.5.0/css/flag-icon.min.css" />
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css" />
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/fontawesome.min.css" />
+      <link rel="stylesheet"
+            href="https://cdn.staticfile.org/flag-icon-css/3.5.0/css/flag-icon.min.css" />
+      <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css" />
+      <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/fontawesome.min.css" />
 {% endif %}
 <!-- js -->
 <script src="https://cdn.staticfile.org/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.staticfile.org/sweetalert/2.1.2/sweetalert.min.js"></script>
 <script src="{% static 'sspanel/js/sspanel.js' %}"></script>
 {% if not simple_extra_static or user.is_authenticated %}
-    <script src="https://cdn.staticfile.org/clipboard.js/1.7.1/clipboard.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.staticfile.org/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/js/bulma-extensions.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/js/all.min.js"></script>
+      <script src="https://cdn.staticfile.org/clipboard.js/1.7.1/clipboard.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+      <script src="https://cdn.staticfile.org/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/js/bulma-extensions.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/js/all.min.js"></script>
 {% endif %}

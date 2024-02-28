@@ -1,16 +1,45 @@
 {% extends 'base.html' %}
+{% block extra_head %}
+    <script src=" https://cdn.jsdelivr.net/npm/bulma-steps@2.2.1/dist/js/bulma-steps.min.js "></script>
+    <link href=" https://cdn.jsdelivr.net/npm/bulma-steps@2.2.1/dist/css/bulma-steps.min.css "
+          rel="stylesheet">
+{% endblock extra_head %}
+
 {% block authed %}
-    <div class="column">
-        <section class="section">
-            <div class="container">
-                <div class="notification is-warning">
-                    <h1 class="title">公告</h1>
-                    <p class="subtitle">正在装修</p>
-                    <p>我们正在对帮助栏进行装修，在此期间，公告栏将暂时关闭。装修完成后，我们将尽快重新开放。</p>
-                    <p>对于由此造成的不便，我们深表歉意。感谢您的理解和支持。</p>
+    <div class="section">
+        <div class="container">
+            <h1 class="title">如何使用本站</h1>
+            <div class="steps" id="stepsDemo">
+                <div class="step-item is-active">
+                    <div class="step-marker">1</div>
+                    <div class="step-details">
+                        <p class="step-title">捐赠充值</p>
+                        <p>访问左侧导航栏中的「捐赠充值」，选择合适的充值金额进行充值。</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-marker">2</div>
+                    <div class="step-details">
+                        <p class="step-title">购买套餐</p>
+                        <p>在「独享节点」或「共享节点」菜单栏里选择您需要的套餐进行购买。</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-marker">3</div>
+                    <div class="step-details">
+                        <p class="step-title">获取订阅地址</p>
+                        <p>在「用户中心」找到「订阅地址」，复制适合您客户端的订阅地址。</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-marker">4</div>
+                    <div class="step-details">
+                        <p class="step-title">配置客户端</p>
+                        <p>在您的客户端中粘贴复制的订阅地址，根据客户端的指引完成其他配置即可开始使用。</p>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
     </div>
 {% endblock authed %}
 {% block un-authed %}
@@ -61,3 +90,10 @@
         </div>
     </div>
 {% endblock un-authed %}
+{% block extra_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const steps = bulmaSteps.attach();
+        });
+    </script>
+{% endblock extra_js %}

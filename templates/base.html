@@ -7,6 +7,8 @@
         <meta name="keywords" content="{% settings_value " KEYWORDS" %}" />
         <meta name="description" content="{% settings_value " DESCRIPTION" %}" />
         {% include "basehead.html" %}
+        {% block extra_head %}
+        {% endblock extra_head %}
     </head>
     <body>
         <nav class="navbar is-info is-spaced">
@@ -184,4 +186,6 @@
             }
         </script>
     {% endif %}
+    {% block extra_js %}
+    {% endblock extra_js %}
 </html>
