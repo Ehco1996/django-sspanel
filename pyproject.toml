@@ -18,6 +18,9 @@ format_js = true
 format_css = true
 ignore = "T002,H020,H031,H021,H006,H030,D004,D018"
 
+[tool.djlint.js]
+templating = "django"
+
 [tool.poetry]
 authors = ["Ehco1996 <zh19960202@gmail.com>"]
 description = "django sspanel"
