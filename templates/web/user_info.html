@@ -149,9 +149,7 @@
                                 <div class="dropdown-menu" id="dropdown-menu3" role="menu">
                                     {% for client in supported_clients %}
                                         <div class="dropdown-content">
-                                            <a class="dropdown-item"
-                                               data-display="{{ client }}"
-                                               data-query="{{ client }}">{{ client }}</a>
+                                            <a class="dropdown-item" data-display="{{ client }}" data-query="client">{{ client }}</a>
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -364,7 +362,7 @@
 
                 // gen sublink
                 url = new URL(subInput.value)
-                url.searchParams.set("client", $(this).data("display"))
+                url.searchParams.set($(this).data("query"), $(this).data("display"))
                 subInput.value = url.toString()
             });
 
