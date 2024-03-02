@@ -364,7 +364,7 @@
 
                 // gen sublink
                 url = new URL(subInput.value)
-                url.searchParams.set($(this).data("query"), $(this).data("display"))
+                url.searchParams.set("client", $(this).data("display"))
                 subInput.value = url.toString()
             });
 
