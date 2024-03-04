@@ -283,10 +283,17 @@ class User(AbstractUser):
         https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
         """
         if for_android:
-            expire = self.level_expire_time.timestamp()
+            expire = int(self.level_expire_time.timestamp())
+            up = self.upload_traffic
+            down = self.download_traffic
+            total = self.total_traffic
+            info = f"upload={up}; download={down}; total={total}; expire={expire}"
         else:
             expire = self.level_expire_time.date().strftime("%Y-%m-%d")
-        info = f"u={traffic_format(self.upload_traffic)}; d={traffic_format(self.download_traffic)}; t={traffic_format(self.total_traffic)}; expire={expire}"
+            up = traffic_format(self.upload_traffic)
+            down = traffic_format(self.download_traffic)
+            total = traffic_format(self.total_traffic)
+            info = f"u={up}; d={down}; t={total}; expire={expire}"
         return {"Subscription-Userinfo": info}
 
     def reset_sub_uid(self):
