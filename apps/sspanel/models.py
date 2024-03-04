@@ -278,11 +278,14 @@ class User(AbstractUser):
         self.reset_traffic(settings.DEFAULT_TRAFFIC)
         self.save()
 
-    def get_sub_info_header(self):
+    def get_sub_info_header(self, for_android=False):
         """
         https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
         """
-        expire = self.level_expire_time.date().strftime("%Y-%m-%d")
+        if for_android:
+            expire = self.level_expire_time.timestamp()
+        else:
+            expire = self.level_expire_time.date().strftime("%Y-%m-%d")
         info = f"u={traffic_format(self.upload_traffic)}; d={traffic_format(self.download_traffic)}; t={traffic_format(self.total_traffic)}; expire={expire}"
         return {"Subscription-Userinfo": info}
 

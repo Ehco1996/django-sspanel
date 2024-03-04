@@ -91,7 +91,9 @@ class SubscribeView(View):
         return HttpResponse(
             sub_info,
             content_type="text/plain; charset=utf-8",
-            headers=user.get_sub_info_header(),
+            headers=user.get_sub_info_header(
+                for_android=sub_client != UserSubManager.CLIENT_SHADOWROCKET
+            ),
         )
 
 

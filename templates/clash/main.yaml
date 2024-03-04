@@ -45,4 +45,6 @@ proxy-providers:
 {% include "clash/rules.yaml" %}
 {% else %}
 {% include "clash/rule_sets.yaml" %}
+{% endif %}
+
 

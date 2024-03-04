@@ -348,7 +348,9 @@ class TicketDetailView(LoginRequiredMixin, View):
         """添加回复"""
         ticket: Ticket = Ticket.objects.get(pk=pk)
         if ticket.status == -1:
-            messages.error(request, "工单已经关闭,请开启新的工单", extra_tags="回复失败")
+            messages.error(
+                request, "工单已经关闭,请开启新的工单", extra_tags="回复失败"
+            )
             return HttpResponseRedirect(reverse("sspanel:ticket_detail", args=(pk,)))
         ticket.updated_at = get_current_datetime()
         ticket.save()
