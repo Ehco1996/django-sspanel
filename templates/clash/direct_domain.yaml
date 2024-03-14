@@ -1,0 +1,5 @@
+payload:
+    - "clash.razord.top"
+    - "yacd.haishan.me"
+    {% autoescape off %}{% for doamin in domain_list %}
+    - '{{ doamin }}'{% endfor %}{% endautoescape %}

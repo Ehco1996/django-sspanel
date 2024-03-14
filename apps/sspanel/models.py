@@ -255,6 +255,22 @@ class User(AbstractUser):
             + f"/api/subscribe/clash/proxy_providers/?{urlencode(params)}"
         )
 
+    @property
+    def direct_ip_rule_set_endpoint(self):
+        params = {"uid": self.uid}
+        return (
+            settings.SITE_HOST
+            + f"/api/subscribe/clash/direct_ip_rule_set/?{urlencode(params)}"
+        )
+
+    @property
+    def direct_domain_rule_set_endpoint(self):
+        params = {"uid": self.uid}
+        return (
+            settings.SITE_HOST
+            + f"/api/subscribe/clash/direct_domain_rule_set/?{urlencode(params)}"
+        )
+
     def update_proxy_config_from_dict(self, data):
         clean_fields = ["proxy_password"]
         for k, v in data.items():

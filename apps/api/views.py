@@ -5,6 +5,7 @@ import pendulum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -22,6 +23,7 @@ from apps.utils import (
     get_client_ip,
     get_current_datetime,
     handle_json_request,
+    is_ip_address,
     traffic_format,
 )
 
@@ -63,66 +65,113 @@ class UserSettingsView(View):
         return JsonResponse(data)
 
 
-class SubscribeView(View):
-    def get(self, request):
-        user = None
+class UserNodeBaseView(View):
+    def get_user_and_nodes(self, request):
         if uid := request.GET.get("uid"):
-            # check if uid is valid
             try:
                 uuid.UUID(uid)
             except ValueError:
-                return HttpResponseBadRequest("invalid uid")
+                return None, HttpResponseBadRequest("invalid uid")
         else:
-            return HttpResponseBadRequest("uid is required")
+            return None, HttpResponseBadRequest("uid is required")
+
         user = User.objects.filter(uid=uid).first()
         if not user:
-            return HttpResponseBadRequest("user not found")
+            return None, HttpResponseBadRequest("user not found")
+
         node_list = m.ProxyNode.get_user_active_nodes(user)
-
-        if protocol := request.GET.get("protocol"):
-            if protocol in m.ProxyNode.NODE_TYPE_SET:
-                node_list = node_list.filter(node_type=protocol)
-
         if len(node_list) == 0:
-            return HttpResponseBadRequest("no active nodes for you")
+            return None, HttpResponseBadRequest("no active nodes for you")
 
-        sub_client = request.GET.get("client", UserSubManager.CLIENT_CLASH)
-        sub_info = UserSubManager(user, sub_client, node_list).get_sub_info()
-        return HttpResponse(
-            sub_info,
-            content_type="text/plain; charset=utf-8",
-            headers=user.get_sub_info_header(
-                for_android=sub_client != UserSubManager.CLIENT_SHADOWROCKET
-            ),
-        )
+        return user, node_list
 
 
-class ClashProxyProviderView(View):
+class SubscribeView(UserNodeBaseView):
     def get(self, request):
-        user = None
-        if uid := request.GET.get("uid"):
-            # check if uid is valid
+        user, response_or_nodes = self.get_user_and_nodes(request)
+        if response_or_nodes is not HttpResponse:
+            node_list = response_or_nodes
+
+            if protocol := request.GET.get("protocol"):
+                if protocol in m.ProxyNode.NODE_TYPE_SET:
+                    node_list = node_list.filter(node_type=protocol)
+
+            sub_client = request.GET.get("client")
             try:
-                uuid.UUID(uid)
-            except ValueError:
-                return HttpResponseBadRequest("invalid uid")
+                sub_info = UserSubManager(user, node_list, sub_client).get_sub_info()
+            except ValueError as e:
+                return HttpResponseBadRequest(str(e))
+            return HttpResponse(
+                sub_info,
+                content_type="text/plain; charset=utf-8",
+                headers=user.get_sub_info_header(
+                    for_android=sub_client != UserSubManager.CLIENT_SHADOWROCKET
+                ),
+            )
         else:
-            return HttpResponseBadRequest("uid is required")
-        user = User.objects.filter(uid=uid).first()
-        if not user:
-            return HttpResponseBadRequest("user not found")
-        node_list = m.ProxyNode.get_user_active_nodes(user)
-        if len(node_list) == 0:
-            return HttpResponseBadRequest("no active nodes for you")
+            return response_or_nodes
 
-        providers = UserSubManager(
-            user, request.GET.get("sub_type"), node_list
-        ).get_clash_proxy_providers()
 
-        return HttpResponse(
-            providers,
-            content_type="text/plain; charset=utf-8",
-        )
+class ClashProxyProviderView(UserNodeBaseView):
+    def get(self, request):
+        user, response_or_nodes = self.get_user_and_nodes(request)
+        if response_or_nodes is not HttpResponse:
+            node_list = response_or_nodes
+            providers = UserSubManager(user, node_list).get_clash_proxy_providers()
+            return HttpResponse(
+                providers,
+                content_type="text/plain; charset=utf-8",
+            )
+        else:
+            return response_or_nodes
+
+
+class ClashDirectRuleSetBaseView(UserNodeBaseView):
+    def get_rule_set(self, node_list, is_ip: bool):
+        rule_set = set()
+        for node in node_list:
+            if node.enable_relay:
+                for rule in node.get_enabled_relay_rules():
+                    if is_ip == is_ip_address(rule.relay_host):
+                        rule_set.add(rule.relay_host)
+            if node.enable_direct:
+                if is_ip == is_ip_address(node.server):
+                    rule_set.add(node.server)
+        return sorted(rule_set)
+
+
+class ClashDirectDomainRuleSetView(ClashDirectRuleSetBaseView):
+    def get(self, request):
+        _, response_or_nodes = self.get_user_and_nodes(request)
+        if response_or_nodes is not HttpResponse:
+            node_list = response_or_nodes
+            domain_list = self.get_rule_set(node_list, is_ip=False)
+            context = {"domain_list": domain_list}
+            return render(
+                request,
+                "clash/direct_domain.yaml",
+                context=context,
+                content_type="text/plain; charset=utf-8",
+            )
+        else:
+            return response_or_nodes
+
+
+class ClashDirectIPRuleSetView(ClashDirectRuleSetBaseView):
+    def get(self, request):
+        _, response_or_nodes = self.get_user_and_nodes(request)
+        if response_or_nodes is not HttpResponse:
+            node_list = response_or_nodes
+            ip_list = self.get_rule_set(node_list, is_ip=True)
+            context = {"ip_list": ip_list}
+            return render(
+                request,
+                "clash/direct_ip.yaml",
+                context=context,
+                content_type="text/plain; charset=utf-8",
+            )
+        else:
+            return response_or_nodes
 
 
 class UserRefChartView(View):

@@ -1,0 +1,3 @@
+payload:
+{% autoescape off %}{% for ip in ip_list %}
+- '{{ ip }}/32'{% endfor %}{% endautoescape %}
