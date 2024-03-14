@@ -209,6 +209,7 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     enable_udp = models.BooleanField("是否开启UDP 转发", default=True)
     xray_grpc_port = models.IntegerField("xray grpc port", default=23456)
     provider_remark = models.CharField("vps备注", max_length=64, default="")
+    native_ip = models.BooleanField("是否为原生 ip", default=False)
 
     ehco_listen_host = models.CharField(
         "隧道监听地址", max_length=64, blank=True, null=True

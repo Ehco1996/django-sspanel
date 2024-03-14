@@ -247,9 +247,10 @@ class User(AbstractUser):
     def remain_percentage(self):
         return 100.00 - self.used_percentage
 
-    @property
-    def clash_proxy_provider_endpoint(self):
+    def get_clash_proxy_provider_endpoint(self, native_ip=False):
         params = {"uid": self.uid}
+        if native_ip:
+            params["native_ip"] = "true"
         return (
             settings.SITE_HOST
             + f"/api/subscribe/clash/proxy_providers/?{urlencode(params)}"

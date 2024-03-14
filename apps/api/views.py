@@ -80,7 +80,10 @@ class UserNodeBaseView(View):
             return None, HttpResponseBadRequest("user not found")
 
         node_list = m.ProxyNode.get_user_active_nodes(user)
-        if len(node_list) == 0:
+        native_ip = request.GET.get("native_ip")
+        if native_ip:
+            node_list = node_list.filter(native_ip=True)
+        if node_list.count() == 0:
             return None, HttpResponseBadRequest("no active nodes for you")
 
         return user, node_list
@@ -89,7 +92,7 @@ class UserNodeBaseView(View):
 class SubscribeView(UserNodeBaseView):
     def get(self, request):
         user, response_or_nodes = self.get_user_and_nodes(request)
-        if response_or_nodes is not HttpResponse:
+        if not isinstance(response_or_nodes, HttpResponse):
             node_list = response_or_nodes
 
             if protocol := request.GET.get("protocol"):
@@ -115,7 +118,7 @@ class SubscribeView(UserNodeBaseView):
 class ClashProxyProviderView(UserNodeBaseView):
     def get(self, request):
         user, response_or_nodes = self.get_user_and_nodes(request)
-        if response_or_nodes is not HttpResponse:
+        if not isinstance(response_or_nodes, HttpResponse):
             node_list = response_or_nodes
             providers = UserSubManager(user, node_list).get_clash_proxy_providers()
             return HttpResponse(
@@ -143,7 +146,7 @@ class ClashDirectRuleSetBaseView(UserNodeBaseView):
 class ClashDirectDomainRuleSetView(ClashDirectRuleSetBaseView):
     def get(self, request):
         _, response_or_nodes = self.get_user_and_nodes(request)
-        if response_or_nodes is not HttpResponse:
+        if not isinstance(response_or_nodes, HttpResponse):
             node_list = response_or_nodes
             domain_list = self.get_rule_set(node_list, is_ip=False)
             context = {"domain_list": domain_list}
@@ -160,7 +163,7 @@ class ClashDirectDomainRuleSetView(ClashDirectRuleSetBaseView):
 class ClashDirectIPRuleSetView(ClashDirectRuleSetBaseView):
     def get(self, request):
         _, response_or_nodes = self.get_user_and_nodes(request)
-        if response_or_nodes is not HttpResponse:
+        if not isinstance(response_or_nodes, HttpResponse):
             node_list = response_or_nodes
             ip_list = self.get_rule_set(node_list, is_ip=True)
             context = {"ip_list": ip_list}

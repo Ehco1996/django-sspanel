@@ -7,28 +7,17 @@ allow-lan: true
 log-level: info
 external-controller: 0.0.0.0:9090
 
-proxy-providers:
-  {{ provider_name }}:
-    type: http
-    url: {{ proxy_provider_url }}
-    interval: 3600
-    path: ./providers/{{ provider_name }}.yaml
-    health-check:
-      enable: true
-      interval: 300
-      tolerance: 150
-      lazy: true
-      url: http://www.gstatic.com/generate_204
-
-
 proxy-groups:
   - name: PROXY
     type: select
     proxies:
       - auto
     use:
-      - {{ provider_name }}
-
+      - {{ provider_name }}-all
+  - name: PROXY-NATIVE-IP
+    type: select
+    use:
+      - {{ provider_name }}-native-ip
   - name: auto
     type: url-test
     use:
@@ -37,12 +26,36 @@ proxy-groups:
     interval: 300
     tolerance: 150
     lazy: true
-
   - name: Final
     type: select
     proxies:
       - DIRECT
       - PROXY
+      - PROXY-NATIVE-IP
+
+proxy-providers:
+  {{ provider_name }}-all:
+    type: http
+    url: {{ all_proxy_provider_url|safe }}
+    interval: 3600
+    path: ./providers/{{ provider_name }}-all.yaml
+    health-check:
+      enable: true
+      interval: 300
+      tolerance: 150
+      lazy: true
+      url: http://www.gstatic.com/generate_204
+  {{ provider_name }}-native-ip:
+      type: http
+      url: {{ native_ip_proxy_provider_url|safe }}
+      interval: 3600
+      path: ./providers/{{ provider_name }}-native-ip.yaml
+      health-check:
+        enable: true
+        interval: 300
+        tolerance: 150
+        lazy: true
+        url: http://www.gstatic.com/generate_204
 
 rule-providers:
   reject:
@@ -137,24 +150,26 @@ rule-providers:
   direct_domain_list:
     type: http
     behavior: domain
-    url: "{{ direct_domain_rule_set_url }}"
+    url: "{{ direct_domain_rule_set_url |safe }}"
     path: ./ruleset/direct_domain_list.yaml
     interval: 86400
   direct_ip_list:
     type: http
     behavior: ipcidr
-    url: "{{ direct_ip_rule_set_url }}"
+    url: "{{ direct_ip_rule_set_url |safe }}"
     path: ./ruleset/direct_ip_list.yaml
     interval: 86400
 
 rules:
   # OPENAI check  https://github.com/v2fly/domain-list-community/blob/master/data/openai
-  - DOMAIN,chatgpt.com,PROXY
-  - DOMAIN,oaistatic.com,PROXY
-  - DOMAIN,oaiusercontent.com,PROXY
-  - DOMAIN,openai.com,PROXY
-  - DOMAIN-KEYWORD,openai,PROXY
-  - DOMAIN-KEYWORD,openaiapi,PROXY
+  - DOMAIN,chatgpt.com,PROXY-NATIVE-IP
+  - DOMAIN,oaistatic.com,PROXY-NATIVE-IP
+  - DOMAIN,oaiusercontent.com,PROXY-NATIVE-IP
+  - DOMAIN,openai.com,PROXY-NATIVE-IP
+  - DOMAIN-KEYWORD,openai,PROXY-NATIVE-IP
+  - DOMAIN-KEYWORD,openaiapi,PROXY-NATIVE-IP
+  - RULE-SET,netflix,PROXY-NATIVE-IP
+  - RULE-SET,netflixcidr,PROXY-NATIVE-IP
 
   - RULE-SET,reject,REJECT
   - RULE-SET,direct_domain_list,DIRECT

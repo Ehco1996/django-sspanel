@@ -32,7 +32,10 @@ class UserSubManager:
 
     def _get_clash_sub_yaml(self):
         user: User = self.user
-        user_proxy_provider_url = user.clash_proxy_provider_endpoint
+        all_proxy_provider_url = user.get_clash_proxy_provider_endpoint()
+        native_ip_proxy_provider_url = user.get_clash_proxy_provider_endpoint(
+            native_ip=True
+        )
         direct_ip_rule_set_url = user.direct_ip_rule_set_endpoint
         direct_domain_rule_set_url = user.direct_domain_rule_set_endpoint
 
@@ -41,7 +44,8 @@ class UserSubManager:
             {
                 "sub_client": self.sub_client,
                 "provider_name": settings.SITE_TITLE,
-                "proxy_provider_url": user_proxy_provider_url,
+                "all_proxy_provider_url": all_proxy_provider_url,
+                "native_ip_proxy_provider_url": native_ip_proxy_provider_url,
                 "direct_ip_rule_set_url": direct_ip_rule_set_url,
                 "direct_domain_rule_set_url": direct_domain_rule_set_url,
             },
