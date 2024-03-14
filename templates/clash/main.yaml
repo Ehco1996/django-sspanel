@@ -14,14 +14,17 @@ proxy-groups:
       - auto
     use:
       - {{ provider_name }}-all
+
   - name: PROXY-NATIVE-IP
     type: select
     use:
       - {{ provider_name }}-native-ip
+
   - name: auto
     type: url-test
     use:
-      - {{ provider_name }}
+      - {{ provider_name }}-all
+      - {{ provider_name }}-native-ip
     url: "http://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 150
@@ -186,4 +189,3 @@ rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
   - MATCH,Final
-

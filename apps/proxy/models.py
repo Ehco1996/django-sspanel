@@ -195,6 +195,9 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
         ("error", "error"),
     )
 
+    enable_direct = models.BooleanField("允许直连", default=True)
+    enable_udp = models.BooleanField("是否开启UDP 转发", default=True)
+    native_ip = models.BooleanField("是否为原生 ip", default=False)
     node_type = models.CharField(
         "节点类型", default=NODE_TYPE_SS, choices=NODE_CHOICES, max_length=32
     )
@@ -205,11 +208,8 @@ class ProxyNode(BaseNodeModel, SequenceMixin):
     )
     used_traffic = models.BigIntegerField("已用流量(单位字节)", default=0)
     total_traffic = models.BigIntegerField("总流量(单位字节)", default=settings.GB)
-    enable_direct = models.BooleanField("允许直连", default=True)
-    enable_udp = models.BooleanField("是否开启UDP 转发", default=True)
     xray_grpc_port = models.IntegerField("xray grpc port", default=23456)
     provider_remark = models.CharField("vps备注", max_length=64, default="")
-    native_ip = models.BooleanField("是否为原生 ip", default=False)
 
     ehco_listen_host = models.CharField(
         "隧道监听地址", max_length=64, blank=True, null=True
