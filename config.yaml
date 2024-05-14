@@ -66,8 +66,6 @@ params:
     Content: >
       [本面板](https://github.com/Ehco1996/django-sspanel)是用diango开发的Shadowsocks/v2ray多用户管理面板
 
-      - 欢迎加TG群讨论相关问题 [点击加入](https://t.me/Ehcobreakwa11)
-
   socialIcons:
     - name: github
       url: "https://github.com/ehco1996"

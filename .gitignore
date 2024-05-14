@@ -111,3 +111,5 @@ static/
 
 *.log
 go.mod
+
+localdev/
