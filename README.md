@@ -33,3 +33,9 @@
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/Ehco1996/django-sspanel.svg)](https://starchart.cc/Ehco1996/django-sspanel)
+
+### Infrastructure model
+![Infrastructure main model](.infragenie/infrastructure_main_model.svg)
+- [web component model](.infragenie/web_component_model.svg)
+
+---
