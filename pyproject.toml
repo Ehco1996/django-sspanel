@@ -30,7 +30,7 @@ version = "0.1.0"
 package-mode = false
 
 [tool.poetry.dependencies]
-aiohttp = "^3.9.3"
+aiohttp = "^3.10.11"
 Django = "^5.1"
 PyMySQL = "^1.1.0"
 celery = "^5.3.4"
